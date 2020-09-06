@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>jsk-root</artifactId>
+        <groupId>jsk</groupId>
+        <version>jsk.2.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>z-module-4-experiments-only</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>jsk.2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>web-server-spark-spring-melody</artifactId>
+            <version>jsk.2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--                        <plugin>-->
+            <!--                            <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                            <artifactId>maven-shade-plugin</artifactId>-->
+            <!--                            <configuration>-->
+            <!--                                <transformers>-->
+            <!--                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+            <!--                                        <mainClass>jsk.spark.Tst</mainClass>-->
+            <!--                                    </transformer>-->
+            <!--                                </transformers>-->
+            <!--                            </configuration>-->
+            <!--                        </plugin>-->
+            <!--                        <plugin>-->
+            <!--                            <groupId>jsk</groupId>-->
+            <!--                            <artifactId>spring-properties-plugin</artifactId>-->
+            <!--                            <version>jsk.1.0.36</version>-->
+            <!--                            <configuration>-->
+            <!--                                <propertyPathPrefix>super_properties</propertyPathPrefix>-->
+            <!--                            </configuration>-->
+            <!--                            <executions>-->
+            <!--                                <execution>-->
+            <!--                                    <goals>-->
+            <!--                                        <goal>CREATE_META</goal>-->
+            <!--                                    </goals>-->
+            <!--                                    <phase>prepare-package</phase>-->
+            <!--                                </execution>-->
+            <!--                            </executions>-->
+            <!--                        </plugin>-->
+            <!--                        <plugin>-->
+            <!--                            <groupId>jsk</groupId>-->
+            <!--                            <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
+            <!--                            <version>jsk.1.0.36</version>-->
+            <!--                            <configuration>-->
+            <!--                                <apiClasses>-->
+            <!--                                    <param>jsk.spark.TestApi1</param>-->
+            <!--                                    <param>jsk.spark.TestApi2</param>-->
+            <!--                                </apiClasses>-->
+            <!--                                <basePaths>-->
+            <!--                                    <param>z-module-4-experiments-only/src/main/java</param>-->
+            <!--                                </basePaths>-->
+            <!--                            </configuration>-->
+            <!--                            <executions>-->
+            <!--                                <execution>-->
+            <!--                                    <goals>-->
+            <!--                                        <goal>CREATE_META</goal>-->
+            <!--                                    </goals>-->
+            <!--                                    <phase>prepare-package</phase>-->
+            <!--                                </execution>-->
+            <!--                            </executions>-->
+            <!--                        </plugin>-->
+        </plugins>
+    </build>
+
+</project>

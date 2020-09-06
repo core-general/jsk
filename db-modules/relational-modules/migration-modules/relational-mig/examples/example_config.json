@@ -1,0 +1,9 @@
+{
+  "connectionString": "jdbc:postgresql://localhost:5432/mydb",
+  "userName": "root",
+  "password": "12345;)",
+  "resourceFolder": "mydb_migrations",
+  "filePrefix": "mydb_",
+  "migrationTableName": "mydb_migration_results",
+  "schemaName": "mydb_schema"
+}

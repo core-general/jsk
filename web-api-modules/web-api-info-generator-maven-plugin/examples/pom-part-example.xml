@@ -1,0 +1,25 @@
+<build>
+    <plugins>
+        <plugin>
+            <groupId>jsk</groupId>
+            <artifactId>web-api-info-generator-maven-plugin</artifactId>
+            <version>jsk.x.x.x</version>
+            <configuration>
+                <apiClasses>
+                    <param>test.TestApi</param>
+                    <param>...</param>
+                    <param>...</param>
+                    <param>...</param>
+                </apiClasses>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>CREATE_META</goal>
+                    </goals>
+                    <phase>prepare-package</phase>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>

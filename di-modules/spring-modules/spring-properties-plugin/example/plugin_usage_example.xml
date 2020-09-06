@@ -1,0 +1,16 @@
+<plugin>
+    <groupId>jsk</groupId>
+    <artifactId>spring-properties-plugin</artifactId>
+    <version>jsk.X.X.X</version>
+    <configuration>
+        <propertyPathPrefix>properties</propertyPathPrefix>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>CREATE_META</goal>
+            </goals>
+            <phase>prepare-package</phase>
+        </execution>
+    </executions>
+</plugin>

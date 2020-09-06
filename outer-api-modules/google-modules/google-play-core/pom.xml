@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>google-modules</artifactId>
+        <groupId>jsk</groupId>
+        <version>jsk.2.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>google-play-core</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-services-core</artifactId>
+            <version>jsk.2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>outer-core</artifactId>
+            <version>jsk.2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.30.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>0.21.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-androidpublisher</artifactId>
+            <version>v3-rev20200701-1.30.10</version>
+        </dependency>
+    </dependencies>
+
+</project>
