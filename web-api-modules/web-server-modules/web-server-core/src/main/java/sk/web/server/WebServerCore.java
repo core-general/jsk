@@ -92,7 +92,7 @@ public class WebServerCore<API>
 
     @Inject protected WebClassInfoProvider infoProvider;
 
-    @Inject WebExceptionParams exceptConf;
+    @Inject protected WebExceptionParams exceptConf;
     @Inject protected IServiceProvider beanProvider;
     @Inject protected IWebExcept webExcept;
     @Inject protected IExcept except;

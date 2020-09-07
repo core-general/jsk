@@ -43,6 +43,7 @@ import sk.utils.statics.Io;
 import sk.web.exceptions.IWebExcept;
 import sk.web.server.WebServerCore;
 import sk.web.server.WebServerCoreWithPings;
+import sk.web.server.params.WebApiInfoParams;
 import sk.web.server.spark.WebJettyEntryPoint;
 import sk.web.server.spark.spring.WebSparkCoreConfig;
 import web.config.WebCoreConfig;
@@ -120,6 +121,21 @@ public class WebSparkTest {
         @Bean
         IAppProfile<BuildType> IAppProfile() {
             return new AppProfileImpl<>(BuildType.class);
+        }
+
+        @Bean
+        WebApiInfoParams WebApiInfoParams() {
+            return new WebApiInfoParams() {
+                @Override
+                public String getBasicAuthLogin() {
+                    return "abc";
+                }
+
+                @Override
+                public String getBasicAuthPass() {
+                    return "def";
+                }
+            };
         }
     }
 }
