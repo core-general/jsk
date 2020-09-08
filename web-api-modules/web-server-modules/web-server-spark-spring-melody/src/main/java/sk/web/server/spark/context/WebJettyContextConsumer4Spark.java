@@ -32,6 +32,7 @@ import sk.utils.functional.C1;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.web.exceptions.IWebExcept;
 import sk.web.renders.WebRenderResult;
@@ -275,7 +276,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         protected void innerSetResponse(WebRenderResult result) {
             response.status(result.getMeta().getHttpCode());
             response.type(result.getMeta().getContentType());
-            if (result.getMeta().isAllowDeflation()) {
+            if (result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation()) {
                 response.header("Content-Encoding", "gzip");
             }
 
@@ -297,6 +298,14 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             } else {
                 log.error("BODY IS ALREADY SET FOR ENDPOINT:" + path);
             }
+        }
+
+        private boolean requestHeaderAllowDeflation() {
+            return getRequestHeader("Accept-Encoding")
+                    .stream()
+                    .flatMap($ -> Cc.stream($.split(",")))
+                    .map($ -> $.toLowerCase().trim())
+                    .anyMatch($ -> Fu.equal($, "gzip"));
         }
 
         private O<byte[]> multipart(Request req, String paramName) {
