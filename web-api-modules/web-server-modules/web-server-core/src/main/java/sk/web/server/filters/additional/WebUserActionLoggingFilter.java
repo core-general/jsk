@@ -56,6 +56,7 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> ctx) {
         WebFilterOutput webFilterOutput = null;
+        final O<String> userIdByToken = ctx.getRequestContext().getUserToken().flatMap(this::getUserIdByToken);
         try {
             webFilterOutput = ctx.getNextInChain().invokeNext();
             return webFilterOutput;
@@ -63,7 +64,7 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
             try {
                 if (conf.isOn()) {
                     WebFilterOutput fwo = webFilterOutput;
-                    ctx.getRequestContext().getUserToken().flatMap(this::getUserIdByToken).ifPresent(userId -> {
+                    userIdByToken.ifPresent(userId -> {
                         final long now = times.now();
                         final LoggingKvMeta loggingKvMeta =
                                 new LoggingKvMeta(fwo.getCode(),
@@ -84,7 +85,7 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
                 //ignoring, since we already have it in WebServerCore
             } catch (Exception e) {
                 //we are just catching exception without rethrow since logging is optional and we do not need to
-                log.warn("", e);
+                log.warn("BAD SAVE REQUEST", e);
             }
         }
     }
