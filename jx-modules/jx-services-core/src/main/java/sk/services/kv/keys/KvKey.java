@@ -24,6 +24,4 @@ import java.util.List;
 
 public interface KvKey {
     List<String> categories();
-
-    String getDefaultValue();
 }

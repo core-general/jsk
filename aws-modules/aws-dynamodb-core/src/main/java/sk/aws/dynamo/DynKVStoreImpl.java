@@ -26,15 +26,22 @@ import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
 import sk.services.kv.*;
 import sk.services.kv.keys.KvKey;
+import sk.services.kv.keys.KvKeyRaw;
+import sk.services.kv.keys.KvKeyWithDefault;
 import sk.services.kv.keys.KvLockOrRenewKey;
 import sk.services.profile.IAppProfile;
 import sk.services.time.ITime;
 import sk.utils.functional.*;
+import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -58,14 +65,15 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     @Inject IAppProfile<?> appProfile;
 
     @Override
-    public O<KvVersionedItem<String>> getRawVersioned(KvKey key) {
+    public O<KvVersionedItem<String>> getRawVersioned(KvKeyWithDefault key) {
         return withTableEnsure(key, table -> O.ofNull(table.getItem(consistentGet(key))).map($ ->
-                new KvVersionedItem<>(key, $.getValue(), O.ofNull($.getTtl()).map(x -> times.toZDT(x)), $.getCreatedAt(),
+                new KvVersionedItem<>(key, $.getValue(), O.ofNull($.getTtl()).map(x -> times.toZDT(x)),
+                        O.ofNull($.getCreatedAt()).orElse(null),
                         $.getVersion())));
     }
 
     @Override
-    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKey key) {
+    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKeyWithDefault key) {
         return withTableEnsure(key,
                 table -> O.ofNull(table.getItem(consistentGet(key)))
                         .map($ -> {
@@ -73,14 +81,45 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                             final O<ZonedDateTime> ttlZdt = ttl.map(x -> times.toZDT(x));
                             return new KvVersionedItemAll<>(key,
                                     new KvAllValues<>($.getValue(), O.ofNull($.getRawValue()), ttlZdt),
-                                    ttlZdt, $.getCreatedAt(), $.getVersion());
+                                    ttlZdt, O.ofNull($.getCreatedAt()).orElse(null), $.getVersion());
                         }));
     }
 
-    @NotNull
-    private GetItemEnhancedRequest consistentGet(KvKey key) {
-        return GetItemEnhancedRequest.builder().key(toAwsKey(key)).consistentRead(true).build();
+    @Override
+    public List<KvListItemAll<String>> getRawVersionedListBetweenCategories(
+            KvKey baseKey, O<String> fromLastCategory,
+            O<String> toLastCategory, int maxCount, boolean ascending) {
+        return withTableEnsure(baseKey, table -> {
+            final O<Key> fromKey = fromLastCategory
+                    .map($ -> toAwsKey(baseKey, (k1, k2) -> Key.builder().partitionValue(k1).sortValue($).build()));
+            final O<Key> toKey = toLastCategory
+                    .map($ -> toAwsKey(baseKey, (k1, k2) -> Key.builder().partitionValue(k1).sortValue($).build()));
+            QueryConditional query;
+            if (fromKey.isPresent() && toKey.isPresent()) {
+                query = QueryConditional.sortBetween(fromKey.get(), toKey.get());
+            } else if (fromKey.isPresent() && toKey.isEmpty()) {
+                query = QueryConditional.sortGreaterThanOrEqualTo(fromKey.get());
+            } else if (fromKey.isEmpty() && toKey.isPresent()) {
+                query = QueryConditional.sortLessThanOrEqualTo(fromKey.get());
+            } else {
+                query = null;
+            }
+
+            final PageIterable<DynKVItem> iterable = table.query(QueryEnhancedRequest.builder()
+                    .queryConditional(query)
+                    .consistentRead(true)
+                    .limit(maxCount)
+                    .scanIndexForward(ascending)
+                    .build());
+
+            return iterable.items().stream()
+                    .limit(maxCount)
+                    .map($ -> new KvListItemAll<>(toKvKeyWithOtherKey2(baseKey, $.getKey1(), $.getKey2()), $.getValue(),
+                            O.ofNull($.getRawValue()), O.ofNull($.getCreatedAt()).orElse(null)))
+                    .collect(Cc.toL());
+        });
     }
+
 
     @Override
     public OneOf<Boolean, Exception> trySaveNewString(KvKey key, String newValueProvider) {
@@ -110,7 +149,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     }
 
     @Override
-    public OneOf<O<String>, Exception> updateString(KvKey key, F1<String, O<String>> updater) {
+    public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater) {
         return updateStringAndRaw(key, av -> {
             final O<String> apply = updater.apply(av.getValue());
             return apply.map($ -> new KvAllValues<>($, O.empty(), O.empty()));
@@ -118,7 +157,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     }
 
     @Override
-    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKey key,
+    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater) {
         return withTableEnsure(key, table -> {
             int k = 10000;
@@ -151,7 +190,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         });
     }
 
-    private KvVersionedItemAll<String> getOrCreateNewAllValues(DynamoDbTable<DynKVItem> table, KvKey outerKey) {
+    private KvVersionedItemAll<String> getOrCreateNewAllValues(DynamoDbTable<DynKVItem> table, KvKeyWithDefault outerKey) {
         return getRawVersionedAll(outerKey).orElseGet(() -> {
             trySaveNewStringAndRaw(outerKey, new KvAllValues<>(outerKey.getDefaultValue(), O.empty(), O.empty()));
             DynKVItem one = table.getItem(consistentGet(outerKey));
@@ -227,6 +266,10 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
             (hash, range) -> Key.builder().partitionValue(hash).sortValue(range).build();
 
     protected Key toAwsKey(KvKey k) {
+        return toAwsKey(k, keyCreator);
+    }
+
+    protected Key toAwsKey(KvKey k, F2<String, String, Key> keyCreator) {
         final List<String> categories = k.categories();
         if (categories.size() == 0) {
             throw new IllegalArgumentException("KvKey provides no categories: " + keyCreator);
@@ -237,5 +280,26 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         } else {
             return keyCreator.apply(categories.get(1), categories.stream().skip(2).collect(joining("_")));
         }
+    }
+
+    static KvKey toKvKeyWithOtherKey2(KvKey baseKey, String key1, String key2) {
+        final List<String> categories = baseKey.categories();
+        final List<String> newCategories = Cc.l();
+        if (!categories.contains(key1)) {
+            throw new RuntimeException("Categories " + Cc.join(categories) + " not contain:" + key1 + " key2=" + key2);
+        }
+        for (int i = 0; i < categories.size(); i++) {
+            newCategories.add(categories.get(i));
+            if (Fu.equal(categories.get(i), key1)) {
+                break;
+            }
+        }
+        newCategories.add(key2);
+        return new KvKeyRaw(newCategories);
+    }
+
+    @NotNull
+    private GetItemEnhancedRequest consistentGet(KvKeyWithDefault key) {
+        return GetItemEnhancedRequest.builder().key(toAwsKey(key)).consistentRead(true).build();
     }
 }

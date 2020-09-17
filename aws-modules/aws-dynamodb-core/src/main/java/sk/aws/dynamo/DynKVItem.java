@@ -29,6 +29,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 
 import java.time.ZonedDateTime;
 
+import static sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension.CREATED_AT;
+import static sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension.UPDATED_AT;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
@@ -50,10 +53,10 @@ public class DynKVItem implements DynEntityWithCreatedAndUpdated {
     @Getter(onMethod_ = {@DynamoDbAttribute("ld")})
     Long lockDate;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("_cat")})
+    @Getter(onMethod_ = {@DynamoDbAttribute(CREATED_AT)})
     ZonedDateTime createdAt;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("_uat")})
+    @Getter(onMethod_ = {@DynamoDbAttribute(UPDATED_AT)})
     ZonedDateTime updatedAt;
 
     @Getter(onMethod_ = {@DynamoDbAttribute("ttl")})

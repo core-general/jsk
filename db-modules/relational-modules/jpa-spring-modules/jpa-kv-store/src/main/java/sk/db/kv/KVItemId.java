@@ -23,6 +23,7 @@ package sk.db.kv;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import sk.services.kv.keys.KvKey;
+import sk.services.kv.keys.KvKeyRaw;
 import sk.utils.statics.Cc;
 
 import javax.persistence.Column;
@@ -30,10 +31,13 @@ import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.List;
 
+import static sk.utils.statics.Fu.equal;
+
 @Embeddable
 @Data
 @NoArgsConstructor
 public class KVItemId implements Serializable {
+    public static final String DEFAULT = "DEFAULT";
     @Column(name = "key1")
     String key1;
     @Column(name = "key2")
@@ -42,10 +46,10 @@ public class KVItemId implements Serializable {
     public KVItemId(KvKey key) {
         final List<String> categories = key.categories();
         if (categories.size() == 0) {
-            key1 = "DEFAULT";
-            key2 = "DEFAULT";
+            key1 = DEFAULT;
+            key2 = DEFAULT;
         } else if (categories.size() == 1) {
-            key1 = "DEFAULT";
+            key1 = DEFAULT;
             key2 = categories.get(0);
         } else if (categories.size() == 2) {
             key1 = categories.get(0);
@@ -53,6 +57,16 @@ public class KVItemId implements Serializable {
         } else {
             key1 = categories.get(0);
             key2 = Cc.join("_", categories.subList(1, categories.size()));
+        }
+    }
+
+    public KvKey toKvKey() {
+        if (equal(key1, DEFAULT) && equal(key2, DEFAULT)) {
+            return new KvKeyRaw(Cc.l());
+        } else if (equal(key1, DEFAULT)) {
+            return new KvKeyRaw(Cc.l(key2));
+        } else {
+            return new KvKeyRaw(Cc.l(key1, key2));
         }
     }
 }

@@ -21,17 +21,15 @@ package sk.aws.dynamo.extensions;
  */
 
 import sk.services.time.ITime;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Fu;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import javax.inject.Inject;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
-
-import static sk.utils.statics.Ti.yyyyMMddHHmmssSSS;
 
 public class CreatedAndUpdatedAtExtension implements DynamoDbEnhancedClientExtension {
     @Inject ITime times;
@@ -41,15 +39,12 @@ public class CreatedAndUpdatedAtExtension implements DynamoDbEnhancedClientExten
 
     @Override
     public WriteModification beforeWrite(DynamoDbExtensionContext.BeforeWrite context) {
-        final String now = yyyyMMddHHmmssSSS.format(times.nowZ());
-        final Map<String, AttributeValue> transformedItem = context.items().entrySet().stream().map($ -> {
-            if (Fu.equal(CREATED_AT, $.getKey()) && ($.getValue() == null || $.getValue().nul())) {
-                $.setValue(AttributeValue.builder().s(now).build());
-            } else if (Fu.equal(UPDATED_AT, $.getKey())) {
-                $.setValue(AttributeValue.builder().s(now).build());
-            }
-            return $;
-        }).collect(Cc.toMEntry());
+        final String now = DateTimeFormatter.ISO_DATE_TIME.format(times.nowZ());
+        final Map<String, AttributeValue> transformedItem = new HashMap<>(context.items());
+        transformedItem.put(UPDATED_AT, AttributeValue.builder().s(now).build());
+        if (transformedItem.get(CREATED_AT) == null) {
+            transformedItem.put(CREATED_AT, AttributeValue.builder().s(now).build());
+        }
         return WriteModification.builder().transformedItem(transformedItem).build();
     }
 }

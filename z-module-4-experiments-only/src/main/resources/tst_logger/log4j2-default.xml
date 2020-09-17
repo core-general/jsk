@@ -34,7 +34,7 @@
         <Logger name="org.eclipse.jetty.server.handler" level="warn"/>
         <Logger name="org.eclipse.jetty.server.AbstractConnector" level="warn"/>
         <Logger name="spark.route" level="debug"/>
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

@@ -22,17 +22,16 @@ package sk.services.kv;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import sk.services.kv.keys.KvKeyWithDefault;
+import sk.services.kv.keys.KvKey;
 import sk.utils.functional.O;
 
 import java.time.ZonedDateTime;
 
 @Getter
 @AllArgsConstructor
-public class KvVersionedItem<T> {
-    KvKeyWithDefault key;
+public class KvListItemAll<T> {
+    KvKey key;
     T value;
-    O<ZonedDateTime> ttl;
+    O<byte[]> rawValue;
     ZonedDateTime created;
-    Object version;
 }

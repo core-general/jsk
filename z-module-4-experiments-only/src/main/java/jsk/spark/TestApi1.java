@@ -24,6 +24,7 @@ import jsk.spark.testmodel.SomeClass1;
 import jsk.spark.testmodel.SomeClass2;
 import jsk.spark.testmodel.SomeEnum;
 import sk.web.annotations.WebPath;
+import sk.web.annotations.WebUserToken;
 import sk.web.annotations.type.WebGET;
 
 /**
@@ -34,6 +35,7 @@ import sk.web.annotations.type.WebGET;
  * use 4 test Just test class which we use 4 test Just test class which we use 4 test Just test class which we use 4 test Just
  * test class which we use 4 test Just test class which we use 4 test Just test class which we use 4 test
  */
+@SuppressWarnings("JavadocReference")
 @WebPath("test")
 public interface TestApi1 {
 
@@ -61,6 +63,7 @@ public interface TestApi1 {
      */
     @WebGET
     @WebPath(value = "ajk/:abc", appendMethodName = false)
+    @WebUserToken(paramName = "abc")
     String a(String abc);
 
     /**
@@ -68,6 +71,7 @@ public interface TestApi1 {
      */
     @WebGET
     @WebPath(value = "less", appendMethodName = false)
+    @WebUserToken(paramName = "abc")
     SomeClass1 b(SomeClass2 abc, SomeEnum x);
 
     //

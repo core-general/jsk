@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
 
 @AllArgsConstructor
 public
-class KvSimpleKey implements KvKeyEnum {
+class KvSimpleKeyWithName implements KvKeyEnum {
     @Getter
     @Accessors(fluent = true)
     String name;

@@ -1,4 +1,4 @@
-package sk.services.kv;
+package sk.services.kv.keys;
 
 /*-
  * #%L
@@ -20,19 +20,6 @@ package sk.services.kv;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import sk.services.kv.keys.KvKeyWithDefault;
-import sk.utils.functional.O;
-
-import java.time.ZonedDateTime;
-
-@Getter
-@AllArgsConstructor
-public class KvVersionedItem<T> {
-    KvKeyWithDefault key;
-    T value;
-    O<ZonedDateTime> ttl;
-    ZonedDateTime created;
-    Object version;
+public interface KvKeyWithDefault extends KvKey {
+    String getDefaultValue();
 }

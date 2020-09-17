@@ -22,7 +22,7 @@ package sk.services.kv;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import sk.services.kv.keys.KvKey;
+import sk.services.kv.keys.KvKeyWithDefault;
 import sk.utils.functional.O;
 
 import java.time.ZonedDateTime;
@@ -30,7 +30,7 @@ import java.time.ZonedDateTime;
 @Getter
 @AllArgsConstructor
 public class KvVersionedItemAll<T> {
-    KvKey key;
+    KvKeyWithDefault key;
     KvAllValues<T> vals;
     O<ZonedDateTime> ttl;
     ZonedDateTime created;

@@ -25,7 +25,7 @@ import sk.utils.statics.Cc;
 
 import java.util.List;
 
-public interface KvKey2Categories extends KvKey {
+public interface KvKey2Categories extends KvKeyWithDefault {
     @Override
     default List<String> categories() {
         return Cc.l(getKey1(), getKey2().orElse(null));

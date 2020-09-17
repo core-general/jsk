@@ -22,16 +22,19 @@ package sk.web.server.filters.additional;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
 import sk.services.json.IJson;
 import sk.services.kv.IKvUnlimitedStore;
 import sk.services.kv.KvAllValues;
+import sk.services.kv.KvListItemAll;
 import sk.services.kv.keys.KvKey3Categories;
 import sk.services.time.ITime;
+import sk.utils.functional.Converter;
 import sk.utils.functional.O;
-import sk.utils.statics.Ti;
+import sk.utils.statics.Cc;
+import sk.utils.tuples.X;
+import sk.utils.tuples.X3;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.context.WebRequestResponseInfo;
 import sk.web.server.filters.WebServerFilter;
@@ -41,9 +44,14 @@ import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebUserActionLoggerParams;
 
 import javax.inject.Inject;
+import java.time.ZonedDateTime;
+import java.util.List;
+
+import static sk.utils.functional.O.of;
+import static sk.utils.statics.Ti.yyyyMMddHHmmssSSS;
 
 @Log4j2
-public abstract class WebUserActionLoggingFilter implements WebServerFilter {
+public abstract class WebUserActionLoggingFilter implements WebServerFilter, WebUserHistoryProvider {
     public static final int PRIORITY = WebRequestLoggingFilter.PRIORITY - PRIORITY_STEP;
 
     @Inject WebRequestResponseInfo info;
@@ -74,9 +82,9 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
 
                         final String requestInfo = info.getRequestInfo(ctx);
                         final String responseInfo = info.getResponseInfo(ctx, O.of(fwo));
-                        final O<byte[]> zipped = bytes.zipString(requestInfo + "\n" + responseInfo);
+                        final O<byte[]> zipped = getRawValueConverter().convertThere(of(requestInfo + "\n" + responseInfo));
 
-                        store.trySaveNewObjectAndRaw(new LoggingKvKey(userId),
+                        store.trySaveNewObjectAndRaw(new LoggingKvKey(userId, times.nowZ()),
                                 new KvAllValues<>(loggingKvMeta, zipped,
                                         O.of(ctx.getRequestContext().getStartTime().plus(conf.getTtl()))));
                     });
@@ -90,6 +98,27 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
         }
     }
 
+    public List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getUserHistory(String userId,
+            O<ZonedDateTime> from, O<ZonedDateTime> to,
+            int maxCount, boolean descending) {
+        final List<KvListItemAll<String>> items = store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, null),
+                from.map(yyyyMMddHHmmssSSS::format),
+                to.map(yyyyMMddHHmmssSSS::format),
+                maxCount,
+                descending
+        );
+        return items.stream()
+                .filter($ -> $.getRawValue().isPresent())
+                .map($ -> {
+                    final String output = getRawValueConverter().convertBack($.getRawValue()).get()
+                            .replace("\n\n\n\n", "\n")
+                            .replace("\n\n\n", "\n")
+                            .replace("\n\n", "\n");
+                    return X.x(json.from($.getValue(), LoggingKvMeta.class), output, $.getCreated());
+                })
+                .collect(Cc.toL());
+    }
+
     public abstract O<String> getUserIdByToken(String userToken);
 
     @Override
@@ -97,16 +126,30 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter {
         return PRIORITY;
     }
 
+    private Converter<O<String>, O<byte[]>> getRawValueConverter() {
+        return new Converter<O<String>, O<byte[]>>() {
+            @Override
+            public O<byte[]> convertThere(O<String> in) {
+                return in.flatMap($ -> bytes.zipString($));
+            }
+
+            @Override
+            public O<String> convertBack(O<byte[]> in) {
+                return in.flatMap($ -> bytes.unZipString($));
+            }
+        };
+    }
+
     @Data
-    @RequiredArgsConstructor
-    private class LoggingKvKey implements KvKey3Categories {
+    private static class LoggingKvKey implements KvKey3Categories {
         final String key1 = "REQUEST_LOG";
         final O<String> key2;//userId
-        final O<String> key3 = O.of(Ti.yyyyMMddHHmmssSSS.format(times.nowZ()));
+        final O<String> key3;//datetime
         final String defaultValue = "";
 
-        public LoggingKvKey(String userId) {
+        public LoggingKvKey(String userId, ZonedDateTime created) {
             this.key2 = O.of(userId);
+            key3 = O.ofNull(created).map($ -> yyyyMMddHHmmssSSS.format($));
         }
     }
 

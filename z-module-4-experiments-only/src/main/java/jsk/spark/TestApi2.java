@@ -28,6 +28,7 @@ import sk.web.annotations.type.WebMethod;
 import sk.web.annotations.type.WebPOST;
 import sk.web.renders.WebRenderType;
 
+@SuppressWarnings("JavadocReference")
 @WebPath("test")
 public interface TestApi2 {
     @WebGET

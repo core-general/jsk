@@ -1,4 +1,4 @@
-package sk.services.kv;
+package sk.services.kv.keys;
 
 /*-
  * #%L
@@ -21,18 +21,21 @@ package sk.services.kv;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import sk.services.kv.keys.KvKeyWithDefault;
-import sk.utils.functional.O;
+import lombok.NoArgsConstructor;
+import sk.utils.statics.Cc;
 
-import java.time.ZonedDateTime;
+import java.util.List;
 
-@Getter
 @AllArgsConstructor
-public class KvVersionedItem<T> {
-    KvKeyWithDefault key;
-    T value;
-    O<ZonedDateTime> ttl;
-    ZonedDateTime created;
-    Object version;
+@NoArgsConstructor
+public class KvKeyRaw implements KvKey {
+    private List<String> categories;
+
+    @Override
+    public List<String> categories() {
+        if (categories == null) {
+            categories = Cc.l();
+        }
+        return categories;
+    }
 }

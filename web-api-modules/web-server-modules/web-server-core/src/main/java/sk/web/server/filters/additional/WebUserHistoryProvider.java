@@ -1,4 +1,4 @@
-package sk.services.kv;
+package sk.web.server.filters.additional;
 
 /*-
  * #%L
@@ -20,19 +20,13 @@ package sk.services.kv;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import sk.services.kv.keys.KvKeyWithDefault;
 import sk.utils.functional.O;
+import sk.utils.tuples.X3;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
-@Getter
-@AllArgsConstructor
-public class KvVersionedItem<T> {
-    KvKeyWithDefault key;
-    T value;
-    O<ZonedDateTime> ttl;
-    ZonedDateTime created;
-    Object version;
+public interface WebUserHistoryProvider {
+    List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getUserHistory(String userId, O<ZonedDateTime> from,
+            O<ZonedDateTime> to, int maxCount, boolean descending);
 }

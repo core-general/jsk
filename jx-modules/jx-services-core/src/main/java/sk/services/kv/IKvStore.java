@@ -21,6 +21,7 @@ package sk.services.kv;
  */
 
 import sk.services.kv.keys.KvKey;
+import sk.services.kv.keys.KvKeyWithDefault;
 import sk.services.kv.keys.KvLockOrRenewKey;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -28,6 +29,7 @@ import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Ma;
 
+import java.util.List;
 import java.util.Objects;
 
 public interface IKvStore {
@@ -36,9 +38,13 @@ public interface IKvStore {
     public <T> T objectFromString(String object, TypeWrap<T> cls);
 
 
-    public O<KvVersionedItem<String>> getRawVersioned(KvKey key);
+    public O<KvVersionedItem<String>> getRawVersioned(KvKeyWithDefault key);
 
-    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKey key);
+    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKeyWithDefault key);
+
+    /** Get items with last category between fromLastCategory and toLastCategory sorted with maximum */
+    public List<KvListItemAll<String>> getRawVersionedListBetweenCategories(KvKey baseKey,
+            O<String> fromLastCategory, O<String> toLastCategory, int maxCount, boolean ascending);
 
 
     /**
@@ -52,9 +58,9 @@ public interface IKvStore {
     public OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider);
 
 
-    public OneOf<O<String>, Exception> updateString(KvKey key, F1<String, O<String>> updater);
+    public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater);
 
-    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKey key,
+    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater);
 
 
@@ -67,7 +73,7 @@ public interface IKvStore {
     void clearAll();
 
     //region Read
-    public default String getAsString(KvKey key) {
+    public default String getAsString(KvKeyWithDefault key) {
         O<KvVersionedItem<String>> rawVersioned = getRawVersioned(key);
         if (!rawVersioned.isPresent()) {
             newKeyOrNothing(key);
@@ -76,7 +82,7 @@ public interface IKvStore {
         return rawVersioned.get().getValue();
     }
 
-    public default KvAllValues<String> getAsStringWithRaw(KvKey key) {
+    public default KvAllValues<String> getAsStringWithRaw(KvKeyWithDefault key) {
         O<KvVersionedItemAll<String>> rawVersioned = getRawVersionedAll(key);
         if (!rawVersioned.isPresent()) {
             newKeyOrNothing(key);
@@ -85,55 +91,55 @@ public interface IKvStore {
         return rawVersioned.get().getVals();
     }
 
-    public default <T> T getAsObject(KvKey key, Class<T> cls) {
+    public default <T> T getAsObject(KvKeyWithDefault key, Class<T> cls) {
         return getAsObject(key, TypeWrap.simple(cls));
     }
 
-    public default <T> KvAllValues<T> getAsObjectWithRaw(KvKey key, Class<T> cls) {
+    public default <T> KvAllValues<T> getAsObjectWithRaw(KvKeyWithDefault key, Class<T> cls) {
         return getAsStringWithRaw(key).map($ -> objectFromString($, TypeWrap.simple(cls)));
     }
 
-    public default <T> T getAsObject(KvKey key, TypeWrap<T> cls) {
+    public default <T> T getAsObject(KvKeyWithDefault key, TypeWrap<T> cls) {
         return objectFromString(getAsString(key), cls);
     }
 
-    public default Boolean getAsBool(KvKey key) {
+    public default Boolean getAsBool(KvKeyWithDefault key) {
         return Boolean.parseBoolean(getAsString(key));
     }
 
-    public default Long getAsLong(KvKey key) throws NumberFormatException {
+    public default Long getAsLong(KvKeyWithDefault key) throws NumberFormatException {
         return Long.parseLong(getAsString(key));
     }
 
-    public default Integer getAsInt(KvKey key) throws NumberFormatException {
+    public default Integer getAsInt(KvKeyWithDefault key) throws NumberFormatException {
         return Integer.parseInt(getAsString(key));
     }
 
-    public default Double getAsDouble(KvKey key) throws NumberFormatException {
+    public default Double getAsDouble(KvKeyWithDefault key) throws NumberFormatException {
         return Double.parseDouble(getAsString(key));
     }
 
-    public default Float getAsFloat(KvKey key) throws NumberFormatException {
+    public default Float getAsFloat(KvKeyWithDefault key) throws NumberFormatException {
         return Float.parseFloat(getAsString(key));
     }
     //endregion
 
     //region Update
-    public default <T> OneOf<O<T>, Exception> updateObject(KvKey key, TypeWrap<T> cls, F1<T, O<T>> updater) {
+    public default <T> OneOf<O<T>, Exception> updateObject(KvKeyWithDefault key, TypeWrap<T> cls, F1<T, O<T>> updater) {
         return updateString(key, s -> updater.apply(objectFromString(s, cls)).map(this::objectToString))
                 .mapLeft($ -> $.map($$ -> objectFromString($$, cls)));
     }
 
-    public default <T> OneOf<O<T>, Exception> updateObject(KvKey key, Class<T> cls, F1<T, O<T>> updater) {
+    public default <T> OneOf<O<T>, Exception> updateObject(KvKeyWithDefault key, Class<T> cls, F1<T, O<T>> updater) {
         return updateObject(key, TypeWrap.simple(cls), updater);
     }
 
-    public default <T> OneOf<O<KvAllValues<T>>, Exception> updateObjectAndRaw(KvKey key, Class<T> valueCls,
+    public default <T> OneOf<O<KvAllValues<T>>, Exception> updateObjectAndRaw(KvKeyWithDefault key, Class<T> valueCls,
             F1<KvAllValues<T>, O<KvAllValues<T>>> updater) {
         return updateObjectAndRaw(key, TypeWrap.simple(valueCls), updater);
     }
 
-    public default <T> OneOf<O<KvAllValues<T>>, Exception> updateObjectAndRaw(KvKey key, TypeWrap<T> cls,
+    public default <T> OneOf<O<KvAllValues<T>>, Exception> updateObjectAndRaw(KvKeyWithDefault key, TypeWrap<T> cls,
             F1<KvAllValues<T>, O<KvAllValues<T>>> updater) {
         return updateStringAndRaw(key, s -> updater
                 .apply(s.map($ -> objectFromString($, cls)))
@@ -141,63 +147,63 @@ public interface IKvStore {
         ).mapLeft($ -> $.map(x -> x.map(xx -> objectFromString(xx, cls))));
     }
 
-    public default OneOf<O<Boolean>, Exception> updateBool(KvKey key, F1<Boolean, O<Boolean>> updater) {
+    public default OneOf<O<Boolean>, Exception> updateBool(KvKeyWithDefault key, F1<Boolean, O<Boolean>> updater) {
         return updateString(key, s -> updater.apply(Boolean.parseBoolean(s)).map(Objects::toString))
                 .mapLeft(s -> s.map(Ma::pb));
     }
 
-    public default OneOf<O<Long>, Exception> updateLong(KvKey key, F1<Long, O<Long>> updater) {
+    public default OneOf<O<Long>, Exception> updateLong(KvKeyWithDefault key, F1<Long, O<Long>> updater) {
         return updateString(key, s -> updater.apply(Long.parseLong(s)).map(Objects::toString))
                 .mapLeft(s -> s.map(Ma::pl));
     }
 
-    public default OneOf<O<Integer>, Exception> updateInt(KvKey key, F1<Integer, O<Integer>> updater) {
+    public default OneOf<O<Integer>, Exception> updateInt(KvKeyWithDefault key, F1<Integer, O<Integer>> updater) {
         return updateString(key, s -> updater.apply(Integer.parseInt(s)).map(Objects::toString))
                 .mapLeft(s -> s.map(Ma::pi));
     }
 
-    public default OneOf<O<Double>, Exception> updateDouble(KvKey key, F1<Double, O<Double>> updater) {
+    public default OneOf<O<Double>, Exception> updateDouble(KvKeyWithDefault key, F1<Double, O<Double>> updater) {
         return updateString(key, s -> updater.apply(Double.parseDouble(s)).map(Objects::toString))
                 .mapLeft(s -> s.map(Ma::pd));
     }
 
-    public default OneOf<O<Float>, Exception> updateFloat(KvKey key, F1<Float, O<Float>> updater) {
+    public default OneOf<O<Float>, Exception> updateFloat(KvKeyWithDefault key, F1<Float, O<Float>> updater) {
         return updateString(key, s -> updater.apply(Float.parseFloat(s)).map(Objects::toString))
                 .mapLeft(s -> s.map(Ma::pf));
     }
     //endregion
 
     //region Try save
-    public default <T> OneOf<Boolean, Exception> trySaveNewObject(KvKey key, T newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewObject(KvKeyWithDefault key, T newValueProvider) {
         return trySaveNewString(key, objectToString(newValueProvider));
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewObjectAndRaw(KvKey key, KvAllValues<T> newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewObjectAndRaw(KvKeyWithDefault key, KvAllValues<T> newValueProvider) {
         return trySaveNewStringAndRaw(key, newValueProvider.map($ -> objectToString($)));
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewBool(KvKey key, boolean newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewBool(KvKeyWithDefault key, boolean newValueProvider) {
         return trySaveNewString(key, newValueProvider + "");
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewLong(KvKey key, long newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewLong(KvKeyWithDefault key, long newValueProvider) {
         return trySaveNewString(key, newValueProvider + "");
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewInt(KvKey key, int newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewInt(KvKeyWithDefault key, int newValueProvider) {
         return trySaveNewString(key, newValueProvider + "");
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewDouble(KvKey key, double newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewDouble(KvKeyWithDefault key, double newValueProvider) {
         return trySaveNewString(key, newValueProvider + "");
     }
 
-    public default <T> OneOf<Boolean, Exception> trySaveNewFloat(KvKey key, float newValueProvider) {
+    public default <T> OneOf<Boolean, Exception> trySaveNewFloat(KvKeyWithDefault key, float newValueProvider) {
         return trySaveNewString(key, newValueProvider + "");
     }
     //endregion
 
-    default void newKeyOrNothing(KvKey key) {
+    default void newKeyOrNothing(KvKeyWithDefault key) {
         updateString(key, $ -> {
             if ($ != null) {
                 return O.empty();

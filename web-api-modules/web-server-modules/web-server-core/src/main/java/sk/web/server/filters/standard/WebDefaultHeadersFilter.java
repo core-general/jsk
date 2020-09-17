@@ -50,14 +50,14 @@ public class WebDefaultHeadersFilter implements WebServerFilter {
             return requestContext.getNextInChain().invokeNext();
         } finally {
             final WebRequestInnerContext ctx = requestContext.getRequestContext();
-            ctx.setResponseHeader("_nodeId", nodeInfo.getNodeId());
-            ctx.setResponseHeader("_nodeVer", nodeInfo.getNodeVersion());
-            ctx.setResponseHeader("_reqId", ctx.getServerRequestId());
+            ctx.setResponseHeader("_nId", nodeInfo.getNodeId());
+            ctx.setResponseHeader("_nVer", nodeInfo.getNodeVersion());
+            ctx.setResponseHeader("_rId", ctx.getServerRequestId());
             ctx.setResponseHeader("_reqStart", Ti.yyyyMMddHHmmssSSS.format(ctx.getStartTime()));
             final long rawDif = times.getDifWithNano4Dif(ctx.getReqStartNano4Dif());
             long left = rawDif / 1_000_000;
             long right = rawDif % 1_000_000;
-            ctx.setResponseHeader("_reqDuration", left + "." + (St.ss(right + "", 0, 2)) + "ms");
+            ctx.setResponseHeader("_rDur", left + "." + (St.ss(right + "", 0, 2)));
             conf.getCrossOrigin().ifPresent($ -> ctx.setResponseHeader("Access-Control-Allow-Origin", $));
         }
     }

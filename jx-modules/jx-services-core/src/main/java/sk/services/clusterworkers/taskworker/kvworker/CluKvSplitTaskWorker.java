@@ -41,8 +41,8 @@ import sk.services.ids.IIds;
 import sk.services.json.IJson;
 import sk.services.kv.IKvLimitedStore;
 import sk.services.kv.KvAllValues;
-import sk.services.kv.keys.KvKey;
 import sk.services.kv.keys.KvKey2Categories;
+import sk.services.kv.keys.KvKeyWithDefault;
 import sk.services.time.ITime;
 import sk.utils.async.cancel.CancelGetter;
 import sk.utils.functional.*;
@@ -58,7 +58,7 @@ import java.util.List;
 @Log4j2
 public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extends CluKvSplitTaskWorker.IConf<M, T, R>>
         extends CluSplitTaskWorker<M, R, C> {
-    @Getter final KvKey kvKey4Task;
+    @Getter final KvKeyWithDefault kvKey4Task;
 
     @Inject IIds ids;
     @Inject IJson json;

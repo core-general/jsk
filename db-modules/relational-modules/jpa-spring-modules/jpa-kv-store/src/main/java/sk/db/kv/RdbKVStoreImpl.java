@@ -20,15 +20,19 @@ package sk.db.kv;
  * #L%
  */
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import sk.services.kv.*;
 import sk.services.kv.keys.KvKey;
+import sk.services.kv.keys.KvKeyWithDefault;
 import sk.services.kv.keys.KvLockOrRenewKey;
 import sk.services.time.ITime;
 import sk.utils.functional.F1;
@@ -39,7 +43,10 @@ import sk.utils.statics.Cc;
 import javax.inject.Inject;
 import javax.persistence.OptimisticLockException;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
+
+import static sk.db.kv.QJpaKVItemWithRaw.jpaKVItemWithRaw;
 
 @Log4j2
 public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore {
@@ -50,21 +57,41 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
     @Inject ITime times;
 
     @Override
-    public O<KvVersionedItem<String>> getRawVersioned(KvKey key) {
+    public O<KvVersionedItem<String>> getRawVersioned(KvKeyWithDefault key) {
         KVItemId _key = new KVItemId(key);
         return O.of(kv.findById(_key))
-                .flatMap(item -> checkTtl(key, item, (t) -> null))
+                .flatMap(item -> checkTtl(_key, item, t -> null))
                 .map($ -> new KvVersionedItem<>(key, $.getValue(), O.empty(), $.getCreatedAt(), $.getVersion()));
     }
 
     @Override
-    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKey key) {
+    public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKeyWithDefault key) {
         KVItemId _key = new KVItemId(key);
         return O.of(kvRaw.findById(_key))
-                .flatMap(item -> checkTtl(key, item, t -> null))
+                .flatMap(item -> checkTtl(_key, item, t -> null))
                 .map($ -> new KvVersionedItemAll<>(key,
                         new KvAllValues<>($.getValue(), O.ofNull($.getRawValue()), O.empty()),
                         O.empty(), $.getCreatedAt(), $.getVersion()));
+    }
+
+    @Override
+    public List<KvListItemAll<String>> getRawVersionedListBetweenCategories(KvKey baseKey, O<String> fromLastCategory,
+            O<String> toLastCategory, int maxCount, boolean ascending) {
+        BooleanExpression predicate = jpaKVItemWithRaw.id.key1.eq(new KVItemId(baseKey).getKey1());
+        if (fromLastCategory.isPresent()) {
+            predicate = predicate.and(jpaKVItemWithRaw.id.key2.goe(fromLastCategory.get()));
+        }
+        if (toLastCategory.isPresent()) {
+            predicate = predicate.and(jpaKVItemWithRaw.id.key2.loe(toLastCategory.get()));
+        }
+        final Page<JpaKVItemWithRaw> values = kvRaw.findAll(predicate, QPageRequest.of(0, maxCount,
+                ascending ? jpaKVItemWithRaw.id.key2.asc() : jpaKVItemWithRaw.id.key2.desc()));
+
+        return values.get()
+                .flatMap($ -> checkTtl($.getId(), $, t -> null).stream())
+                .map($ -> new KvListItemAll<>($.getId().toKvKey(), $.getValue(), O.ofNull($.getRawValue()), $.getCreatedAt()))
+                .limit(maxCount)
+                .collect(Cc.toL());
     }
 
     @Override
@@ -119,11 +146,11 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
 
     @Override
     public void clearValue(KvKey key) {
-        kvRaw.deleteById(new KVItemId(key));
+        clearValuePrivate(new KVItemId(key));
     }
 
     @Override
-    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKey key,
+    public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater) {
         int k = 10000;
         KVItemId _key = new KVItemId(key);
@@ -151,7 +178,7 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
     }
 
     @Override
-    public OneOf<O<String>, Exception> updateString(KvKey key, F1<String, O<String>> updater) {
+    public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater) {
         int k = 10000;
 
         while (k-- >= 0) {
@@ -183,7 +210,7 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
     }
 
     @NotNull
-    private KvVersionedItem<String> getOrCreateNew(KvKey key, KVItemId id) {
+    private KvVersionedItem<String> getOrCreateNew(KvKeyWithDefault key, KVItemId id) {
         return getRawVersioned(key).orElseGet(() -> {
             trySaveNewString(key, key.getDefaultValue());
             JpaKVItem one = kv.findById(id).get();
@@ -191,7 +218,7 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
         });
     }
 
-    private KvVersionedItemAll<String> getOrCreateNewAllValues(KvKey key, KVItemId id) {
+    private KvVersionedItemAll<String> getOrCreateNewAllValues(KvKeyWithDefault key, KVItemId id) {
         return getRawVersionedAll(key).orElseGet(() -> {
             trySaveNewStringAndRaw(key, new KvAllValues<>(key.getDefaultValue(), O.empty(), O.empty()));
             JpaKVItemWithRaw one = kvRaw.findById(id).get();
@@ -202,10 +229,14 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
         });
     }
 
-    private <T> O<T> checkTtl(KvKey key, T item, F1<T, ZonedDateTime> getTtl) {
+    private void clearValuePrivate(KVItemId id) {
+        kvRaw.deleteById(id);
+    }
+
+    private <T> O<T> checkTtl(KVItemId id, T item, F1<T, ZonedDateTime> getTtl) {
         return O.ofNull(getTtl.apply(item)).flatMap($ -> {
             if (times.nowZ().isAfter($)) {
-                clearValue(key);
+                clearValuePrivate(id);
                 return O.empty();
             } else {
                 return O.of(item);

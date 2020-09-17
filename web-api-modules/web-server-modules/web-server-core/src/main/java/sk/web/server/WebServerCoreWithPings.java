@@ -109,7 +109,10 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         {//todo move to WebJettyContextConsumer4Spark or in some other way
             final String infoPath = base + "jsk-srv-info";
             final WebServerFilterNext infoProcessor =
-                    () -> WebFilterOutput.rawValue(200, nodeInfo.getCurrentServerInfo(O.empty()));
+                    () -> {
+                        checkBasicAuth();
+                        return WebFilterOutput.rawValue(200, nodeInfo.getCurrentServerInfo(O.empty()));
+                    };
             env.addGet(infoPath, processor.apply(GET, infoProcessor, jsonRender), O.empty());
             env.addPost(infoPath, processor.apply(POST_FORM, infoProcessor, jsonRender), false, O.empty());
         }

@@ -20,9 +20,9 @@ package sk.services.idempotence;
  * #L%
  */
 
-import sk.services.kv.keys.KvSimpleKey;
+import sk.services.kv.keys.KvSimpleKeyWithName;
 
-public class IdempotenceKey extends KvSimpleKey {
+public class IdempotenceKey extends KvSimpleKeyWithName {
     public IdempotenceKey(String idempotenceKey) {
         super("IDEMPOTENCE_" + idempotenceKey, "_?_");
     }
