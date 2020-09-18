@@ -94,19 +94,20 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                     .map($ -> toAwsKey(baseKey, (k1, k2) -> Key.builder().partitionValue(k1).sortValue($).build()));
             final O<Key> toKey = toLastCategory
                     .map($ -> toAwsKey(baseKey, (k1, k2) -> Key.builder().partitionValue(k1).sortValue($).build()));
-            QueryConditional query;
+            QueryConditional query = null;
             if (fromKey.isPresent() && toKey.isPresent()) {
                 query = QueryConditional.sortBetween(fromKey.get(), toKey.get());
             } else if (fromKey.isPresent() && toKey.isEmpty()) {
                 query = QueryConditional.sortGreaterThanOrEqualTo(fromKey.get());
             } else if (fromKey.isEmpty() && toKey.isPresent()) {
                 query = QueryConditional.sortLessThanOrEqualTo(fromKey.get());
-            } else {
-                query = null;
             }
 
-            final PageIterable<DynKVItem> iterable = table.query(QueryEnhancedRequest.builder()
-                    .queryConditional(query)
+            final QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
+            if (query != null) {
+                builder.queryConditional(query);
+            }
+            final PageIterable<DynKVItem> iterable = table.query(builder
                     .consistentRead(true)
                     .limit(maxCount)
                     .scanIndexForward(ascending)
