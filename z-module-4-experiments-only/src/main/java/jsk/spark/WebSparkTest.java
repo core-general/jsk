@@ -97,23 +97,6 @@ public class WebSparkTest {
         @Inject IRand rnd;
         @Inject WebUserHistoryProvider historyProvider;
 
-
-        //@Override
-        //public int testInt(int a) {
-        //    return except.throwByCode("TestApiImpl1");
-        //}
-        //
-        //@Override
-        //public byte[] testIntPost(int a) {
-        //    System.out.println(a);
-        //    return "TestApiImpl1 ".getBytes(StandardCharsets.UTF_8);
-        //}
-        //
-        //@Override
-        //public String testIntPostMultiForce(byte[] body) {
-        //    return O.of(body).map($ -> "TestApiImpl1" + new String($, StandardCharsets.UTF_8)).orElse("???");
-        //}
-
         @Override
         public String a(String abc) {
             final String join = Cc.join("\n===================================================================\n\n",

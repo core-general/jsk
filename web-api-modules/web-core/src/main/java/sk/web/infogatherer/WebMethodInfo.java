@@ -24,10 +24,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.mvn.model.ApiMethodModel;
 import sk.utils.javafixes.TypeWrap;
+import sk.utils.statics.Cc;
+import sk.utils.statics.St;
 import sk.web.WebMethodType;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -44,5 +47,11 @@ public class WebMethodInfo {
     public static class ParameterNameAndType {
         String name;
         TypeWrap type;
+    }
+
+    public String postmanize() {
+        return Cc.stream(fullMethodPath.split("/"))
+                .filter($ -> St.isNotNullOrEmpty($.trim()))
+                .map($ -> "\"" + $.trim() + "\"").collect(Collectors.joining(","));
     }
 }

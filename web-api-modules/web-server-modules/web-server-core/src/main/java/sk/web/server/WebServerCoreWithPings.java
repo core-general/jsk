@@ -137,6 +137,26 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
             env.addGet(apiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
             env.addPost(apiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
         }
+        {
+            final String postmanApiInfo = base + "api-info-postman";
+            final WebServerFilterNext apiInfoProcessor =
+                    () -> {
+                        checkBasicAuth();
+                        String postmanCacheTemp = postmanInfoCache;
+                        if (empty.equals(postmanCacheTemp)) {
+                            synchronized (postmanInfoCacheLock) {
+                                postmanCacheTemp = postmanInfoCache;
+                                if (empty.equals(postmanCacheTemp)) {
+                                    postmanInfoCache = postmanCacheTemp = createPostmanApiInfo();
+                                }
+                            }
+                        }
+
+                        return WebFilterOutput.rawValue(200, postmanCacheTemp);
+                    };
+            env.addGet(postmanApiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
+            env.addPost(postmanApiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
+        }
     }
 
     private void checkBasicAuth() {
@@ -168,5 +188,20 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         ));
 
         return s.replace("*\n⭐", "<br>");
+    }
+
+    private volatile String postmanInfoCache = empty;
+    private final Object postmanInfoCacheLock = new Object();
+
+    private String createPostmanApiInfo() {
+        final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
+
+        final String s = free.processHtml("sk/web/server/templates/postman_template.json.ftl", Cc.m(
+                "postman_id", ids.shortIdS(),
+                "url_var_id", ids.shortIdS(),
+                "methods", apiModel.getMethods()
+        ));
+
+        return s;
     }
 }
