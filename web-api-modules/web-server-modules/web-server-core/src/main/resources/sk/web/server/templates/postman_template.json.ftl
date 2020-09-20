@@ -47,7 +47,7 @@
     <#list method.paramAndTypes as param>
         {
         "key": "${param.name}",
-        "value": "Type: ${param.type.type.getTypeName()}",
+        "value": "Type: ${param.getTypeName()}",
         "type": "text",
         "description": ""
         },

@@ -23,6 +23,7 @@ package sk.web.infogatherer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.mvn.model.ApiMethodModel;
+import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -47,6 +48,10 @@ public class WebMethodInfo {
     public static class ParameterNameAndType {
         String name;
         TypeWrap type;
+
+        public String getTypeName() {
+            return O.ofNull(type).flatMap($ -> O.ofNull($.getType())).flatMap($ -> O.ofNull($.getTypeName())).orElse("NONE");
+        }
     }
 
     public String postmanize() {
