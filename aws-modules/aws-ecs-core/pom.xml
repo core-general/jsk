@@ -3,34 +3,40 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>web-server-modules</artifactId>
+        <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
         <version>jsk.2.1.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-server-core</artifactId>
-    <version>jsk.2.1.6</version>
-    <packaging>jar</packaging>
+    <artifactId>aws-ecs-core</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>web-core</artifactId>
+            <artifactId>aws-spring-core</artifactId>
             <version>jsk.2.1.6</version>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ecs</artifactId>
+            <version>${aws-version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ecr</artifactId>
+            <version>${aws-version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.spotify</groupId>
+            <artifactId>docker-client</artifactId>
+            <version>8.15.3</version>
+            <classifier>shaded</classifier>
         </dependency>
     </dependencies>
 
