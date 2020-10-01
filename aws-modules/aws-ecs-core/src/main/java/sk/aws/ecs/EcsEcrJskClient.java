@@ -21,6 +21,7 @@ package sk.aws.ecs;
  */
 
 import sk.aws.AwsUtilityHelper;
+import sk.services.bytes.IBytes;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
@@ -37,11 +38,13 @@ import software.amazon.awssdk.services.ecs.model.*;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 
 public class EcsEcrJskClient {
     @Inject AwsUtilityHelper helper;
+    @Inject IBytes bytes;
     @Inject EcsJskDeployerProperties conf;
 
     EcsClient ecs;
@@ -61,7 +64,9 @@ public class EcsEcrJskClient {
     public OneOf<X2<String, String>, Exception> getDockerLoginAndPass() {
         try {
             final GetAuthorizationTokenResponse resp = ecr.getAuthorizationToken();
-            final String[] authData = resp.authorizationData().get(0).authorizationToken().split(":");
+            final String encodedToken = resp.authorizationData().get(0).authorizationToken();
+            final String token = new String(bytes.dec64(encodedToken), StandardCharsets.UTF_8);
+            final String[] authData = token.split(":");
             return OneOf.left(X.x(authData[0], authData[1]));
         } catch (Exception e) {
             return OneOf.right(e);
