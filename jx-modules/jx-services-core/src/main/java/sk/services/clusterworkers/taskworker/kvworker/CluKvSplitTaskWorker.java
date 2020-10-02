@@ -24,7 +24,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
-import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluOnOffKvKey;
@@ -226,7 +225,9 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         IConf<M, T, R> iConf = new IConf<M, T, R>() {
             @Override
             public Gett<CluSplitTask<M, R>> getSplitTask() {
-                return () -> createTaskForCurrentRun(config);
+                return config.getSplitTask() != null
+                        ? config.getSplitTask()
+                        : () -> createTaskForCurrentRun(config);
             }
 
             @Override
@@ -236,7 +237,9 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
             @Override
             public Gett<Boolean> getOnOffSwitchChecker() {
-                return () -> kv.getAsBool(onOffKey);
+                return config.getOnOffSwitchChecker() != null
+                        ? config.getOnOffSwitchChecker()
+                        : () -> kv.getAsBool(onOffKey);
             }
 
             @Override
@@ -310,12 +313,12 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     public interface IConf<M, T, R> extends CluSplitTaskWorker.IConf<M, R> {
         @Override
         default Gett<CluSplitTask<M, R>> getSplitTask() {
-            throw new NotImplementedException();//must be overriden
+            return null;
         }
 
         @Override
         default Gett<Boolean> getOnOffSwitchChecker() {
-            throw new NotImplementedException();//must be overriden
+            return null;
         }
 
         int getNumberOfTasksInSplit();
