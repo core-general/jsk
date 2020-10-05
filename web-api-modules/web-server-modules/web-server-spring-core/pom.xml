@@ -5,25 +5,25 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.1.8</version>
+        <version>jsk.2.1.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-spring-core</artifactId>
-    <version>jsk.2.1.8</version>
+    <version>jsk.2.1.10</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-core</artifactId>
-            <version>jsk.2.1.8</version>
+            <version>jsk.2.1.10</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-core-spring</artifactId>
-            <version>jsk.2.1.8</version>
+            <version>jsk.2.1.10</version>
         </dependency>
 
         <dependency>

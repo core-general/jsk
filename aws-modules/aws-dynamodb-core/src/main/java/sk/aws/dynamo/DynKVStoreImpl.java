@@ -130,24 +130,25 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
 
     @Override
     public OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider) {
-        return withTableEnsure(key, table -> {
-            final Key kk = toAwsKey(key);
-            final DynKVItem item = new DynKVItem(kk.partitionKeyValue().s(),
-                    kk.sortKeyValue().map($ -> $.s()).orElse("_"),
-                    newValueProvider.getValue(),
-                    newValueProvider.getRawValue().orElse(null),
-                    null, null, null,
-                    newValueProvider.getTtl().map($ -> times.toSec($)).orElse(null),
-                    null);
-            try {
+        try {
+            return withTableEnsure(key, table -> {
+                final Key kk = toAwsKey(key);
+                final DynKVItem item = new DynKVItem(kk.partitionKeyValue().s(),
+                        kk.sortKeyValue().map($ -> $.s()).orElse("_"),
+                        newValueProvider.getValue(),
+                        newValueProvider.getRawValue().orElse(null),
+                        null, null, null,
+                        newValueProvider.getTtl().map($ -> times.toSec($)).orElse(null),
+                        null);
+
                 table.putItem(item);
                 return OneOf.left(true);
-            } catch (ConditionalCheckFailedException e) {
-                return OneOf.left(false);
-            } catch (Exception e) {
-                return OneOf.right(e);
-            }
-        });
+            });
+        } catch (ConditionalCheckFailedException e) {
+            return OneOf.left(false);
+        } catch (Exception e) {
+            return OneOf.right(e);
+        }
     }
 
     @Override
