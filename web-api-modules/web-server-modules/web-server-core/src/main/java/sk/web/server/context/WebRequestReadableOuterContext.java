@@ -25,6 +25,7 @@ import sk.utils.functional.O;
 import javax.servlet.http.Part;
 import java.util.Collection;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.SortedSet;
 
 public interface WebRequestReadableOuterContext {
@@ -48,7 +49,7 @@ public interface WebRequestReadableOuterContext {
 
     O<byte[]> getBody();
 
-    SortedSet<String> getNonMultipartParamNames();
+    SortedMap<String, String> getNonMultipartParamInfo();
 
     O<Collection<Part>> getMultipartParamInfo();
 }

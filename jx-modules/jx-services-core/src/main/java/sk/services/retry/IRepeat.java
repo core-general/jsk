@@ -22,6 +22,7 @@ package sk.services.retry;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sk.services.async.IExecutorService;
 import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
 import sk.utils.async.cancel.CancelGetter;
@@ -30,7 +31,6 @@ import sk.utils.statics.Cc;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
@@ -105,11 +105,11 @@ public interface IRepeat {
 
 
     <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(
-            List<A> tasks, int maxRetryCount, long sleepAfterFailMs, ExecutorService pool,
+            List<A> tasks, int maxRetryCount, long sleepAfterFailMs, IExecutorService pool,
             Set<Class<? extends Throwable>> exceptRetries, CancelGetter cancel);
 
     default <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(
-            List<A> tasks, int maxRetryCount, long sleepAfterFailMs, ExecutorService pool,
+            List<A> tasks, int maxRetryCount, long sleepAfterFailMs, IExecutorService pool,
             Set<Class<? extends Throwable>> exceptRetries) {
         return repeatAndReturnResults(tasks, maxRetryCount, sleepAfterFailMs, pool, exceptRetries, () -> false);
     }

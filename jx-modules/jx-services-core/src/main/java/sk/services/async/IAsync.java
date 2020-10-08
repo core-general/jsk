@@ -28,7 +28,6 @@ import sk.utils.functional.R;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
@@ -37,26 +36,26 @@ import static java.util.concurrent.CompletableFuture.allOf;
 @SuppressWarnings("unused")
 public interface IAsync extends ISleep {
 
-    ExecutorService fixedExec();
+    IExecutorService fixedExec();
 
-    ExecutorService fixedExec(int threads);
+    IExecutorService fixedExec(int threads);
 
-    ExecutorService bufExec();
+    IExecutorService bufExec();
 
-    ExecutorService singleExec();
+    IExecutorService singleExec();
 
     ScheduledExecutorService scheduledExec();
 
-    ExecutorService coldTaskFJP();
+    IExecutorService coldTaskFJP();
 
     ScheduledExecutorService newDedicatedScheduledExecutor(String name);
 
     default CompletableFuture<Void> runBuf(R run) {
-        return CompletableFuture.runAsync(run, bufExec());
+        return CompletableFuture.runAsync(run, bufExec().getUnderlying());
     }
 
     default <U> CompletableFuture<U> supplyBuf(F0<U> run) {
-        return CompletableFuture.supplyAsync(run, bufExec());
+        return CompletableFuture.supplyAsync(run, bufExec().getUnderlying());
     }
 
     void stop();

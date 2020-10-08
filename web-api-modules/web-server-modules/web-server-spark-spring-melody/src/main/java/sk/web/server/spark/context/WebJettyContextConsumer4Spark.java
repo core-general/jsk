@@ -20,7 +20,6 @@ package sk.web.server.spark.context;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.eclipse.jetty.io.RuntimeIOException;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -31,6 +30,7 @@ import sk.services.except.IExcept;
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
+import sk.utils.javafixes.CheckUtf8;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
@@ -58,6 +58,7 @@ import javax.servlet.http.Part;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNull;
@@ -155,6 +156,9 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         private final Request request;
         private final boolean multipartSure;
         private final Response response;
+        private final ConcurrentHashMap<String, byte[]> multipartCache;
+        private final ConcurrentHashMap<String, String> paramCache;
+
 
         public SparkWebRequestOuterFullContext(String type, String path, Request request, boolean multipartSure,
                 Response response) {
@@ -163,6 +167,8 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             this.request = request;
             this.multipartSure = multipartSure;
             this.response = response;
+            multipartCache = new ConcurrentHashMap<>();
+            paramCache = new ConcurrentHashMap<>();
         }
 
         @Override
@@ -214,7 +220,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
         @Override
         public O<String> getParamAsString(String param) {
-            return throwOnBadRequestData(() -> {
+            final String valk = paramCache.computeIfAbsent(param, k -> throwOnBadRequestData(() -> {
                 if (multipartSure) {
                     return ofNull(multipart(request, param).map(bytes -> bytesToS(bytes, "UTF-8"))
                             .orElse(null));
@@ -224,14 +230,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                             .or(() -> multipart(request, param)
                                     .map(bytes -> bytesToS(bytes, "UTF-8")));
                 }
-            });
+            }).orElse(null));
+            return ofNull(valk);
         }
 
         @Override
         public O<byte[]> getParamAsBytes(String param) {
-            return throwOnBadRequestData(() -> {
-                return O.ofNullable(multipart(request, param).orElse(null));
-            });
+            return throwOnBadRequestData(() -> multipart(request, param));
         }
 
         @Override
@@ -248,9 +253,25 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
-        public SortedSet<String> getNonMultipartParamNames() {
+        public SortedMap<String, String> getNonMultipartParamInfo() {
             return throwOnBadRequestData(() -> {
-                return Cc.addAll(new TreeSet<>(request.params().keySet()), request.queryParams());
+                TreeMap<String, String> toRet = new TreeMap<>();
+                if (isMultipart()) {
+                    for (String paramName : Cc.enumerableToIterable(request.raw().getParameterNames())) {
+                        getParamAsBytes(paramName)
+                                .filter($ -> CheckUtf8.isUtf8String($))
+                                .flatMap($ -> getParamAsString(paramName))
+                                .ifPresent($ -> toRet.put(paramName, $));
+                    }
+                } else {
+                    for (String paramName : Cc.enumerableToIterable(request.raw().getParameterNames())) {
+                        toRet.put(paramName, request.queryParams(paramName));
+                    }
+                }
+
+                final Map<String, String> params = request.params();
+                toRet.putAll(params);
+                return toRet;
             });
         }
 
@@ -258,7 +279,17 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         public O<Collection<Part>> getMultipartParamInfo() {
             return throwOnBadRequestData(() -> {
                 try {
-                    return O.ofNull(request.raw().getParts());
+                    if (isMultipart()) {
+                        List<Part> parts = new ArrayList<>();
+                        for (String paramName : Cc.enumerableToIterable(request.raw().getParameterNames())) {
+                            if (getParamAsBytes(paramName).filter($ -> CheckUtf8.isBinary($)).isPresent()) {
+                                parts.add(request.raw().getPart(paramName));
+                            }
+                        }
+                        return ofNull(parts);
+                    } else {
+                        return empty();
+                    }
                 } catch (IOException e) {
                     throw new WebProblemWithRequestBodyException(e);
                 } catch (ServletException e) {
@@ -309,26 +340,32 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         private O<byte[]> multipart(Request req, String paramName) {
-            try {
-                return isMultipart()
-                        ? ofNull(req.raw().getPart(paramName)).map(this::getPartBytes)
-                        : empty();
-            } catch (IOException e) {
-                throw new WebProblemWithRequestBodyException(e);
-            } catch (ServletException e) {
-                return empty();
-            }
-        }
-
-        @SneakyThrows
-        private byte[] getPartBytes(Part p) {
-            long size = p.getSize();
-            byte[] bytes = streamToBytes(p.getInputStream());
-            if (size != bytes.length) {
-                return except.throwByDescription(
-                        "Data is not uploaded fully: expected size:" + size + " != obtained size:" + bytes.length);
-            }
-            return bytes;
+            return isMultipart()
+                    ? ofNull(
+                    multipartCache.computeIfAbsent(paramName, (k) -> {
+                        try {
+                            return O.ofNull(req.raw().getPart(paramName)).flatMap(p -> {
+                                long size = p.getSize();
+                                byte[] bytes = new byte[0];
+                                try {
+                                    bytes = streamToBytes(p.getInputStream());
+                                } catch (IOException e) {
+                                    return empty();
+                                }
+                                if (size != bytes.length) {
+                                    return except.throwByDescription(
+                                            "Data is not uploaded fully: expected size:" + size + " != obtained size:" +
+                                                    bytes.length);
+                                }
+                                return ofNull(bytes);
+                            }).orElse(null);
+                        } catch (IOException e) {
+                            throw new WebProblemWithRequestBodyException(e);
+                        } catch (ServletException e) {
+                            return null;
+                        }
+                    }))
+                    : empty();
         }
 
         private <T> T throwOnBadRequestData(F0<T> toRun) {

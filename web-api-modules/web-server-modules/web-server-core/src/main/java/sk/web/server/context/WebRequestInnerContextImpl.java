@@ -38,6 +38,7 @@ import sk.web.utils.WebApiMethod;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.SortedSet;
 
 @Getter
@@ -98,8 +99,8 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
-    public SortedSet<String> getNonMultipartParamNames() {
-        return outerFull.getNonMultipartParamNames();
+    public SortedMap<String, String> getNonMultipartParamInfo() {
+        return outerFull.getNonMultipartParamInfo();
     }
 
     @Override

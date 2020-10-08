@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sk.services.async.IExecutorService;
 import sk.services.async.ISleep;
 import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
@@ -38,7 +39,10 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -78,7 +82,7 @@ public class RepeatImpl implements IRepeat {
     @Override
     @SneakyThrows
     public <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(List<A> tasks,
-            int maxRetryCount, long sleepAfterFailMs, ExecutorService pool, Set<Class<? extends Throwable>> exceptRetries,
+            int maxRetryCount, long sleepAfterFailMs, IExecutorService pool, Set<Class<? extends Throwable>> exceptRetries,
             CancelGetter cancel) {
         if (tasks.size() == 0) {
             return new BatchRepeatResult<>(Cc.m());
@@ -112,7 +116,7 @@ public class RepeatImpl implements IRepeat {
                             queue.add(QueuedTask.STOP);
                         }
                     }
-                }, pool);
+                }, pool.getUnderlying());
             } else {
                 break;
             }

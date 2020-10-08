@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sk.exceptions.JskProblem;
 import sk.exceptions.NotImplementedException;
+import sk.services.async.IExecutorService;
 import sk.services.http.model.CoreHttpResponse;
 import sk.services.retry.IRepeat;
 import sk.services.retry.utils.BatchRepeatResult;
@@ -47,7 +48,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 import static sk.utils.functional.O.ofNullable;
@@ -75,7 +75,7 @@ public class HttpImpl implements IHttp {
 
                 @Override
                 public <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(List<A> tasks,
-                        int maxRetryCount, long sleepAfterFailMs, ExecutorService pool,
+                        int maxRetryCount, long sleepAfterFailMs, IExecutorService pool,
                         Set<Class<? extends Throwable>> exceptRetries, CancelGetter cancel) {
                     throw new NotImplementedException();
                 }

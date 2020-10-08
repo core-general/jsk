@@ -22,9 +22,10 @@ package sk.outer.api.google.play;
 
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutSimpleUserInfo;
+import sk.services.bytes.IBytes;
 import sk.utils.functional.O;
 
-import javax.xml.bind.DatatypeConverter;
+import javax.inject.Inject;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -35,6 +36,8 @@ import java.security.cert.CertificateFactory;
 
 @Log4j2
 public class OutIosGameCenterLoginService {
+    @Inject IBytes bytes;
+
     public O<OutSimpleUserInfo> validateUser(String publicKeyURL, String signature, String salt, String timestamp,
             String playerID, String name, String bundleId) {
         return getPublicKey(publicKeyURL).flatMap(publicKeyCertificate -> {
@@ -77,8 +80,8 @@ public class OutIosGameCenterLoginService {
             tsByteBuffer.order(ByteOrder.BIG_ENDIAN);
             tsByteBuffer.putLong(timestampInt);
             byte[] timestampBytes = tsByteBuffer.array();
-            byte[] saltBytes = DatatypeConverter.parseBase64Binary(salt);
-            byte[] signatureBytes = DatatypeConverter.parseBase64Binary(signature);
+            byte[] saltBytes = bytes.dec64(salt);
+            byte[] signatureBytes = bytes.dec64(signature);
             ByteBuffer dataBuffer = ByteBuffer
                     .allocate(playerIDBytes.length +
                             bundleIDBytes.length +

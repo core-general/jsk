@@ -29,6 +29,7 @@ import sk.web.renders.WebRender;
 
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.SortedSet;
 
 public interface WebRequestInnerContext {
@@ -60,7 +61,7 @@ public interface WebRequestInnerContext {
 
     boolean isMultipart();
 
-    SortedSet<String> getNonMultipartParamNames();
+    SortedMap<String, String> getNonMultipartParamInfo();
 
     O<List<String>> getMultipartParamInfo();
 

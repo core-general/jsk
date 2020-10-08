@@ -75,10 +75,10 @@ public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
                 ctx.getUrlPathPart(),
                 ctx.getApiMethodType().name(),
                 ctx.getRequestHeaderNames().stream()
-                        .map($ -> $ + ":⚡️" + St.raze3dots(ctx.getRequestHeader($).orElse(""), getStringLimit()) + "⚡️️")
+                        .map($ -> $ + ":" + St.raze3dots(ctx.getRequestHeader($).orElse(""), getStringLimit()))
                         .collect(Cc.toL()),
-                ctx.getNonMultipartParamNames().stream()
-                        .map($ -> $ + ":⚡️️" + St.raze3dots(ctx.getParamAsString($).orElse(""), getStringLimit()) + "⚡️")
+                ctx.getNonMultipartParamInfo().entrySet().stream()
+                        .map($ -> $.getKey() + ":" + St.raze3dots($.getValue(), getStringLimit()))
                         .collect(Cc.toL()),
                 ctx.getMultipartParamInfo().map($ -> Cc.join(", ", $))
         ))) + "\n";

@@ -37,37 +37,40 @@ import static java.util.concurrent.Executors.*;
 public class AsyncImpl implements IAsync {
     private final ConcurrentMap<String, Long> nameIterator = new ConcurrentHashMap<>();
 
-    private final ExecutorService f =
-            newFixedThreadPool(getRuntime().availableProcessors(), r -> getDaemon(r::run, "FixedExecutor"));
-    private final ExecutorService b = newCachedThreadPool(r -> getDaemon(r::run, "CachedExecutor"));
-    private final ExecutorService s = newSingleThreadExecutor(r -> getDaemon(r::run, "SingleThreadExecutor"));
+    private final IExecutorService f =
+            new IExecutorServiceImpl(
+                    newFixedThreadPool(getRuntime().availableProcessors(), r -> getDaemon(r::run, "FixedExecutor")));
+    private final IExecutorService b = new IExecutorServiceImpl(newCachedThreadPool(r -> getDaemon(r::run, "CachedExecutor")));
+    private final IExecutorService s =
+            new IExecutorServiceImpl(newSingleThreadExecutor(r -> getDaemon(r::run, "SingleThreadExecutor")));
     private final ScheduledExecutorService sc = newScheduledThreadPool(
             O.ofNullable(System.getProperty("AsyncImpl.scheduledPoolSize")).map(Integer::parseInt).orElse(5),
             r -> getDaemon(r::run, "ScheduledExecutor"));
-    private final Map<Integer, ExecutorService> fixPerCore = new ConcurrentHashMap<>();
+    private final Map<Integer, IExecutorService> fixPerCore = new ConcurrentHashMap<>();
     private final Map<String, ScheduledExecutorService> dedicatedSchedulerExecutors = new ConcurrentHashMap<>();
-    private final ForkJoinPool coldTaskFJP =
-            new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(200));
+    private final IExecutorService coldTaskFJP = new IExecutorServiceImpl(
+            new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(200)));
 
     @Override
-    public ExecutorService fixedExec() {
+    public IExecutorService fixedExec() {
         return f;
     }
 
     @SuppressWarnings("unused")
     @Override
-    public ExecutorService fixedExec(int cores) {
+    public IExecutorService fixedExec(int cores) {
         return fixPerCore
-                .computeIfAbsent(cores, (i) -> newFixedThreadPool(cores, r -> getDaemon(r::run, "FixedPerCore-" + cores)));
+                .computeIfAbsent(cores, (i) -> new IExecutorServiceImpl(
+                        newFixedThreadPool(cores, r -> getDaemon(r::run, "FixedPerCore-" + cores))));
     }
 
     @Override
-    public ExecutorService bufExec() {
+    public IExecutorService bufExec() {
         return b;
     }
 
     @Override
-    public ExecutorService singleExec() {
+    public IExecutorService singleExec() {
         return s;
     }
 
@@ -77,7 +80,7 @@ public class AsyncImpl implements IAsync {
     }
 
     @Override
-    public ExecutorService coldTaskFJP() {
+    public IExecutorService coldTaskFJP() {
         return coldTaskFJP;
     }
 
@@ -105,11 +108,11 @@ public class AsyncImpl implements IAsync {
     @Override
     @PreDestroy
     public void stop() {
-        f.shutdownNow();
-        b.shutdownNow();
-        s.shutdownNow();
+        f.getUnderlying().shutdownNow();
+        b.getUnderlying().shutdownNow();
+        s.getUnderlying().shutdownNow();
         sc.shutdownNow();
-        fixPerCore.values().forEach(ExecutorService::shutdownNow);
+        fixPerCore.values().forEach($ -> $.getUnderlying().shutdown());
         dedicatedSchedulerExecutors.values().forEach(ExecutorService::shutdownNow);
     }
 }
