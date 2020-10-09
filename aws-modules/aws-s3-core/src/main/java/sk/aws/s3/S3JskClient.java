@@ -181,16 +181,16 @@ public class S3JskClient {
     }
 
     public S3ListResponse getItemPage(PathWithBase path, int count, O<String> nextMarker) {
-        final ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder();
+        final ListObjectsRequest.Builder builder = ListObjectsRequest.builder();
         builder
                 .bucket(path.getBase())
                 .prefix(path.getPathWithSlash())
                 .maxKeys(count)
                 .build();
-        nextMarker.ifPresent(builder::continuationToken);
-        ListObjectsV2Request request = builder.build();
-        final ListObjectsV2Response response = s3.listObjectsV2(request);
-        return new S3ListResponse(O.ofNull(response.nextContinuationToken()),
+        nextMarker.ifPresent(builder::marker);
+        ListObjectsRequest request = builder.build();
+        final ListObjectsResponse response = s3.listObjects(request);
+        return new S3ListResponse(O.ofNull(response.nextMarker()),
                 response.contents().stream().map($ -> new S3ListObject($.key())).collect(Cc.toL()));
     }
 
