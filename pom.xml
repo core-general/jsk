@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.2.1.12</version>
+    <version>jsk.2.2.0</version>
 
     <modules>
         <module>jx-modules</module>
@@ -41,13 +41,13 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.12</version>
+                <version>1.18.14</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
-                <version>2.8.5</version>
+                <version>2.8.6</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

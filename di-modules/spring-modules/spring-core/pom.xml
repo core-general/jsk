@@ -5,29 +5,29 @@
     <parent>
         <artifactId>spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.1.12</version>
+        <version>jsk.2.2.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spring-core</artifactId>
-    <version>jsk.2.1.12</version>
+    <version>jsk.2.2.0</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.2.1.12</version>
+            <version>jsk.2.2.0</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-properties-plugin-model</artifactId>
-            <version>jsk.2.1.12</version>
+            <version>jsk.2.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>5.2.8.RELEASE</version>
+            <version>5.2.9.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

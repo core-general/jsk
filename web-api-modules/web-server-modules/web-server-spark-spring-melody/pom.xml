@@ -5,19 +5,19 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.1.12</version>
+        <version>jsk.2.2.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-spark-spring-melody</artifactId>
-    <version>jsk.2.1.12</version>
+    <version>jsk.2.2.0</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spring-core</artifactId>
-            <version>jsk.2.1.12</version>
+            <version>jsk.2.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -26,17 +26,17 @@
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
-            <version>2.9.2</version>
+            <version>2.9.3</version>
         </dependency>
         <dependency>
             <groupId>net.bull.javamelody</groupId>
             <artifactId>javamelody-core</artifactId>
-            <version>1.73.1</version>
+            <version>1.86.0</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.2.1.12</version>
+            <version>jsk.2.2.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -48,7 +48,7 @@
             <!--            <plugin>-->
             <!--                <groupId>jsk</groupId>-->
             <!--                <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
-            <!--                <version>jsk.2.1.12</version>-->
+            <!--                <version>jsk.2.2.0</version>-->
             <!--                <configuration>-->
             <!--                    <apiClasses>-->
             <!--                        <param>sk.web.server.spark.TestApi1</param>-->
