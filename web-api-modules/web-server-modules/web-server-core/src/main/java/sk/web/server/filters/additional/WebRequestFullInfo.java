@@ -21,12 +21,14 @@ package sk.web.server.filters.additional;
  */
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import sk.web.server.model.WebRequestFinishInfo;
 import sk.web.server.model.WebRequestStartInfo;
 
 import java.util.Map;
 
 @AllArgsConstructor
+@Data
 public class WebRequestFullInfo {
     WebRequestStartInfo request;
     WebRequestFinishInfo response;
