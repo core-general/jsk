@@ -32,6 +32,7 @@ import sk.services.kv.keys.KvKey3Categories;
 import sk.services.time.ITime;
 import sk.utils.functional.Converter;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X3;
@@ -41,11 +42,14 @@ import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.standard.WebRequestLoggingFilter;
 import sk.web.server.model.WebProblemWithRequestBodyException;
+import sk.web.server.model.WebRequestFinishInfo;
+import sk.web.server.model.WebRequestStartInfo;
 import sk.web.server.params.WebUserActionLoggerParams;
 
 import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static sk.utils.functional.O.of;
 import static sk.utils.statics.Ti.yyyyMMddHHmmssSSS;
@@ -60,6 +64,7 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
     @Inject IBytes bytes;
     @Inject ITime times;
     @Inject IJson json;
+    @Inject Optional<List<WebUserHistoryAdditionalDataProvider>> additionalProviders = Optional.empty();
 
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> ctx) {
@@ -80,9 +85,14 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
                                         ctx.getRequestContext().getIpInfo().getClientIp(),
                                         now - times.toMilli(ctx.getRequestContext().getStartTime()));
 
-                        final String requestInfo = info.getRequestInfo(ctx);
-                        final String responseInfo = info.getResponseInfo(ctx, O.of(fwo));
-                        final O<byte[]> zipped = getRawValueConverter().convertThere(of(requestInfo + "\n" + responseInfo));
+                        final WebRequestStartInfo requestInfo = info.getRequestRawInfo(ctx);
+                        final WebRequestFinishInfo responseInfo = info.getResponseRawInfo(ctx, O.of(fwo));
+                        WebRequestFullInfo full = new WebRequestFullInfo(requestInfo, responseInfo,
+                                O.of(additionalProviders).stream().flatMap($ -> $.stream())
+                                        .map($ -> X.x($.getName(), $.provideAdditionalData(ctx)))
+                                        .collect(Cc.toMX2()));
+
+                        final O<byte[]> zipped = getRawValueConverter().convertThere(of(OneOf.left(full)));
 
                         store.trySaveNewObjectAndRaw(new LoggingKvKey(userId, times.nowZ()),
                                 new KvAllValues<>(loggingKvMeta, zipped,
@@ -98,7 +108,7 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
         }
     }
 
-    public List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getUserHistory(String userId,
+    public List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
             O<ZonedDateTime> from, O<ZonedDateTime> to,
             int maxCount, boolean descending) {
         final List<KvListItemAll<String>> items = store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, null),
@@ -111,11 +121,29 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
                 .filter($ -> $.getRawValue().isPresent())
                 .map($ -> {
                     final String output = getRawValueConverter().convertBack($.getRawValue()).get()
-                            .replace("\n\n\n\n", "\n")
-                            .replace("\n\n\n", "\n")
-                            .replace("\n\n", "\n");
+                            .mapLeft(wri -> info.generateRequestString(wri.request) + info.generateResponseString(wri.response))
+                            .collectBoth(str -> str.replace("\n\n\n\n", "\n")
+                                    .replace("\n\n\n", "\n")
+                                    .replace("\n\n", "\n"));
                     return X.x(json.from($.getValue(), LoggingKvMeta.class), output, $.getCreated());
                 })
+                .collect(Cc.toL());
+    }
+
+    public List<WebRequestFullInfo> getFullUserHistory(String userId,
+            O<ZonedDateTime> from, O<ZonedDateTime> to,
+            int maxCount, boolean descending) {
+        final List<KvListItemAll<String>> items = store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, null),
+                from.map(yyyyMMddHHmmssSSS::format),
+                to.map(yyyyMMddHHmmssSSS::format),
+                maxCount,
+                descending
+        );
+        return items.stream()
+                .filter($ -> $.getRawValue().isPresent())
+                .map($ -> getRawValueConverter().convertBack($.getRawValue()).get())
+                .filter($ -> $.isLeft())
+                .map($ -> $.left())
                 .collect(Cc.toL());
     }
 
@@ -126,16 +154,19 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
         return PRIORITY;
     }
 
-    private Converter<O<String>, O<byte[]>> getRawValueConverter() {
-        return new Converter<O<String>, O<byte[]>>() {
+    private Converter<O<OneOf<WebRequestFullInfo, String>>, O<byte[]>> getRawValueConverter() {
+        return new Converter<O<OneOf<WebRequestFullInfo, String>>, O<byte[]>>() {
             @Override
-            public O<byte[]> convertThere(O<String> in) {
-                return in.flatMap($ -> bytes.zipString($));
+            public O<byte[]> convertThere(O<OneOf<WebRequestFullInfo, String>> in) {
+                return in.flatMap($ -> $.mapLeft(wr -> json.to(wr)).collectBoth(str -> bytes.zipString(str)));
             }
 
             @Override
-            public O<String> convertBack(O<byte[]> in) {
-                return in.flatMap($ -> bytes.unZipString($));
+            public O<OneOf<WebRequestFullInfo, String>> convertBack(O<byte[]> in) {
+                return in.flatMap($ -> bytes.unZipString($))
+                        .map($ -> json.validate($)
+                                ? OneOf.left(json.from($, WebRequestFullInfo.class))
+                                : OneOf.right($));
             }
         };
     }

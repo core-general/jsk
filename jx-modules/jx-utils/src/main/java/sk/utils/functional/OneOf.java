@@ -68,6 +68,11 @@ public final class OneOf<L, R> {
         return collect(a -> a, a -> (L) a);
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T collectBoth(F1<? super L, T> bothFunc) {
+        return collect(bothFunc::apply, r -> bothFunc.apply((L) r));
+    }
+
     public L collectRight(F1<? super R, L> rFunc) {
         return collect(a -> a, rFunc);
     }

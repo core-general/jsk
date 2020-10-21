@@ -20,14 +20,10 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
-import sk.utils.functional.O;
-import sk.utils.tuples.X3;
+import sk.web.server.filters.WebServerFilterContext;
 
-import java.time.ZonedDateTime;
-import java.util.List;
+public interface WebUserHistoryAdditionalDataProvider {
+    Object provideAdditionalData(WebServerFilterContext<?> ctx);
 
-public interface WebUserHistoryProvider {
-    List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
-            O<ZonedDateTime> from,
-            O<ZonedDateTime> to, int maxCount, boolean descending);
+    String getName();
 }

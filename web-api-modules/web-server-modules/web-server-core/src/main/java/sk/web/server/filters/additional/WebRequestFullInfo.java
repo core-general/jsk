@@ -20,14 +20,15 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
-import sk.utils.functional.O;
-import sk.utils.tuples.X3;
+import lombok.AllArgsConstructor;
+import sk.web.server.model.WebRequestFinishInfo;
+import sk.web.server.model.WebRequestStartInfo;
 
-import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Map;
 
-public interface WebUserHistoryProvider {
-    List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
-            O<ZonedDateTime> from,
-            O<ZonedDateTime> to, int maxCount, boolean descending);
+@AllArgsConstructor
+public class WebRequestFullInfo {
+    WebRequestStartInfo request;
+    WebRequestFinishInfo response;
+    Map<String, Object> additionalData;
 }

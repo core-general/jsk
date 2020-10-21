@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  #%L
+  Swiss Knife
+  %%
+  Copyright (C) 2019 - 2020 Core General
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  #L%
+  -->
+
+<!-- cette webapp avec cette servlet est utilisée dans un serveur de collecte séparé de l'application monitorée -->
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0"
+         metadata-complete="true">
+    <display-name>monitoring</display-name>
+    <distributable/>
+
+    <servlet>
+        <servlet-name>monitoringServer</servlet-name>
+        <servlet-class>net.bull.javamelody.CollectorServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>monitoringServer</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
+    <filter>
+        <filter-name>SparkFilter</filter-name>
+        <filter-class>spark.servlet.SparkFilter</filter-class>
+        <init-param>
+            <param-name>applicationClass</param-name>
+            <param-value>sk.web.melody.web.MelCollectorApp</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>SparkFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+</web-app>

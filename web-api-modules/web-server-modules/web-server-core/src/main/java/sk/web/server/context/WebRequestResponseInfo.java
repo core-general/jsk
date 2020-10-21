@@ -23,9 +23,19 @@ package sk.web.server.context;
 import sk.utils.functional.O;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.filters.WebServerFilterContext;
+import sk.web.server.model.WebRequestFinishInfo;
+import sk.web.server.model.WebRequestStartInfo;
 
 public interface WebRequestResponseInfo {
+    <API> WebRequestStartInfo getRequestRawInfo(WebServerFilterContext<API> ctx);
+
+    <API> WebRequestFinishInfo getResponseRawInfo(WebServerFilterContext<API> ctx, O<WebFilterOutput> output);
+
     <API> String getRequestInfo(WebServerFilterContext<API> ctx);
 
     <API> String getResponseInfo(WebServerFilterContext<API> ctx, O<WebFilterOutput> output);
+
+    String generateRequestString(WebRequestStartInfo info);
+
+    String generateResponseString(WebRequestFinishInfo info);
 }

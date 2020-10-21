@@ -22,19 +22,22 @@ package sk.web.server.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import sk.utils.functional.O;
+import sk.utils.statics.Cc;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class WebRequestStartInfo {
     String requestId;
     String ip;
-    O<String> userToken;
+    O<String> userToken = O.empty();
     String path;
     String httpMethod;
-    List<String> headers;
-    List<String> parameters;
-    O<String> multipartInfo;
+    List<String> headers = Cc.l();
+    List<String> parameters = Cc.l();
+    O<String> multipartInfo = O.empty();
 }

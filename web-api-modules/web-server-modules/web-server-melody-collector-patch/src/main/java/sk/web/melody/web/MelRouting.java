@@ -1,4 +1,4 @@
-package sk.web.server.filters.additional;
+package sk.web.melody.web;
 
 /*-
  * #%L
@@ -20,14 +20,6 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
-import sk.utils.functional.O;
-import sk.utils.tuples.X3;
+public class MelRouting {
 
-import java.time.ZonedDateTime;
-import java.util.List;
-
-public interface WebUserHistoryProvider {
-    List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
-            O<ZonedDateTime> from,
-            O<ZonedDateTime> to, int maxCount, boolean descending);
 }

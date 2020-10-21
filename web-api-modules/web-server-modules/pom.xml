@@ -5,12 +5,12 @@
     <parent>
         <artifactId>web-api-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.2.1</version>
+        <version>jsk.2.2.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-modules</artifactId>
-    <version>jsk.2.2.1</version>
+    <version>jsk.2.2.3</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -18,6 +18,7 @@
         <module>web-server-core</module>
         <module>web-server-spring-core</module>
         <module>web-server-spring-jpa-core</module>
+        <module>web-server-melody-collector-patch</module>
     </modules>
 
 </project>

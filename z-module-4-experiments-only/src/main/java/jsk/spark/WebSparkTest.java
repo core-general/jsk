@@ -52,7 +52,9 @@ import sk.web.exceptions.IWebExcept;
 import sk.web.server.WebServerCore;
 import sk.web.server.WebServerCoreWithPings;
 import sk.web.server.filters.WebServerFilter;
+import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.additional.WebUserActionLoggingFilter;
+import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
 import sk.web.server.params.WebApiInfoParams;
 import sk.web.server.params.WebUserActionLoggerParams;
@@ -100,9 +102,9 @@ public class WebSparkTest {
         @Override
         public String a(String abc) {
             final String join = Cc.join("\n===================================================================\n\n",
-                    historyProvider.getUserHistory(abc,
+                    historyProvider.getRenderedUserHistory(abc,
                             of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
-                            of(ZonedDateTime.parse("2020-09-17T16:10:00.000Z", ISO_DATE_TIME)),
+                            of(ZonedDateTime.parse("2021-09-17T16:10:00.000Z", ISO_DATE_TIME)),
                             10,
                             false),
                     x -> St.addTabsLeft(O.ofNull(x.i3())
@@ -157,6 +159,36 @@ public class WebSparkTest {
 
                 @Override
                 public String getBasicAuthPass() {
+                    return "def";
+                }
+            };
+        }
+
+        @Bean
+        WebUserHistoryAdditionalDataProvider WebUserHistoryAdditionalDataProvider() {
+            return new WebUserHistoryAdditionalDataProvider() {
+                @Override
+                public Object provideAdditionalData(WebServerFilterContext<?> ctx) {
+                    return "WPOWOWO";
+                }
+
+                @Override
+                public String getName() {
+                    return "abc";
+                }
+            };
+        }
+
+        @Bean
+        WebUserHistoryAdditionalDataProvider WebUserHistoryAdditionalDataProvider1() {
+            return new WebUserHistoryAdditionalDataProvider() {
+                @Override
+                public Object provideAdditionalData(WebServerFilterContext<?> ctx) {
+                    return Cc.m("a", Cc.m("b", "c", "d", "e"), "b", "wowowow");
+                }
+
+                @Override
+                public String getName() {
                     return "def";
                 }
             };

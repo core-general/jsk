@@ -37,6 +37,8 @@ import javax.inject.Inject;
 public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
     private static final WebRequestVariable WEB_REQUEST_INFO = () -> "_JSK_WEB_REQUEST_INFO";
     private static final WebRequestVariable WEB_RESPONSE_INFO = () -> "_JSK_WEB_RESPONSE_INFO";
+    private static final WebRequestVariable WEB_REQUEST_INFO_RAW = () -> "_JSK_WEB_REQUEST_INFO_RAW";
+    private static final WebRequestVariable WEB_RESPONSE_INFO_RAW = () -> "_JSK_WEB_RESPONSE_INFO_RAW";
     private static final int STRING_LIMIT = 50000;
 
     @Inject IFree free;
@@ -44,31 +46,51 @@ public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
     @Inject IJson json;
 
     @Override
+    public <API> WebRequestStartInfo getRequestRawInfo(WebServerFilterContext<API> ctx) {
+        return getOrGenerate(ctx, WEB_REQUEST_INFO_RAW, () -> generateRawRequest(ctx));
+    }
+
+    @Override
+    public <API> WebRequestFinishInfo getResponseRawInfo(WebServerFilterContext<API> ctx, O<WebFilterOutput> output) {
+        return getOrGenerate(ctx, WEB_RESPONSE_INFO_RAW, () -> generateRawResponse(ctx, output));
+    }
+
+    @Override
     public <API> String getRequestInfo(WebServerFilterContext<API> ctx) {
-        return getOrGenerate(ctx, WEB_REQUEST_INFO, () -> generateRequest(ctx));
+        return getOrGenerate(ctx, WEB_REQUEST_INFO, () -> generateRequestString(getRequestRawInfo(ctx)));
     }
 
     @Override
     public <API> String getResponseInfo(WebServerFilterContext<API> ctx, O<WebFilterOutput> output) {
-        return getOrGenerate(ctx, WEB_RESPONSE_INFO, () -> generateResponse(ctx, output));
+        return getOrGenerate(ctx, WEB_RESPONSE_INFO, () -> generateResponseString(getResponseRawInfo(ctx, output)));
+    }
+
+    @Override
+    public String generateRequestString(WebRequestStartInfo info) {
+        return "\n" + free.process("sk/web/server/templates/request_start.ftl", Cc.m("info", info)) + "\n";
+    }
+
+    @Override
+    public String generateResponseString(WebRequestFinishInfo info) {
+        return "\n" + free.process("sk/web/server/templates/request_finish.ftl", Cc.m("info", info)) + "\n";
     }
 
     protected int getStringLimit() {
         return STRING_LIMIT;
     }
 
-    private <API> String getOrGenerate(WebServerFilterContext<API> ctx, WebRequestVariable variable, F0<String> generator) {
-        final O<String> variableValue = ctx.getRequestContext().getVariableValue(variable);
+    private <API, T> T getOrGenerate(WebServerFilterContext<API> ctx, WebRequestVariable variable, F0<T> generator) {
+        final O<T> variableValue = ctx.getRequestContext().getVariableValue(variable);
         return variableValue.orElseGet(() -> {
-            String value = generator.apply();
+            T value = generator.apply();
             ctx.getRequestContext().setVariableValue(variable, value);
             return value;
         });
     }
 
-    private <API> String generateRequest(WebServerFilterContext<API> requestContext) {
+    private <API> WebRequestStartInfo generateRawRequest(WebServerFilterContext<API> requestContext) {
         final WebRequestInnerContext ctx = requestContext.getRequestContext();
-        return "\n" + free.process("sk/web/server/templates/request_start.ftl", Cc.m("info", new WebRequestStartInfo(
+        return new WebRequestStartInfo(
                 ctx.getServerRequestId(),
                 ctx.getIpInfo().getClientIp(),
                 ctx.getUserToken(),
@@ -81,29 +103,29 @@ public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
                         .map($ -> $.getKey() + ":" + St.raze3dots($.getValue(), getStringLimit()))
                         .collect(Cc.toL()),
                 ctx.getMultipartParamInfo().map($ -> Cc.join(", ", $))
-        ))) + "\n";
+        );
     }
 
-    private <API> String generateResponse(WebServerFilterContext<API> requestContext, O<WebFilterOutput> output) {
+    private <API> WebRequestFinishInfo generateRawResponse(WebServerFilterContext<API> requestContext,
+            O<WebFilterOutput> output) {
         final WebRequestInnerContext ctx = requestContext.getRequestContext();
         final long difWithNano4Dif = times.getDifWithNano4Dif(ctx.getReqStartNano4Dif());
         String ms = difWithNano4Dif / 1_000_000 + "";
         String msRight = St.ss(difWithNano4Dif % 1_000_000 + "", 0, 2);
-        return "\n" +
-                free.process("sk/web/server/templates/request_finish.ftl", Cc.m("info", new WebRequestFinishInfo(
-                        ctx.getServerRequestId(),
-                        ctx.getIpInfo().getClientIp(),
-                        ctx.getUserToken(),
-                        ms + "." + msRight,
-                        output.map($ -> $.getRawOrRendered()
-                                .collect(x -> x.getHttpCode(), x -> x.getMeta().getHttpCode()))
-                                .orElse(0),
-                        output.map($ -> $.getRawOrRendered().collect(
-                                x -> St.raze3dots(json.to(x.getValOrProblem().collectSelf()), getStringLimit()),
-                                x -> x.getValue().collect(
-                                        str -> St.raze3dots(str, getStringLimit()),
-                                        bytes -> "bytes[" + bytes.length + "]")))
-                                .orElse("Output unknown")
-                ))) + "\n";
+        return new WebRequestFinishInfo(
+                ctx.getServerRequestId(),
+                ctx.getIpInfo().getClientIp(),
+                ctx.getUserToken(),
+                ms + "." + msRight,
+                output.map($ -> $.getRawOrRendered()
+                        .collect(x -> x.getHttpCode(), x -> x.getMeta().getHttpCode()))
+                        .orElse(0),
+                output.map($ -> $.getRawOrRendered().collect(
+                        x -> St.raze3dots(json.to(x.getValOrProblem().collectSelf()), getStringLimit()),
+                        x -> x.getValue().collect(
+                                str -> St.raze3dots(str, getStringLimit()),
+                                bytes -> "bytes[" + bytes.length + "]")))
+                        .orElse("Output unknown")
+        );
     }
 }
