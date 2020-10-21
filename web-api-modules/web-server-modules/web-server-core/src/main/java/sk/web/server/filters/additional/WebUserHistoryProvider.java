@@ -30,4 +30,8 @@ public interface WebUserHistoryProvider {
     List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
             O<ZonedDateTime> from,
             O<ZonedDateTime> to, int maxCount, boolean descending);
+
+    List<WebRequestFullInfo> getFullUserHistory(String userId,
+            O<ZonedDateTime> from,
+            O<ZonedDateTime> to, int maxCount, boolean descending);
 }
