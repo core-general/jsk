@@ -73,9 +73,9 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
 
     @Override
     public O<String> getUserToken() {
-        return methodInfo.getAnnotation(WebUserToken.class)
-                .flatMap($ -> $.isParamOrHeader() ? getParamAsString($.paramName()) : getRequestHeader($.paramName()))
-                .or(() -> O.ofNull(changedToken));
+        return O.ofNull(changedToken)
+                .or(() -> methodInfo.getAnnotation(WebUserToken.class)
+                        .flatMap($ -> $.isParamOrHeader() ? getParamAsString($.paramName()) : getRequestHeader($.paramName())));
     }
 
     @Override
