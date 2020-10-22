@@ -78,30 +78,32 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
             try {
                 if (conf.isOn()) {
                     WebFilterOutput fwo = webFilterOutput;
-                    userIdByToken.ifPresent(userId -> {
-                        final long now = times.now();
-                        final LoggingKvMeta loggingKvMeta =
-                                new LoggingKvMeta(fwo.getCode(),
-                                        ctx.getRequestContext().getRequestType() + ":" + ctx.getRequestContext().getUrlPathPart(),
-                                        ctx.getRequestContext().getIpInfo().getClientIp(),
-                                        now - times.toMilli(ctx.getRequestContext().getStartTime()));
+                    userIdByToken.or(() -> ctx.getRequestContext().getUserToken().flatMap(this::getUserIdByToken))
+                            .ifPresent(userId -> {
+                                final long now = times.now();
+                                final LoggingKvMeta loggingKvMeta =
+                                        new LoggingKvMeta(fwo.getCode(),
+                                                ctx.getRequestContext().getRequestType() + ":" +
+                                                        ctx.getRequestContext().getUrlPathPart(),
+                                                ctx.getRequestContext().getIpInfo().getClientIp(),
+                                                now - times.toMilli(ctx.getRequestContext().getStartTime()));
 
-                        final WebRequestStartInfo requestInfo = info.getRequestRawInfo(ctx);
-                        final WebRequestFinishInfo responseInfo = info.getResponseRawInfo(ctx, O.of(fwo));
-                        WebRequestFullInfo full = new WebRequestFullInfo(requestInfo, responseInfo,
-                                O.of(additionalProviders).stream().flatMap($ -> $.stream())
-                                        .map($ -> $.provideAdditionalData(ctx).map($$ -> X.x($.getName(), $$)))
-                                        .filter($ -> $.isPresent())
-                                        .map($ -> $.get())
-                                        .collect(Cc.toMX2()));
+                                final WebRequestStartInfo requestInfo = info.getRequestRawInfo(ctx);
+                                final WebRequestFinishInfo responseInfo = info.getResponseRawInfo(ctx, O.of(fwo));
+                                WebRequestFullInfo full = new WebRequestFullInfo(requestInfo, responseInfo,
+                                        O.of(additionalProviders).stream().flatMap($ -> $.stream())
+                                                .map($ -> $.provideAdditionalData(ctx).map($$ -> X.x($.getName(), $$)))
+                                                .filter($ -> $.isPresent())
+                                                .map($ -> $.get())
+                                                .collect(Cc.toMX2()));
 
-                        final O<byte[]> zipped = getRawValueConverter().convertThere(of(OneOf.left(full)));
+                                final O<byte[]> zipped = getRawValueConverter().convertThere(of(OneOf.left(full)));
 
-                        store.trySaveNewObjectAndRaw(
-                                new LoggingKvKey(userId, of(times.nowZ()), ofNull(requestInfo.getRequestId())),
-                                new KvAllValues<>(loggingKvMeta, zipped,
-                                        O.of(ctx.getRequestContext().getStartTime().plus(conf.getTtl()))));
-                    });
+                                store.trySaveNewObjectAndRaw(
+                                        new LoggingKvKey(userId, of(times.nowZ()), ofNull(requestInfo.getRequestId())),
+                                        new KvAllValues<>(loggingKvMeta, zipped,
+                                                O.of(ctx.getRequestContext().getStartTime().plus(conf.getTtl()))));
+                            });
                 }
             } catch (WebProblemWithRequestBodyException e) {
                 //ignoring, since we already have it in WebServerCore
