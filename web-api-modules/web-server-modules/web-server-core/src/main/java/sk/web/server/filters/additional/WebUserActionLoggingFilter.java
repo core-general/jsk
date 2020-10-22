@@ -34,6 +34,7 @@ import sk.utils.functional.Converter;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
+import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X3;
 import sk.web.renders.WebFilterOutput;
@@ -51,7 +52,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static sk.utils.functional.O.of;
+import static sk.utils.functional.O.*;
 import static sk.utils.statics.Ti.yyyyMMddHHmmssSSS;
 
 @Log4j2
@@ -94,7 +95,8 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
 
                         final O<byte[]> zipped = getRawValueConverter().convertThere(of(OneOf.left(full)));
 
-                        store.trySaveNewObjectAndRaw(new LoggingKvKey(userId, times.nowZ()),
+                        store.trySaveNewObjectAndRaw(
+                                new LoggingKvKey(userId, of(times.nowZ()), ofNull(requestInfo.getRequestId())),
                                 new KvAllValues<>(loggingKvMeta, zipped,
                                         O.of(ctx.getRequestContext().getStartTime().plus(conf.getTtl()))));
                     });
@@ -111,12 +113,13 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
     public List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
             O<ZonedDateTime> from, O<ZonedDateTime> to,
             int maxCount, boolean descending) {
-        final List<KvListItemAll<String>> items = store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, null),
-                from.map(yyyyMMddHHmmssSSS::format),
-                to.map(yyyyMMddHHmmssSSS::format),
-                maxCount,
-                descending
-        );
+        final List<KvListItemAll<String>> items =
+                store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, empty(), empty()),
+                        from.map(yyyyMMddHHmmssSSS::format),
+                        to.map(yyyyMMddHHmmssSSS::format),
+                        maxCount,
+                        descending
+                );
         return items.stream()
                 .filter($ -> $.getRawValue().isPresent())
                 .map($ -> {
@@ -133,12 +136,13 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
     public List<WebRequestFullInfo> getFullUserHistory(String userId,
             O<ZonedDateTime> from, O<ZonedDateTime> to,
             int maxCount, boolean descending) {
-        final List<KvListItemAll<String>> items = store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, null),
-                from.map(yyyyMMddHHmmssSSS::format),
-                to.map(yyyyMMddHHmmssSSS::format),
-                maxCount,
-                descending
-        );
+        final List<KvListItemAll<String>> items =
+                store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, empty(), empty()),
+                        from.map(yyyyMMddHHmmssSSS::format),
+                        to.map(yyyyMMddHHmmssSSS::format),
+                        maxCount,
+                        descending
+                );
         return items.stream()
                 .filter($ -> $.getRawValue().isPresent())
                 .map($ -> getRawValueConverter().convertBack($.getRawValue()).get())
@@ -178,9 +182,9 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
         final O<String> key3;//datetime
         final String defaultValue = "";
 
-        public LoggingKvKey(String userId, ZonedDateTime created) {
+        public LoggingKvKey(String userId, O<ZonedDateTime> created, O<String> requestId) {
             this.key2 = O.of(userId);
-            key3 = O.ofNull(created).map($ -> yyyyMMddHHmmssSSS.format($));
+            key3 = created.map($ -> yyyyMMddHHmmssSSS.format($) + requestId.map($$ -> "__" + St.subRF($$, "-")).orElse(""));
         }
     }
 

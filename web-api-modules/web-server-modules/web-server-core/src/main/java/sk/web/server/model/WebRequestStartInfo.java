@@ -32,6 +32,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WebRequestStartInfo {
+    String date;
     String requestId;
     String ip;
     O<String> userToken = O.empty();

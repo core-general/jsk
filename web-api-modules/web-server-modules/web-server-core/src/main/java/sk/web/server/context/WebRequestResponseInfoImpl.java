@@ -27,6 +27,7 @@ import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
+import sk.utils.statics.Ti;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.model.WebRequestFinishInfo;
@@ -91,6 +92,7 @@ public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
     private <API> WebRequestStartInfo generateRawRequest(WebServerFilterContext<API> requestContext) {
         final WebRequestInnerContext ctx = requestContext.getRequestContext();
         return new WebRequestStartInfo(
+                ctx.getStartTime().format(Ti.yyyyMMddHHmmssSSS),
                 ctx.getServerRequestId(),
                 ctx.getIpInfo().getClientIp(),
                 ctx.getUserToken(),

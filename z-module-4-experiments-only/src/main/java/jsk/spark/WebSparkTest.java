@@ -46,13 +46,12 @@ import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
-import sk.utils.statics.St;
-import sk.utils.statics.Ti;
 import sk.web.exceptions.IWebExcept;
 import sk.web.server.WebServerCore;
 import sk.web.server.WebServerCoreWithPings;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
+import sk.web.server.filters.additional.WebRequestFullInfo;
 import sk.web.server.filters.additional.WebUserActionLoggingFilter;
 import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
@@ -101,15 +100,23 @@ public class WebSparkTest {
 
         @Override
         public String a(String abc) {
-            final String join = Cc.join("\n===================================================================\n\n",
-                    historyProvider.getRenderedUserHistory(abc,
-                            of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
-                            of(ZonedDateTime.parse("2021-09-17T16:10:00.000Z", ISO_DATE_TIME)),
-                            10,
-                            false),
-                    x -> St.addTabsLeft(O.ofNull(x.i3())
-                            .map($ -> Ti.yyyyMMddHHmmssSSS.format($) + "\n").orElse("") + json.to(x.i1(), false) + x.i2(), 2));
-            System.out.println(join);
+            //final String join = Cc.join("\n===================================================================\n\n",
+            //        historyProvider.getRenderedUserHistory(abc,
+            //                of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
+            //                of(ZonedDateTime.parse("2021-09-17T16:10:00.000Z", ISO_DATE_TIME)),
+            //                10,
+            //                false),
+            //        x -> St.addTabsLeft(O.ofNull(x.i3())
+            //                .map($ -> Ti.yyyyMMddHHmmssSSS.format($) + "\n").orElse("") + json.to(x.i1(), false) + x.i2(), 2));
+            //System.out.println(join);
+
+            final List<WebRequestFullInfo> fullUserHistory = historyProvider.getFullUserHistory(abc,
+                    of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
+                    of(ZonedDateTime.parse("2021-09-17T16:10:00.000Z", ISO_DATE_TIME)),
+                    100,
+                    false);
+            System.out.println(json.to(fullUserHistory, true));
+
             return abc;
         }
 

@@ -24,8 +24,10 @@ import jsk.spark.testmodel.SomeClass1;
 import jsk.spark.testmodel.SomeClass2;
 import jsk.spark.testmodel.SomeEnum;
 import sk.web.annotations.WebPath;
+import sk.web.annotations.WebRender;
 import sk.web.annotations.WebUserToken;
 import sk.web.annotations.type.WebGET;
+import sk.web.renders.WebRenderType;
 
 /**
  * Just test class which we use 4 test Just test class which we use 4 test Just test class which we use 4 test Just test class
@@ -64,6 +66,7 @@ public interface TestApi1 {
     @WebGET
     @WebPath(value = "ajk/:abc", appendMethodName = false)
     @WebUserToken(paramName = "abc")
+    @WebRender(WebRenderType.RAW_STRING)
     String a(String abc);
 
     /**
