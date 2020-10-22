@@ -20,10 +20,11 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
+import sk.utils.functional.O;
 import sk.web.server.filters.WebServerFilterContext;
 
 public interface WebUserHistoryAdditionalDataProvider {
-    Object provideAdditionalData(WebServerFilterContext<?> ctx);
+    O<Object> provideAdditionalData(WebServerFilterContext<?> ctx);
 
     String getName();
 }

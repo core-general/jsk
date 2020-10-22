@@ -90,7 +90,9 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
                         final WebRequestFinishInfo responseInfo = info.getResponseRawInfo(ctx, O.of(fwo));
                         WebRequestFullInfo full = new WebRequestFullInfo(requestInfo, responseInfo,
                                 O.of(additionalProviders).stream().flatMap($ -> $.stream())
-                                        .map($ -> X.x($.getName(), $.provideAdditionalData(ctx)))
+                                        .map($ -> $.provideAdditionalData(ctx).map($$ -> X.x($.getName(), $$)))
+                                        .filter($ -> $.isPresent())
+                                        .map($ -> $.get())
                                         .collect(Cc.toMX2()));
 
                         final O<byte[]> zipped = getRawValueConverter().convertThere(of(OneOf.left(full)));

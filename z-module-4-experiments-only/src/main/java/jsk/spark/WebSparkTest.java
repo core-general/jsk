@@ -73,6 +73,7 @@ import java.util.List;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static sk.utils.functional.O.of;
+import static sk.utils.functional.O.ofNull;
 
 public class WebSparkTest {
     public static void main(String[] args) {
@@ -175,8 +176,8 @@ public class WebSparkTest {
         WebUserHistoryAdditionalDataProvider WebUserHistoryAdditionalDataProvider() {
             return new WebUserHistoryAdditionalDataProvider() {
                 @Override
-                public Object provideAdditionalData(WebServerFilterContext<?> ctx) {
-                    return "WPOWOWO";
+                public O<Object> provideAdditionalData(WebServerFilterContext<?> ctx) {
+                    return ofNull("WPOWOWO");
                 }
 
                 @Override
@@ -190,8 +191,8 @@ public class WebSparkTest {
         WebUserHistoryAdditionalDataProvider WebUserHistoryAdditionalDataProvider1() {
             return new WebUserHistoryAdditionalDataProvider() {
                 @Override
-                public Object provideAdditionalData(WebServerFilterContext<?> ctx) {
-                    return Cc.m("a", Cc.m("b", "c", "d", "e"), "b", "wowowow");
+                public O<Object> provideAdditionalData(WebServerFilterContext<?> ctx) {
+                    return of(Cc.m("a", Cc.m("b", "c", "d", "e"), "b", "wowowow"));
                 }
 
                 @Override
