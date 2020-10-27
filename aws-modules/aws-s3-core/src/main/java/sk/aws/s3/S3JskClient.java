@@ -190,8 +190,12 @@ public class S3JskClient {
         nextMarker.ifPresent(builder::marker);
         ListObjectsRequest request = builder.build();
         final ListObjectsResponse response = s3.listObjects(request);
-        return new S3ListResponse(O.ofNull(response.nextMarker()),
-                response.contents().stream().map($ -> new S3ListObject($.key())).collect(Cc.toL()));
+
+        O<String> marker = response.isTruncated()
+                ? O.ofNull(response.nextMarker()).or(() -> Cc.last(response.contents()).map($ -> $.key()))
+                : empty();
+
+        return new S3ListResponse(marker, response.contents().stream().map($ -> new S3ListObject($.key())).collect(Cc.toL()));
     }
 
     public List<S3ListResponse> getAllItems(PathWithBase path, O<Long> msBetweenPageRequests) {
