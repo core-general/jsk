@@ -65,14 +65,12 @@ public class CluKvBasedOnOffWithLockWorker<C extends CluKvBasedOnOffWithLockWork
                 return () -> {
                     Boolean apply = null;
                     try {
-                        apply = c.getOnOffSwitchChecker().apply();
+                        apply = c.getOnOffSwitchChecker() != null
+                                ? c.getOnOffSwitchChecker().apply()
+                                : null;
                     } catch (Exception e) {
                     }
-                    if (apply == null) {
-                        return kv.getAsBool(onOffKey);
-                    } else {
-                        return apply;
-                    }
+                    return apply == null ? kv.getAsBool(onOffKey) : apply;
                 };
             }
 

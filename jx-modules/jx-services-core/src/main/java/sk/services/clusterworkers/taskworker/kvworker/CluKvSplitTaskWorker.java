@@ -225,9 +225,16 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         IConf<M, T, R> iConf = new IConf<M, T, R>() {
             @Override
             public Gett<CluSplitTask<M, R>> getSplitTask() {
-                return config.getSplitTask() != null
-                        ? config.getSplitTask()
-                        : () -> createTaskForCurrentRun(config);
+                return () -> {
+                    CluSplitTask<M, R> apply = null;
+                    try {
+                        apply = config.getSplitTask() != null
+                                ? config.getSplitTask().apply()
+                                : null;
+                    } catch (Exception e) {
+                    }
+                    return apply == null ? createTaskForCurrentRun(config) : apply;
+                };
             }
 
             @Override
@@ -237,9 +244,16 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
             @Override
             public Gett<Boolean> getOnOffSwitchChecker() {
-                return config.getOnOffSwitchChecker() != null
-                        ? config.getOnOffSwitchChecker()
-                        : () -> kv.getAsBool(onOffKey);
+                return () -> {
+                    Boolean apply = null;
+                    try {
+                        apply = config.getOnOffSwitchChecker() != null
+                                ? config.getOnOffSwitchChecker().apply()
+                                : null;
+                    } catch (Exception e) {
+                    }
+                    return apply == null ? kv.getAsBool(onOffKey) : apply;
+                };
             }
 
             @Override
