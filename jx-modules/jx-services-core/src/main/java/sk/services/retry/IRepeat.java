@@ -49,20 +49,20 @@ public interface IRepeat {
         return repeat(toRun, null, count, sleepBetweenTries, allowedExceptions);
     }
 
-    default <T> T repeat(Supplier<T> toRun, int count) {
-        return repeat(toRun, null, count, 0, Cc.sEmpty());
-    }
-
-    default <T> T repeat(Supplier<T> toRun, int count, long sleepBetweenTries) {
-        return repeat(toRun, null, count, sleepBetweenTries, Cc.sEmpty());
-    }
-
     default <T> T repeat(Supplier<T> toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) {
         return repeat(toRun, null, count, 0, allowedExceptions);
     }
 
+    default <T> T repeat(Supplier<T> toRun, int count) {
+        return repeat(toRun, null, count, 0, Cc.s(Exception.class));
+    }
+
+    default <T> T repeat(Supplier<T> toRun, int count, long sleepBetweenTries) {
+        return repeat(toRun, null, count, sleepBetweenTries, Cc.s(Exception.class));
+    }
+
     default <T> T repeat(Supplier<T> toRun, Supplier<T> onFail, int count) {
-        return repeat(toRun, onFail, count, 0, Cc.sEmpty());
+        return repeat(toRun, onFail, count, 0, Cc.s(Exception.class));
     }
 
 

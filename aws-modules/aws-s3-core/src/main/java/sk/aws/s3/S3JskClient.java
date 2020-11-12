@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
+import sk.services.retry.IRepeat;
 import sk.utils.files.PathWithBase;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -48,6 +49,7 @@ import static sk.utils.functional.O.ofNullable;
 public class S3JskClient {
     @Inject S3Properties conf;
     @Inject IAsync async;
+    @Inject IRepeat repeat;
     @Inject AwsUtilityHelper helper;
 
     public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper) {
@@ -227,7 +229,8 @@ public class S3JskClient {
 
     public void clearAll(PathWithBase base, O<Long> msBetweenPageRequests) {
         getAllItems(base, msBetweenPageRequests).stream().forEach($ -> {
-            deleteByKeys(base, $.getObjects().stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0]));
+            repeat.repeat(() -> deleteByKeys(base,
+                    $.getObjects().stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
         });
     }
 }

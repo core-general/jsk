@@ -104,6 +104,16 @@ public class RepeatImplTest extends MockitoTest {
         }, () -> {
             return "fail";
         }, 5, 0, Cc.s(SomeException.class)));
+
+        counter.set(0);
+        assertEquals("ok", repeat.repeat(() -> {
+            if (counter.incrementAndGet() < 3) {
+                throw new SomeException2();
+            }
+            return "ok";
+        }, () -> {
+            return "fail";
+        }, 5));
     }
 
     private static class SomeException extends RuntimeException {}

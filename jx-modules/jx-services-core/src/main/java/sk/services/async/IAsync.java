@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.CompletableFuture.allOf;
@@ -72,9 +73,12 @@ public interface IAsync extends ISleep {
     @SneakyThrows
     default void runParallel(List<R> toRun) {
         val cb = new CyclicBarrier(toRun.size() + 1);
+        AtomicReference<Exception> exception = new AtomicReference<>();
         toRun.forEach(R -> bufExec().submit(() -> {
             try {
                 R.run();
+            } catch (Exception e) {
+                exception.compareAndSet(null, e);
             } finally {
                 try {
                     cb.await();
@@ -83,6 +87,9 @@ public interface IAsync extends ISleep {
             }
         }));
         cb.await();
+        if (exception.get() != null) {
+            throw exception.get();
+        }
     }
 
     @SneakyThrows
