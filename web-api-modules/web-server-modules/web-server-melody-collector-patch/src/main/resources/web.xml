@@ -39,16 +39,13 @@
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 
-    <filter>
-        <filter-name>SparkFilter</filter-name>
-        <filter-class>spark.servlet.SparkFilter</filter-class>
-        <init-param>
-            <param-name>applicationClass</param-name>
-            <param-value>sk.web.melody.web.MelCollectorApp</param-value>
-        </init-param>
-    </filter>
-    <filter-mapping>
-        <filter-name>SparkFilter</filter-name>
+    <servlet>
+        <servlet-name>jskCollectorPlugin</servlet-name>
+        <servlet-class>sk.web.melody.web.MelServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>jskCollectorPlugin</servlet-name>
         <url-pattern>/api/*</url-pattern>
-    </filter-mapping>
+    </servlet-mapping>
 </web-app>

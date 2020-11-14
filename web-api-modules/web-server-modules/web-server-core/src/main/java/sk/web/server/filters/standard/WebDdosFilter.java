@@ -70,6 +70,7 @@ public class WebDdosFilter implements WebServerFilter, IBeanInfoSubscriber<Map<S
                 long currentRequestCount = court.get(clientIp).decrementAndGet();
                 if (currentRequestCount <= 0) {
                     jail.put(clientIp, Void.class);
+                    court.invalidate(clientIp);
                 }
             }
         }

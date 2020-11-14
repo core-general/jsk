@@ -52,10 +52,11 @@ public class S3JskClient {
     @Inject IRepeat repeat;
     @Inject AwsUtilityHelper helper;
 
-    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper) {
+    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat) {
         this.conf = conf;
         this.async = async;
         this.helper = helper;
+        this.repeat = repeat;
     }
 
     private S3Client s3;
