@@ -21,40 +21,40 @@ package sk.web.melody.web;
  */
 
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 import net.bull.javamelody.internal.common.Parameters;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-@Log4j2
 public class MelNodeManagementService {
-    private static final String FORMATING_URL = "http://%s:%s@%s:%s/";
+    private static final String FORMATING_URL = "http://%s:%s@%s:%s";
     private static final X2<String, Integer> OK = X.x("OK", 200);
 
     @SneakyThrows
     public synchronized static X2<String, Integer> addNode(String appName, String nodeIp, String port, String login, String pas) {
-        log.info("Adding node:" + nodeIp + ":" + port + " ...");
+        System.out.println("Adding node:" + nodeIp + ":" + port + " ...");
         URL url = new URL(String.format(FORMATING_URL, login, pas, nodeIp, port));
         List<URL> curAppUrls = O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l());
-        if (!curAppUrls.contains(url)) {
+        if (curAppUrls.stream().noneMatch($ -> Fu.equal($.getHost() + ":" + $.getPort(), nodeIp + ":" + port))) {
             curAppUrls.add(url);
+            Parameters.addCollectorApplication(appName, curAppUrls);
+            System.out.println("Added node:" + nodeIp + ":" + port);
         }
-        Parameters.addCollectorApplication(appName, curAppUrls);
-        log.info("Added node:" + nodeIp + ":" + port);
         return OK;
     }
 
     @SneakyThrows
     public synchronized static X2<String, Integer> removeNode(String appName, String nodeIp, String port) {
-        log.info("Removing node:" + nodeIp + ":" + port + " ...");
+        System.out.println("Removing node:" + nodeIp + ":" + port + " ...");
         final String urlPart = nodeIp + ":" + port;
         final Predicate<URL> equalityCheck = $ -> $.toString().contains(urlPart);
         return removeNode(appName, equalityCheck);
@@ -62,23 +62,24 @@ public class MelNodeManagementService {
 
     @SneakyThrows
     public synchronized static X2<String, Integer> removeNode(String appName, Predicate<URL> equalityCheck) {
-        List<URL> curAppUrls = O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l());
+        List<URL> curAppUrls =
+                new ArrayList<>(O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l()));
         final Optional<URL> toRemove = curAppUrls.stream()
                 .filter(equalityCheck)
                 .findFirst();
         if (!toRemove.isPresent()) {
-            log.info("Nothing to remove");
+            System.out.println("Nothing to remove");
             return OK;
         }
         final URL url = toRemove.get();
         if (curAppUrls.size() < 2) {
-            log.info("We will not delete node since it's last: " + url);
+            System.out.println("We will not delete node since it's last: " + url);
             // do nothing to prevent removal of app from melody
             return OK;
         }
         curAppUrls.remove(url);
         Parameters.addCollectorApplication(appName, curAppUrls);
-        log.info("Removed node:" + url);
+        System.out.println("Removed node:" + url);
         return OK;
     }
 

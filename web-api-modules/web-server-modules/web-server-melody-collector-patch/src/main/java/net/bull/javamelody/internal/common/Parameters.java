@@ -39,6 +39,7 @@ package net.bull.javamelody.internal.common;
 
 import net.bull.javamelody.Parameter;
 import net.bull.javamelody.internal.model.TransportFormat;
+import sk.utils.statics.Cc;
 
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
@@ -48,6 +49,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Classe d'accès aux paramètres du monitoring.
@@ -148,7 +150,15 @@ public final class Parameters {
         // initialisation si besoin
         getCollectorUrlsByApplications();
 
-        urlsByApplications.put(application, urls);
+        Cc.computeAndApply(urlsByApplications, application, (k, v) -> {
+            if (v != urls) {
+                v.clear();
+                v.addAll(urls);
+            }
+            return v;
+        }, () -> new CopyOnWriteArrayList<>());
+
+        //urlsByApplications.put(application, urls);
         writeCollectorApplications();
     }
 
@@ -177,7 +187,7 @@ public final class Parameters {
         writeCollectorApplications();
     }
 
-    private static void writeCollectorApplications() throws IOException {
+    private static synchronized void writeCollectorApplications() throws IOException {
         final Properties properties = new Properties();
         final String monitoringPath = getMonitoringPath();
         for (final Map.Entry<String, List<URL>> entry : urlsByApplications.entrySet()) {
@@ -187,8 +197,13 @@ public final class Parameters {
             for (final URL url : urls) {
                 final String urlString = url.toString();
                 // on enlève le suffixe ajouté précédemment dans parseUrl
-                final String webappUrl = urlString.substring(0,
-                        urlString.lastIndexOf(monitoringPath));
+                String webappUrl = urlString;
+                try {
+                    webappUrl = urlString.substring(0,
+                            urlString.lastIndexOf(monitoringPath));
+                } catch (Exception e) {
+
+                }
                 if (webappUrl.indexOf(',') != -1) {
                     throw new IOException("The URL should not contain a comma.");
                 }
@@ -223,7 +238,7 @@ public final class Parameters {
         }
     }
 
-    private static void readCollectorApplications() throws IOException {
+    private static synchronized void readCollectorApplications() throws IOException {
         // le fichier applications.properties contient les noms et les urls des applications à monitorer
         // par ex.: recette=http://recette1:8080/myapp
         // ou recette2=http://recette2:8080/myapp
@@ -251,7 +266,7 @@ public final class Parameters {
                     applications.put(property, parseUrls(value));
                 } else {
                     aggregationApplications.put(property,
-                            new ArrayList<String>(Arrays.asList(value.split(","))));
+                            new CopyOnWriteArrayList<>(Arrays.asList(value.split(","))));
                 }
             }
         }
@@ -261,7 +276,7 @@ public final class Parameters {
         synchronizeAggregationApplications();
     }
 
-    private static void synchronizeAggregationApplications() {
+    private static synchronized void synchronizeAggregationApplications() {
         for (final Iterator<List<String>> it1 = applicationsByAggregationApplications.values()
                 .iterator(); it1.hasNext(); ) {
             final List<String> aggregatedApplications = it1.next();
@@ -298,7 +313,7 @@ public final class Parameters {
                 + transportFormat.getCode();
 
         final String[] urlsArray = value.split(",");
-        final List<URL> urls = new ArrayList<URL>(urlsArray.length);
+        final List<URL> urls = new CopyOnWriteArrayList<URL>();
         for (final String s : urlsArray) {
             String s2 = s.trim();
             while (s2.endsWith("/")) {

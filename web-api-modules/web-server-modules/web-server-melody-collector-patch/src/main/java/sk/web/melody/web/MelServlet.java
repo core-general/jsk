@@ -64,8 +64,10 @@ public class MelServlet extends HttpServlet {
         switch (pathInfo) {
             case "add_node":
                 new AddRequest(request, response).run();
+                break;
             case "remove_node":
                 new RemoveRequest(request, response).run();
+                break;
             default:
                 throw new RuntimeException("Unknown path for collector:" + pathInfo);
         }

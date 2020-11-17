@@ -20,14 +20,14 @@ package sk.web.melody.web;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
 import sk.services.async.IAsync;
 import sk.services.http.IHttp;
+import sk.services.http.model.CoreHttpResponse;
 import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.statics.Fu;
-import sk.utils.statics.St;
 import sk.utils.statics.Ti;
 import sk.utils.tuples.X2;
 
@@ -38,35 +38,50 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static sk.web.melody.web.MelNodeManagementService.removeNode;
 
-@Log4j2
 public class MelCleanTask extends ForeverThreadWithFinish {
     public MelCleanTask(IAsync async, IHttp http) {
         super(() -> {
             try {
                 List<X2<String, URL>> toTest = MelNodeManagementService.getAllNodes();
                 final List<F0<O<X2<String, URL>>>> toDeleteTasks = toTest.stream()
-                        .map(nodeInfo -> (F0<O<X2<String, URL>>>) () -> http
-                                .get(St.endWith(nodeInfo.i2.toString(), "/") + "monitonring").tryCount(10).goResponse()
-                                .collect(x -> x.code() == 200
-                                                ? O.empty() // if ok, we do not delete, else or if exception delete
-                                                : O.of(nodeInfo),
-                                        e -> O.of(nodeInfo))
+                        .map(nodeInfo -> (F0<O<X2<String, URL>>>) () -> {
+                                    final URL uurl = nodeInfo.i2;
+                                    final String url = uurl.toString();
+                                    System.out.println("Trying:" + url);
+                                    final String[] loginPas = uurl.getUserInfo().split(":");
+
+                                    final OneOf<CoreHttpResponse, Exception> response = http
+                                            .get(url)
+                                            .login(loginPas[0])
+                                            .password(loginPas[1])
+                                            .tryCount(10).goResponse();
+
+                                    System.out.println(
+                                            "Result:" + response.map($ -> $.code() + "",
+                                                    e -> e.getMessage() + ""));
+                                    return response.collect(x -> x.code() == 200
+                                                    ? O.empty() // if ok, we do not delete, else or if exception delete
+                                                    : O.of(nodeInfo),
+                                            e -> O.of(nodeInfo));
+                                }
                         )
                         .collect(Collectors.toList());
 
                 final List<O<X2<String, URL>>> toDeleteFinished = async.supplyParallel(toDeleteTasks);
 
-                log.info("Removing nodes: " +
+                System.out.println("Removing nodes: " +
                         toDeleteFinished.stream().filter($ -> $.isPresent()).map($ -> $.get().toString()).collect(joining(", ")));
 
                 toDeleteFinished
                         .stream()
                         .filter($ -> $.isPresent())
                         .map($ -> $.get())
-                        .forEach($ -> removeNode($.i1(), $$ -> Fu.equal($$.toString(), $.i2().toString())));
+                        .forEach($ -> {
+                            removeNode($.i1(), $$ -> Fu.equal($$.toString(), $.i2().toString()));
+                        });
 
             } catch (Exception e) {
-                log.error("", e);
+                e.printStackTrace();
             } finally {
                 async.sleep(5 * Ti.minute);
             }

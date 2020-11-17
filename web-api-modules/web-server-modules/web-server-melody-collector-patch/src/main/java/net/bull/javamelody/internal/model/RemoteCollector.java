@@ -82,11 +82,11 @@ public class RemoteCollector {
         this.aggregationApplication = isAggregationApplication();
     }
 
-    String collectData() throws IOException {
+    synchronized String collectData() throws IOException {
         return collectDataWithUrls(getURLs());
     }
 
-    public String collectDataIncludingCurrentRequests() throws IOException {
+    public synchronized String collectDataIncludingCurrentRequests() throws IOException {
         final List<URL> urlsWithCurrentRequests = new ArrayList<URL>();
         for (final URL url : getURLs()) {
             urlsWithCurrentRequests.add(new URL(url + "&part=defaultWithCurrentRequests"));
@@ -94,7 +94,7 @@ public class RemoteCollector {
         return collectDataWithUrls(urlsWithCurrentRequests);
     }
 
-    private String collectDataWithUrls(List<URL> urlsForCollect) throws IOException {
+    private synchronized String collectDataWithUrls(List<URL> urlsForCollect) throws IOException {
         final List<JavaInformations> javaInfosList = new ArrayList<JavaInformations>();
         final Map<JavaInformations, List<CounterRequestContext>> counterRequestContextsByJavaInformations =
                 new HashMap<JavaInformations, List<CounterRequestContext>>();
