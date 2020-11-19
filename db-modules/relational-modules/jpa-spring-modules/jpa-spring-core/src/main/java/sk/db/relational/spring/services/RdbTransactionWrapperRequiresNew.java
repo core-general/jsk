@@ -20,16 +20,17 @@ package sk.db.relational.spring.services;
  * #L%
  */
 
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Supplier;
 
-public interface RdbTransactionWrapper {
+public interface RdbTransactionWrapperRequiresNew {
     @SuppressWarnings("UnusedReturnValue")
-    @Transactional(rollbackFor = Exception.class)
-    <T> T transactional(Supplier<T> sup);
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    <T> T transactionalForceNew(Supplier<T> sup);
 
     @SuppressWarnings("UnusedReturnValue")
-    @Transactional(rollbackFor = Exception.class)
-    void transactionalRun(Runnable run);
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    void transactionalRunForceNew(Runnable run);
 }

@@ -53,6 +53,7 @@ public class JpaImportantLog extends JpaWithContextAndCreatedUpdated {
     @Type(type = UTStringToJsonb.type)
     String info;
 
+    @Version
     @Column(name = "counter")
     Long counter;
 
@@ -72,8 +73,6 @@ public class JpaImportantLog extends JpaWithContextAndCreatedUpdated {
             setCreatedAt(now);
         }
         setUpdatedAt(now);
-
-        id = new ImportantLogId(ctx.ids().uniqueFrom(category + type + info));
     }
 }
 

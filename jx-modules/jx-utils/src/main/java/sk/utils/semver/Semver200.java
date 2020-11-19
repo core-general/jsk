@@ -24,6 +24,8 @@ import lombok.Getter;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
+import java.util.Objects;
+
 @Getter
 @SuppressWarnings("unused")
 public class Semver200 implements Comparable<Semver200> {
@@ -68,5 +70,18 @@ public class Semver200 implements Comparable<Semver200> {
 
     public String toString() {
         return ms.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        Semver200 semver200 = (Semver200) o;
+        return Objects.equals(ms, semver200.ms);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ms);
     }
 }

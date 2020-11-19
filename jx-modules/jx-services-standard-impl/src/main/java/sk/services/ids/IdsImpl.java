@@ -30,7 +30,6 @@ import sk.utils.statics.St;
 
 import javax.inject.Inject;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -58,8 +57,6 @@ public class IdsImpl implements IIds {
     @Override
     @SneakyThrows
     public UUID uniqueFrom(String val) {
-        byte[] l1 = bytes.sha256(val.getBytes(StandardCharsets.UTF_8));
-        ByteBuffer wrap = ByteBuffer.wrap(l1);
-        return new UUID(wrap.getLong(0), wrap.getLong(8));
+        return UUID.nameUUIDFromBytes(val.getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -27,6 +27,13 @@ import static org.junit.Assert.*;
 public class MultiSemverTest {
 
     @Test
+    public void hash() {
+        assertEquals(v("1.0.0").hashCode(), v("1").hashCode());
+        assertEquals(v("1.0.0").hashCode(), v("1.0").hashCode());
+        assertNotEquals(v("1.0.0").hashCode(), v("1.0.1").hashCode());
+    }
+
+    @Test
     public void isGreaterThan() {
         assertEquals(v("1.0.0"), v("1.0"));
         assertTrue(v("1.0.1").isGreaterThan(v("1.0.0")));

@@ -111,6 +111,17 @@ public class MultiSemver implements Comparable<MultiSemver> {
         return this.compareTo(that) == 0;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        if (parts != null) {
+            for (Integer part : parts) {
+                hash += part;
+            }
+        }
+        return hash;
+    }
+
     private O<Boolean> compareOrEqual(MultiSemver other) {
         for (int i = 0; i < Math.max(parts.size(), other.parts.size()); i++) {
             int v1 = Cc.getOrDefault(parts, i, 0);

@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sk.db.relational.model.ImportantLogId;
 import sk.db.relational.model.JpaImportantLog;
+import sk.db.relational.spring.services.RdbTransactionWrapperRequiresNew;
 import sk.db.relational.spring.services.dao.repo.JpaImportantLogRepo;
 import sk.services.ids.IIds;
 import sk.services.json.IJson;
@@ -34,10 +35,8 @@ import sk.services.log.ILogSeverity;
 import sk.services.log.ILogType;
 import sk.spring.services.CoreServices;
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
 
 import javax.inject.Inject;
-import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
@@ -47,23 +46,21 @@ public class RdbILogImpl implements ILog {
     @Inject IIds ids;
     @Inject IJson json;
     @Inject CoreServices core;
+    @Inject RdbTransactionWrapperRequiresNew trans;
 
     @Override
     public void uni(ILogSeverity severity, ILogCategory category, String type, Map<String, Object> info, ILogType logType) {
         if (logType == ILogType.AGG || logType == ILogType.BOTH) {
             try {
-                JpaImportantLog toLogTemp = createImportantLog(category.name(), type, info);
+                JpaImportantLog toLogTemp = createImportantLog(false, category.name(), type, info);
                 toLogTemp = getImportantLog(toLogTemp.getId()).orElse(toLogTemp);
-                toLogTemp.setCounter(toLogTemp.getCounter() + 1);
                 save(toLogTemp);
             } catch (Exception ignored) {
             }
         }
         if (logType == ILogType.LOG || logType == ILogType.BOTH) {
             try {
-                JpaImportantLog toLogTemp =
-                        createImportantLog(category.name(), type, Cc.put(new HashMap<>(info), "u", ids.shortIdS()));
-                toLogTemp.setCounter(0L);
+                JpaImportantLog toLogTemp = createImportantLog(true, category.name(), type, info);
                 save(toLogTemp);
             } catch (Exception ignored) {
             }
@@ -76,16 +73,18 @@ public class RdbILogImpl implements ILog {
 
     private void save(JpaImportantLog importantLog) {
         try {
-            impoLog.save(importantLog);
+            //we have to save log independently from other transactions
+            trans.transactionalRunForceNew(() -> impoLog.save(importantLog));
         } catch (Throwable e) {
             log.error("", e);
         }
     }
 
-    private JpaImportantLog createImportantLog(@NotNull String category, @Nullable String type, Map<String, Object> info) {
+    private JpaImportantLog createImportantLog(boolean randomId, @NotNull String category, @Nullable String type,
+            Map<String, Object> info) {
         return new JpaImportantLog(
-                null/*to force hibernate to understand that it's a new object*/,
-                category, type, json.to(info, true), 0L, null, null
+                new ImportantLogId(randomId ? ids.shortId() : ids.uniqueFrom(category + type + info)),
+                category, type, json.to(info, true), null, null, null
         );
     }
 
