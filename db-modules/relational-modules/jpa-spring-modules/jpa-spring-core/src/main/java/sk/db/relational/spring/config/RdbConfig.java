@@ -97,6 +97,7 @@ public class RdbConfig {
         p.put("hibernate.enable_lazy_load_no_trans", "true");
         p.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
         p.put("hibernate.integrator_provider", new RdbIntegratorProvider4Context());
+        p.put("org.hibernate.flushMode", "COMMIT");
 
         /* Context injection for entities and converters */
         p.put(_CTX, serviceProvider);

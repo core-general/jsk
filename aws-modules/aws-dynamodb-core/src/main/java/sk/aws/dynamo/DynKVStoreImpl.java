@@ -100,7 +100,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
             } else if (fromKey.isPresent() && toKey.isEmpty()) {
                 query = QueryConditional.sortGreaterThanOrEqualTo(fromKey.get());
             } else if (fromKey.isEmpty() && toKey.isPresent()) {
-                query = QueryConditional.sortLessThanOrEqualTo(fromKey.get());
+                query = QueryConditional.sortLessThanOrEqualTo(toKey.get());
             } else {
                 query = QueryConditional.keyEqualTo(
                         toAwsKey(baseKey, (k1, k2) -> Key.builder().partitionValue(k1).build())
