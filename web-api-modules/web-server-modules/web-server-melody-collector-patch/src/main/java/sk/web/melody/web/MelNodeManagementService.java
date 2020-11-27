@@ -48,6 +48,12 @@ public class MelNodeManagementService {
             curAppUrls.add(url);
             Parameters.addCollectorApplication(appName, curAppUrls);
             System.out.println("Added node:" + nodeIp + ":" + port);
+            try {
+                System.out.println("Restarting due:" + nodeIp);
+                Runtime.getRuntime().exec("./restart_server.sh");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return OK;
     }
