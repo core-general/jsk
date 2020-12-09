@@ -18,5 +18,15 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jpa-spring-core</artifactId>
+            <version>jsk.2.3.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>3.2</version>
+        </dependency>
     </dependencies>
 </project>

@@ -38,12 +38,12 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
-public class UTTextIdToVarchar implements UserType, ParameterizedType {
+public class UTLongIdToBigInt implements UserType, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTTextIdToVarchar";
     @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
 
     private Class<?> idClass;
-    private F1<String, Object> creator;
+    private F1<Long, Object> creator;
 
     @Override
     @SneakyThrows
@@ -51,7 +51,7 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
         String className = parameters.getProperty(param);
         try {
             idClass = Class.forName(className);
-            Constructor<?> constructor = idClass.getDeclaredConstructor(String.class);
+            Constructor<?> constructor = idClass.getDeclaredConstructor(Long.class);
             creator = string -> {
                 if (string == null) {
                     return null;
@@ -70,7 +70,7 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
 
     @Override
     public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+        return new int[]{Types.BIGINT};
     }
 
     @Override
@@ -81,19 +81,19 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String uuid = rs.getString(names[0]);
-        return creator.apply(uuid);
+        Long val = rs.getLong(names[0]);
+        return creator.apply(val);
     }
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, Types.VARCHAR);
+            st.setNull(index, Types.BIGINT);
         } else {
             //noinspection unchecked
-            IdBase<String> ldt = (IdBase<String>) value;
-            st.setString(index, ldt.getId());
+            IdBase<Long> ldt = (IdBase<Long>) value;
+            st.setLong(index, ldt.getId());
         }
     }
 

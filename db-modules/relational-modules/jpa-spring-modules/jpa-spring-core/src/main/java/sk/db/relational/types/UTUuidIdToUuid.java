@@ -25,6 +25,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
+import sk.utils.functional.F1;
 import sk.utils.ids.IdUuid;
 
 import java.io.Serializable;
@@ -36,7 +37,6 @@ import java.sql.Types;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.function.Function;
 
 @SuppressWarnings({"unused"})
 public class UTUuidIdToUuid implements UserType, ParameterizedType {
@@ -44,7 +44,7 @@ public class UTUuidIdToUuid implements UserType, ParameterizedType {
     public static final String param = "targetType";
 
     private Class<?> idClass;
-    private Function<UUID, Object> creator;
+    private F1<UUID, Object> creator;
 
     @Override
     @SneakyThrows

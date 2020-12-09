@@ -37,40 +37,40 @@ import java.sql.Types;
 import java.util.Objects;
 import java.util.Properties;
 
-@SuppressWarnings("unused")
-public class UTTextIdToVarchar implements UserType, ParameterizedType {
-    public final static String type = "sk.db.relational.types.UTTextIdToVarchar";
-    @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
+@SuppressWarnings({"unused"})
+public class UTIntIdToInt implements UserType, ParameterizedType {
+    public final static String type = "sk.db.relational.types.UTIntIdToInt";
+    public static final String param = "targetType";
 
     private Class<?> idClass;
-    private F1<String, Object> creator;
+    private F1<Integer, Object> creator;
 
     @Override
     @SneakyThrows
     public void setParameterValues(Properties parameters) {
-        String className = parameters.getProperty(param);
+        String enumClassName = parameters.getProperty(param);
         try {
-            idClass = Class.forName(className);
-            Constructor<?> constructor = idClass.getDeclaredConstructor(String.class);
-            creator = string -> {
-                if (string == null) {
+            idClass = Class.forName(enumClassName);
+            Constructor<?> constructor = idClass.getConstructor(Integer.class);
+            creator = uuid -> {
+                if (uuid == null) {
                     return null;
                 }
                 try {
-                    return constructor.newInstance(string);
+                    return constructor.newInstance(uuid);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return null;
             };
         } catch (ClassNotFoundException e) {
-            throw new HibernateException("Class not found ", e);
+            throw new HibernateException("Enum class not found ", e);
         }
     }
 
     @Override
     public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+        return new int[]{Types.INTEGER};
     }
 
     @Override
@@ -81,7 +81,7 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String uuid = rs.getString(names[0]);
+        Integer uuid = rs.getInt(names[0]);
         return creator.apply(uuid);
     }
 
@@ -89,11 +89,10 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
             throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, Types.VARCHAR);
+            st.setNull(index, Types.INTEGER);
         } else {
-            //noinspection unchecked
-            IdBase<String> ldt = (IdBase<String>) value;
-            st.setString(index, ldt.getId());
+            IdBase<Integer> ldt = (IdBase<Integer>) value;
+            st.setInt(index, ldt.getId());
         }
     }
 
