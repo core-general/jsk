@@ -22,6 +22,7 @@ package sk.web.server.filters.standard;
 
 
 import lombok.extern.log4j.Log4j2;
+import sk.exceptions.JskProblem;
 import sk.services.idempotence.IIdempotenceProvider;
 import sk.services.idempotence.IdempotenceLockResult;
 import sk.services.idempotence.IdempotentValue;
@@ -67,11 +68,14 @@ public class WebIdempotenceFilter implements WebServerFilter {
             if (oIdempotenceKey.isPresent()) {
                 final IdempotenceLockResult<WebReplyMeta> lock =
                         this.idempotence.orElseThrow(() -> new RuntimeException("No Idempotence Provider set"))
-                                .tryLock(oIdempotenceKey.get(), simple(WebReplyMeta.class), conf.get().getLockDuration());
-                final OneOf<IdempotentValue<WebReplyMeta>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
+                                .tryLock(oIdempotenceKey.get(), requestContext.getRequestContext().getRequestHash(),
+                                        simple(WebReplyMeta.class), conf.get().getLockDuration());
+                final OneOf<O<IdempotentValue<WebReplyMeta>>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
                 if (cacheStatus.isLeft()) {
-                    final IdempotentValue<WebReplyMeta> cache = cacheStatus.left();
-                    return WebFilterOutput.rendered(new WebRenderResult(cache.getMetainfo(), cache.getCachedValue()));
+                    final O<IdempotentValue<WebReplyMeta>> cache = cacheStatus.left();
+                    return cache.collect(
+                            $ -> WebFilterOutput.rendered(new WebRenderResult($.getMetainfo(), $.getCachedValue())),
+                            () -> WebFilterOutput.rawProblem(409, JskProblem.code("idempotence_parameter_mismatch")));
                 } else if (cacheStatus.right()) {
                     lockAcquired = true;
                 } else {
@@ -89,7 +93,8 @@ public class WebIdempotenceFilter implements WebServerFilter {
                 if (render.getMeta().isProblem()) {
                     idempotence.get().unlockOrClear(key);
                 } else {
-                    idempotence.get().cacheValue(key, new IdempotentValue<>(render.getMeta(), render.getValue()),
+                    idempotence.get().cacheValue(key, requestContext.getRequestContext().getRequestHash(),
+                            new IdempotentValue<>(render.getMeta(), render.getValue()),
                             conf.get().getCacheDuration());
                 }
             }

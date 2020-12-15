@@ -1,4 +1,4 @@
-package sk.db.util.generator.model.output;
+package sk.services.idempotence;
 
 /*-
  * #%L
@@ -20,13 +20,25 @@ package sk.db.util.generator.model.output;
  * #L%
  */
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import sk.db.util.generator.model.entity.JsaEntityModel;
+import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class JsaEntityRepoOutput {
-    String packageName;
-    JsaEntityModel mode;
+class IIdempotenceStoredMeta {
+    boolean lockSign;
+    char type;
+    String requestHash;
+    String meta;
+
+    public static IIdempotenceStoredMeta lock(String requestHash) {
+        return new IIdempotenceStoredMeta(true, '0', requestHash, null);
+    }
+
+    public static IIdempotenceStoredMeta result(char type, String requestHash, String meta) {
+        return new IIdempotenceStoredMeta(false, type, requestHash, meta);
+    }
 }

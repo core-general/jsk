@@ -92,4 +92,6 @@ public interface WebRequestInnerContext {
     java.time.ZonedDateTime getStartTime();
 
     Map<String, String> getAllParamValues();
+
+    String getRequestHash();
 }

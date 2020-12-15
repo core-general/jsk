@@ -22,7 +22,7 @@ package sk.services.idempotence;
 
 import sk.services.kv.keys.KvSimpleKeyWithName;
 
-public class IdempotenceKey extends KvSimpleKeyWithName {
+class IdempotenceKey extends KvSimpleKeyWithName {
     public IdempotenceKey(String idempotenceKey) {
         super("IDEMPOTENCE_" + idempotenceKey, "_?_");
     }

@@ -26,6 +26,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.springframework.core.annotation.Order;
 import sk.exceptions.JskProblem;
+import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
@@ -59,6 +60,8 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNull;
@@ -70,6 +73,7 @@ import static sk.utils.statics.St.bytesToS;
 public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, SparkApplication {
     @Inject WebServerParams conf;
     @Inject IExcept except;
+    @Inject IBytes bytes;
     @Inject IWebExcept webExcept;
     @Inject List<WebServerCore> serverDefinitions = Cc.l();
 
@@ -158,6 +162,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         private final Response response;
         private final ConcurrentHashMap<String, byte[]> multipartCache;
         private final ConcurrentHashMap<String, String> paramCache;
+        private final AtomicReference<String> requestHash = new AtomicReference<>();
 
 
         public SparkWebRequestOuterFullContext(String type, String path, Request request, boolean multipartSure,
@@ -269,14 +274,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                     }
                 }
 
-                final Map<String, String> params = request.params();
-                toRet.putAll(params);
+                toRet.putAll(request.params());
                 return toRet;
             });
         }
 
         @Override
-        public O<Collection<Part>> getMultipartParamInfo() {
+        public O<List<Part>> getMultipartParamInfo() {
             return throwOnBadRequestData(() -> {
                 try {
                     if (isMultipart()) {
@@ -286,7 +290,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                                 parts.add(request.raw().getPart(paramName));
                             }
                         }
-                        return ofNull(parts);
+                        return ofNull(Cc.sort(parts, Comparator.comparing($ -> $.getName())));
                     } else {
                         return empty();
                     }
@@ -294,6 +298,28 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                     throw new WebProblemWithRequestBodyException(e);
                 } catch (ServletException e) {
                     return empty();
+                }
+            });
+        }
+
+        @Override
+        public String getRequestHash() {
+            return requestHash.updateAndGet(old -> {
+                if (old == null) {
+                    final SortedMap<String, Long> params = getNonMultipartParamInfo().entrySet().stream()
+                            .map($ -> X.x($.getKey(), bytes.crc32($.getValue())))
+                            .collect(Collectors.toMap($ -> $.i1(), $ -> $.i2(), Cc.throwingMerger(), TreeMap::new));
+                    getMultipartParamInfo().ifPresent($ -> $.stream()
+                            .map($$ -> X.x($$.getName(), getParamAsBytes($$.getName())
+                                    .map($$$ -> bytes.crc32($$$))
+                                    .orElse(0L)))
+                            .forEach($$ -> params.put($$.i1(), $$.i2())));
+
+                    final String toHash = getUrlPathPart() + Cc.joinMap("", "", params);
+                    final long hash = bytes.crc32(toHash);
+                    return hash + "";
+                } else {
+                    return old;
                 }
             });
         }

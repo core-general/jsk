@@ -20,15 +20,37 @@ package sk.services.idempotence;
  * #L%
  */
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 
+import static sk.utils.functional.OneOf.left;
+import static sk.utils.functional.OneOf.right;
+
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class IdempotenceLockResult<META> {
     /**
-     * left is value, right is either lock success if true, or lock failed (lock is hold by someone else) if false
+     * left is either value or in case of wrong requestHash void, right is either lock success if true, or lock failed (lock is
+     * hold by someone else) if false
      */
-    OneOf<IdempotentValue<META>, Boolean> valueOrLockSuccessStatus;
+    OneOf<O<IdempotentValue<META>>, Boolean> valueOrLockSuccessStatus;
+
+    public static <META> IdempotenceLockResult<META> cachedValue(IdempotentValue<META> val) {
+        return new IdempotenceLockResult<>(left(O.of(val)));
+    }
+
+    public static <META> IdempotenceLockResult<META> badParams() {
+        return new IdempotenceLockResult<>(left(O.empty()));
+    }
+
+    public static <META> IdempotenceLockResult<META> lockOk() {
+        return new IdempotenceLockResult<>(right(true));
+    }
+
+    public static <META> IdempotenceLockResult<META> lockBad() {
+        return new IdempotenceLockResult<>(right(false));
+    }
 }

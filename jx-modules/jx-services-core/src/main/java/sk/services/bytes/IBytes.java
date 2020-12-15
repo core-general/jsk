@@ -57,6 +57,10 @@ public interface IBytes {
         return checksum.getValue();
     }
 
+    default long crc32(String utf) {
+        return crc32(utf.getBytes(UTF_8));
+    }
+
     default O<String> decodeCrcEncodedValue(String encodedValue) {
         for (int i = 11; i > 0; i--) {
             try {

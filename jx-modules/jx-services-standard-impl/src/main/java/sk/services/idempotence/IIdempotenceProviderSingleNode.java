@@ -22,37 +22,44 @@ package sk.services.idempotence;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
+import sk.utils.statics.Fu;
+import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 
 import java.time.Duration;
 
 public class IIdempotenceProviderSingleNode implements IIdempotenceProvider {
 
-    Cache<String, IdempotentValue> localCache = Caffeine.newBuilder()
+    Cache<String, X2<String, IdempotentValue<?>>> localCache = Caffeine.newBuilder()
             .maximumSize(30_000)
             .expireAfterWrite(Duration.ofMinutes(5))
             .build();
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, TypeWrap<META> meta, Duration lockDuration) {
+    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+            Duration lockDuration) {
         boolean[] newValue = new boolean[]{false};
-        final IdempotentValue<META> value = localCache.asMap().computeIfAbsent(key, (k) -> {
+        final X2<String, IdempotentValue<?>> cachedData = localCache.asMap().computeIfAbsent(key, (k) -> {
             newValue[0] = true;
-            return new IdempotentValue<META>(true, null, null);
+            return X.x(requestHash, new IdempotentValue<META>(true, null, null));
         });
         if (newValue[0]) {
-            return new IdempotenceLockResult<>(OneOf.right(true));
-        } else if (value.isEmpty()) {
-            return new IdempotenceLockResult<>(OneOf.right(false));
+            return IdempotenceLockResult.lockOk();
+        } else if (cachedData.i2().isEmpty()) {
+            return IdempotenceLockResult.lockBad();
         } else {
-            return new IdempotenceLockResult<>(OneOf.left(value));
+            if (Fu.equal(requestHash, cachedData.i1())) {
+                return (IdempotenceLockResult<META>) IdempotenceLockResult.cachedValue(cachedData.i2());
+            } else {
+                return IdempotenceLockResult.badParams();
+            }
         }
     }
 
     @Override
-    public <META> void cacheValue(String key, IdempotentValue<META> valueToCache, Duration cacheDuration) {
-        localCache.put(key, valueToCache);
+    public <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration) {
+        localCache.put(key, X.x(requestHash, valueToCache));
     }
 
     @Override

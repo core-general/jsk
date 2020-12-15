@@ -293,6 +293,16 @@ public final class O<T> {
         }
     }
 
+    public <U> U collect(F1<? super T, ? extends U> mapper, F0<? extends U> ifNone) {
+        Objects.requireNonNull(mapper);
+        Objects.requireNonNull(ifNone);
+        if (!isPresent()) {
+            return ifNone.apply();
+        } else {
+            return mapper.apply(value);
+        }
+    }
+
     /**
      * If a value is present, returns the result of applying the given
      * {@code O}-bearing mapping function to the value, otherwise returns

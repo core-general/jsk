@@ -23,11 +23,12 @@ package jsk.spark;
 import jsk.spark.testmodel.SomeClass1;
 import jsk.spark.testmodel.SomeClass2;
 import jsk.spark.testmodel.SomeEnum;
-import sk.web.annotations.WebPath;
-import sk.web.annotations.WebRender;
-import sk.web.annotations.WebUserToken;
+import sk.web.annotations.*;
 import sk.web.annotations.type.WebGET;
+import sk.web.annotations.type.WebPOST;
 import sk.web.renders.WebRenderType;
+
+import java.util.Map;
 
 /**
  * Just test class which we use 4 test Just test class which we use 4 test Just test class which we use 4 test Just test class
@@ -67,6 +68,7 @@ public interface TestApi1 {
     @WebPath(value = "ajk/:abc", appendMethodName = false)
     @WebUserToken(paramName = "abc")
     @WebRender(WebRenderType.RAW_STRING)
+    @WebIdempotence
     String a(String abc);
 
     /**
@@ -77,9 +79,9 @@ public interface TestApi1 {
     @WebUserToken(paramName = "abc")
     SomeClass1 b(SomeClass2 abc, SomeEnum x);
 
-    //
-    //@WebPOST
-    //@WebAuth
-    //@WebIdempotence(force = false)
-    //Map<String, Integer> testWebUserToken(Map<String, String> a);
+
+    @WebPOST
+    @WebAuth
+    @WebIdempotence(force = true)
+    Map<String, Integer> testWebUserToken(Map<String, String> a);
 }

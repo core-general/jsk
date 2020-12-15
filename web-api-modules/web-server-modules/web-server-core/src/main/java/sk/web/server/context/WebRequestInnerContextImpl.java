@@ -150,4 +150,9 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     public Map<String, String> getAllParamValues() {
         return outerFull.getAllParamsAsStrings();
     }
+
+    @Override
+    public String getRequestHash() {
+        return outerFull.getRequestHash();
+    }
 }

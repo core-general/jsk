@@ -20,22 +20,22 @@ package sk.services.idempotence;
  * #L%
  */
 
-import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 
 import java.time.Duration;
 
 public class IIdempotenceProviderNoOpImpl implements IIdempotenceProvider {
 
-    public static final IdempotenceLockResult<?> NO_OP_LOCK = new IdempotenceLockResult<>(OneOf.right(true));
+    public static final IdempotenceLockResult<?> NO_OP_LOCK = IdempotenceLockResult.lockOk();
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, TypeWrap<META> meta, Duration lockDuration) {
+    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+            Duration lockDuration) {
         return (IdempotenceLockResult<META>) NO_OP_LOCK;
     }
 
     @Override
-    public <META> void cacheValue(String key, IdempotentValue<META> valueToCache, Duration cacheDuration) { }
+    public <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration) { }
 
     @Override
     public void unlockOrClear(String key) { }

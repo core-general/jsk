@@ -26,23 +26,23 @@ import sk.services.except.IExcept;
 import sk.services.json.IJson;
 import sk.services.kv.IKvUnlimitedStore;
 import sk.services.kv.KvAllValues;
-import sk.services.kv.KvVersionedItemAll;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
+import sk.utils.statics.Fu;
 
 import javax.inject.Inject;
 import java.time.Duration;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static sk.utils.functional.OneOf.left;
+import static sk.utils.functional.OneOf.right;
 
 public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
-    public static final String LOCK_SIGN = "*";
     public static final char STRING_SIGN = 'S';
     public static final char BYTEARR_SIGN = 'B';
     public static final char ZIP_SLOW_SIGN = 'Z';
-    public static final char ZIP_FAST_SIGN = 'F';
     @Inject IKvUnlimitedStore kv;
     @Inject ITime times;
     @Inject IJson json;
@@ -50,41 +50,41 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     @Inject IExcept except;
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, TypeWrap<META> meta, Duration lockDuration) {
-        final boolean lockOk = kv.trySaveNewStringAndRaw(key(key),
-                new KvAllValues<>(LOCK_SIGN, O.empty(), O.of(times.nowZ().plus(lockDuration))))
-                .collect($ -> $, e -> false);
+    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+            Duration lockDuration) {
+        final boolean lockOk = kv.trySaveNewObjectAndRaw(key(key),
+                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash),
+                        O.empty(),
+                        O.of(times.nowZ().plus(lockDuration))))
+                .collect($ -> $, e -> {throw new RuntimeException("idempotence_lock_failed", e);});
         if (lockOk) {
-            return new IdempotenceLockResult<>(OneOf.right(true));
+            return IdempotenceLockResult.lockOk();
         } else {
-            final O<KvVersionedItemAll<String>> oRes = kv.getRawVersionedAll(key(key));
-            if (oRes.isEmpty()) {
-                return tryLock(key, meta, lockDuration);
-            }
-            final KvVersionedItemAll<String> res = oRes.get();
-            final String metaInfo = res.getVals().getValue();
-            if (LOCK_SIGN.equalsIgnoreCase(metaInfo)) {
-                return new IdempotenceLockResult<>(OneOf.right(false));
+            final KvAllValues<IIdempotenceStoredMeta> raw = kv.getAsObjectWithRaw(key(key), IIdempotenceStoredMeta.class);
+            IIdempotenceStoredMeta metaData = raw.getValue();
+            if (!Fu.equal(metaData.requestHash, requestHash)) {
+                return IdempotenceLockResult.badParams();
+            } else if (metaData.isLockSign()) {
+                return IdempotenceLockResult.lockBad();
             } else {
-                final char encodedType = metaInfo.charAt(0);
-                return new IdempotenceLockResult<>(OneOf.left(
-                        new IdempotentValue<>(json.from(metaInfo.substring(2), meta),
-                                unwrapReturnValue(encodedType, res.getVals().getRawValue().orElse(new byte[0])))
+                return IdempotenceLockResult.cachedValue(new IdempotentValue<>(
+                        json.from(metaData.getMeta(), meta),
+                        unwrapReturnValue(metaData.getType(), raw.getRawValue().orElse(new byte[0]))
                 ));
             }
         }
     }
 
     @Override
-    public <META> void cacheValue(String key, IdempotentValue<META> valueToCache, Duration cacheDuration) {
-        kv.updateStringAndRaw(key(key), old -> {
+    public <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration) {
+        kv.updateObjectAndRaw(key(key), IIdempotenceStoredMeta.class, old -> {
             old.setTtl(O.of(times.nowZ().plus(cacheDuration)));
-            final byte[] cachedValue = valueToCache.getCachedValue()
-                    .collect($ -> $.length() > 800 ? bytes.zipString($).get() : $.getBytes(UTF_8), $ -> $);
-            old.setValue(valueToCache.getCachedValue()
-                    .collect($ -> $.length() > 800 ? ZIP_SLOW_SIGN : STRING_SIGN, $ -> BYTEARR_SIGN) + "_" +
-                    json.to(valueToCache.getMetainfo()));
-            old.setRawValue(O.of(cachedValue));
+
+            final char encodingType = valueToCache.getCachedValue()
+                    .collect($ -> $.length() > 800 ? ZIP_SLOW_SIGN : STRING_SIGN, $ -> BYTEARR_SIGN);
+
+            old.setValue(IIdempotenceStoredMeta.result(encodingType, requestHash, json.to(valueToCache.getMetainfo())));
+            old.setRawValue(O.of(wrapReturnType(valueToCache, encodingType)));
             return O.of(old);
         });
     }
@@ -99,17 +99,25 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
         return new IdempotenceKey(key);
     }
 
+    private <META> byte[] wrapReturnType(IdempotentValue<META> valueToCache, char encodingType) {
+        return encodingType == ZIP_SLOW_SIGN
+                ? bytes.zipString(valueToCache.getCachedValue().left()).get()
+                : encodingType == STRING_SIGN
+                        ? valueToCache.getCachedValue().left().getBytes(UTF_8)
+                        : valueToCache.getCachedValue().right();
+    }
+
     private OneOf<String, byte[]> unwrapReturnValue(char encoding, byte[] rawData) {
         if (rawData.length == 0) {
-            return OneOf.left("");
+            return left("");
         }
         switch (encoding) {
             case BYTEARR_SIGN:
-                return OneOf.right(rawData);
+                return right(rawData);
             case STRING_SIGN:
-                return OneOf.left(new String(rawData, UTF_8));
+                return left(new String(rawData, UTF_8));
             case ZIP_SLOW_SIGN:
-                return OneOf.left(bytes.unZipString(rawData).get());
+                return left(bytes.unZipString(rawData).get());
             default:
                 return except.throwByCode("Unknown idempotence encoding:" + encoding);
         }

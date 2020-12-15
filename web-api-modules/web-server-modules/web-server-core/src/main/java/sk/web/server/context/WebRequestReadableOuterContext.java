@@ -23,7 +23,7 @@ package sk.web.server.context;
 import sk.utils.functional.O;
 
 import javax.servlet.http.Part;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -51,5 +51,7 @@ public interface WebRequestReadableOuterContext {
 
     SortedMap<String, String> getNonMultipartParamInfo();
 
-    O<Collection<Part>> getMultipartParamInfo();
+    O<List<Part>> getMultipartParamInfo();
+
+    String getRequestHash();
 }

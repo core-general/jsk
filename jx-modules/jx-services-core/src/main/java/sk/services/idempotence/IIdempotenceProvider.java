@@ -25,9 +25,9 @@ import sk.utils.javafixes.TypeWrap;
 import java.time.Duration;
 
 public interface IIdempotenceProvider {
-    <META> IdempotenceLockResult<META> tryLock(String key, TypeWrap<META> meta, Duration lockDuration);
+    <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration);
 
-    <META> void cacheValue(String key, IdempotentValue<META> valueToCache, Duration cacheDuration);
+    <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration);
 
     void unlockOrClear(String key);
 }

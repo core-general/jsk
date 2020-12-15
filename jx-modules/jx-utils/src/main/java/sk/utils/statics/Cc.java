@@ -209,6 +209,10 @@ public final class Cc {
     Collector<Map.Entry<A, B>, ?, Map<A, B>> toMEntry() {
         return Collectors.toMap($ -> $.getKey(), $ -> $.getValue());
     }
+
+    public static <T> BinaryOperator<T> throwingMerger() {
+        return (u, v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
+    }
     //endregion
 
     //region Enumeration
@@ -387,11 +391,9 @@ public final class Cc {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-
     public static <A, B> B compute(Map<A, B> map, A key, F2<A, B, B> remapping, F0<B> startingValue) {
         return map.compute(key, (a, b) -> b == null ? startingValue.get() : remapping.apply(a, b));
     }
-
 
     public static <A, B> B computeAndApply(Map<A, B> map, A key, F2<A, B, B> remap, F0<B> startingValueThenRemap) {
         return map.compute(key, (a, b) -> b == null ? remap.apply(a, startingValueThenRemap.get()) : remap.apply(a, b));

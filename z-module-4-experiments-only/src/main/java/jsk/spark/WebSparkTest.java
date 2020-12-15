@@ -33,6 +33,7 @@ import sk.aws.dynamo.DynBeanConfigWithKvStore;
 import sk.aws.dynamo.DynProperties;
 import sk.aws.spring.AwsBeanConfig;
 import sk.services.except.IExcept;
+import sk.services.idempotence.IIdempotenceProviderSingleNode;
 import sk.services.json.IJson;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
@@ -56,6 +57,7 @@ import sk.web.server.filters.additional.WebUserActionLoggingFilter;
 import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
 import sk.web.server.params.WebApiInfoParams;
+import sk.web.server.params.WebIdempotenceParams;
 import sk.web.server.params.WebUserActionLoggerParams;
 import sk.web.server.spark.WebJettyEntryPoint;
 import sk.web.server.spark.spring.WebSparkCoreConfig;
@@ -70,6 +72,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static sk.utils.functional.O.of;
@@ -125,6 +128,11 @@ public class WebSparkTest {
         public SomeClass1 b(SomeClass2 abc, SomeEnum x) {
             return new SomeClass1(SomeEnum.THREE, "str", O.of(1), abc, new SomeClass3(), 5);
         }
+
+        @Override
+        public Map<String, Integer> testWebUserToken(Map<String, String> a) {
+            return a.entrySet().stream().collect(Cc.toM($ -> $.getKey(), $ -> $.getValue().length()));
+        }
     }
 
     @Configuration
@@ -143,6 +151,26 @@ public class WebSparkTest {
                 @Override
                 protected O<List<WebServerFilter>> getAdditionalFilters(O<Method> methodOrAll) {
                     return of(Cc.l(actionLogger));
+                }
+            };
+        }
+
+        @Bean
+        IIdempotenceProviderSingleNode IIdempotenceProviderSingleNode() {
+            return new IIdempotenceProviderSingleNode();
+        }
+
+        @Bean
+        WebIdempotenceParams WebIdempotenceParams() {
+            return new WebIdempotenceParams() {
+                @Override
+                public Duration getLockDuration() {
+                    return Duration.ofMinutes(5);
+                }
+
+                @Override
+                public Duration getCacheDuration() {
+                    return Duration.ofMinutes(10);
                 }
             };
         }
