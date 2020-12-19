@@ -235,4 +235,11 @@ public class S3JskClient {
                     $.getObjects().stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
         });
     }
+
+    public void clearAllByOneParallel(PathWithBase base, O<Long> msBetweenPageRequests) {
+        async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
+                .parallelStream()
+                .flatMap($ -> $.getObjects().stream())
+                .forEach($ -> repeat.repeat(() -> deleteOne(base.addToPath($.getKey())), 10)));
+    }
 }
