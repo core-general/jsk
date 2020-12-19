@@ -130,8 +130,9 @@ public class S3JskClient {
         PutObjectRequest.Builder builder = PutObjectRequest.builder();
         contentType.ifPresent(builder::contentType);
         contentEncoding.ifPresent(builder::contentEncoding);
-        builder.bucket(base.getBase());
-        builder.key(base.getPathNoSlash());
+        builder.bucket(base.getBase())
+                .key(base.getPathNoSlash())
+                .cacheControl("no-cache, max-age=0");
 
         if (allRead) {
             builder = builder.acl(ObjectCannedACL.PUBLIC_READ);
