@@ -21,6 +21,7 @@ package sk.aws.s3;
  */
 
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
@@ -236,10 +237,11 @@ public class S3JskClient {
         });
     }
 
+    @SneakyThrows
     public void clearAllByOneParallel(PathWithBase base, O<Long> msBetweenPageRequests) {
         async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
                 .parallelStream()
                 .flatMap($ -> $.getObjects().stream())
-                .forEach($ -> repeat.repeat(() -> deleteOne(base.addToPath($.getKey())), 10)));
+                .forEach($ -> repeat.repeat(() -> deleteOne(base.replacePath($.getKey())), 10))).get();
     }
 }
