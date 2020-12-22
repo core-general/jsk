@@ -85,7 +85,9 @@ public class HttpImpl implements IHttp {
     }
 
     protected OkHttpClient.Builder prepareBuilder() {
-        return new OkHttpClient.Builder();
+        return new OkHttpClient.Builder()
+                .protocols(Cc.l(Protocol.HTTP_1_1))//for HTTP2 OkHTTP threads are not daemon on java 9+
+                ;
     }
 
     @Override
@@ -133,7 +135,7 @@ public class HttpImpl implements IHttp {
 
         return execute(postBuilder, new Request.Builder()
                 .url(postBuilder.url())
-                .post(rb));
+                .post(rb), false);
     }
 
     @SneakyThrows
@@ -142,7 +144,7 @@ public class HttpImpl implements IHttp {
 
         return execute(postBuilder, new Request.Builder()
                 .url(postBuilder.url())
-                .delete(rb));
+                .delete(rb), false);
     }
 
     private <T extends HttpPostBuilder<T>> RequestBody definePostRequestBody(T pb) {
@@ -168,7 +170,7 @@ public class HttpImpl implements IHttp {
         Request.Builder builder = new Request.Builder()
                 .url(getBuilder.url())
                 .get();
-        return execute(getBuilder, builder);
+        return execute(getBuilder, builder, false);
     }
 
     @SneakyThrows
@@ -176,11 +178,12 @@ public class HttpImpl implements IHttp {
         Request.Builder builder = new Request.Builder()
                 .url(headBuilder.url())
                 .head();
-        return execute(headBuilder, builder);
+        return execute(headBuilder, builder, true);
     }
 
 
-    private <T extends HttpBuilder<T>> CoreHttpResponse execute(HttpBuilder<T> xBuilder, Request.Builder builder)
+    private <T extends HttpBuilder<T>> CoreHttpResponse execute(HttpBuilder<T> xBuilder, Request.Builder builder,
+            boolean forceEmptyContent)
             throws IOException {
         long start = times.now();
         if (xBuilder.login() != null && xBuilder.password() != null) {
@@ -192,7 +195,7 @@ public class HttpImpl implements IHttp {
                 .execute()) {
             int code = execute.code();
             @SuppressWarnings("ConstantConditions")
-            byte[] bytes = execute.body().bytes();
+            byte[] bytes = forceEmptyContent ? new byte[0] : execute.body().bytes();
             final Map<String, List<String>> headers = execute.headers().toMultimap();
             long finish = times.now();
             return new CoreHttpResponseDefaultImpl(finish - start, code, bytes, headers);
