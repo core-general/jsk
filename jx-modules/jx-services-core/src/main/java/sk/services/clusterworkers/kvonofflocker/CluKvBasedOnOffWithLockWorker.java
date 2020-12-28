@@ -139,5 +139,4 @@ public class CluKvBasedOnOffWithLockWorker<C extends CluKvBasedOnOffWithLockWork
 
         C1<Throwable> errorConsumer;
     }
-
 }

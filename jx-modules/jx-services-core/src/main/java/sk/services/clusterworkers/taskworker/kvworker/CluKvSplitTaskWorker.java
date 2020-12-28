@@ -63,7 +63,8 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     @Inject IJson json;
     @Inject IKvLimitedStore kv;
 
-    F2<O<M>, List<T>, Boolean> restarter;
+    volatile F2<O<M>, List<T>, Boolean> restarter;
+    volatile F1<O<byte[]>, CluWorkFullInfo<T, R>> decompressor;
 
     public CluKvSplitTaskWorker(String workerName) {
         super(workerName);
@@ -85,7 +86,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         restarter = (meta, work) -> kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()),
                 (metaAndWork) -> {
                     CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(null, metaAndWork, new ConverterImpl<>(
-                            a -> decompressFullWork(config, a),
+                            a -> decompressor.apply(a),
                             b -> O.of(compressFullWork(config, b))),
                             times.nowZ(), config.getMsForTaskToExpire()
                     );
@@ -94,6 +95,8 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
                     return O.of(helper.serializeBack());
                 }).collect($ -> true, e -> false);
+
+        decompressor = (obytes) -> decompressFullWork(config, obytes);
 
         super.start(config);
     }
@@ -121,6 +124,10 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                     m.setFailMessage(O.of(failReason));
                     return O.of(m);
                 });
+    }
+
+    public CluWorkFullInfo<T, R> getFullWorkInfo() {
+        return decompressor.apply(kv.getAsObjectWithRaw(kvKey4Task, CluWorkMetaInfo.class).getRawValue());
     }
 
     private CluSplitTask<M, R> createTaskForCurrentRun(C config) {
@@ -151,7 +158,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     private O<KvAllValues<CluWorkMetaInfo<M>>> prepareTasksAndLockKVStateIfPossible(C config, String currentTaskId,
             X1<List<CluWorkChunk<R>>> todo, KvAllValues<CluWorkMetaInfo<M>> metaAndWork) {
         CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork, new ConverterImpl<>(
-                a -> decompressFullWork(config, a),
+                a -> decompressor.apply(a),
                 b -> O.of(compressFullWork(config, b))),
                 times.nowZ(), config.getMsForTaskToExpire()
         );
@@ -183,7 +190,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
         kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()), (metaAndWork) -> {
             CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork, new ConverterImpl<>(
-                    a -> decompressFullWork(config, a),
+                    a -> decompressor.apply(a),
                     b -> O.of(compressFullWork(config, b))),
                     times.nowZ(), config.getMsForTaskToExpire()
             );
