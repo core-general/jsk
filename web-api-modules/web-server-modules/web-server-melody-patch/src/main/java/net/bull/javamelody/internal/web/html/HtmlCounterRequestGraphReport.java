@@ -17,6 +17,26 @@
  */
 package net.bull.javamelody.internal.web.html;
 
+/*-
+ * #%L
+ * Swiss Knife
+ * %%
+ * Copyright (C) 2019 - 2020 Core General
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import net.bull.javamelody.JdbcWrapper;
 import net.bull.javamelody.internal.common.I18N;
 import net.bull.javamelody.internal.model.*;
@@ -43,11 +63,13 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private final DecimalFormat integerFormat = I18N.createIntegerFormat();
     private List<Counter> counters;
     private Map<String, CounterRequest> requestsById;
+    private final HtmlHitsRequestGraphReport htmlHitsRequestGraphReport;
 
     HtmlCounterRequestGraphReport(Range range, Writer writer) {
         super(writer);
         assert range != null;
         this.range = range;
+        htmlHitsRequestGraphReport = new HtmlHitsRequestGraphReport(range, getWriter());
     }
 
     @Override
@@ -73,7 +95,9 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         // avant mouseover on prend une image qui sera mise en cache
         write("<em><img src='?resource=db.png' id='");
         write(id);
-        write("' alt='graph'/></em>");
+        write("' alt='graph'/>");
+        uniqueByPageAndGraphSequence = htmlHitsRequestGraphReport.addGraphForHits(requestId, uniqueByPageAndGraphSequence);
+        write("</em>");
         if (requestName.length() <= MAX_REQUEST_NAME_LENGTH) {
             // writeDirectly pour ne pas gérer de traductions si le nom contient '#'
             writeDirectly(htmlEncodeRequestName(requestId, requestName));
@@ -151,10 +175,15 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
             writeln("&nbsp;&nbsp;&nbsp;<a href='?format=txt&amp;period="
                     + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
                     + "' title='Dump TXT'>TXT</a>");
-            writeln("</div></td></tr></table>");
+            writeln("</div></td></tr>");
+            String hitsGraphName = htmlHitsRequestGraphReport.addRequestGraphForHitsDetail(collector, graphName);
+            writeln("</table>");
             writeln("</div>");
 
             writeGraphDetailScript(graphName);
+            if (!hitsGraphName.isEmpty()) {
+                writeGraphDetailScript(hitsGraphName);
+            }
         }
         if (request != null && request.getStackTrace() != null) {
             writeln("<blockquote><blockquote><b>Stack-trace</b><br/><font size='-1'>");
