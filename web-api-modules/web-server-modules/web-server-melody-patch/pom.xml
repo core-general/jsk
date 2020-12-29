@@ -5,24 +5,23 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.11</version>
+        <version>jsk.2.4.14</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-server-melody-collector-patch</artifactId>
+    <artifactId>web-server-melody-patch</artifactId>
+    <version>jsk.mp.1.0.1</version>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.2.4.11</version>
+            <version>jsk.2.4.14</version>
         </dependency>
-
         <dependency>
             <groupId>net.bull.javamelody</groupId>
             <artifactId>javamelody-core</artifactId>
             <version>1.86.0</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -47,8 +46,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

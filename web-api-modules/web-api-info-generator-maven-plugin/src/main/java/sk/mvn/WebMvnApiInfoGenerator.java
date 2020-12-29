@@ -37,6 +37,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -60,7 +61,7 @@ import static sk.utils.functional.O.*;
 import static sk.utils.statics.Fu.equal;
 import static sk.web.utils.WebUtils.*;
 
-@Mojo(name = "CREATE_META")
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class WebMvnApiInfoGenerator extends AbstractMojo {
     private MavenProject project = null;
 

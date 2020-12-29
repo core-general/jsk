@@ -22,6 +22,7 @@ import lombok.SneakyThrows;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -31,7 +32,7 @@ import sk.utils.statics.Io;
 import java.io.File;
 import java.util.List;
 
-@Mojo(name = "CREATE_META")
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class SpringMvnPropertiesGenerator extends AbstractMojo {
     /**
      * Property path to scan for properties
