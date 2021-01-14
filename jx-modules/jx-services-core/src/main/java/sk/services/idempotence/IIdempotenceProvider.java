@@ -20,12 +20,19 @@ package sk.services.idempotence;
  * #L%
  */
 
+import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 
 import java.time.Duration;
 
 public interface IIdempotenceProvider {
-    <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration);
+    default <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+            Duration lockDuration) {
+        return tryLock(key, requestHash, meta, lockDuration, O.empty());
+    }
+
+    <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration,
+            O<String> additionalData4Lock);
 
     <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration);
 

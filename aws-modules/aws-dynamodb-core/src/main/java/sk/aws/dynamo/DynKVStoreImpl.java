@@ -30,6 +30,7 @@ import sk.services.kv.keys.KvKeyRaw;
 import sk.services.kv.keys.KvKeyWithDefault;
 import sk.services.kv.keys.KvLockOrRenewKey;
 import sk.services.profile.IAppProfile;
+import sk.services.retry.IRepeat;
 import sk.services.time.ITime;
 import sk.utils.functional.*;
 import sk.utils.statics.Cc;
@@ -61,6 +62,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     @Inject DynProperties conf;
 
     @Inject IAsync async;
+    @Inject IRepeat repeat;
     @Inject ITime times;
     @Inject IAppProfile<?> appProfile;
 
@@ -144,7 +146,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                 table.putItem(item);
                 return OneOf.left(true);
             });
-        } catch (ConditionalCheckFailedException e) {
+        } catch (ConditionalCheckFailedException | DuplicateItemException e) {
             return OneOf.left(false);
         } catch (Exception e) {
             return OneOf.right(e);
@@ -211,7 +213,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
 
     @Override
     public void clearValue(KvKey key) {
-        withTableEnsureRun(key, table -> table.deleteItem(toAwsKey(key)));
+        repeat.repeat(() -> withTableEnsureRun(key, table -> table.deleteItem(toAwsKey(key))), 10, 500);
     }
 
     @Override

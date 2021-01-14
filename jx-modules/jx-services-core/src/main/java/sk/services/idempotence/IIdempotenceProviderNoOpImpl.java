@@ -20,6 +20,7 @@ package sk.services.idempotence;
  * #L%
  */
 
+import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 
 import java.time.Duration;
@@ -29,8 +30,8 @@ public class IIdempotenceProviderNoOpImpl implements IIdempotenceProvider {
     public static final IdempotenceLockResult<?> NO_OP_LOCK = IdempotenceLockResult.lockOk();
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
-            Duration lockDuration) {
+    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration,
+            O<String> additionalData4Lock) {
         return (IdempotenceLockResult<META>) NO_OP_LOCK;
     }
 

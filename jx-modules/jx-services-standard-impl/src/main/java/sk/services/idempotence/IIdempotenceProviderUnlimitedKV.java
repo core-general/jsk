@@ -26,14 +26,17 @@ import sk.services.except.IExcept;
 import sk.services.json.IJson;
 import sk.services.kv.IKvUnlimitedStore;
 import sk.services.kv.KvAllValues;
+import sk.services.log.ILog;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
+import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static sk.utils.functional.OneOf.left;
@@ -48,12 +51,15 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     @Inject IJson json;
     @Inject IBytes bytes;
     @Inject IExcept except;
+    @Inject ILog log;
+
+    @Inject Optional<IIdempotenceParameters> config = Optional.empty();
 
     @Override
     public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
-            Duration lockDuration) {
+            Duration lockDuration, O<String> additionalData) {
         final boolean lockOk = kv.trySaveNewObjectAndRaw(key(key),
-                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash),
+                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash, times.nowZ(), additionalData),
                         O.empty(),
                         O.of(times.nowZ().plus(lockDuration))))
                 .collect($ -> $, e -> {throw new RuntimeException("idempotence_lock_failed", e);});
@@ -65,6 +71,9 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
             if (!Fu.equal(metaData.requestHash, requestHash)) {
                 return IdempotenceLockResult.badParams();
             } else if (metaData.isLockSign()) {
+                if (config.map($ -> $.logRetriesWhileInLock()).orElse(false)) {
+                    log.logError(() -> "IDEMPOTENCE", "LOCK_BAD", Cc.m("me", key, "meta", json.to(metaData)));
+                }
                 return IdempotenceLockResult.lockBad();
             } else {
                 return IdempotenceLockResult.cachedValue(new IdempotentValue<>(

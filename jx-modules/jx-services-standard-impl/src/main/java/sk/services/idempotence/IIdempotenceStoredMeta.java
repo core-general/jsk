@@ -24,6 +24,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sk.utils.functional.O;
+
+import java.time.ZonedDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -34,11 +37,14 @@ class IIdempotenceStoredMeta {
     String requestHash;
     String meta;
 
-    public static IIdempotenceStoredMeta lock(String requestHash) {
-        return new IIdempotenceStoredMeta(true, '0', requestHash, null);
+    O<ZonedDateTime> lockDate = O.empty();
+    O<String> additionalData = O.empty();
+
+    public static IIdempotenceStoredMeta lock(String requestHash, ZonedDateTime now, O<String> additionalData) {
+        return new IIdempotenceStoredMeta(true, '0', requestHash, null, O.of(now), additionalData);
     }
 
     public static IIdempotenceStoredMeta result(char type, String requestHash, String meta) {
-        return new IIdempotenceStoredMeta(false, type, requestHash, meta);
+        return new IIdempotenceStoredMeta(false, type, requestHash, meta, O.empty(), O.empty());
     }
 }

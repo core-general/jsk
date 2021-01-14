@@ -69,7 +69,8 @@ public class WebIdempotenceFilter implements WebServerFilter {
                 final IdempotenceLockResult<WebReplyMeta> lock =
                         this.idempotence.orElseThrow(() -> new RuntimeException("No Idempotence Provider set"))
                                 .tryLock(oIdempotenceKey.get(), requestContext.getRequestContext().getRequestHash(),
-                                        simple(WebReplyMeta.class), conf.get().getLockDuration());
+                                        simple(WebReplyMeta.class), conf.get().getLockDuration(),
+                                        O.of(requestContext.getRequestContext().getIpInfo().getClientIp()));
                 final OneOf<O<IdempotentValue<WebReplyMeta>>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
                 if (cacheStatus.isLeft()) {
                     final O<IdempotentValue<WebReplyMeta>> cache = cacheStatus.left();

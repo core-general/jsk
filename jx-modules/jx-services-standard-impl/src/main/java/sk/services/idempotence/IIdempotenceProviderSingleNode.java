@@ -22,6 +22,7 @@ package sk.services.idempotence;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
@@ -38,7 +39,7 @@ public class IIdempotenceProviderSingleNode implements IIdempotenceProvider {
 
     @Override
     public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
-            Duration lockDuration) {
+            Duration lockDuration, O<String> ignoreAdditionalData) {
         boolean[] newValue = new boolean[]{false};
         final X2<String, IdempotentValue<?>> cachedData = localCache.asMap().computeIfAbsent(key, (k) -> {
             newValue[0] = true;

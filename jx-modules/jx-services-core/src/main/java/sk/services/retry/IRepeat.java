@@ -35,6 +35,9 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public interface IRepeat {
+
+    Set<Class<? extends Throwable>> ALL_EXCEPTIONS_ALLOWED = Cc.s(Exception.class);
+
     <T> T repeat(
             @NotNull Supplier<T> toRun,
             @Nullable Supplier<T> onFail,
@@ -54,15 +57,15 @@ public interface IRepeat {
     }
 
     default <T> T repeat(Supplier<T> toRun, int count) {
-        return repeat(toRun, null, count, 0, Cc.s(Exception.class));
+        return repeat(toRun, null, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
 
     default <T> T repeat(Supplier<T> toRun, int count, long sleepBetweenTries) {
-        return repeat(toRun, null, count, sleepBetweenTries, Cc.s(Exception.class));
+        return repeat(toRun, null, count, sleepBetweenTries, ALL_EXCEPTIONS_ALLOWED);
     }
 
     default <T> T repeat(Supplier<T> toRun, Supplier<T> onFail, int count) {
-        return repeat(toRun, onFail, count, 0, Cc.s(Exception.class));
+        return repeat(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
 
 
@@ -88,7 +91,7 @@ public interface IRepeat {
     }
 
     default void repeat(R toRun, int count) {
-        repeat(toRun, null, count, 0, Cc.sEmpty());
+        repeat(toRun, null, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
 
     default void repeat(R toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) {
@@ -96,11 +99,11 @@ public interface IRepeat {
     }
 
     default void repeat(R toRun, int count, long sleepBetweenTries) {
-        repeat(toRun, null, count, sleepBetweenTries, Cc.sEmpty());
+        repeat(toRun, null, count, sleepBetweenTries, ALL_EXCEPTIONS_ALLOWED);
     }
 
     default void repeat(R toRun, R onFail, int count) {
-        repeat(toRun, onFail, count, 0, Cc.sEmpty());
+        repeat(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
 
 
