@@ -61,7 +61,7 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
             Duration lockDuration, O<String> additionalData) {
         final boolean lockOk = kv.trySaveNewObjectAndRaw(key(key),
-                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash, times.nowZ(), additionalData),
+                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash, additionalData),
                         O.empty(),
                         O.of(times.nowZ().plus(lockDuration))))
                 .collect($ -> $, e -> {throw new RuntimeException("idempotence_lock_failed", e);});
@@ -74,7 +74,10 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
                 return IdempotenceLockResult.badParams();
             } else if (metaData.isLockSign()) {
                 if (config.map($ -> $.logRetriesWhileInLock()).orElse(false)) {
-                    log.logError(IDEMPOTENCE_CATEGORY, "LOCK_BAD", Cc.m("me", key, "meta", json.to(metaData)));
+                    log.logError(IDEMPOTENCE_CATEGORY, "LOCK_BAD",
+                            Cc.m("me", key,
+                                    "old", metaData.getAdditionalData().orElse("NONE"),
+                                    "current", additionalData.orElse("NONE")));
                 }
                 return IdempotenceLockResult.lockBad();
             } else {

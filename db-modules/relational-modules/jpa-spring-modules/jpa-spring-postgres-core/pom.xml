@@ -5,13 +5,13 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.19</version>
+        <version>jsk.2.4.20</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-spring-postgres-core</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.2.4.19</version>
+    <version>jsk.2.4.20</version>
 
     <dependencies>
         <dependency>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-spring-core</artifactId>
-            <version>jsk.2.4.19</version>
+            <version>jsk.2.4.20</version>
         </dependency>
     </dependencies>
 

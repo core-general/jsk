@@ -28,6 +28,7 @@ import sk.services.idempotence.IdempotenceLockResult;
 import sk.services.idempotence.IdempotentValue;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
+import sk.utils.statics.Ti;
 import sk.web.annotations.WebIdempotence;
 import sk.web.exceptions.IWebExcept;
 import sk.web.renders.WebFilterOutput;
@@ -70,7 +71,7 @@ public class WebIdempotenceFilter implements WebServerFilter {
                         this.idempotence.orElseThrow(() -> new RuntimeException("No Idempotence Provider set"))
                                 .tryLock(oIdempotenceKey.get(), requestContext.getRequestContext().getRequestHash(),
                                         simple(WebReplyMeta.class), conf.get().getLockDuration(),
-                                        O.of(requestContext.getRequestContext().getIpInfo().getClientIp()));
+                                        formRequestInfo(requestContext.getRequestContext()));
                 final OneOf<O<IdempotentValue<WebReplyMeta>>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
                 if (cacheStatus.isLeft()) {
                     final O<IdempotentValue<WebReplyMeta>> cache = cacheStatus.left();
@@ -106,6 +107,16 @@ public class WebIdempotenceFilter implements WebServerFilter {
             }
             throw e;
         }
+    }
+
+    private O<String> formRequestInfo(WebRequestInnerContext requestContext) {
+        return O.of(String.format("id:%s; user: %s; ip: %s; url:%s",
+                requestContext.getServerRequestId(),
+                requestContext.getUserToken().orElse("NONE"),
+                requestContext.getIpInfo().getClientIp(),
+                requestContext.getUrlPathPart(),
+                Ti.yyyyMMddHHmmssSSS.format(requestContext.getStartTime())
+        ));
     }
 
     @Override
