@@ -27,6 +27,7 @@ import sk.services.json.IJson;
 import sk.services.kv.IKvUnlimitedStore;
 import sk.services.kv.KvAllValues;
 import sk.services.log.ILog;
+import sk.services.log.ILogCategory;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
@@ -46,6 +47,7 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     public static final char STRING_SIGN = 'S';
     public static final char BYTEARR_SIGN = 'B';
     public static final char ZIP_SLOW_SIGN = 'Z';
+    public static final ILogCategory IDEMPOTENCE_CATEGORY = () -> "IDEMPOTENCE";
     @Inject IKvUnlimitedStore kv;
     @Inject ITime times;
     @Inject IJson json;
@@ -72,7 +74,7 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
                 return IdempotenceLockResult.badParams();
             } else if (metaData.isLockSign()) {
                 if (config.map($ -> $.logRetriesWhileInLock()).orElse(false)) {
-                    log.logError(() -> "IDEMPOTENCE", "LOCK_BAD", Cc.m("me", key, "meta", json.to(metaData)));
+                    log.logError(IDEMPOTENCE_CATEGORY, "LOCK_BAD", Cc.m("me", key, "meta", json.to(metaData)));
                 }
                 return IdempotenceLockResult.lockBad();
             } else {
@@ -95,7 +97,7 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
             old.setValue(IIdempotenceStoredMeta.result(encodingType, requestHash, json.to(valueToCache.getMetainfo())));
             old.setRawValue(O.of(wrapReturnType(valueToCache, encodingType)));
             return O.of(old);
-        });
+        }).oRight().ifPresent($ -> log.logExc(IDEMPOTENCE_CATEGORY, $, O.of("key:" + key)));
     }
 
     @Override
