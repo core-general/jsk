@@ -23,9 +23,9 @@ package sk.web.server.filters.standard;
 
 import lombok.extern.log4j.Log4j2;
 import sk.exceptions.JskProblem;
-import sk.services.idempotence.IIdempotenceProvider;
-import sk.services.idempotence.IdempotenceLockResult;
-import sk.services.idempotence.IdempotentValue;
+import sk.services.idempotence.IIdempProvider;
+import sk.services.idempotence.IdempLockResult;
+import sk.services.idempotence.IdempValue;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Ti;
@@ -50,7 +50,7 @@ public class WebIdempotenceFilter implements WebServerFilter {
 
     @Inject IWebExcept except;
     @Inject Optional<WebIdempotenceParams> conf;
-    @Inject Optional<IIdempotenceProvider> idempotence;
+    @Inject Optional<IIdempProvider> idempotence;
 
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
@@ -67,14 +67,14 @@ public class WebIdempotenceFilter implements WebServerFilter {
                 return except.returnMissingParameter(idempotence.paramName(), idempotence.isParamOrHeader());
             }
             if (oIdempotenceKey.isPresent()) {
-                final IdempotenceLockResult<WebReplyMeta> lock =
+                final IdempLockResult<WebReplyMeta> lock =
                         this.idempotence.orElseThrow(() -> new RuntimeException("No Idempotence Provider set"))
                                 .tryLock(oIdempotenceKey.get(), requestContext.getRequestContext().getRequestHash(),
                                         simple(WebReplyMeta.class), conf.get().getLockDuration(),
                                         formRequestInfo(requestContext.getRequestContext()));
-                final OneOf<O<IdempotentValue<WebReplyMeta>>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
+                final OneOf<O<IdempValue<WebReplyMeta>>, Boolean> cacheStatus = lock.getValueOrLockSuccessStatus();
                 if (cacheStatus.isLeft()) {
-                    final O<IdempotentValue<WebReplyMeta>> cache = cacheStatus.left();
+                    final O<IdempValue<WebReplyMeta>> cache = cacheStatus.left();
                     return cache.collect(
                             $ -> WebFilterOutput.rendered(new WebRenderResult($.getMetainfo(), $.getCachedValue())),
                             () -> WebFilterOutput.rawProblem(409, JskProblem.code("idempotence_parameter_mismatch")));
@@ -96,7 +96,7 @@ public class WebIdempotenceFilter implements WebServerFilter {
                     idempotence.get().unlockOrClear(key);
                 } else {
                     idempotence.get().cacheValue(key, requestContext.getRequestContext().getRequestHash(),
-                            new IdempotentValue<>(render.getMeta(), render.getValue()),
+                            new IdempValue<>(render.getMeta(), render.getValue()),
                             conf.get().getCacheDuration());
                 }
             }

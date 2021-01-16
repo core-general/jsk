@@ -4,7 +4,7 @@ package sk.services.idempotence;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@ package sk.services.idempotence;
  * #L%
  */
 
-import sk.services.kv.keys.KvSimpleKeyWithName;
-
-class IdempotenceKey extends KvSimpleKeyWithName {
-    public IdempotenceKey(String idempotenceKey) {
-        super("IDEMPOTENCE_" + idempotenceKey, "_?_");
-    }
+public interface IIdempParameters {
+    public boolean logRetriesWhileInLock();
 }

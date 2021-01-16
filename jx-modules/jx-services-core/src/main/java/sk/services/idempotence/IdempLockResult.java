@@ -31,26 +31,26 @@ import static sk.utils.functional.OneOf.right;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class IdempotenceLockResult<META> {
+public class IdempLockResult<META> {
     /**
      * left is either value or in case of wrong requestHash void, right is either lock success if true, or lock failed (lock is
      * hold by someone else) if false
      */
-    OneOf<O<IdempotentValue<META>>, Boolean> valueOrLockSuccessStatus;
+    OneOf<O<IdempValue<META>>, Boolean> valueOrLockSuccessStatus;
 
-    public static <META> IdempotenceLockResult<META> cachedValue(IdempotentValue<META> val) {
-        return new IdempotenceLockResult<>(left(O.of(val)));
+    public static <META> IdempLockResult<META> cachedValue(IdempValue<META> val) {
+        return new IdempLockResult<>(left(O.of(val)));
     }
 
-    public static <META> IdempotenceLockResult<META> badParams() {
-        return new IdempotenceLockResult<>(left(O.empty()));
+    public static <META> IdempLockResult<META> badParams() {
+        return new IdempLockResult<>(left(O.empty()));
     }
 
-    public static <META> IdempotenceLockResult<META> lockOk() {
-        return new IdempotenceLockResult<>(right(true));
+    public static <META> IdempLockResult<META> lockOk() {
+        return new IdempLockResult<>(right(true));
     }
 
-    public static <META> IdempotenceLockResult<META> lockBad() {
-        return new IdempotenceLockResult<>(right(false));
+    public static <META> IdempLockResult<META> lockBad() {
+        return new IdempLockResult<>(right(false));
     }
 }

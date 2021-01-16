@@ -30,36 +30,36 @@ import sk.utils.tuples.X2;
 
 import java.time.Duration;
 
-public class IIdempotenceProviderSingleNode implements IIdempotenceProvider {
+public class IIdempProviderSingleNode implements IIdempProvider {
 
-    Cache<String, X2<String, IdempotentValue<?>>> localCache = Caffeine.newBuilder()
+    Cache<String, X2<String, IdempValue<?>>> localCache = Caffeine.newBuilder()
             .maximumSize(30_000)
             .expireAfterWrite(Duration.ofMinutes(5))
             .build();
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+    public <META> IdempLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
             Duration lockDuration, O<String> ignoreAdditionalData) {
         boolean[] newValue = new boolean[]{false};
-        final X2<String, IdempotentValue<?>> cachedData = localCache.asMap().computeIfAbsent(key, (k) -> {
+        final X2<String, IdempValue<?>> cachedData = localCache.asMap().computeIfAbsent(key, (k) -> {
             newValue[0] = true;
-            return X.x(requestHash, new IdempotentValue<META>(true, null, null));
+            return X.x(requestHash, new IdempValue<META>(true, null, null));
         });
         if (newValue[0]) {
-            return IdempotenceLockResult.lockOk();
+            return IdempLockResult.lockOk();
         } else if (cachedData.i2().isEmpty()) {
-            return IdempotenceLockResult.lockBad();
+            return IdempLockResult.lockBad();
         } else {
             if (Fu.equal(requestHash, cachedData.i1())) {
-                return (IdempotenceLockResult<META>) IdempotenceLockResult.cachedValue(cachedData.i2());
+                return (IdempLockResult<META>) IdempLockResult.cachedValue(cachedData.i2());
             } else {
-                return IdempotenceLockResult.badParams();
+                return IdempLockResult.badParams();
             }
         }
     }
 
     @Override
-    public <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration) {
+    public <META> void cacheValue(String key, String requestHash, IdempValue<META> valueToCache, Duration cacheDuration) {
         localCache.put(key, X.x(requestHash, valueToCache));
     }
 

@@ -33,8 +33,8 @@ import sk.aws.dynamo.DynBeanConfigWithKvStore;
 import sk.aws.dynamo.DynProperties;
 import sk.aws.spring.AwsBeanConfig;
 import sk.services.except.IExcept;
-import sk.services.idempotence.IIdempotenceParameters;
-import sk.services.idempotence.IIdempotenceProviderUnlimitedKV;
+import sk.services.idempotence.IIdempParameters;
+import sk.services.idempotence.IIdempProviderUnlimitedKV;
 import sk.services.json.IJson;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
@@ -157,12 +157,12 @@ public class WebSparkTest {
         }
 
         @Bean
-        IIdempotenceProviderUnlimitedKV IIdempotenceProviderSingleNode() {
-            return new IIdempotenceProviderUnlimitedKV();
+        IIdempProviderUnlimitedKV IIdempotenceProviderSingleNode() {
+            return new IIdempProviderUnlimitedKV();
         }
 
         @Bean
-        IIdempotenceParameters IIdempotenceParameters() {
+        IIdempParameters IIdempotenceParameters() {
             return () -> true;
         }
 

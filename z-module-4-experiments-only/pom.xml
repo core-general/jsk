@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.20</version>
+        <version>jsk.2.4.21</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,22 +15,22 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.2.4.20</version>
+            <version>jsk.2.4.21</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-spring-core</artifactId>
-            <version>jsk.2.4.20</version>
+            <version>jsk.2.4.21</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-dynamodb-spring-core</artifactId>
-            <version>jsk.2.4.20</version>
+            <version>jsk.2.4.21</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spark-spring-melody</artifactId>
-            <version>jsk.2.4.20</version>
+            <version>jsk.2.4.21</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -54,7 +54,7 @@
     <!--            <plugin>-->
     <!--                <groupId>jsk</groupId>-->
     <!--                <artifactId>spring-properties-plugin</artifactId>-->
-    <!--                <version>jsk.2.4.20</version>-->
+    <!--                <version>jsk.2.4.21</version>-->
     <!--                <configuration>-->
     <!--                    <propertyPathPrefix>super_properties</propertyPathPrefix>-->
     <!--                </configuration>-->
@@ -70,7 +70,7 @@
     <!--            <plugin>-->
     <!--                <groupId>jsk</groupId>-->
     <!--                <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
-    <!--                <version>jsk.2.4.20</version>-->
+    <!--                <version>jsk.2.4.21</version>-->
     <!--                <configuration>-->
     <!--                    <apiClasses>-->
     <!--                        <param>jsk.spark.TestApi1</param>-->

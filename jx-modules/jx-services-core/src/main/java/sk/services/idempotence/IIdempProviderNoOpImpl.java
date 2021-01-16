@@ -25,16 +25,19 @@ import sk.utils.javafixes.TypeWrap;
 
 import java.time.Duration;
 
-public interface IIdempotenceProvider {
-    default <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
-            Duration lockDuration) {
-        return tryLock(key, requestHash, meta, lockDuration, O.empty());
+public class IIdempProviderNoOpImpl implements IIdempProvider {
+
+    public static final IdempLockResult<?> NO_OP_LOCK = IdempLockResult.lockOk();
+
+    @Override
+    public <META> IdempLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration,
+            O<String> additionalData4Lock) {
+        return (IdempLockResult<META>) NO_OP_LOCK;
     }
 
-    <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta, Duration lockDuration,
-            O<String> additionalData4Lock);
+    @Override
+    public <META> void cacheValue(String key, String requestHash, IdempValue<META> valueToCache, Duration cacheDuration) { }
 
-    <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration);
-
-    void unlockOrClear(String key);
+    @Override
+    public void unlockOrClear(String key) { }
 }

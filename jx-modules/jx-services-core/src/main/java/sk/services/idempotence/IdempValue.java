@@ -4,7 +4,7 @@ package sk.services.idempotence;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2021 Core General
+ * Copyright (C) 2019 - 2020 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,16 @@ package sk.services.idempotence;
  * #L%
  */
 
-public interface IIdempotenceParameters {
-    public boolean logRetriesWhileInLock();
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import sk.utils.functional.OneOf;
+
+@Getter
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class IdempValue<META> {
+    boolean isEmpty = false;
+    final META metainfo;
+    final OneOf<String, byte[]> cachedValue;
 }

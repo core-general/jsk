@@ -43,7 +43,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static sk.utils.functional.OneOf.left;
 import static sk.utils.functional.OneOf.right;
 
-public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
+public class IIdempProviderUnlimitedKV implements IIdempProvider {
     public static final char STRING_SIGN = 'S';
     public static final char BYTEARR_SIGN = 'B';
     public static final char ZIP_SLOW_SIGN = 'Z';
@@ -55,23 +55,23 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     @Inject IExcept except;
     @Inject ILog log;
 
-    @Inject Optional<IIdempotenceParameters> config = Optional.empty();
+    @Inject Optional<IIdempParameters> config = Optional.empty();
 
     @Override
-    public <META> IdempotenceLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
+    public <META> IdempLockResult<META> tryLock(String key, String requestHash, TypeWrap<META> meta,
             Duration lockDuration, O<String> additionalData) {
         final boolean lockOk = kv.trySaveNewObjectAndRaw(key(key),
-                new KvAllValues<>(IIdempotenceStoredMeta.lock(requestHash, additionalData),
+                new KvAllValues<>(IIdempStoredMeta.lock(requestHash, additionalData),
                         O.empty(),
                         O.of(times.nowZ().plus(lockDuration))))
                 .collect($ -> $, e -> {throw new RuntimeException("idempotence_lock_failed", e);});
         if (lockOk) {
-            return IdempotenceLockResult.lockOk();
+            return IdempLockResult.lockOk();
         } else {
-            final KvAllValues<IIdempotenceStoredMeta> raw = kv.getAsObjectWithRaw(key(key), IIdempotenceStoredMeta.class);
-            IIdempotenceStoredMeta metaData = raw.getValue();
+            final KvAllValues<IIdempStoredMeta> raw = kv.getAsObjectWithRaw(key(key), IIdempStoredMeta.class);
+            IIdempStoredMeta metaData = raw.getValue();
             if (!Fu.equal(metaData.requestHash, requestHash)) {
-                return IdempotenceLockResult.badParams();
+                return IdempLockResult.badParams();
             } else if (metaData.isLockSign()) {
                 if (config.map($ -> $.logRetriesWhileInLock()).orElse(false)) {
                     log.logError(IDEMPOTENCE_CATEGORY, "LOCK_BAD",
@@ -79,9 +79,9 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
                                     "old", metaData.getAdditionalData().orElse("NONE"),
                                     "current", additionalData.orElse("NONE")));
                 }
-                return IdempotenceLockResult.lockBad();
+                return IdempLockResult.lockBad();
             } else {
-                return IdempotenceLockResult.cachedValue(new IdempotentValue<>(
+                return IdempLockResult.cachedValue(new IdempValue<>(
                         json.from(metaData.getMeta(), meta),
                         unwrapReturnValue(metaData.getType(), raw.getRawValue().orElse(new byte[0]))
                 ));
@@ -90,14 +90,14 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     }
 
     @Override
-    public <META> void cacheValue(String key, String requestHash, IdempotentValue<META> valueToCache, Duration cacheDuration) {
-        kv.updateObjectAndRaw(key(key), IIdempotenceStoredMeta.class, old -> {
+    public <META> void cacheValue(String key, String requestHash, IdempValue<META> valueToCache, Duration cacheDuration) {
+        kv.updateObjectAndRaw(key(key), IIdempStoredMeta.class, old -> {
             old.setTtl(O.of(times.nowZ().plus(cacheDuration)));
 
             final char encodingType = valueToCache.getCachedValue()
                     .collect($ -> $.length() > 800 ? ZIP_SLOW_SIGN : STRING_SIGN, $ -> BYTEARR_SIGN);
 
-            old.setValue(IIdempotenceStoredMeta.result(encodingType, requestHash, json.to(valueToCache.getMetainfo())));
+            old.setValue(old.getValue().result(encodingType, requestHash, json.to(valueToCache.getMetainfo())));
             old.setRawValue(O.of(wrapReturnType(valueToCache, encodingType)));
             return O.of(old);
         }).oRight().ifPresent($ -> log.logExc(IDEMPOTENCE_CATEGORY, $, O.of("key:" + key)));
@@ -109,11 +109,11 @@ public class IIdempotenceProviderUnlimitedKV implements IIdempotenceProvider {
     }
 
     @NotNull
-    private IdempotenceKey key(String key) {
-        return new IdempotenceKey(key);
+    private IdempKey key(String key) {
+        return new IdempKey(key);
     }
 
-    private <META> byte[] wrapReturnType(IdempotentValue<META> valueToCache, char encodingType) {
+    private <META> byte[] wrapReturnType(IdempValue<META> valueToCache, char encodingType) {
         return encodingType == ZIP_SLOW_SIGN
                 ? bytes.zipString(valueToCache.getCachedValue().left()).get()
                 : encodingType == STRING_SIGN

@@ -24,6 +24,7 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
+import sk.services.ids.IIds;
 import sk.services.kv.*;
 import sk.services.kv.keys.KvKey;
 import sk.services.kv.keys.KvKeyRaw;
@@ -64,11 +65,12 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     @Inject IAsync async;
     @Inject IRepeat repeat;
     @Inject ITime times;
+    @Inject IIds ids;
     @Inject IAppProfile<?> appProfile;
 
     @Override
     public O<KvVersionedItem<String>> getRawVersioned(KvKeyWithDefault key) {
-        return withTableEnsure(key, table -> O.ofNull(table.getItem(consistentGet(key))).map($ ->
+        return withTableEnsure(key, table -> O.ofNull(privateItemGet(table, key)).map($ ->
                 new KvVersionedItem<>(key, $.getValue(), O.ofNull($.getTtl()).map(x -> times.toZDT(x)),
                         O.ofNull($.getCreatedAt()).orElse(null),
                         $.getVersion())));
@@ -77,7 +79,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     @Override
     public O<KvVersionedItemAll<String>> getRawVersionedAll(KvKeyWithDefault key) {
         return withTableEnsure(key,
-                table -> O.ofNull(table.getItem(consistentGet(key)))
+                table -> O.ofNull(privateItemGet(table, key))
                         .map($ -> {
                             final O<Long> ttl = O.ofNull($.getTtl());
                             final O<ZonedDateTime> ttlZdt = ttl.map(x -> times.toZDT(x));
@@ -132,6 +134,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
 
     @Override
     public OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider) {
+        final String firstSaveId = ids.shortIdS();
         try {
             return withTableEnsure(key, table -> {
                 final Key kk = toAwsKey(key);
@@ -141,13 +144,25 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                         newValueProvider.getRawValue().orElse(null),
                         null, null, null,
                         newValueProvider.getTtl().map($ -> times.toSec($)).orElse(null),
-                        null);
+                        null, firstSaveId);
 
                 table.putItem(item);
                 return OneOf.left(true);
             });
         } catch (ConditionalCheckFailedException | DuplicateItemException e) {
-            return OneOf.left(false);
+            return withTableEnsure(key, table -> {
+                final DynKVItem kvItem = privateItemGet(table, key);
+                if (kvItem == null) {
+                    //if something goes wrong and the item is not in there
+                    return OneOf.right(e);
+                } else if (Fu.equal(kvItem.getFirstSaveId(), firstSaveId)) {
+                    //special case with DynamoDB when item is saved with success, but Dynamo returns exception that it does not
+                    return OneOf.left(true);
+                } else {
+                    //if non from the above - the item is created by someone else
+                    return OneOf.left(false);
+                }
+            });
         } catch (Exception e) {
             return OneOf.right(e);
         }
@@ -183,7 +198,8 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                             updatedValue.getRawValue().orElse(null),
                             null, null, null,
                             updatedValue.getTtl().map($ -> times.toSec($)).orElse(null),
-                            (Long) raw.getVersion()));
+                            (Long) raw.getVersion(),
+                            null));
                     return OneOf.left(oupdatedValue);
                 } catch (ConditionalCheckFailedException e) {
                     continue;
@@ -198,7 +214,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     private KvVersionedItemAll<String> getOrCreateNewAllValues(DynamoDbTable<DynKVItem> table, KvKeyWithDefault outerKey) {
         return getRawVersionedAll(outerKey).orElseGet(() -> {
             trySaveNewStringAndRaw(outerKey, new KvAllValues<>(outerKey.getDefaultValue(), O.empty(), O.empty()));
-            DynKVItem one = table.getItem(consistentGet(outerKey));
+            DynKVItem one = privateItemGet(table, outerKey);
             final O<ZonedDateTime> ttl = O.ofNull(one.getTtl()).map($ -> times.toZDT($));
             return new KvVersionedItemAll<>(outerKey,
                     new KvAllValues<>(one.getValue(), O.ofNull(one.getRawValue()), ttl),
@@ -293,9 +309,9 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         if (!categories.contains(key1)) {
             throw new RuntimeException("Categories " + Cc.join(categories) + " not contain:" + key1 + " key2=" + key2);
         }
-        for (int i = 0; i < categories.size(); i++) {
-            newCategories.add(categories.get(i));
-            if (Fu.equal(categories.get(i), key1)) {
+        for (String category : categories) {
+            newCategories.add(category);
+            if (Fu.equal(category, key1)) {
                 break;
             }
         }
@@ -304,7 +320,11 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     }
 
     @NotNull
-    private GetItemEnhancedRequest consistentGet(KvKeyWithDefault key) {
+    private GetItemEnhancedRequest consistentGet(KvKey key) {
         return GetItemEnhancedRequest.builder().key(toAwsKey(key)).consistentRead(true).build();
+    }
+
+    private DynKVItem privateItemGet(DynamoDbTable<DynKVItem> table, KvKey outerKey) {
+        return table.getItem(consistentGet(outerKey));
     }
 }

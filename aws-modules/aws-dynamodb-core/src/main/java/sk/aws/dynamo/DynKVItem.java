@@ -64,4 +64,8 @@ public class DynKVItem implements DynEntityWithCreatedAndUpdated {
 
     @Getter(onMethod_ = {@DynamoDbVersionAttribute})
     Long version;
+
+    //to get around DynamoDB inconsistencies on first save
+    @Getter(onMethod_ = {@DynamoDbAttribute("fsi")})
+    String firstSaveId;
 }

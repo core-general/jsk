@@ -20,16 +20,34 @@ package sk.services.idempotence;
  * #L%
  */
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import sk.utils.functional.OneOf;
+import lombok.NoArgsConstructor;
+import sk.utils.functional.O;
 
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@AllArgsConstructor
-@RequiredArgsConstructor
-public class IdempotentValue<META> {
-    boolean isEmpty = false;
-    final META metainfo;
-    final OneOf<String, byte[]> cachedValue;
+class IIdempStoredMeta {
+    boolean lockSign;
+    char type;
+    String requestHash;
+    String meta;
+
+    O<String> additionalData = O.empty();
+
+    public static IIdempStoredMeta lock(String requestHash, O<String> additionalData) {
+        return new IIdempStoredMeta(true, '0', requestHash, null, additionalData);
+    }
+
+    public IIdempStoredMeta result(char type, String requestHash, String meta) {
+        this.type = type;
+        this.requestHash = requestHash;
+        this.meta = meta;
+
+        lockSign = false;
+
+        return this;
+    }
 }
