@@ -180,7 +180,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
     public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater) {
         return withTableEnsure(key, table -> {
-            int k = 10000;
+            int k = 1000;
             Key _key = toAwsKey(key);
 
             while (k-- >= 0) {
@@ -201,7 +201,10 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                             (Long) raw.getVersion(),
                             null));
                     return OneOf.left(oupdatedValue);
-                } catch (ConditionalCheckFailedException e) {
+                } catch (ConditionalCheckFailedException
+                        | ProvisionedThroughputExceededException
+                        | RequestLimitExceededException e) {
+                    async.sleep(500);
                     continue;
                 } catch (Exception e) {
                     return OneOf.right(e);

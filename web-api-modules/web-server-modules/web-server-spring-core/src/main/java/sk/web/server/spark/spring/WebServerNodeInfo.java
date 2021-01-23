@@ -62,8 +62,8 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     void init() {
         nodeId = rnd.rndString(3, St.engENGDig) + "-" + (System.currentTimeMillis());
         final O<ApiBuildInfo> bi = clsUtil.getVersionAndBuildTimeFromResources();
-        nodeVersion = bi.map($ -> $.getVersion()).orElse("?");
         buildTime = bi.map($ -> times.toZDT($.getBuildTime())).orElseGet(() -> times.toZDT(0));
+        nodeVersion = bi.map($ -> $.getVersion()).orElse("?") + "-" + times.toMilli(buildTime);
     }
 
     @Override

@@ -20,7 +20,10 @@ package sk.utils.files;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import sk.utils.functional.O;
 import sk.utils.statics.St;
 
@@ -30,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 import static sk.utils.statics.St.*;
 
 @EqualsAndHashCode
-@ToString
 @AllArgsConstructor
 public class PathWithBase {
     @Getter String base;
@@ -75,4 +77,6 @@ public class PathWithBase {
     private O<String> getInnerPathWithSlash() {
         return path.map($ -> endWith($, "/"));
     }
+
+    public String toString() {return this.base + O.ofNull(this.path).flatMap($ -> $).map($ -> St.startWith($, "/"));}
 }

@@ -44,6 +44,10 @@ public interface IRand {
         return MapRandom.rnd(this::rndDouble, Cc.m(true, trueProbability, false, 1 - trueProbability));
     }
 
+    default long rndLong() {
+        return getRandom().nextLong();
+    }
+
     default int rndInt(int bound) {
         return getRandom().nextInt(bound);
     }
@@ -73,4 +77,6 @@ public interface IRand {
     default String rndString(int fromAndTo, String charSource) {
         return rndString(fromAndTo, fromAndTo + 1, charSource);
     }
+
+
 }

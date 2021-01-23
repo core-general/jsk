@@ -40,14 +40,13 @@ import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
+import sk.utils.tuples.X;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static sk.utils.functional.O.ofNullable;
@@ -212,6 +211,7 @@ public class HttpImpl implements IHttp {
         private final long durationMs;
         private final int code;
         private final byte[] bytes;
+        private final Set<String> headerKeysOriginal;
         private final Map<String, List<String>> headers;
         private volatile String cachedString;
 
@@ -219,7 +219,8 @@ public class HttpImpl implements IHttp {
             this.durationMs = durationMs;
             this.code = code;
             this.bytes = bytes;
-            this.headers = headers;
+            this.headerKeysOriginal = Collections.unmodifiableSet(new HashSet<>(headers.keySet()));
+            this.headers = headers.entrySet().stream().map($ -> X.x($.getKey().toLowerCase(), $.getValue())).collect(Cc.toMX2());
             cachedString = null;
         }
 
@@ -262,17 +263,17 @@ public class HttpImpl implements IHttp {
 
         @Override
         public O<String> getHeader(String header) {
-            return getHeaders(header).flatMap(Cc::first);
+            return getHeaders(header.toLowerCase()).flatMap(Cc::first);
         }
 
         @Override
         public O<List<String>> getHeaders(String header) {
-            return O.ofNull(headers.get(header));
+            return O.ofNull(headers.get(header.toLowerCase()));
         }
 
         @Override
         public Set<String> getHeaders() {
-            return headers.keySet();
+            return headerKeysOriginal;
         }
     }
 }

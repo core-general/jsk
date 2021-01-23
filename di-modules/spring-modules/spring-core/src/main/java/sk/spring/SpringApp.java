@@ -54,8 +54,7 @@ public class SpringApp<K extends SpringAppEntryPoint> {
             String welcomeTextFolderOrFile,
             String loggerFolderOrFile,
             Class<?> configClass) {
-        return new SpringApp<>(O.ofNull(welcomeTextFolderOrFile), O.ofNull(loggerFolderOrFile),
-                () -> {}, configClass);
+        return new SpringApp<>(O.ofNull(welcomeTextFolderOrFile), O.ofNull(loggerFolderOrFile), () -> {}, configClass);
     }
 
     public synchronized void closeContext() {

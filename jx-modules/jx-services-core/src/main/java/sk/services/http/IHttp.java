@@ -47,7 +47,7 @@ public interface IHttp {
     }
 
     default CoreHttpResponse headResp(String url) {
-        return head(url).goResponse().left();
+        return head(url).tryCount(5).goResponse().left();
     }
 
     default HttpGetBuilder get(String url) {

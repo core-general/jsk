@@ -25,7 +25,9 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
+import sk.services.rand.IRand;
 import sk.services.retry.IRepeat;
+import sk.utils.async.AtomicNotifier;
 import sk.utils.files.PathWithBase;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -39,7 +41,10 @@ import software.amazon.awssdk.services.s3.model.*;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNullable;
@@ -51,6 +56,7 @@ public class S3JskClient {
     @Inject S3Properties conf;
     @Inject IAsync async;
     @Inject IRepeat repeat;
+    @Inject IRand rand;
     @Inject AwsUtilityHelper helper;
 
     public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat) {
@@ -64,7 +70,7 @@ public class S3JskClient {
     private F1<PathWithBase, String> urlGetter;
 
     @PostConstruct
-    public void init() {
+    public S3JskClient init() {
         s3 = helper.createSync(S3Client::builder, conf);
 
         //region urlGetter
@@ -82,6 +88,8 @@ public class S3JskClient {
             return s3Util.getUrl(build).toString();
         };
         //endregion
+
+        return this;
     }
 
     /**
@@ -120,7 +128,20 @@ public class S3JskClient {
     public String putPublic(PathWithBase base, byte[] body, boolean allRead, O<String> contentType,
             O<String> contentEncoding) {
         putPublicNoUrl(base, body, allRead, contentType, contentEncoding);
+        return getUrl(base);
+    }
+
+    public String getUrl(PathWithBase base) {
         return urlGetter.apply(base);
+    }
+
+    public HeadObjectResponse headObject(PathWithBase path) {
+        HeadObjectRequest hor = HeadObjectRequest.builder()
+                .bucket(path.getBase())
+                .key(path.getPathNoSlash())
+                .build();
+        final HeadObjectResponse headObjectResponse = s3.headObject(hor);
+        return headObjectResponse;
     }
 
     /**
@@ -175,6 +196,48 @@ public class S3JskClient {
         }
     }
 
+    public Set<String> makeAllFilesPublicAndReturnWhichFailed(PathWithBase target) {
+        Set<String> failedItems = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        final List<S3ListObject> allItems = getAllItems(target, empty());
+        AtomicNotifier okChanged = new AtomicNotifier(allItems.size(), 100,
+                s -> log.info(s + " from " + target + " are now public"));
+
+        async.coldTaskFJP().submit(() -> allItems.parallelStream().forEach($ -> {
+            try {
+                repeat.repeat(() -> {
+                    final PutObjectAclRequest request = PutObjectAclRequest.builder().bucket(target.getBase())
+                            .key($.getKey())
+                            .acl(ObjectCannedACL.PUBLIC_READ)
+                            .build();
+                    s3.putObjectAcl(request);
+                }, 10);
+                okChanged.incrementAndNotify();
+            } catch (Exception e) {
+                log.error("", e);
+                failedItems.add($.getKey());
+            }
+        }));
+
+        return failedItems;
+    }
+
+    public boolean makeFilePublic(PathWithBase target) {
+        try {
+            repeat.repeat(() -> {
+                final PutObjectAclRequest build = PutObjectAclRequest.builder().bucket(target.getBase())
+                        .key(target.getPathNoSlash())
+                        .acl(ObjectCannedACL.PUBLIC_READ)
+                        .build();
+
+                s3.putObjectAcl(build);
+            }, 10);
+            return true;
+        } catch (Exception e) {
+            log.error("", e);
+            return false;
+        }
+    }
+
     public void copyPublic(PathWithBase source, PathWithBase destination) {
         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                 .copySource(source.getEncodedUrl())
@@ -203,7 +266,7 @@ public class S3JskClient {
         return new S3ListResponse(marker, response.contents().stream().map($ -> new S3ListObject($.key())).collect(Cc.toL()));
     }
 
-    public List<S3ListResponse> getAllItems(PathWithBase path, O<Long> msBetweenPageRequests) {
+    public List<S3ListObject> getAllItems(PathWithBase path, O<Long> msBetweenPageRequests) {
         O<String> nextMarker = O.empty();
         List<S3ListResponse> responses = Cc.l();
         do {
@@ -214,7 +277,10 @@ public class S3JskClient {
             responses.add(objectListing);
             nextMarker = objectListing.getNextMarker();
         } while (nextMarker.isPresent());
-        return responses;
+
+        return responses.stream().flatMap($ -> $.getObjects().stream())
+                .filter($ -> !$.getKey().endsWith("/"))
+                .collect(Cc.toL());
     }
 
     public O<byte[]> getFromS3(PathWithBase path) {
@@ -231,9 +297,10 @@ public class S3JskClient {
     }
 
     public void clearAll(PathWithBase base, O<Long> msBetweenPageRequests) {
-        getAllItems(base, msBetweenPageRequests).stream().forEach($ -> {
+        Cc.splitCollectionRandomly(getAllItems(base, msBetweenPageRequests), 1000, () -> rand.rndLong())
+                .values().parallelStream().forEach($ -> {
             repeat.repeat(() -> deleteByKeys(base,
-                    $.getObjects().stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
+                    $.stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
         });
     }
 
@@ -241,7 +308,6 @@ public class S3JskClient {
     public void clearAllByOneParallel(PathWithBase base, O<Long> msBetweenPageRequests) {
         async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
                 .parallelStream()
-                .flatMap($ -> $.getObjects().stream())
                 .forEach($ -> repeat.repeat(() -> deleteOne(base.replacePath($.getKey())), 10))).get();
     }
 }

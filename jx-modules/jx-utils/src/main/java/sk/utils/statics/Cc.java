@@ -296,11 +296,24 @@ public final class Cc {
     public static <T, A extends Collection<T>> O<T> find(A collection, P1<T> predicate) {
         return of(collection.stream().filter(predicate).findAny());
     }
+
+    public static <T, A extends Collection<T>> Map<Long, List<T>>
+    splitCollectionRandomly(A collection, int aproxSizeOfPartition, F0<Long> randomSequence) {
+        int size = collection.size();
+        int mod = Math.max(size / aproxSizeOfPartition, 1);
+        return collection.stream().collect(groupingBy($ -> randomSequence.apply() % mod));
+    }
     //endregion
 
     //region Lists
     public static <T> Map<T, Integer> ordering(List<T> in) {
         Map<T, Integer> toRet = m();
+        eachWithIndex(in, toRet::put);
+        return toRet;
+    }
+
+    public static <T extends Enum<T>> EnumMap<T, Integer> orderingEnum(Class<T> cls, List<T> in) {
+        EnumMap<T, Integer> toRet = em(cls);
         eachWithIndex(in, toRet::put);
         return toRet;
     }
@@ -612,6 +625,80 @@ public final class Cc {
         ret.put(k9, v9);
         return ret;
     }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls) {
+        return new EnumMap<K, V>(cls);
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v) {
+        EnumMap<K, V> ret = em(cls);
+        ret.put(k, v);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1) {
+        EnumMap<K, V> ret = em(cls, k, v);
+        ret.put(k1, v1);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1);
+        ret.put(k2, v2);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2);
+        ret.put(k3, v3);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4,
+            V v4) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3);
+        ret.put(k4, v4);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
+            K k5,
+            V v5) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4);
+        ret.put(k5, v5);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
+            K k5, V v5,
+            K k6, V v6) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5);
+        ret.put(k6, v6);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
+            K k5, V v5, K k6, V v6, K k7, V v7) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6);
+        ret.put(k7, v7);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
+            K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7);
+        ret.put(k8, v8);
+        return ret;
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
+            K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8, K k9,
+            V v9) {
+        EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8);
+        ret.put(k9, v9);
+        return ret;
+    }
+
 
     public static <K, V> LinkedHashMap<K, V> lhm() {
         return new LinkedHashMap<>();
