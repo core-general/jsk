@@ -20,6 +20,6 @@ package sk.services.boot;
  * #L%
  */
 
-import sk.utils.functional.R;
-
-public interface IBoot extends R {}
+public interface IBoot {
+    public abstract void run();
+}

@@ -20,10 +20,11 @@ package sk.utils.functional;
  * #L%
  */
 
-import java.util.function.Consumer;
+import lombok.EqualsAndHashCode;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class OneOf<L, R> {
+@EqualsAndHashCode
+public class OneOf<L, R> {
     private final L left;
     private final R right;
 
@@ -31,7 +32,7 @@ public final class OneOf<L, R> {
 
     public static <L, R> OneOf<L, R> right(R value) {return new OneOf<>(null, value);}
 
-    private OneOf(L l, R r) {
+    OneOf(L l, R r) {
         if (l == null && r == null) {
             throw new IllegalArgumentException("Both values are null");
         }
@@ -40,27 +41,23 @@ public final class OneOf<L, R> {
     }
 
     public <X, Y> OneOf<X, Y> flatMap(F1<? super L, OneOf<X, Y>> lFunc, F1<? super R, OneOf<X, Y>> rFunc) {
-        return O.ofNull(left).map(lFunc).or(() -> O.ofNull(right).map(rFunc)).get();
+        return oLeft().map(lFunc).or(() -> oRight().map(rFunc)).get();
     }
 
-    public <X, Y> OneOf<X, Y> map(F1<? super L, ? extends X> lFunc, F1<? super R, ? extends Y> rFunc) {
-        return new OneOf<>(O.ofNull(left).map(lFunc).orElse(null), O.ofNull(right).map(rFunc).orElse(null));
+    public <X, Y> OneOf<X, Y> map(F1<? super L, X> lFunc, F1<? super R, Y> rFunc) {
+        return new OneOf<>(oLeft().map(lFunc).orElse(null), oRight().map(rFunc).orElse(null));
     }
 
-    public <T> OneOf<T, R> mapLeft(F1<? super L, ? extends T> lFunc) {
-        return new OneOf<>(O.ofNull(left).map(lFunc).orElse(null), right);
+    public <T> OneOf<T, R> mapLeft(F1<? super L, T> lFunc) {
+        return map(lFunc, a -> a);
     }
 
-    public <T> OneOf<L, T> mapRight(F1<? super R, ? extends T> rFunc) {
-        return new OneOf<>(left, O.ofNull(right).map(rFunc).orElse(null));
+    public <T> OneOf<L, T> mapRight(F1<? super R, T> rFunc) {
+        return map(a -> a, rFunc::apply);
     }
 
-    public void applyLeft(C1<? super L> lFunc) {
-        O.ofNull(left).ifPresent(lFunc);
-    }
-
-    public void applyRight(C1<? super R> rFunc) {
-        O.ofNull(right).ifPresent(rFunc);
+    public <T> T collect(F1<? super L, T> lFunc, F1<? super R, T> rFunc) {
+        return oLeft().map(lFunc).or(() -> oRight().map(rFunc)).get();
     }
 
     @SuppressWarnings("unchecked")
@@ -77,16 +74,11 @@ public final class OneOf<L, R> {
         return collect(a -> a, rFunc);
     }
 
-    public <T> T collect(F1<? super L, T> lFunc, F1<? super R, T> rFunc) {
-        O<? extends T> t = O.ofNull(left).map(lFunc);
-        if (t.isPresent()) {
-            return t.get();
-        } else {
-            return O.ofNull(right).map(rFunc).get();
-        }
+    public R collectLeft(F1<? super L, R> lFunc) {
+        return collect(lFunc, a -> a);
     }
 
-    public void apply(Consumer<? super L> lFunc, Consumer<? super R> rFunc) {
+    public void apply(C1<? super L> lFunc, C1<? super R> rFunc) {
         O.ofNull(left).ifPresent(lFunc);
         O.ofNull(right).ifPresent(rFunc);
     }
