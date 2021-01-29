@@ -28,6 +28,7 @@ import sk.utils.functional.R;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -50,6 +51,20 @@ public interface IAsync extends ISleep {
     IExecutorService coldTaskFJP();
 
     ScheduledExecutorService newDedicatedScheduledExecutor(String name);
+
+    default void coldTaskFJPRun(int threads, R toRun) {
+        final ForkJoinPool forkJoinPool = new ForkJoinPool(threads);
+        try {
+            forkJoinPool.submit(toRun).join();
+        } finally {
+            forkJoinPool.shutdown();
+        }
+    }
+
+    @SneakyThrows
+    default void coldTaskFJPRun(R toRun) {
+        coldTaskFJP().submit(toRun).get();
+    }
 
     default CompletableFuture<Void> runBuf(R run) {
         return CompletableFuture.runAsync(run, bufExec().getUnderlying());

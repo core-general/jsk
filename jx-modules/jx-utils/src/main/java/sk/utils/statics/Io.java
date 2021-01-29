@@ -44,7 +44,15 @@ import static sk.utils.functional.O.*;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class Io {
 
+
     public static void endlessReadFromKeyboard(String endSequence, C1<String> consumer) {
+        endlessReadFromKeyboard(endSequence, s -> {
+            consumer.accept(s);
+            return true;
+        });
+    }
+
+    public static void endlessReadFromKeyboard(String endSequence, F1<String, Boolean> consumer) {
         endSequence = endSequence.trim();
         try (Scanner in = new Scanner(System.in)) {
             while (true) {
@@ -52,7 +60,10 @@ public final class Io {
                 if (Fu.equal(s, endSequence)) {
                     break;
                 } else {
-                    consumer.accept(s);
+                    final Boolean continuE = consumer.apply(s);
+                    if (!continuE) {
+                        break;
+                    }
                 }
             }
         }

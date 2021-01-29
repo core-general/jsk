@@ -20,6 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import sk.utils.functional.R;
 
 import java.time.ZoneId;
@@ -65,6 +66,11 @@ public final class Ti {
             throw new RuntimeException("Wrong time period");
         }
         return String.format("0 %d %d * * ?", minutes, hour);
+    }
+
+    @SneakyThrows
+    public static void sleep(long ms) {
+        Thread.sleep(ms);
     }
 
     private Ti() {}

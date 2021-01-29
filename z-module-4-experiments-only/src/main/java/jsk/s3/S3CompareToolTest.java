@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import sk.aws.AwsPlainPropertiesImpl;
 import sk.aws.s3.comparetool.S3CompareTool;
+import sk.aws.s3.comparetool.S3SyncTool;
 import sk.aws.s3.comparetool.model.S3CompareInput;
 import sk.aws.spring.AwsBeanConfig;
 import sk.services.json.IJson;
@@ -42,16 +43,20 @@ import static sk.utils.functional.O.empty;
 
 public class S3CompareToolTest implements SpringAppEntryPoint {
     public static void main(String[] args) {
-        SpringApp.createWithWelcomeAndLogAndInit("Hi!!", "tst_logger", new S3CompareToolTest(), Config.class);
+        SpringApp.createWithWelcomeAndLogAndInit("Hi!", "tst_logger", new S3CompareToolTest(), Config.class);
     }
 
     @Import(AwsBeanConfig.class)
     public static class Config extends SpringCoreConfig {
         @Bean
         S3CompareTool S3CompareTool() { return new S3CompareTool(); }
+
+        @Bean
+        S3SyncTool S3SyncTool() { return new S3SyncTool(); }
     }
 
     @Inject S3CompareTool tool;
+    @Inject S3SyncTool sync;
     @Inject IJson json;
     @Inject ITime times;
 
@@ -59,26 +64,29 @@ public class S3CompareToolTest implements SpringAppEntryPoint {
     public void run() {
         final S3CompareInput i1 = new S3CompareInput(
                 new AwsPlainPropertiesImpl(
-                        "",
-                        "",
-                        ""
+                        "", "", ""
                 ),
                 new PathWithBase("", empty()), empty()
         );
         final S3CompareInput i2 = new S3CompareInput(
                 new AwsPlainPropertiesImpl(
-                        "",
-                        "",
-                        ""
+                        "", "", ""
                 ),
                 new PathWithBase("", empty()), empty()
         );
 
-        val result = tool.compare(i1, i2, true);
+        val result = sync.sync(3, 100_000_000, i1, i2, true);
 
-        Io.reWrite(
-                "/tmp/compare_tool/" + (i1.getShortDescription() + "_VS_" + i2.getShortDescription()).replace("/", "_") + "__" +
-                        Ti.yyyyMMddHHmmss.format(times.nowZ()) + ".json",
-                w -> w.append(json.to(result, true)));
+        if (result.hasDifferences()) {
+            Io.reWrite(
+                    "/tmp/compare_tool/" + (i1.getShortDescription() + "_VS_" + i2.getShortDescription()).replace("/", "_") +
+                            "__" +
+                            Ti.yyyyMMddHHmmss.format(times.nowZ()) + ".json",
+                    w -> w.append(json.to(result, true)));
+
+            throw new RuntimeException("Difs:" + result.getShortInfo());
+        }
+
+
     }
 }

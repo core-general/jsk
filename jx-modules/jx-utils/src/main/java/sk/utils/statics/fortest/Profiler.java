@@ -34,7 +34,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public final class TestProf {
+public final class Profiler {
     private final static ThreadLocal<Map<String, X2<String, Long>>> currentLocks = new ThreadLocal<>();
     private final static ConcurrentMap<String, Map<String, MinMaxAvg>> profInfo = new ConcurrentHashMap<>();
 
@@ -103,7 +103,7 @@ public final class TestProf {
         CompletableFuture
                 .allOf(IntStream.range(0, 100).mapToObj($ -> CompletableFuture.runAsync(() -> testCase(), pool))
                         .toArray(CompletableFuture[]::new)).thenRun(() -> {
-            TestProf.printInfo();
+            Profiler.printInfo();
             pool.shutdownNow();
         });
 
@@ -112,23 +112,23 @@ public final class TestProf {
 
     @SneakyThrows
     private static void testCase() {
-        TestProf.mark("a");
+        Profiler.mark("a");
         Thread.sleep((long) (100 + 1000 * Math.random()));
-        TestProf.mark("b");
+        Profiler.mark("b");
         Thread.sleep((long) (200 + 1000 * Math.random()));
 
         System.out.println("x");
 
-        TestProf.mark("x", "a");
+        Profiler.mark("x", "a");
         Thread.sleep((long) (300 + 1000 * Math.random()));
-        TestProf.mark("x", "b");
+        Profiler.mark("x", "b");
         Thread.sleep((long) (400 + 1000 * Math.random()));
-        TestProf.mark("x", "c");
+        Profiler.mark("x", "c");
         Thread.sleep((long) (500 + 1000 * Math.random()));
 
-        TestProf.mark("c");
+        Profiler.mark("c");
         Thread.sleep((long) (600 + 1000 * Math.random()));
-        TestProf.mark("d");
+        Profiler.mark("d");
     }
 
 }

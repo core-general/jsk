@@ -25,6 +25,8 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
+import sk.services.http.IHttp;
+import sk.services.http.model.CoreHttpResponse;
 import sk.services.rand.IRand;
 import sk.services.retry.IRepeat;
 import sk.utils.async.AtomicNotifier;
@@ -33,6 +35,7 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
+import sk.utils.statics.Ma;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
@@ -57,13 +60,15 @@ public class S3JskClient {
     @Inject IAsync async;
     @Inject IRepeat repeat;
     @Inject IRand rand;
+    @Inject IHttp http;
     @Inject AwsUtilityHelper helper;
 
-    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat) {
+    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http) {
         this.conf = conf;
         this.async = async;
         this.helper = helper;
         this.repeat = repeat;
+        this.http = http;
     }
 
     private S3Client s3;
@@ -294,6 +299,30 @@ public class S3JskClient {
         } catch (Exception e) {
         }
         return empty();
+    }
+
+    public O<S3ItemMeta> getMeta(PathWithBase base, String path, boolean mustBePublic) {
+        CoreHttpResponse rsp = null;
+        HeadObjectResponse head = null;
+        final PathWithBase filePath = base.replacePath(path);
+
+        if (mustBePublic) {
+            String url = getUrl(filePath);
+            rsp = http.headResp(url);
+            if (rsp.code() == 403) {
+                makeFilePublic(filePath);
+                rsp = http.headResp(url);
+            }
+        } else {
+            head = headObject(filePath);
+        }
+
+        HeadObjectResponse finalHead = head;
+        return O.ofNull(rsp)
+                .map($ -> new S3ItemMeta(path,
+                        $.getHeader("Content-Length").map(Ma::pl).get(), $.getHeader("ETag").get(), false))
+                .or(() -> O.ofNull(finalHead)
+                        .map($ -> new S3ItemMeta(path, $.contentLength(), $.eTag(), false)));
     }
 
     public void clearAll(PathWithBase base, O<Long> msBetweenPageRequests) {

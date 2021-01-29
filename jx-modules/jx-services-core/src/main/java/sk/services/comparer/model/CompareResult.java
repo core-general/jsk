@@ -33,4 +33,19 @@ public class CompareResult<T extends Comparable<T> & Identifiable<String>, I> {
     CompareResultDif<T, I> firstDif;
     CompareResultDif<T, I> secondDif;
     List<X2<T, T>> existButDifferent;
+
+    public boolean hasDifferences() {
+        return existButDifferent.size() > 0
+                || firstDif.getNotExistingInOther().size() > 0
+                || secondDif.getNotExistingInOther().size() > 0;
+    }
+
+    public String getShortInfo() {
+        return String.format(
+                "\nFirst has, second don't:%d\nSecond has, first don't:%d\nDiffer in both:%d",
+                firstDif.getNotExistingInOther().size(),
+                secondDif.getNotExistingInOther().size(),
+                existButDifferent.size()
+        );
+    }
 }

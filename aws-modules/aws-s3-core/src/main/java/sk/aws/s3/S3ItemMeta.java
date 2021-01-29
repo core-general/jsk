@@ -1,4 +1,4 @@
-package sk.aws.s3.comparetool.model;
+package sk.aws.s3;
 
 /*-
  * #%L
@@ -31,15 +31,16 @@ import static java.util.Comparator.comparing;
 
 @Data
 @AllArgsConstructor
-public class S3CompareItem implements Comparable<S3CompareItem>, Identifiable<String> {
-    private static final Comparator<S3CompareItem> COMPARING = comparing($ -> $.getHash() + $.getSize());
+public class S3ItemMeta implements Comparable<S3ItemMeta>, Identifiable<String> {
+    private static final Comparator<S3ItemMeta> COMPARING = comparing($ -> $.getHash() + $.getSize());
 
     String path;
     long size;
     String hash;
+    boolean failed;
 
     @Override
-    public int compareTo(@NotNull S3CompareItem o) {
+    public int compareTo(@NotNull S3ItemMeta o) {
         return COMPARING.compare(this, o);
     }
 
