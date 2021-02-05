@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.model;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
@@ -20,12 +20,13 @@ package sk.services.clusterworkers.taskworker.model;
  * #L%
  */
 
-import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunkResult;
-import sk.services.retry.utils.IdCallable;
-import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.F2;
+import sk.utils.ifaces.Identifiable;
 
-import java.util.List;
+import java.time.Duration;
 
-public interface CluAsyncTaskExecutor<R>
-        extends F2<List<IdCallable<String, CluWorkChunkResult<R>>>, CancelGetter, CluTaskBatchResult<R>> {}
+public class CluWorkBackoffStrategyNoOp<T extends Identifiable<String>, R> implements CluWorkBackoffStrategy<T, R> {
+    @Override
+    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task) {
+        return Duration.ZERO;
+    }
+}

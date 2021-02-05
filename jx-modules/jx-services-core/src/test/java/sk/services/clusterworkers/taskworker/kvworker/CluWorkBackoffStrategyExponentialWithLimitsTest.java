@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
@@ -22,7 +22,6 @@ package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
 
 import lombok.val;
 import org.junit.Test;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkFullInfo;
 import sk.utils.functional.O;
 import sk.utils.ifaces.Identifiable;
 
@@ -56,9 +55,8 @@ public class CluWorkBackoffStrategyExponentialWithLimitsTest {
         assertEquals(Duration.of(10240, MILLIS), ebof4.getWaitDurationForTask(task2));
     }
 
-    private CluWorkFullInfo.WorkPartInfo<Identifiable<String>, Object> getTask(int tryCount) {
-        final CluWorkFullInfo.WorkPartInfo<Identifiable<String>, Object> task =
-                new CluWorkFullInfo.WorkPartInfo<>(() -> "x");
+    private CluKvSplitWorkPartInfo<Identifiable<String>, Object> getTask(int tryCount) {
+        final CluKvSplitWorkPartInfo<Identifiable<String>, Object> task = new CluKvSplitWorkPartInfo<>(() -> "x");
         task.setTryCount(tryCount);
         return task;
     }

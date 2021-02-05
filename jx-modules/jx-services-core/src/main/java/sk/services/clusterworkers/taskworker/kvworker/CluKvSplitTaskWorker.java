@@ -28,11 +28,6 @@ import sk.services.async.IAsync;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluOnOffKvKey;
 import sk.services.clusterworkers.taskworker.CluSplitTaskWorker;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunk;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunkResult;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkFullInfo;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkHelper;
-import sk.services.clusterworkers.taskworker.kvworker.model.backoff.CluWorkBackoffStrategy;
 import sk.services.clusterworkers.taskworker.model.CluAsyncTaskExecutor;
 import sk.services.clusterworkers.taskworker.model.CluSplitTask;
 import sk.services.clusterworkers.taskworker.model.CluWorkMetaInfo;
@@ -48,10 +43,16 @@ import sk.utils.functional.*;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
+import sk.utils.tuples.X;
 import sk.utils.tuples.X1;
+import sk.utils.tuples.X2;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
+import static sk.utils.functional.OneOf.right;
 
 @SuppressWarnings("Convert2MethodRef")
 @Log4j2
@@ -59,6 +60,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         extends CluSplitTaskWorker<M, R, C> {
     @Getter final KvKeyWithDefault kvKey4Task;
 
+    @Inject IAsync async;
     @Inject IIds ids;
     @Inject IJson json;
     @Inject IKvLimitedStore kv;
@@ -117,6 +119,10 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         return kv.getAsObject(kvKey4Task, getMetaType(cls));
     }
 
+    public CluWorkMetaInfo<?> getMeta() {
+        return kv.getAsObject(kvKey4Task, getMetaType(Object.class));
+    }
+
     public void stopByFail(String failReason) {
         kv.updateObject(kvKey4Task, CluWorkMetaInfo.class,
                 (m) -> {
@@ -126,8 +132,30 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                 });
     }
 
-    public CluWorkFullInfo<T, R> getFullWorkInfo() {
-        return decompressor.apply(kv.getAsObjectWithRaw(kvKey4Task, CluWorkMetaInfo.class).getRawValue());
+    public CompletableFuture<List<X2<T, OneOf<R, String>>>> getFullWorkInfoAfterFinish() {
+        return async.supplyBuf(() -> {
+            while (true) {
+                final CluWorkMetaInfo<?> meta = getMeta();
+                if (!meta.isWorkActive()) {
+                    break;
+                }
+                async.sleep(1000);
+            }
+
+            final CluWorkFullInfo<T, R> fullWork =
+                    decompressor.apply(kv.getAsObjectWithRaw(kvKey4Task, CluWorkMetaInfo.class).getRawValue());
+
+            List<X2<T, OneOf<R, String>>> toRet = Cc.l();
+
+            final Function<CluKvSplitWorkPartInfo<T, R>, X2<T, OneOf<R, String>>> converteR =
+                    $ -> X.x($.getWorkDescription(), $.getLastResult().map($$ -> OneOf.<R, String>left($$))
+                            .orElseGet(() -> right($.getLastError().get())));
+
+            fullWork.getWorkFail().stream().map(converteR).forEach(toRet::add);
+            fullWork.getWorkSuccess().stream().map(converteR).forEach(toRet::add);
+
+            return toRet;
+        });
     }
 
     private CluSplitTask<M, R> createTaskForCurrentRun(C config) {
@@ -189,9 +217,11 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         }
 
         kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()), (metaAndWork) -> {
-            CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork, new ConverterImpl<>(
-                    a -> decompressor.apply(a),
-                    b -> O.of(compressFullWork(config, b))),
+            CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork,
+                    new ConverterImpl<>(
+                            a -> decompressor.apply(a),
+                            b -> O.of(compressFullWork(config, b))
+                    ),
                     times.nowZ(), config.getMsForTaskToExpire()
             );
 
@@ -220,7 +250,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     }
 
     @NotNull
-    private TypeWrap<CluWorkMetaInfo<M>> getMetaType(Class<M> metaClass) {
+    private TypeWrap<CluWorkMetaInfo<M>> getMetaType(Class<?> metaClass) {
         return (TypeWrap<CluWorkMetaInfo<M>>)
                 TypeWrap.getHolder(CluWorkMetaInfo.class, metaClass);
     }

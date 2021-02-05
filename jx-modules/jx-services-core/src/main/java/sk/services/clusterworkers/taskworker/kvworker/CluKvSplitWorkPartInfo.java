@@ -1,10 +1,10 @@
-package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,17 @@ package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
  * #L%
  */
 
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkFullInfo;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import sk.utils.functional.O;
 import sk.utils.ifaces.Identifiable;
 
-import java.time.Duration;
-
-public class CluWorkBackoffStrategyNoOp<T extends Identifiable<String>, R> implements CluWorkBackoffStrategy<T, R> {
-    @Override
-    public Duration getWaitDurationForTask(CluWorkFullInfo.WorkPartInfo<T, R> task) {
-        return Duration.ZERO;
-    }
+@Data
+@RequiredArgsConstructor
+class CluKvSplitWorkPartInfo<T extends Identifiable<String>, R> {
+    final T workDescription;
+    O<R> lastResult = O.empty();
+    O<CluKvSplitLockInfo> lock = O.empty();
+    O<String> lastError = O.empty();
+    int tryCount = 0;
 }

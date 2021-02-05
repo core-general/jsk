@@ -40,6 +40,7 @@ import sk.utils.statics.Ti;
 import javax.inject.Inject;
 
 import static sk.utils.functional.O.empty;
+import static sk.utils.functional.O.of;
 
 public class S3CompareToolTest implements SpringAppEntryPoint {
     public static void main(String[] args) {
@@ -64,15 +65,19 @@ public class S3CompareToolTest implements SpringAppEntryPoint {
     public void run() {
         final S3CompareInput i1 = new S3CompareInput(
                 new AwsPlainPropertiesImpl(
-                        "", "", ""
+                        "https://sfo2.digitaloceanspaces.com",
+                        "DQ45JS4MNLHLQIH7M524",
+                        "0NbyRzITLVungTm0lpN2DN3OObB+8M1qaNfTbsCT1L8"
                 ),
-                new PathWithBase("", empty()), empty()
+                new PathWithBase("bma-code", of("dev")), empty()
         );
         final S3CompareInput i2 = new S3CompareInput(
                 new AwsPlainPropertiesImpl(
-                        "", "", ""
+                        "https://storage.googleapis.com",
+                        "GOOG1EMKQKJUHZEDPAJAQGCNMCPO2BFHSSHUSJFTLW6GFSF4KFWACAKEI4BLA",
+                        "wBckzg7j/xDU1uWQQge5xdbr/9idD3SnHWLbWqYg"
                 ),
-                new PathWithBase("", empty()), empty()
+                new PathWithBase("bma-code", of("rc")), empty()
         );
 
         val result = sync.sync(3, 100_000_000, i1, i2, true);

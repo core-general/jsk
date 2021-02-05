@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.kvworker.model;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L

@@ -26,7 +26,7 @@ import lombok.extern.log4j.Log4j2;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.CluOnOffWorker;
 import sk.services.clusterworkers.model.CluDelay;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunkResult;
+import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunkResult;
 import sk.services.clusterworkers.taskworker.model.CluSplitTask;
 import sk.services.clusterworkers.taskworker.model.CluTaskBatchResult;
 import sk.services.retry.utils.IdCallable;

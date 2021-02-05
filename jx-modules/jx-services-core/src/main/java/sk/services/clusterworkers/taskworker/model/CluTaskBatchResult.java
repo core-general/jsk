@@ -20,7 +20,7 @@ package sk.services.clusterworkers.taskworker.model;
  * #L%
  */
 
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunkResult;
+import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunkResult;
 import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
 import sk.services.retry.utils.QueuedTask;

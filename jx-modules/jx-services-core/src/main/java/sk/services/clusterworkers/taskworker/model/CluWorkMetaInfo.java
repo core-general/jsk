@@ -58,6 +58,10 @@ public class CluWorkMetaInfo<M> {
         return status == Status.STARTED;
     }
 
+    public boolean isFinished() {
+        return status != Status.STARTED && status != Status.NOT_STARTED;
+    }
+
     /**
      * We take with locks, to check if locks are still valid
      *

@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.kvworker.model;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
@@ -21,7 +21,6 @@ package sk.services.clusterworkers.taskworker.kvworker.model;
  */
 
 import lombok.extern.log4j.Log4j2;
-import sk.services.clusterworkers.taskworker.kvworker.model.backoff.CluWorkBackoffStrategy;
 import sk.services.clusterworkers.taskworker.model.CluWorkMetaInfo;
 import sk.services.kv.KvAllValues;
 import sk.utils.functional.Converter;
@@ -39,7 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CluWorkHelper<M, T extends Identifiable<String>, R> {
+class CluWorkHelper<M, T extends Identifiable<String>, R> {
     private String taskId;
     CluWorkMetaInfo<M> meta;
     CluWorkFullInfo<T, R> raw;
@@ -56,10 +55,10 @@ public class CluWorkHelper<M, T extends Identifiable<String>, R> {
         this.raw = converter.convertThere(data.getRawValue());
 
         //clear bad locks
-        Iterator<Map.Entry<String, CluWorkFullInfo.WorkPartInfo<T, R>>> lockIterator =
+        Iterator<Map.Entry<String, CluKvSplitWorkPartInfo<T, R>>> lockIterator =
                 raw.getWorkLocked().entrySet().iterator();
         while (lockIterator.hasNext()) {
-            Map.Entry<String, CluWorkFullInfo.WorkPartInfo<T, R>> kv = lockIterator.next();
+            Map.Entry<String, CluKvSplitWorkPartInfo<T, R>> kv = lockIterator.next();
             if (kv.getValue().getLock().isPresent()) {
                 if (kv.getValue().getLock().get().isObsolete(now, maxLockTime)) {
                     log.error("Some CluWork lock was old");
@@ -77,10 +76,10 @@ public class CluWorkHelper<M, T extends Identifiable<String>, R> {
 
 
         //check retry allowance
-        final Iterator<Map.Entry<Long, List<CluWorkFullInfo.WorkPartInfo<T, R>>>>
+        final Iterator<Map.Entry<Long, List<CluKvSplitWorkPartInfo<T, R>>>>
                 backoffIterator = raw.getIdleTasks().entrySet().iterator();
         while (backoffIterator.hasNext()) {
-            final Map.Entry<Long, List<CluWorkFullInfo.WorkPartInfo<T, R>>> retryValue = backoffIterator.next();
+            final Map.Entry<Long, List<CluKvSplitWorkPartInfo<T, R>>> retryValue = backoffIterator.next();
             if (now.toInstant().toEpochMilli() > retryValue.getKey()) {
                 retryValue.getValue().forEach($ -> raw.getWorkActive().addFirst($));
                 backoffIterator.remove();
@@ -93,7 +92,7 @@ public class CluWorkHelper<M, T extends Identifiable<String>, R> {
     public void initWork(String newRunId, O<M> additionalMeta, List<T> toDo) {
         meta.restart(newRunId, now, toDo.size(), additionalMeta);
 
-        raw.setWorkActive(toDo.stream().map($ -> new CluWorkFullInfo.WorkPartInfo<T, R>($))
+        raw.setWorkActive(toDo.stream().map($ -> new CluKvSplitWorkPartInfo<T, R>($))
                 .collect(Collectors.toCollection(ArrayDeque::new)));
 
         raw.setWorkFail(Cc.l());
@@ -120,12 +119,12 @@ public class CluWorkHelper<M, T extends Identifiable<String>, R> {
         return new KvAllValues<>(meta, converter.convertBack(raw), O.empty());
     }
 
-    public List<CluWorkFullInfo.WorkPartInfo<T, R>> getActualWork(int numberOfTasksInSplit) {
-        List<CluWorkFullInfo.WorkPartInfo<T, R>> workParts =
+    public List<CluKvSplitWorkPartInfo<T, R>> getActualWork(int numberOfTasksInSplit) {
+        List<CluKvSplitWorkPartInfo<T, R>> workParts =
                 Cc.fillFun(numberOfTasksInSplit, i -> raw.getWorkActive().pollLast());
 
         workParts.stream().filter(Objects::nonNull).forEach($ -> {
-            $.setLock(O.of(new CluWorkFullInfo.LockInfo(taskId, now)));
+            $.setLock(O.of(new CluKvSplitLockInfo(taskId, now)));
             $.setTryCount($.getTryCount() + 1);
             raw.getWorkLocked().put($.getWorkDescription().getId(), $);
         });
@@ -141,7 +140,7 @@ public class CluWorkHelper<M, T extends Identifiable<String>, R> {
         ListIterator<CluWorkChunkResult<R>> li = finishedWork.listIterator();
         while (li.hasNext()) {
             CluWorkChunkResult<R> workResult = li.next();
-            CluWorkFullInfo.WorkPartInfo<T, R> lockedWorkPart = raw.getWorkLocked().get(workResult.getId());
+            CluKvSplitWorkPartInfo<T, R> lockedWorkPart = raw.getWorkLocked().get(workResult.getId());
             if (lockedWorkPart == null) {
                 continue;
             }

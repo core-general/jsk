@@ -23,8 +23,8 @@ package sk.services.clusterworkers.taskworker.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunk;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkChunkResult;
+import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunk;
+import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunkResult;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
 

@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
@@ -21,7 +21,6 @@ package sk.services.clusterworkers.taskworker.kvworker.model.backoff;
  */
 
 import lombok.AllArgsConstructor;
-import sk.services.clusterworkers.taskworker.kvworker.model.CluWorkFullInfo;
 import sk.utils.functional.O;
 import sk.utils.ifaces.Identifiable;
 
@@ -36,7 +35,7 @@ public class CluWorkBackoffStrategyExponentialWithLimits<T extends Identifiable<
     O<Duration> max;
 
     @Override
-    public Duration getWaitDurationForTask(CluWorkFullInfo.WorkPartInfo<T, R> task) {
+    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task) {
         Duration msWait = Duration.of((long) (Math.pow(2, task.getTryCount()) * multiplier), ChronoUnit.MILLIS);
         Duration newMsWait = min.map(minVal -> minVal.compareTo(msWait) > 0 ? minVal : msWait).orElse(msWait);
         return max.map(maxVal -> maxVal.compareTo(newMsWait) < 0 ? maxVal : newMsWait).orElse(newMsWait);

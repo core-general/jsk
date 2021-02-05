@@ -1,10 +1,10 @@
-package sk.services.clusterworkers.taskworker.model;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,19 @@ package sk.services.clusterworkers.taskworker.model;
  * #L%
  */
 
-import sk.services.clusterworkers.taskworker.kvworker.CluWorkChunkResult;
-import sk.services.retry.utils.IdCallable;
-import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.F2;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import java.util.List;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
-public interface CluAsyncTaskExecutor<R>
-        extends F2<List<IdCallable<String, CluWorkChunkResult<R>>>, CancelGetter, CluTaskBatchResult<R>> {}
+@Data
+@AllArgsConstructor
+class CluKvSplitLockInfo {
+    String lockId;
+    ZonedDateTime lockedAt;
+
+    public boolean isObsolete(ZonedDateTime now, long maxLockLimitMs) {
+        return getLockedAt().plus(maxLockLimitMs, ChronoUnit.MILLIS).isBefore(now);
+    }
+}

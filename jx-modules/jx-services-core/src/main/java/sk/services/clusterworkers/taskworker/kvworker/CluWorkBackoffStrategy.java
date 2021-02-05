@@ -1,4 +1,4 @@
-package sk.services.clusterworkers.taskworker.kvworker.model;
+package sk.services.clusterworkers.taskworker.kvworker;
 
 /*-
  * #%L
@@ -20,18 +20,10 @@ package sk.services.clusterworkers.taskworker.kvworker.model;
  * #L%
  */
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import sk.utils.functional.OneOf;
-import sk.utils.ids.IdBase;
+import sk.utils.ifaces.Identifiable;
 
-@EqualsAndHashCode(callSuper = true)
-@Getter
-public class CluWorkChunkResult<R> extends IdBase<String> {
-    OneOf<R, Exception> result;
+import java.time.Duration;
 
-    public CluWorkChunkResult(String id, OneOf<R, Exception> result) {
-        super(id);
-        this.result = result;
-    }
+public interface CluWorkBackoffStrategy<T extends Identifiable<String>, R> {
+    Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task);
 }
