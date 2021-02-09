@@ -22,7 +22,6 @@ package sk.services.comparer;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.services.async.IAsync;
 import sk.services.comparer.model.CompareResult;
@@ -32,6 +31,7 @@ import sk.utils.functional.F1;
 import sk.utils.functional.F3;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -57,33 +57,36 @@ public class CompareTool<T extends Comparable<T> & Identifiable<String>, I> {
             processor.apply(new ArrayList<>(init.values()))
     );
 
-    @SneakyThrows
     protected final CompareResult<T, I> innerCompare(
             F0<List<CompareItem<T>>> firstSource,
             F0<List<CompareItem<T>>> secondSource,
             F1<List<T>, I> metaInfoProcessor
     ) {
-        return async.coldTaskFJP().call(() -> {
-            final List<List<CompareItem<T>>> results = async.supplyParallel(Cc.l(firstSource, secondSource));
-            final Future<Map<String, T>> ftr1 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(0)));
-            final Future<Map<String, T>> ftr2 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(1)));
-            Map<String, T> first = ftr1.get();
-            Map<String, T> second = ftr2.get();
+        try {
+            return async.coldTaskFJP().call(() -> {
+                final List<List<CompareItem<T>>> results = async.supplyParallel(Cc.l(firstSource, secondSource));
+                final Future<Map<String, T>> ftr1 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(0)));
+                final Future<Map<String, T>> ftr2 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(1)));
+                Map<String, T> first = ftr1.get();
+                Map<String, T> second = ftr2.get();
 
-            final HashSet<String> existInFirstNotInSecond = Cc.removeAll(new HashSet<>(first.keySet()), second.keySet());
-            final HashSet<String> existInSecondNotInFirst = Cc.removeAll(new HashSet<>(second.keySet()), first.keySet());
+                final HashSet<String> existInFirstNotInSecond = Cc.removeAll(new HashSet<>(first.keySet()), second.keySet());
+                final HashSet<String> existInSecondNotInFirst = Cc.removeAll(new HashSet<>(second.keySet()), first.keySet());
 
-            final HashSet<String> inBoth = Cc.retainAll(new HashSet<>(first.keySet()), second.keySet());
-            final List<X2<T, T>> existButDifferent = inBoth.stream()
-                    .filter($ -> first.get($).compareTo(second.get($)) != 0)
-                    .map($ -> X.x(first.get($), second.get($)))
-                    .collect(Cc.toL());
+                final HashSet<String> inBoth = Cc.retainAll(new HashSet<>(first.keySet()), second.keySet());
+                final List<X2<T, T>> existButDifferent = inBoth.stream()
+                        .filter($ -> first.get($).compareTo(second.get($)) != 0)
+                        .map($ -> X.x(first.get($), second.get($)))
+                        .collect(Cc.toL());
 
-            return new CompareResult<T, I>(
-                    finalConverter.apply(first, existInFirstNotInSecond, metaInfoProcessor),
-                    finalConverter.apply(second, existInSecondNotInFirst, metaInfoProcessor),
-                    existButDifferent
-            );
-        }).get();
+                return new CompareResult<T, I>(
+                        finalConverter.apply(first, existInFirstNotInSecond, metaInfoProcessor),
+                        finalConverter.apply(second, existInSecondNotInFirst, metaInfoProcessor),
+                        existButDifferent
+                );
+            }).get();
+        } catch (Exception e) {
+            return Ex.thRow(e);
+        }
     }
 }

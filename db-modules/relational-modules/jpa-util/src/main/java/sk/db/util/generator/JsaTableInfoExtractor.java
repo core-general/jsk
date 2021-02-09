@@ -20,7 +20,6 @@ package sk.db.util.generator;
  * #L%
  */
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import sk.db.util.generator.model.sql.JsaTableInfo;
@@ -64,11 +63,7 @@ public class JsaTableInfoExtractor {
                 .filter(sqlStatement -> !sqlStatement.startsWith("--")
                         && sqlStatement.toUpperCase().contains("CREATE TABLE"))
                 .map(sql -> {
-                    try {
-                        return (CreateTable) CCJSqlParserUtil.parse(sql);
-                    } catch (JSQLParserException e) {
-                        return Ex.thRow(e);
-                    }
+                    return (CreateTable) Ex.toRuntime(() -> CCJSqlParserUtil.parse(sql));
                 })
                 .map(table -> new JsaTableInfo(table, tableFieldsToMetaInfos))
                 .collect(toList());

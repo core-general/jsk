@@ -20,14 +20,15 @@ package sk.web.melody.web;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import net.bull.javamelody.internal.common.Parameters;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,26 +40,28 @@ public class MelNodeManagementService {
     private static final String FORMATING_URL = "http://%s:%s@%s:%s";
     private static final X2<String, Integer> OK = X.x("OK", 200);
 
-    @SneakyThrows
     public synchronized static X2<String, Integer> addNode(String appName, String nodeIp, String port, String login, String pas) {
-        System.out.println("Adding node:" + nodeIp + ":" + port + " ...");
-        URL url = new URL(String.format(FORMATING_URL, login, pas, nodeIp, port));
-        List<URL> curAppUrls = O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l());
-        if (curAppUrls.stream().noneMatch($ -> Fu.equal($.getHost() + ":" + $.getPort(), nodeIp + ":" + port))) {
-            curAppUrls.add(url);
-            Parameters.addCollectorApplication(appName, curAppUrls);
-            System.out.println("Added node:" + nodeIp + ":" + port);
-            try {
-                System.out.println("Restarting due:" + nodeIp);
-                Runtime.getRuntime().exec("./restart_server.sh");
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            System.out.println("Adding node:" + nodeIp + ":" + port + " ...");
+            URL url = new URL(String.format(FORMATING_URL, login, pas, nodeIp, port));
+            List<URL> curAppUrls = O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l());
+            if (curAppUrls.stream().noneMatch($ -> Fu.equal($.getHost() + ":" + $.getPort(), nodeIp + ":" + port))) {
+                curAppUrls.add(url);
+                Parameters.addCollectorApplication(appName, curAppUrls);
+                System.out.println("Added node:" + nodeIp + ":" + port);
+                try {
+                    System.out.println("Restarting due:" + nodeIp);
+                    Runtime.getRuntime().exec("./restart_server.sh");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            return OK;
+        } catch (IOException e) {
+            return Ex.thRow(e);
         }
-        return OK;
     }
 
-    @SneakyThrows
     public synchronized static X2<String, Integer> removeNode(String appName, String nodeIp, String port) {
         System.out.println("Removing node:" + nodeIp + ":" + port + " ...");
         final String urlPart = nodeIp + ":" + port;
@@ -66,10 +69,10 @@ public class MelNodeManagementService {
         return removeNode(appName, equalityCheck);
     }
 
-    @SneakyThrows
     public synchronized static X2<String, Integer> removeNode(String appName, Predicate<URL> equalityCheck) {
         List<URL> curAppUrls =
-                new ArrayList<>(O.ofNull(Parameters.getCollectorUrlsByApplications().get(appName)).orElseGet(() -> Cc.l()));
+                new ArrayList<>(O.ofNull(
+                        Ex.toRuntime(() -> Parameters.getCollectorUrlsByApplications().get(appName))).orElseGet(() -> Cc.l()));
         final Optional<URL> toRemove = curAppUrls.stream()
                 .filter(equalityCheck)
                 .findFirst();
@@ -84,14 +87,22 @@ public class MelNodeManagementService {
             return OK;
         }
         curAppUrls.remove(url);
-        Parameters.addCollectorApplication(appName, curAppUrls);
+        try {
+            Parameters.addCollectorApplication(appName, curAppUrls);
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
         System.out.println("Removed node:" + url);
         return OK;
     }
 
-    @SneakyThrows
     public static synchronized List<X2<String, URL>> getAllNodes() {
-        final Map<String, List<URL>> items = Parameters.getCollectorUrlsByApplications();
+        final Map<String, List<URL>> items;
+        try {
+            items = Parameters.getCollectorUrlsByApplications();
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
         return items.entrySet().stream()
                 .flatMap($ -> $.getValue().stream().map($$ -> X.x($.getKey(), $$)))
                 .collect(Cc.toL());

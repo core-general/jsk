@@ -20,9 +20,9 @@ package sk.utils.statics.fortest;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import sk.utils.minmax.MinMaxAvg;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ti;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -110,24 +110,23 @@ public final class Profiler {
 
     }
 
-    @SneakyThrows
     private static void testCase() {
         Profiler.mark("a");
-        Thread.sleep((long) (100 + 1000 * Math.random()));
+        Ti.sleep((long) (100 + 1000 * Math.random()));
         Profiler.mark("b");
-        Thread.sleep((long) (200 + 1000 * Math.random()));
+        Ti.sleep((long) (200 + 1000 * Math.random()));
 
         System.out.println("x");
 
         Profiler.mark("x", "a");
-        Thread.sleep((long) (300 + 1000 * Math.random()));
+        Ti.sleep((long) (300 + 1000 * Math.random()));
         Profiler.mark("x", "b");
-        Thread.sleep((long) (400 + 1000 * Math.random()));
+        Ti.sleep((long) (400 + 1000 * Math.random()));
         Profiler.mark("x", "c");
-        Thread.sleep((long) (500 + 1000 * Math.random()));
+        Ti.sleep((long) (500 + 1000 * Math.random()));
 
         Profiler.mark("c");
-        Thread.sleep((long) (600 + 1000 * Math.random()));
+        Ti.sleep((long) (600 + 1000 * Math.random()));
         Profiler.mark("d");
     }
 

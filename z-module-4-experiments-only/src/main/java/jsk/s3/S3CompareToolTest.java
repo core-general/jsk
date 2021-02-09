@@ -80,7 +80,7 @@ public class S3CompareToolTest implements SpringAppEntryPoint {
                 new PathWithBase("bma-code", of("rc")), empty()
         );
 
-        val result = sync.sync(3, 100_000_000, i1, i2, true);
+        val result = sync.sync(3, i1, i2, true);
 
         if (result.hasDifferences()) {
             Io.reWrite(
@@ -91,7 +91,5 @@ public class S3CompareToolTest implements SpringAppEntryPoint {
 
             throw new RuntimeException("Difs:" + result.getShortInfo());
         }
-
-
     }
 }

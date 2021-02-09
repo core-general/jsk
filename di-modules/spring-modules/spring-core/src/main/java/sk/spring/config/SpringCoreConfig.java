@@ -24,6 +24,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.services.async.AsyncImpl;
+import sk.services.async.ISizedSemaphore;
+import sk.services.async.ISizedSemaphoreImpl;
 import sk.services.bytes.BytesImpl;
 import sk.services.except.IExcept;
 import sk.services.free.Freemarker;
@@ -115,5 +117,10 @@ public class SpringCoreConfig {
     @Bean
     public CoreServices CoreServices() {
         return new CoreServices();
+    }
+
+    @Bean
+    public ISizedSemaphore ISizedSemaphore() {
+        return new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 50L);
     }
 }

@@ -20,7 +20,6 @@ package sk.db.relational.types;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -47,7 +46,6 @@ public class UTUuidIdToUuid implements UserType, ParameterizedType {
     private F1<UUID, Object> creator;
 
     @Override
-    @SneakyThrows
     public void setParameterValues(Properties parameters) {
         String enumClassName = parameters.getProperty(param);
         try {
@@ -66,6 +64,8 @@ public class UTUuidIdToUuid implements UserType, ParameterizedType {
             };
         } catch (ClassNotFoundException e) {
             throw new HibernateException("Enum class not found ", e);
+        } catch (NoSuchMethodException e) {
+            throw new HibernateException("Class doesnt have uuid constructor ", e);
         }
     }
 

@@ -25,8 +25,8 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerHost;
 import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryAuth;
-import lombok.SneakyThrows;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 
@@ -43,7 +43,6 @@ public class EcsJskDeployer {
         deployContainerToEcs();
     }
 
-    @SneakyThrows
     private void prepareContainer() {
         final String imageName = conf.getEcrRepoName() + ":latest";
         String remoteImageName = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageName;
@@ -63,9 +62,13 @@ public class EcsJskDeployer {
                 .uri(DockerHost.defaultUnixEndpoint())
                 .build();
 
-        docker.build(Paths.get("."), conf.getEcrRepoName());
-        docker.tag(imageName, remoteImageName, true);
-        docker.push(remoteImageName);
+        try {
+            docker.build(Paths.get("."), conf.getEcrRepoName());
+            docker.tag(imageName, remoteImageName, true);
+            docker.push(remoteImageName);
+        } catch (Exception e) {
+            Ex.thRow(e);
+        }
     }
 
     private void deployContainerToEcs() {

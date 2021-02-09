@@ -20,9 +20,9 @@ package sk.services.bytes;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Ma;
 import sk.utils.statics.St;
 
@@ -30,6 +30,7 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.zip.CRC32;
@@ -40,15 +41,21 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @SuppressWarnings("unused")
 public interface IBytes {
     //region basic algorithms
-    @SneakyThrows
     default byte[] md5(byte[] bytes) {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-        return md5.digest(bytes);
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            return md5.digest(bytes);
+        } catch (NoSuchAlgorithmException e) {
+            return Ex.thRow(e);
+        }
     }
 
-    @SneakyThrows
     default byte[] sha256(byte[] bytes) {
-        return MessageDigest.getInstance("SHA-256").digest(bytes);
+        try {
+            return MessageDigest.getInstance("SHA-256").digest(bytes);
+        } catch (NoSuchAlgorithmException e) {
+            return Ex.thRow(e);
+        }
     }
 
     default long crc32(byte[] bytes) {
@@ -95,14 +102,20 @@ public interface IBytes {
         return Base64.getUrlDecoder().decode(bytes);
     }
 
-    @SneakyThrows
     default String urlEncode(String value) {
-        return URLEncoder.encode(value, "UTF-8");
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return Ex.thRow(e);
+        }
     }
 
-    @SneakyThrows
     default String urlDecode(String value) {
-        return URLDecoder.decode(value, "UTF-8");
+        try {
+            return URLDecoder.decode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return Ex.thRow(e);
+        }
     }
 
     //endregion
@@ -112,10 +125,8 @@ public interface IBytes {
 
     byte[] unCompressData(byte[] data);
 
-    @SneakyThrows
     default byte[] compressString(String input) {return compressData(input.getBytes(UTF_8));}
 
-    @SneakyThrows
     default String unCompressString(byte[] input) {return new String(unCompressData(input), UTF_8);}
     //endregion
 

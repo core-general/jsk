@@ -25,9 +25,9 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.Version;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.utils.javafixes.BuilderStringWriter;
+import sk.utils.statics.Ex;
 
 import java.io.StringReader;
 
@@ -39,7 +39,6 @@ public class Freemarker implements IFree {
     private final Configuration resourceFreemarkerHtml;
     private final Configuration textFreemarkerHtml;
 
-    @SneakyThrows
     public Freemarker() {
         resourceFreemarker = new Configuration(new Version("2.3.23"));
         resourceFreemarker.setLocalizedLookup(false);
@@ -58,13 +57,11 @@ public class Freemarker implements IFree {
         textFreemarkerHtml.setOutputFormat(HTMLOutputFormat.INSTANCE);
     }
 
-    @SneakyThrows
     @Override
     public String process(String templatePath, Object model) {
         return process(templatePath, model, false);
     }
 
-    @SneakyThrows
     @Override
     public String processByText(String templateText, Object model) {
         return processByText(templateText, model, false);
@@ -80,17 +77,23 @@ public class Freemarker implements IFree {
         return processByText(templateText, model, true);
     }
 
-    @SneakyThrows
     private String process(String templatePath, Object model, boolean html) {
         BuilderStringWriter sw = new BuilderStringWriter();
-        (html ? resourceFreemarkerHtml : resourceFreemarker).getTemplate(templatePath).process(model, sw);
+        try {
+            (html ? resourceFreemarkerHtml : resourceFreemarker).getTemplate(templatePath).process(model, sw);
+        } catch (Exception e) {
+            return Ex.thRow(e);
+        }
         return sw.toString();
     }
 
-    @SneakyThrows
     private String processByText(String templateText, Object model, boolean html) {
         BuilderStringWriter sw = new BuilderStringWriter();
-        new Template("_", new StringReader(templateText), (html ? textFreemarkerHtml : textFreemarker)).process(model, sw);
+        try {
+            new Template("_", new StringReader(templateText), (html ? textFreemarkerHtml : textFreemarker)).process(model, sw);
+        } catch (Exception e) {
+            return Ex.thRow(e);
+        }
         return sw.toString();
     }
 }

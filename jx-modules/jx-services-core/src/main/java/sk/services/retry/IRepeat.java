@@ -26,49 +26,54 @@ import sk.services.async.IExecutorService;
 import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
 import sk.utils.async.cancel.CancelGetter;
+import sk.utils.functional.F0;
+import sk.utils.functional.F0E;
 import sk.utils.functional.R;
+import sk.utils.functional.RE;
 import sk.utils.statics.Cc;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public interface IRepeat {
 
     Set<Class<? extends Throwable>> ALL_EXCEPTIONS_ALLOWED = Cc.s(Exception.class);
 
+    //region F0
     <T> T repeat(
-            @NotNull Supplier<T> toRun,
-            @Nullable Supplier<T> onFail,
+            @NotNull F0<T> toRun,
+            @Nullable F0<T> onFail,
             int count,
             long sleepBetweenTries,
             @NotNull Set<Class<? extends Throwable>> allowedExceptions
     );
 
     default <T> T repeat(
-            Supplier<T> toRun, int count, long sleepBetweenTries, Set<Class<? extends Throwable>> allowedExceptions
+            F0<T> toRun, int count, long sleepBetweenTries, Set<Class<? extends Throwable>> allowedExceptions
     ) {
         return repeat(toRun, null, count, sleepBetweenTries, allowedExceptions);
     }
 
-    default <T> T repeat(Supplier<T> toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) {
+    default <T> T repeat(F0<T> toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) {
         return repeat(toRun, null, count, 0, allowedExceptions);
     }
 
-    default <T> T repeat(Supplier<T> toRun, int count) {
+    default <T> T repeat(F0<T> toRun, int count) {
         return repeat(toRun, null, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
 
-    default <T> T repeat(Supplier<T> toRun, int count, long sleepBetweenTries) {
+    default <T> T repeat(F0<T> toRun, int count, long sleepBetweenTries) {
         return repeat(toRun, null, count, sleepBetweenTries, ALL_EXCEPTIONS_ALLOWED);
     }
 
-    default <T> T repeat(Supplier<T> toRun, Supplier<T> onFail, int count) {
+    default <T> T repeat(F0<T> toRun, F0<T> onFail, int count) {
         return repeat(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
+    //endregion
 
 
+    //region R
     @SuppressWarnings("SameReturnValue")
     default void repeat(
             @NotNull R toRun,
@@ -105,6 +110,80 @@ public interface IRepeat {
     default void repeat(R toRun, R onFail, int count) {
         repeat(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
     }
+    //endregion
+
+
+    //region F0E
+    <T> T repeatE(
+            @NotNull F0E<T> toRun,
+            @Nullable F0<T> onFail,
+            int count,
+            long sleepBetweenTries,
+            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+    ) throws Exception;
+
+    default <T> T repeatE(
+            F0E<T> toRun, int count, long sleepBetweenTries, Set<Class<? extends Throwable>> allowedExceptions
+    ) throws Exception {
+        return repeatE(toRun, null, count, sleepBetweenTries, allowedExceptions);
+    }
+
+    default <T> T repeatE(F0E<T> toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) throws Exception {
+        return repeatE(toRun, null, count, 0, allowedExceptions);
+    }
+
+    default <T> T repeatE(F0E<T> toRun, int count) throws Exception {
+        return repeatE(toRun, null, count, 0, ALL_EXCEPTIONS_ALLOWED);
+    }
+
+    default <T> T repeatE(F0E<T> toRun, int count, long sleepBetweenTries) throws Exception {
+        return repeatE(toRun, null, count, sleepBetweenTries, ALL_EXCEPTIONS_ALLOWED);
+    }
+
+    default <T> T repeatE(F0E<T> toRun, F0<T> onFail, int count) throws Exception {
+        return repeatE(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
+    }
+    //endregion
+
+
+    //region RE
+    @SuppressWarnings("SameReturnValue")
+    default void repeatE(
+            @NotNull RE toRun,
+            @Nullable R onFail,
+            int count,
+            long sleepBetweenTries,
+            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+    ) throws Exception {
+        repeatE(
+                () -> {
+                    toRun.run();
+                    return null;
+                },
+                onFail != null ? () -> {
+                    onFail.run();
+                    return null;
+                } : null,
+                count, sleepBetweenTries, allowedExceptions
+        );
+    }
+
+    default void repeatE(RE toRun, int count) throws Exception {
+        repeatE(toRun, null, count, 0, ALL_EXCEPTIONS_ALLOWED);
+    }
+
+    default void repeatE(RE toRun, int count, Set<Class<? extends Throwable>> allowedExceptions) throws Exception {
+        repeatE(toRun, null, count, 0, allowedExceptions);
+    }
+
+    default void repeatE(RE toRun, int count, long sleepBetweenTries) throws Exception {
+        repeatE(toRun, null, count, sleepBetweenTries, ALL_EXCEPTIONS_ALLOWED);
+    }
+
+    default void repeatE(RE toRun, R onFail, int count) throws Exception {
+        repeatE(toRun, onFail, count, 0, ALL_EXCEPTIONS_ALLOWED);
+    }
+    //endregion
 
 
     <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(

@@ -22,7 +22,6 @@ package sk.web.client;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import sk.services.bean.IServiceProvider;
 import sk.services.except.IExcept;
 import sk.services.http.IHttp;
@@ -53,6 +52,7 @@ import sk.web.utils.WebUtils;
 import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -250,15 +250,18 @@ public class WebClientFactory {
                 raw);
     }
 
-    @SneakyThrows
     String tunePathParams(String path, Map<String, String> p) {
         final StringBuilder finalPath = new StringBuilder();
 
         if (path.startsWith("https:") || path.startsWith("http:")) {
-            final URL url = new URL(path);
-            final String contextPath = tunePathParams(url.getFile(), p);
-            final URL finalUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), contextPath);
-            finalPath.append(finalUrl.toString());
+            try {
+                final URL url = new URL(path);
+                final String contextPath = tunePathParams(url.getFile(), p);
+                final URL finalUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), contextPath);
+                finalPath.append(finalUrl.toString());
+            } catch (MalformedURLException e) {
+                return Ex.thRow(e);
+            }
         } else {
             X1<StringBuilder> currentParameter = X.x(null);
             St.forEachChar(path, _char -> {

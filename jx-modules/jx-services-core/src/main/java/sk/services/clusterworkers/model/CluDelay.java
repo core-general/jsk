@@ -23,10 +23,10 @@ package sk.services.clusterworkers.model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.SneakyThrows;
 import sk.services.time.CronExpression;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
+import sk.utils.statics.Ex;
 
 import java.util.Date;
 
@@ -36,9 +36,8 @@ public class CluDelay {
     F0<Long> delay;
     boolean isStatic;
 
-    @SneakyThrows
     public static CluDelay cron(ITime times, String cron) {
-        CronExpression ce = new CronExpression(cron);
+        CronExpression ce = Ex.toRuntime(() -> new CronExpression(cron));
         return new CluDelay(() -> {
             long now = times.now();
             long nextValid = ce.getNextValidTimeAfter(new Date(now)).getTime();
@@ -46,13 +45,11 @@ public class CluDelay {
         }, false);
     }
 
-    @SneakyThrows
     public static CluDelay fixed(long msDelay) {
         return new CluDelay(() -> msDelay, true);
     }
 
     @SuppressWarnings("unused")
-    @SneakyThrows
     public static CluDelay dynamic(F0<Long> delayProvider) {
         return new CluDelay(delayProvider, false);
     }

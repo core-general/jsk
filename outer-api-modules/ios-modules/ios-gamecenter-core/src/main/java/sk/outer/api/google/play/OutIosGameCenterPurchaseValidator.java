@@ -22,7 +22,6 @@ package sk.outer.api.google.play;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
@@ -53,7 +52,6 @@ public class OutIosGameCenterPurchaseValidator {
         return verifyMe(BUNDLE_ID, PASSWORD, transactionData, itemId, false, receipt);
     }
 
-    @SneakyThrows
     private OutIosPurchaseResult verifyMe(String bundle_id, String password, String transactionData, String itemId,
             boolean sandbox, Optional<String> receipt) {
         String curl;

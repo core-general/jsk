@@ -30,7 +30,6 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.javadoc.Javadoc;
-import lombok.SneakyThrows;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.apache.maven.plugin.AbstractMojo;
@@ -109,7 +108,6 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
     @Parameter String[] basePaths;
 
     @Override
-    @SneakyThrows
     public void execute() throws MojoExecutionException, MojoFailureException {
         ApiClassUtil util = getApiClassUtil();
         generateGitVersion(util);

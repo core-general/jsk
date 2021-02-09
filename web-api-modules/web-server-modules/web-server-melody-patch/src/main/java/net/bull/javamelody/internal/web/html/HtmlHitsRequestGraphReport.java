@@ -20,9 +20,9 @@ package net.bull.javamelody.internal.web.html;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import net.bull.javamelody.internal.model.Collector;
 import net.bull.javamelody.internal.model.Range;
+import sk.utils.statics.Ex;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -40,47 +40,53 @@ public class HtmlHitsRequestGraphReport extends HtmlAbstractReport {
         throw new UnsupportedOperationException();
     }
 
-    @SneakyThrows
     int addGraphForHits(String graphName, int uniqueByPageAndGraphSequence) {
-        if (graphName.length() > 40) {
-            int position = graphName.length() - 40;
-            String hitsGraphName = graphName.substring(0, position) + "hits" + graphName.substring(position);
+        try {
+            if (graphName.length() > 40) {
+                int position = graphName.length() - 40;
+                String hitsGraphName = graphName.substring(0, position) + "hits" + graphName.substring(position);
 
-            write("<br/><img src='?graph=");
-            write(hitsGraphName);
-            write("&amp;width=100&amp;height=50' id='");
-            write("id" + ++uniqueByPageAndGraphSequence);
-            write("' alt='graph'/></em>");
+                write("<br/><img src='?graph=");
+                write(hitsGraphName);
+                write("&amp;width=100&amp;height=50' id='");
+                write("id" + ++uniqueByPageAndGraphSequence);
+                write("' alt='graph'/></em>");
+            }
+            return uniqueByPageAndGraphSequence;
+        } catch (IOException e) {
+            return Ex.thRow(e);
         }
-        return uniqueByPageAndGraphSequence;
     }
 
-    @SneakyThrows
     String addRequestGraphForHitsDetail(Collector collector, String graphName) {
-        String hitsGraphName = null;
-        if (graphName.length() > 40) {
-            int position = graphName.length() - 40;
-            hitsGraphName = graphName.substring(0, position) + "hits" + graphName.substring(position);
-            writeln("<tr><td>");
-            final String graphNameEncoded = urlEncode(hitsGraphName);
-            writeln("<div style='font-size:15px'>Hits statistics:</div>");
-            writeln("<img class='synthèse' style='margin-top:10px' id='img' src='" + "?width=960&amp;height=400&amp;graph="
-                    + graphNameEncoded + "' alt='zoom'/>");
-            writeDirectly("<br/><div align='right' style='color: #808080;'>");
-            writeln("#graph_units#");
-            writeln("</div><div align='right'>");
-            writeln("<a href='?part=lastValue&amp;graph=" + graphNameEncoded
-                    + "' title='#Lien_derniere_valeur#'>#derniere_valeur#</a>");
-            writeln("&nbsp;&nbsp;&nbsp;<a href='?format=xml&amp;period="
-                    + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
-                    + "' title='Dump XML'>XML</a>");
-            writeln("&nbsp;&nbsp;&nbsp;<a href='?format=txt&amp;period="
-                    + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
-                    + "' title='Dump TXT'>TXT</a>");
-            writeln("</div></td></tr>");
-        }
+        try {
+            String hitsGraphName = null;
+            if (graphName.length() > 40) {
+                int position = graphName.length() - 40;
+                hitsGraphName = graphName.substring(0, position) + "hits" + graphName.substring(position);
+                writeln("<tr><td>");
+                final String graphNameEncoded = urlEncode(hitsGraphName);
+                writeln("<div style='font-size:15px'>Hits statistics:</div>");
+                writeln("<img class='synthèse' style='margin-top:10px' id='img' src='" + "?width=960&amp;height=400&amp;graph="
+                        + graphNameEncoded + "' alt='zoom'/>");
+                writeDirectly("<br/><div align='right' style='color: #808080;'>");
+                writeln("#graph_units#");
+                writeln("</div><div align='right'>");
+                writeln("<a href='?part=lastValue&amp;graph=" + graphNameEncoded
+                        + "' title='#Lien_derniere_valeur#'>#derniere_valeur#</a>");
+                writeln("&nbsp;&nbsp;&nbsp;<a href='?format=xml&amp;period="
+                        + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
+                        + "' title='Dump XML'>XML</a>");
+                writeln("&nbsp;&nbsp;&nbsp;<a href='?format=txt&amp;period="
+                        + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
+                        + "' title='Dump TXT'>TXT</a>");
+                writeln("</div></td></tr>");
+            }
 
-        return hitsGraphName;
+            return hitsGraphName;
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
     }
 
     private void writeGraphDetailScript(String graphName) throws IOException {

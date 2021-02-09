@@ -20,7 +20,6 @@ package sk.utils.statics;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import sk.utils.functional.R;
 
 import java.time.ZoneId;
@@ -68,9 +67,12 @@ public final class Ti {
         return String.format("0 %d %d * * ?", minutes, hour);
     }
 
-    @SneakyThrows
     public static void sleep(long ms) {
-        Thread.sleep(ms);
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            Ex.thRow(e);
+        }
     }
 
     private Ti() {}

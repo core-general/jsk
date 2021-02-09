@@ -24,10 +24,10 @@ import facebook4j.Facebook;
 import facebook4j.FacebookFactory;
 import facebook4j.User;
 import facebook4j.auth.AccessToken;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.utils.functional.O;
+import sk.utils.statics.Ex;
 
 import javax.annotation.PostConstruct;
 
@@ -42,12 +42,12 @@ public class OutFbLoginService {
         return this;
     }
 
-    @SneakyThrows
     public O<OutSimpleUserInfo> getSimpleUser(String facebookAccessToken, String faceBookUserId) {
         Facebook facebook = facebookFactory.getInstance();
         facebook.setOAuthAppId(""/*it's ok*/, ""/*it's ok*/);
         facebook.setOAuthAccessToken(new AccessToken(facebookAccessToken, null));
-        User user = facebook.getUser(faceBookUserId);
+        User user = null;
+        user = Ex.toRuntime(() -> facebook.getUser(faceBookUserId));
         return O.of(new OutSimpleUserInfo(user.getId(), user.getName()));
     }
 }

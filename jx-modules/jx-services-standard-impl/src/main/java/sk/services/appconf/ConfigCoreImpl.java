@@ -22,7 +22,6 @@ package sk.services.appconf;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.services.appconf.model.ConfigUnit;
 import sk.services.appconf.model.ConfigUnitKey;
@@ -96,7 +95,6 @@ public abstract class ConfigCoreImpl implements IConfig {
 
 
     @Override
-    @SneakyThrows
     public String getAsString(ConfigUnit item) {
         try {
             return Objects.requireNonNull(val.get(item.getKey())).toString();
@@ -107,19 +105,16 @@ public abstract class ConfigCoreImpl implements IConfig {
     }
 
     @Override
-    @SneakyThrows
     public long getAsLong(ConfigUnit item) throws NumberFormatException {
         return Long.parseLong(getAsString(item));
     }
 
     @Override
-    @SneakyThrows
     public boolean getAsBool(ConfigUnit item) {
         return Boolean.parseBoolean(getAsString(item));
     }
 
     @Override
-    @SneakyThrows
     public int getAsInt(ConfigUnit item) throws NumberFormatException {
         return Integer.parseInt(getAsString(item));
     }

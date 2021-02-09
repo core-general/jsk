@@ -20,16 +20,10 @@ package sk.services.except;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import sk.exceptions.JskProblemException;
 
 public interface IExceptBase {
     default boolean haveStackTrace(Class<? extends JskProblemException> exceptionCls) {
         return false;
-    }
-
-    @SneakyThrows
-    default <T> T wrap(Exception e) {
-        throw e;
     }
 }

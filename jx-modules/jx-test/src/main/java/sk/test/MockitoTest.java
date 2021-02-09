@@ -20,7 +20,6 @@ package sk.test;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mockito;
@@ -36,8 +35,7 @@ public abstract class MockitoTest {
     }
 
     @After
-    @SneakyThrows
-    public void destroyMockitoTest() {
+    public void destroyMockitoTest() throws Exception {
         closeableTest.close();
     }
 }

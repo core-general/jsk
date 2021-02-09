@@ -20,7 +20,6 @@ package sk.spring;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -102,7 +101,6 @@ public class SpringApp<K extends SpringAppEntryPoint> {
         }
     }
 
-    @SneakyThrows
     protected boolean prepareLogger(String profile, String loggerFolderOrFile) {
         final String log4jLoggerClass = "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector";
         O<Class<?>> classIfExist = Re.getClassIfExist(log4jLoggerClass);

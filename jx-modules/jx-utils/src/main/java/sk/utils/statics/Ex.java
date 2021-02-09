@@ -20,6 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
+import sk.utils.functional.F0E;
 import sk.utils.functional.RE;
 import sk.utils.javafixes.BuilderStringWriter;
 
@@ -42,12 +43,20 @@ public final class Ex {
         return false;
     }
 
-    public static <T> T thRow(Exception e) {
-        throw new RuntimeException(e);
+    public static <T> T toRuntime(F0E<T> toRun) {
+        try {
+            return toRun.apply();
+        } catch (Exception e) {
+            return Ex.thRow(e);
+        }
     }
 
-    public static <T> T thRow(String message, Exception e) {
-        throw new RuntimeException(message, e);
+    public static <T> T thRow(Exception e) {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        } else {
+            throw new RuntimeException(e);
+        }
     }
 
     public static <T> T thRow(String message) {

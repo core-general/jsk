@@ -22,7 +22,6 @@ package sk.services.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.SneakyThrows;
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.LocalFileHeader;
@@ -32,10 +31,7 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import sk.utils.functional.O;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -48,12 +44,11 @@ public class LingalaZipHelper {
         AesKeyStrength aesKeyStrength;
     }
 
-    @SneakyThrows
     public static void zipToOutput(
             OutputStream output,
             Map<String, byte[]> filesToAdd,
             O<EncryptionParams> encrypt
-    ) {
+    ) throws Exception {
 
         ZipParameters zipParameters = buildZipParameters(CompressionMethod.DEFLATE, encrypt.isPresent(),
                 encrypt.map(EncryptionParams::getEncryptionMethod).orElse(null),
@@ -78,11 +73,10 @@ public class LingalaZipHelper {
         }
     }
 
-    @SneakyThrows
     public static Map<String, byte[]> unZipFromInput(
             InputStream output,
             O<EncryptionParams> encrypt
-    ) {
+    ) throws IOException {
         byte[] buff = new byte[4096];
         int readLen;
 
@@ -106,15 +100,14 @@ public class LingalaZipHelper {
         return toRet;
     }
 
-    @SneakyThrows
-    private static ZipOutputStream initializeZipOutputStream(OutputStream outputStream, boolean encrypt, char[] password) {
+    private static ZipOutputStream initializeZipOutputStream(OutputStream outputStream, boolean encrypt, char[] password)
+            throws IOException {
         if (encrypt) {
             return new ZipOutputStream(outputStream, password);
         }
         return new ZipOutputStream(outputStream);
     }
 
-    @SneakyThrows
     private static ZipInputStream initializeZipInputStream(InputStream outputStream, boolean encrypt, char[] password) {
         if (encrypt) {
             return new ZipInputStream(outputStream, password);

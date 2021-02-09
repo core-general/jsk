@@ -25,7 +25,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.Data;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.services.http.IHttp;
@@ -34,6 +33,7 @@ import sk.services.json.IJson;
 import sk.services.retry.IRepeat;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
+import sk.utils.statics.Ex;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -57,7 +57,6 @@ public class OutGooglePlayLoginService {
                 .build();
     }
 
-    @SneakyThrows
     public O<OutSimpleUserInfo> getSimpleUserByIdTokenVerification(String idToken) {
         return retry.repeat(() -> {
             if (!verify(idToken)) {
@@ -88,9 +87,8 @@ public class OutGooglePlayLoginService {
         return O.empty();
     }
 
-    @SneakyThrows
     private boolean verify(String idToken) {
-        return GoogleIdToken.parse(jsonFactory, idToken).verify(verifier);
+        return Ex.toRuntime(() -> GoogleIdToken.parse(jsonFactory, idToken).verify(verifier));
     }
 
     @Data

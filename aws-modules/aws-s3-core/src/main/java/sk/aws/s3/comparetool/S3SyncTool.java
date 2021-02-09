@@ -29,13 +29,13 @@ import sk.aws.s3.S3JskClient;
 import sk.aws.s3.comparetool.model.S3CompareInput;
 import sk.aws.s3.comparetool.model.S3CompareMeta;
 import sk.services.async.IAsync;
+import sk.services.async.ISizedSemaphore;
 import sk.services.comparer.CompareTool;
 import sk.services.comparer.model.CompareResult;
 import sk.services.json.IJson;
 import sk.services.retry.IRepeat;
 import sk.services.time.ITime;
 import sk.utils.async.AtomicNotifier;
-import sk.utils.async.SizedSemaphore;
 import sk.utils.files.PathWithBase;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
@@ -61,9 +61,10 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
     @Inject IJson json;
     @Inject IAsync async;
     @Inject IRepeat repeat;
+    @Inject ISizedSemaphore sizeLock;
 
     public CompareResult<S3ItemMeta, S3CompareMeta> sync(
-            int tryTimes, long maxProcessingSize,
+            int tryTimes,
             S3CompareInput i1, S3CompareInput i2, boolean filesMustBePublic) {
         CompareResult<S3ItemMeta, S3CompareMeta> result = this.compTool.compare(i1, i2, filesMustBePublic);
         X1<SyncVariant> sv = new X1<>();
@@ -92,7 +93,7 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             }
 
             CompareResult<S3ItemMeta, S3CompareMeta> finalResult = result;
-            async.coldTaskFJPRun(() -> trySync(maxProcessingSize, i1, i2, finalResult, sv.get()));
+            async.coldTaskFJPRun(() -> trySync(i1, i2, finalResult, sv.get()));
 
             result = this.compTool.compare(i1, i2, filesMustBePublic);
         }
@@ -102,34 +103,32 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
     }
 
     private void trySync(
-            long maxProcessingSize,
             S3CompareInput first, S3CompareInput second,
             CompareResult<S3ItemMeta, S3CompareMeta> result,
             SyncVariant syncVariant) {
         final S3JskClient clientFirst = compTool.createClient(first);
         final S3JskClient clientSecond = compTool.createClient(second);
-        final SizedSemaphore sizeLock = new SizedSemaphore(maxProcessingSize, () -> async.sleep(50l));
         final AtomicNotifier an = new AtomicNotifier(getCopyCount(result, syncVariant), 100, log::info);
         Cc.<R>l(
                 () -> {
                     if (syncVariant.copyToFirst) {
                         runTasks(result.getSecondDif().getNotExistingInOther(),
-                                clientSecond, clientFirst, second.getRoot(), first.getRoot(), sizeLock, an);
+                                clientSecond, clientFirst, second.getRoot(), first.getRoot(), an);
                     }
                 },
                 () -> {
                     if (syncVariant.copyToSecond) {
                         runTasks(result.getFirstDif().getNotExistingInOther(),
-                                clientFirst, clientSecond, first.getRoot(), second.getRoot(), sizeLock, an);
+                                clientFirst, clientSecond, first.getRoot(), second.getRoot(), an);
                     }
                 },
                 () -> {
                     if (syncVariant.firstPriority) {
                         runTasks(result.getExistButDifferent().stream().map(X2::i1).collect(Cc.toL()),
-                                clientFirst, clientSecond, first.getRoot(), second.getRoot(), sizeLock, an);
+                                clientFirst, clientSecond, first.getRoot(), second.getRoot(), an);
                     } else {
                         runTasks(result.getExistButDifferent().stream().map(X2::i2).collect(Cc.toL()),
-                                clientSecond, clientFirst, second.getRoot(), first.getRoot(), sizeLock, an);
+                                clientSecond, clientFirst, second.getRoot(), first.getRoot(), an);
                     }
                 }
         ).parallelStream().forEach(R::run);
@@ -141,7 +140,7 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             List<S3ItemMeta> toCopy,
             S3JskClient clientFrom, S3JskClient clientTo,
             PathWithBase rootFrom, PathWithBase rootTo,
-            SizedSemaphore sizeLock, AtomicNotifier an
+            AtomicNotifier an
     ) {
         toCopy = toCopy.stream().filter($ -> !$.isFailed()).collect(Cc.toL());
         if (toCopy.size() > 0) {

@@ -26,6 +26,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
 import sk.services.retry.IRepeat;
+import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.tuples.*;
@@ -127,7 +128,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
         }
     }
 
-    private <T> T transactionWithSaveUniUni(Supplier<T> sup) {
+    private <T> T transactionWithSaveUniUni(F0<T> sup) {
         return retry.repeat(sup, 50, 50, s(
                 ObjectOptimisticLockingFailureException.class,
                 OptimisticLockException.class,

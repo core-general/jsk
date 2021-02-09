@@ -20,7 +20,6 @@ package sk.db.relational.types;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -43,7 +42,6 @@ public class UTObjectToJsonb implements UserType, ParameterizedType, UTWithConte
     private Class<?> cls;
     private static IJson ijson;
 
-    @SneakyThrows
     public void setParameterValues(Properties parameters) {
         String claz = parameters.getProperty(param);
         try {

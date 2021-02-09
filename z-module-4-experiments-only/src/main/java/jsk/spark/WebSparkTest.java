@@ -153,6 +153,11 @@ public class WebSparkTest {
                 protected O<List<WebServerFilter>> getAdditionalFilters(O<Method> methodOrAll) {
                     return of(Cc.l(actionLogger));
                 }
+
+                @Override
+                public O<String> getBasePath() {
+                    return super.getBasePath();
+                }
             };
         }
 

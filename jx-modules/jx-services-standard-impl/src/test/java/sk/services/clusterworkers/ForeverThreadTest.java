@@ -20,27 +20,25 @@ package sk.services.clusterworkers;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.functional.R;
+import sk.utils.statics.Ti;
 
 public class ForeverThreadTest {
-    @SneakyThrows
     public static void main(String[] args) {
         ForeverThreadWithFinish ftw = new ForeverThreadWithFinish(new R() {
             volatile int i = 0;
 
-            @SneakyThrows
             @Override
             public void run() {
-                Thread.sleep(100);
+                Ti.sleep(100);
                 System.out.println(i++);
             }
         }, true);
 
         ftw.start();
         System.out.println(ftw.isFinished());
-        Thread.sleep(3000);
+        Ti.sleep(3000);
         ftw.finishThread()
                 .thenRun(() -> System.out.println("Finished?" + ftw.isFinished()));
     }

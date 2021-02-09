@@ -21,7 +21,6 @@ package sk.aws.s3;
  */
 
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
@@ -34,6 +33,7 @@ import sk.utils.files.PathWithBase;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
 import sk.utils.statics.Ma;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -189,15 +189,17 @@ public class S3JskClient {
         }
     }
 
-    public void deleteOne(PathWithBase path) {
+    public boolean deleteOne(PathWithBase path) {
         try {
             DeleteObjectRequest req = DeleteObjectRequest.builder().bucket(path.getBase())
                     .key(path.getPathNoSlash())
                     .build();
 
             s3.deleteObject(req);
+            return true;
         } catch (Exception e) {
             log.warn("", e);
+            return false;
         }
     }
 
@@ -333,10 +335,9 @@ public class S3JskClient {
         });
     }
 
-    @SneakyThrows
     public void clearAllByOneParallel(PathWithBase base, O<Long> msBetweenPageRequests) {
-        async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
+        Ex.toRuntime(() -> async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
                 .parallelStream()
-                .forEach($ -> repeat.repeat(() -> deleteOne(base.replacePath($.getKey())), 10))).get();
+                .forEach($ -> repeat.repeat(() -> deleteOne(base.replacePath($.getKey())), 10))).get());
     }
 }

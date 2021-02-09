@@ -27,7 +27,7 @@ import sk.utils.ifaces.Identifiable;
 
 @Data
 @RequiredArgsConstructor
-class CluKvSplitWorkPartInfo<T extends Identifiable<String>, R> {
+public class CluKvSplitWorkPartInfo<T extends Identifiable<String>, R> {
     final T workDescription;
     O<R> lastResult = O.empty();
     O<CluKvSplitLockInfo> lock = O.empty();

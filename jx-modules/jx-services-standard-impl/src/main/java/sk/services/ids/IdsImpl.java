@@ -23,7 +23,6 @@ package sk.services.ids;
 import com.fasterxml.uuid.Generators;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import sk.services.bytes.IBytes;
 import sk.services.rand.IRand;
 import sk.utils.statics.St;
@@ -55,7 +54,6 @@ public class IdsImpl implements IIds {
     }
 
     @Override
-    @SneakyThrows
     public UUID uniqueFrom(String val) {
         return UUID.nameUUIDFromBytes(val.getBytes(StandardCharsets.UTF_8));
     }

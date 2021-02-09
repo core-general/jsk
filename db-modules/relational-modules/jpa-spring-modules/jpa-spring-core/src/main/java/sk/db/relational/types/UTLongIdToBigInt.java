@@ -20,7 +20,6 @@ package sk.db.relational.types;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -46,7 +45,6 @@ public class UTLongIdToBigInt implements UserType, ParameterizedType {
     private F1<Long, Object> creator;
 
     @Override
-    @SneakyThrows
     public void setParameterValues(Properties parameters) {
         String className = parameters.getProperty(param);
         try {
@@ -65,6 +63,8 @@ public class UTLongIdToBigInt implements UserType, ParameterizedType {
             };
         } catch (ClassNotFoundException e) {
             throw new HibernateException("Class not found ", e);
+        } catch (NoSuchMethodException e) {
+            throw new HibernateException("Class doesnt have long constructor ", e);
         }
     }
 

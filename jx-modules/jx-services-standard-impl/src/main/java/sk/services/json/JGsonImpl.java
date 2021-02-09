@@ -30,7 +30,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
@@ -85,7 +84,6 @@ public class JGsonImpl implements IJson {
     }
 
     @Override
-    @SneakyThrows
     public <T> String to(T object, boolean pretty) {
         return pretty ? jsonPretty.toJson(object) : json.toJson(object);
     }
@@ -137,7 +135,6 @@ public class JGsonImpl implements IJson {
     }
 
     @Override
-    @SneakyThrows
     public String beautify(String smallJson) {
         JsonElement jsonElement = JsonParser.parseString(smallJson);
         if (jsonElement.isJsonArray()) {

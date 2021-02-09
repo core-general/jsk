@@ -20,7 +20,6 @@ package sk.utils.statics;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import sk.exceptions.NotImplementedException;
 import sk.utils.functional.C1Char;
@@ -29,6 +28,7 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -292,24 +292,30 @@ public final class St {
         return bytes(str, UTF_8);
     }
 
-    @SneakyThrows
     public static byte[] bytes(String str, String encoding) {
         if (str == null) {
             return null;
         }
-        return str.getBytes(encoding);
+        try {
+            return str.getBytes(encoding);
+        } catch (UnsupportedEncodingException e) {
+            return Ex.thRow(e);
+        }
     }
 
     public static String bytesToS(byte[] bytes) {
         return bytesToS(bytes, UTF_8);
     }
 
-    @SneakyThrows
     public static String bytesToS(byte[] bytes, String charSet) {
         if (bytes == null) {
             return null;
         }
-        return new String(bytes, charSet);
+        try {
+            return new String(bytes, charSet);
+        } catch (UnsupportedEncodingException e) {
+            return Ex.thRow(e);
+        }
     }
 
     public static String bytesToHex(byte[] bytes) {
@@ -327,7 +333,6 @@ public final class St {
         return streamToS(is, UTF_8);
     }
 
-    @SneakyThrows
     public static String streamToS(InputStream is, String charSet) {
         return bytesToS(Io.streamToBytes(is), charSet);
     }

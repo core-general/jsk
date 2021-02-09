@@ -1,4 +1,4 @@
-package sk.utils.async;
+package sk.services.async;
 
 /*-
  * #%L
@@ -23,20 +23,25 @@ package sk.utils.async;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import sk.utils.functional.R;
+import sk.utils.functional.F0;
+
+import javax.inject.Inject;
 
 @RequiredArgsConstructor
-public class SizedSemaphore {
+public class ISizedSemaphoreImpl implements ISizedSemaphore {
     private final Object sync = new Object();
-    final long maxSize;
-    final R sleeper;
+    private final long maxSize;
+    private final long waitTime;
+
+    @Inject ISleep sleeper;
 
     @Getter volatile long curSize = 0;
     @Getter volatile long count = 0;
 
-    public void acquireLockAndRun(long lockSize, R toRun) {
+    @Override
+    public <T> T acquireLockAndReturn(long lockSize, F0<T> toReturn) {
         try (Lock lock = lock(lockSize)) {
-            toRun.run();
+            return toReturn.apply();
         }
     }
 
@@ -46,18 +51,10 @@ public class SizedSemaphore {
                 if (count == 0 || curSize + lockSize < maxSize) {
                     curSize += lockSize;
                     count += 1;
-
                     return new Lock(lockSize);
                 }
             }
-            sleeper.run();
-        }
-    }
-
-    private void unLock(long unLockSize) {
-        synchronized (sync) {
-            curSize -= unLockSize;
-            count -= 1;
+            sleeper.sleep(waitTime);
         }
     }
 
@@ -67,7 +64,10 @@ public class SizedSemaphore {
 
         @Override
         public void close() {
-            unLock(lockSize);
+            synchronized (sync) {
+                curSize -= lockSize;
+                count -= 1;
+            }
         }
     }
     //

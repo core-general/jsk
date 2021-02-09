@@ -59,7 +59,7 @@ public class TypeWrap<T> {
         return typeToken;
     }
 
-    public static <T, CC extends Collection<T>, C extends Collection<T>> TypeWrap<CC> getCollection(Class<CC> collection,
+    public static <T, CC extends Collection<T>> TypeWrap<CC> getCollection(Class<CC> collection,
             Class<T> classInCollection) {
         TypeWrap<CC> typeToken = new TypeWrap<>();
         typeToken.type = new CustomType(collection, new Type[]{classInCollection});

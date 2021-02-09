@@ -20,10 +20,10 @@ package sk.services.async;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import lombok.val;
 import sk.utils.functional.F0;
 import sk.utils.functional.R;
+import sk.utils.statics.Ex;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -53,17 +53,30 @@ public interface IAsync extends ISleep {
     ScheduledExecutorService newDedicatedScheduledExecutor(String name);
 
     default void coldTaskFJPRun(int threads, R toRun) {
+        coldTaskFJPGet(threads, () -> {
+            toRun.run();
+            return null;
+        });
+    }
+
+    default void coldTaskFJPRun(R toRun) {
+        coldTaskFJPGet(() -> {
+            toRun.run();
+            return null;
+        });
+    }
+
+    default <T> T coldTaskFJPGet(int threads, F0<T> toRun) {
         final ForkJoinPool forkJoinPool = new ForkJoinPool(threads);
         try {
-            forkJoinPool.submit(toRun).join();
+            return forkJoinPool.submit(toRun::apply).join();
         } finally {
             forkJoinPool.shutdown();
         }
     }
 
-    @SneakyThrows
-    default void coldTaskFJPRun(R toRun) {
-        coldTaskFJP().submit(toRun).get();
+    default <T> T coldTaskFJPGet(F0<T> toRun) {
+        return Ex.toRuntime(() -> coldTaskFJP().call(toRun::apply).get());
     }
 
     default CompletableFuture<Void> runBuf(R run) {
@@ -76,7 +89,6 @@ public interface IAsync extends ISleep {
 
     void stop();
 
-    @SneakyThrows
     default <T> List<T> supplyParallel(List<F0<T>> suppliers) {
         val job = suppliers.stream().map(this::supplyBuf).collect(Collectors.toList());
 
@@ -85,14 +97,13 @@ public interface IAsync extends ISleep {
         return job.stream().map(CompletableFuture::join).collect(Collectors.toList());
     }
 
-    @SneakyThrows
     default void runParallel(List<R> toRun) {
         val cb = new CyclicBarrier(toRun.size() + 1);
-        AtomicReference<Exception> exception = new AtomicReference<>();
+        AtomicReference<RuntimeException> exception = new AtomicReference<>();
         toRun.forEach(R -> bufExec().submit(() -> {
             try {
                 R.run();
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 exception.compareAndSet(null, e);
             } finally {
                 try {
@@ -101,13 +112,12 @@ public interface IAsync extends ISleep {
                 }
             }
         }));
-        cb.await();
+        Ex.toRuntime(() -> cb.await());
         if (exception.get() != null) {
             throw exception.get();
         }
     }
 
-    @SneakyThrows
     default CompletableFuture<Void> runAsyncDontWait(List<R> toRun) {
         return allOf(toRun.stream()
                 .map(this::runBuf)

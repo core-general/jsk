@@ -20,13 +20,13 @@ package sk.web.server.spark;
  * #L%
  */
 
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.eclipse.jetty.http.HttpGenerator;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import sk.services.shutdown.AppStopListener;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Ti;
 import sk.web.server.params.WebServerParams;
 import sk.web.server.spark.context.WebJettyContextConsumer;
@@ -49,7 +49,6 @@ public class WebJettyServerStarter implements AppStopListener {
         this.contextConsumers = contextConsumers;
     }
 
-    @SneakyThrows
     public synchronized void run() {
         if (jetty != null) {
             throw new RuntimeException("Server already started");
@@ -73,7 +72,11 @@ public class WebJettyServerStarter implements AppStopListener {
         contextConsumers.forEach($ -> $.accept(context));
         context.setErrorHandler(new ErrorProcessor());
         jetty.setHandler(context);
-        jetty.start();
+        try {
+            jetty.start();
+        } catch (Exception e) {
+            Ex.thRow(e);
+        }
 
         context.getServletHandler().getServlets()[0].getRegistration().setMultipartConfig(
                 new MultipartConfigElement("/tmp/srv-mp", params.getFormLimit(), params.getFormLimit(), 0));

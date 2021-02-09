@@ -18,7 +18,7 @@ package sk.spring.plugins;/*-
  * #L%
  */
 
-import lombok.SneakyThrows;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -27,6 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
 
 import java.io.File;
@@ -45,29 +46,32 @@ public class SpringMvnPropertiesGenerator extends AbstractMojo {
     String propertyPathPrefix;
 
     @Override
-    @SneakyThrows
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (propertyPathPrefix == null) {
-            throw new RuntimeException("propertyPathPrefix must be set!");
-        }
-
-        MavenProject project = (MavenProject) getPluginContext().get("project");
-
-        List<String> properties = Cc.l();
-        final String parentFolder = project.getCompileClasspathElements().get(0);
-        final String parentPath = new File(parentFolder).getAbsolutePath();
-        Io.visitEachFile(parentFolder, file -> {
-            String ff = file.getAbsolutePath().replace(parentPath, "");
-
-            String name = ff.charAt(0) == '/' ? ff.substring(1) : ff;
-            getLog().info("Processing file:" + name);
-            if (Cc.stream(propertyPathPrefix).anyMatch(path -> name.startsWith(path)) && name.endsWith(".properties")) {
-                getLog().info("Added property file:" + name);
-                properties.add(name);
+        try {
+            if (propertyPathPrefix == null) {
+                throw new RuntimeException("propertyPathPrefix must be set!");
             }
-        });
 
-        getLog().info("Output to:" + parentFolder);
-        PropertyMetaService.savePropertyNames(parentFolder, propertyPathPrefix, properties);
+            MavenProject project = (MavenProject) getPluginContext().get("project");
+
+            List<String> properties = Cc.l();
+            final String parentFolder = project.getCompileClasspathElements().get(0);
+            final String parentPath = new File(parentFolder).getAbsolutePath();
+            Io.visitEachFile(parentFolder, file -> {
+                String ff = file.getAbsolutePath().replace(parentPath, "");
+
+                String name = ff.charAt(0) == '/' ? ff.substring(1) : ff;
+                getLog().info("Processing file:" + name);
+                if (Cc.stream(propertyPathPrefix).anyMatch(path -> name.startsWith(path)) && name.endsWith(".properties")) {
+                    getLog().info("Added property file:" + name);
+                    properties.add(name);
+                }
+            });
+
+            getLog().info("Output to:" + parentFolder);
+            PropertyMetaService.savePropertyNames(parentFolder, propertyPathPrefix, properties);
+        } catch (DependencyResolutionRequiredException e) {
+            Ex.thRow(e);
+        }
     }
 }

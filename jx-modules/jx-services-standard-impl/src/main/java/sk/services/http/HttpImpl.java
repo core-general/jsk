@@ -22,7 +22,6 @@ package sk.services.http;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +34,7 @@ import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
 import sk.services.time.ITime;
 import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.F1;
-import sk.utils.functional.O;
-import sk.utils.functional.OneOf;
+import sk.utils.functional.*;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
@@ -47,7 +44,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
 
 import static sk.utils.functional.O.ofNullable;
 import static sk.utils.statics.Ex.thRow;
@@ -66,9 +62,16 @@ public class HttpImpl implements IHttp {
         okHttpClient = prepareBuilder().build();
         if (retry == null) {
             retry = new IRepeat() {
+
                 @Override
-                public <T> T repeat(@NotNull Supplier<T> toRun, @Nullable Supplier<T> onFail, int count, long sleepBetweenTries,
+                public <T> T repeat(@NotNull F0<T> toRun, @Nullable F0<T> onFail, int count, long sleepBetweenTries,
                         @NotNull Set<Class<? extends Throwable>> allowedExceptions) {
+                    return toRun.get();
+                }
+
+                @Override
+                public <T> T repeatE(@NotNull F0E<T> toRun, @Nullable F0<T> onFail, int count, long sleepBetweenTries,
+                        @NotNull Set<Class<? extends Throwable>> allowedExceptions) throws Exception {
                     return toRun.get();
                 }
 
@@ -110,9 +113,9 @@ public class HttpImpl implements IHttp {
     }
 
     private <T extends HttpBuilder<T>> OneOf<CoreHttpResponse, Exception> executeUni(T builder,
-            F1<T, CoreHttpResponse> oneTimeGetter) {
+            F1E<T, CoreHttpResponse> oneTimeGetter) {
         try {
-            return OneOf.left(retry.repeat(
+            return OneOf.left(retry.repeatE(
                     () -> {
                         CoreHttpResponse resp = oneTimeGetter.apply(builder);
                         if (resp.code() == 502 || resp.code() == 503 || resp.code() == 504) {
@@ -128,8 +131,7 @@ public class HttpImpl implements IHttp {
         }
     }
 
-    @SneakyThrows
-    private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSinglePost(T postBuilder) {
+    private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSinglePost(T postBuilder) throws IOException {
         RequestBody rb = definePostRequestBody(postBuilder);
 
         return execute(postBuilder, new Request.Builder()
@@ -137,8 +139,7 @@ public class HttpImpl implements IHttp {
                 .post(rb), false);
     }
 
-    @SneakyThrows
-    private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSingleDelete(T postBuilder) {
+    private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSingleDelete(T postBuilder) throws IOException {
         RequestBody rb = definePostRequestBody(postBuilder);
 
         return execute(postBuilder, new Request.Builder()
@@ -164,16 +165,14 @@ public class HttpImpl implements IHttp {
         return thRow(pb.getType() + " unknown");
     }
 
-    @SneakyThrows
-    private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) {
+    private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) throws IOException {
         Request.Builder builder = new Request.Builder()
                 .url(getBuilder.url())
                 .get();
         return execute(getBuilder, builder, false);
     }
 
-    @SneakyThrows
-    private CoreHttpResponse executeSingleHead(HttpHeadBuilder headBuilder) {
+    private CoreHttpResponse executeSingleHead(HttpHeadBuilder headBuilder) throws IOException {
         Request.Builder builder = new Request.Builder()
                 .url(headBuilder.url())
                 .head();

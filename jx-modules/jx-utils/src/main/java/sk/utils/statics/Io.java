@@ -22,7 +22,6 @@ package sk.utils.statics;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.SneakyThrows;
 import sk.utils.files.FileList;
 import sk.utils.functional.*;
 
@@ -69,17 +68,15 @@ public final class Io {
         }
     }
 
-    @SneakyThrows
     public static byte[] streamToBytes(InputStream is) {
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             byte[] buf = new byte[4 * 1024];
             for (int n = is.read(buf); n != -1; n = is.read(buf)) {
                 os.write(buf, 0, n);
             }
             return os.toByteArray();
-        } finally {
-            if (is != null) { is.close(); }
+        } catch (IOException e) {
+            return Ex.thRow(e);
         }
     }
 
@@ -151,7 +148,6 @@ public final class Io {
         return O.ofNullable(Thread.currentThread().getContextClassLoader().getResourceAsStream(resource));
     }
 
-    @SneakyThrows
     public static void visitEachFile(String fileOrFolder, C1<File> onFile) {
         visitEachFileWithFinish(fileOrFolder, file -> {
             onFile.accept(file);
@@ -159,18 +155,21 @@ public final class Io {
         });
     }
 
-    @SneakyThrows
     public static void visitEachFileWithFinish(String fileOrFolder, P1<File> onFileWithContinueCheck) {
         Path path = Paths.get(fileOrFolder);
         if (!isDirectory(path)) {
             onFileWithContinueCheck.test(path.toFile());
         } else {
-            walkFileTree(path, new SimpleFileVisitor<Path>() {
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    final boolean continueOrFinish = onFileWithContinueCheck.test(new File(file.toString()));
-                    return continueOrFinish ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
-                }
-            });
+            try {
+                walkFileTree(path, new SimpleFileVisitor<Path>() {
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                        final boolean continueOrFinish = onFileWithContinueCheck.test(new File(file.toString()));
+                        return continueOrFinish ? FileVisitResult.CONTINUE : FileVisitResult.TERMINATE;
+                    }
+                });
+            } catch (IOException e) {
+                Ex.thRow(e);
+            }
         }
     }
 
@@ -238,12 +237,10 @@ public final class Io {
     //endregion
 
     //region Write
-    @SneakyThrows
     public static void addWrite(String path, C1<PlainWriter> writer) {
         addWrite(path, "UTF-8", writer);
     }
 
-    @SneakyThrows
     public static void addWrite(String path, String charSet, C1<PlainWriter> writer) {
         withCreatedPath(path, $ -> {
             try (BufferedWriter bwr = newBufferedWriter($, Charset.forName(charSet), WRITE, CREATE, APPEND)) {
@@ -253,13 +250,10 @@ public final class Io {
         });
     }
 
-
-    @SneakyThrows
     public static void reWrite(String path, C1<PlainWriter> writer) {
         reWrite(path, "UTF-8", writer);
     }
 
-    @SneakyThrows
     public static void reWrite(String path, String charSet, C1<PlainWriter> writer) {
         withCreatedPath(path, $ -> {
             try (BufferedWriter bwr = newBufferedWriter($, Charset.forName(charSet), WRITE, CREATE,
@@ -271,7 +265,6 @@ public final class Io {
 
     }
 
-    @SneakyThrows
     public static void addWriteBin(String path, C1<BinaryWriter> writer) {
         withCreatedPath(path, $ -> {
             try (OutputStream output = newOutputStream(Paths.get(path), WRITE, CREATE, APPEND)) {
@@ -281,7 +274,6 @@ public final class Io {
         });
     }
 
-    @SneakyThrows
     public static void reWriteBin(String path, C1<BinaryWriter> writer) {
         withCreatedPath(path, $ -> {
             try (OutputStream output = newOutputStream($, WRITE, CREATE, TRUNCATE_EXISTING)) {
@@ -291,23 +283,26 @@ public final class Io {
         });
     }
 
-    @SneakyThrows
     public static void delete(String location) {
         Path path = Paths.get(location);
-        if (!isDirectory(path)) {
-            Files.delete(path);
-        } else {
-            walkFileTree(path, new SimpleFileVisitor<Path>() {
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
+        try {
+            if (!isDirectory(path)) {
+                Files.delete(path);
+            } else {
+                walkFileTree(path, new SimpleFileVisitor<Path>() {
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+        } catch (IOException e) {
+            Ex.thRow(e);
         }
     }
 
@@ -345,15 +340,21 @@ public final class Io {
     public static class PlainWriter {
         BufferedWriter bw;
 
-        @SneakyThrows
         public PlainWriter append(String text) {
-            bw.append(text);
+            try {
+                bw.append(text);
+            } catch (IOException e) {
+                return Ex.thRow(e);
+            }
             return this;
         }
 
-        @SneakyThrows
         public PlainWriter appendLine(String text) {
-            bw.append(text).append(System.lineSeparator());
+            try {
+                bw.append(text).append(System.lineSeparator());
+            } catch (IOException e) {
+                return Ex.thRow(e);
+            }
             return this;
         }
     }
@@ -362,61 +363,68 @@ public final class Io {
     public static class BinaryWriter {
         OutputStream bw;
 
-        @SneakyThrows
         public void append(byte[] bytes) {
-            bw.write(bytes);
+            try {
+                bw.write(bytes);
+            } catch (IOException e) {
+                Ex.thRow(e);
+            }
         }
     }
     //endregion
 
     //region Serialize/Deserialize
-    @SneakyThrows
     public static void serialize(String resultingFile, Object data) {
-        try (FileOutputStream fos = new FileOutputStream(resultingFile, false);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(data);
+        try {
+            try (FileOutputStream fos = new FileOutputStream(resultingFile, false);
+                 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+                oos.writeObject(data);
+            }
+        } catch (IOException e) {
+            Ex.thRow(e);
         }
     }
 
-    @SneakyThrows
     @SuppressWarnings("unchecked")
     public static <T> T deSerialize(String readFrom, Class<T> cls) {
         try (FileInputStream fos = new FileInputStream(readFrom);
              ObjectInputStream oos = new ObjectInputStream(fos)) {
             return (T) oos.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            return Ex.thRow(e);
         }
     }
 
-    @SneakyThrows
     public static Map<String, Object> deSerializeParallel(String... files) {
         return deSerializeParallel(Object.class, files);
     }
 
-    @SneakyThrows
     public static <T> Map<String, T> deSerializeParallel(Class<T> cls, String... files) {
         return Stream.of(files).parallel().collect(toMap(file -> file, file -> Io.deSerialize(file, cls)));
     }
 
-    @SneakyThrows
     public static Object deSerialize(String readFrom) {
         return deSerialize(readFrom, Object.class);
     }
     //endregion
 
-    @SneakyThrows
     public static ExecuteInfo execute(String command) {
         ProcessBuilder ps = new ProcessBuilder(command.split("\\s+"));
         ps.redirectErrorStream(true);
 
-        Process pr = ps.start();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                sb.append(line).append(System.lineSeparator());
+        try {
+            Process pr = ps.start();
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    sb.append(line).append(System.lineSeparator());
+                }
+                int endState = pr.waitFor();
+                return new ExecuteInfo(Cc.l(command), endState, sb.length() > 0 ? sb.substring(0, sb.length() - 1) : "");
             }
-            int endState = pr.waitFor();
-            return new ExecuteInfo(Cc.l(command), endState, sb.length() > 0 ? sb.substring(0, sb.length() - 1) : "");
+        } catch (IOException | InterruptedException e) {
+            return Ex.thRow(e);
         }
     }
 

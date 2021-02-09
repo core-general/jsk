@@ -23,10 +23,11 @@ package sk.utils.files;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import sk.utils.functional.O;
+import sk.utils.statics.Ex;
 import sk.utils.statics.St;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -50,9 +51,12 @@ public class PathWithBase {
         return getInnerPathNoSlash().orElse("");
     }
 
-    @SneakyThrows
     public String getEncodedUrl() {
-        return URLEncoder.encode(St.endWith(base, "/") + path.orElse(""), StandardCharsets.UTF_8.toString());
+        try {
+            return URLEncoder.encode(St.endWith(base, "/") + path.orElse(""), StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            return Ex.thRow(e);
+        }
     }
 
     public PathWithBase addToPath(String pathSuffix) {

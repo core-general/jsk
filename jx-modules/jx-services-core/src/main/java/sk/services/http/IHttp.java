@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import sk.services.http.model.CoreHttpResponse;
 import sk.utils.functional.F1;
 import sk.utils.functional.OneOf;
+import sk.utils.statics.Ex;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -137,31 +138,16 @@ public interface IHttp {
             return requester.apply(getThis());
         }
 
-        public String goAndThrow() throws Exception {
-            final OneOf<String, Exception> go = go();
-            if (go.isLeft()) {
-                return go.left();
-            } else {
-                throw go.right();
-            }
+        public String goAndThrow() throws RuntimeException {
+            return go().collect($ -> $, Ex::thRow);
         }
 
-        public byte[] goBytesAndThrow() throws Exception {
-            final OneOf<byte[], Exception> go = goBytes();
-            if (go.isLeft()) {
-                return go.left();
-            } else {
-                throw go.right();
-            }
+        public byte[] goBytesAndThrow() throws RuntimeException {
+            return goBytes().collect($ -> $, Ex::thRow);
         }
 
-        public CoreHttpResponse goResponseAndThrow() throws Exception {
-            final OneOf<CoreHttpResponse, Exception> go = goResponse();
-            if (go.isLeft()) {
-                return go.left();
-            } else {
-                throw go.right();
-            }
+        public CoreHttpResponse goResponseAndThrow() throws RuntimeException {
+            return goResponse().collect($ -> $, Ex::thRow);
         }
 
         abstract T getThis();
