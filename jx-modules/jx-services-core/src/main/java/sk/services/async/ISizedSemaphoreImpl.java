@@ -38,6 +38,12 @@ public class ISizedSemaphoreImpl implements ISizedSemaphore {
     @Getter volatile long curSize = 0;
     @Getter volatile long count = 0;
 
+    public ISizedSemaphoreImpl(long maxSize, long waitTime, ISleep sleeper) {
+        this.maxSize = maxSize;
+        this.waitTime = waitTime;
+        this.sleeper = sleeper;
+    }
+
     @Override
     public <T> T acquireLockAndReturn(long lockSize, F0<T> toReturn) {
         try (Lock lock = lock(lockSize)) {

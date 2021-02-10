@@ -21,6 +21,19 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-test</artifactId>
+            <version>jsk.2.4.29</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-services-standard-impl</artifactId>
+            <version>jsk.2.4.29</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

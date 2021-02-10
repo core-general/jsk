@@ -26,7 +26,7 @@ import sk.web.annotations.WebPath;
 import sk.web.annotations.WebUserToken;
 import sk.web.annotations.type.WebPOST;
 
-@WebPath("jskPartUploader")
+@WebPath("uploader")
 @WebUserToken
 @WebAuth(srvProvider = PupIWebAuthProvider.class)
 public interface PupPublicApi<META, FINISH> {
@@ -54,6 +54,12 @@ public interface PupPublicApi<META, FINISH> {
     @WebIdempotence
     public PupMUploadStatus<META, FINISH> uploadPart(String _userToken, PupMUploadMeta<META> partMeta, byte[] content);
 
+    /**
+     * @param _userToken
+     * @param id
+     * @return
+     * @throws PUP_NO_UPLOAD
+     */
     public PupMUploadStatus<META, FINISH> getUploadStatus(String _userToken, PupMUploadId id);
 
 }

@@ -21,9 +21,11 @@ package sk.web.tools.partuploader.api;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
+import lombok.With;
 
-@Data
+@Value
+@With
 @AllArgsConstructor
 public class PupUploadPartId {
     PupMUploadId id;

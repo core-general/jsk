@@ -50,7 +50,9 @@ public interface IKvStore {
     /**
      * @return true if save is ok, false if there is existing value
      */
-    public OneOf<Boolean, Exception> trySaveNewString(KvKey key, String newValueProvider);
+    public default OneOf<Boolean, Exception> trySaveNewString(KvKey key, String newValueProvider) {
+        return trySaveNewStringAndRaw(key, new KvAllValues<>(newValueProvider, O.empty(), O.empty()));
+    }
 
     /**
      * @return true if save is ok, false if there is existing value
@@ -58,7 +60,12 @@ public interface IKvStore {
     public OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider);
 
 
-    public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater);
+    default public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater) {
+        return updateStringAndRaw(key, av -> {
+            final O<String> apply = updater.apply(O.ofNull(av).map($ -> $.getValue()).orElseGet(() -> key.getDefaultValue()));
+            return apply.map($ -> new KvAllValues<>($, O.empty(), O.empty()));
+        }).mapLeft($ -> $.map(KvAllValues::getValue));
+    }
 
     public OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater);

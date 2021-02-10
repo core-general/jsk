@@ -31,8 +31,8 @@ import java.time.ZonedDateTime;
 @Data
 public class KvAllValues<T> {
     T value;
-    O<byte[]> rawValue;
-    O<ZonedDateTime> ttl; //time to live if exists
+    O<byte[]> rawValue = O.empty();
+    O<ZonedDateTime> ttl = O.empty(); //time to live if exists
 
     public <X> KvAllValues<X> map(F1<T, X> mapper) {
         return new KvAllValues<>(mapper.apply(value), rawValue, ttl);

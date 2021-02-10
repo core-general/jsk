@@ -20,12 +20,14 @@ package sk.services.async;
  * #L%
  */
 
+import sk.utils.statics.Ex;
+
 public interface ISleep {
     default void sleep(long time) {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Ex.thRow(e);
         }
     }
 }

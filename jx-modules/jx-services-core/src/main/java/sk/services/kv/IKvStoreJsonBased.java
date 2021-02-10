@@ -20,11 +20,15 @@ package sk.services.kv;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import sk.services.json.IJson;
 import sk.utils.javafixes.TypeWrap;
 
 import javax.inject.Inject;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public abstract class IKvStoreJsonBased implements IKvStore {
     @Inject IJson json;
 

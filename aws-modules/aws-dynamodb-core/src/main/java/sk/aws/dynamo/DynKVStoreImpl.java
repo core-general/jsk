@@ -126,12 +126,6 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         });
     }
 
-
-    @Override
-    public OneOf<Boolean, Exception> trySaveNewString(KvKey key, String newValueProvider) {
-        return trySaveNewStringAndRaw(key, new KvAllValues<>(newValueProvider, O.empty(), O.empty()));
-    }
-
     @Override
     public OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider) {
         final String firstSaveId = ids.shortIdS();
@@ -166,14 +160,6 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         } catch (Exception e) {
             return OneOf.right(e);
         }
-    }
-
-    @Override
-    public OneOf<O<String>, Exception> updateString(KvKeyWithDefault key, F1<String, O<String>> updater) {
-        return updateStringAndRaw(key, av -> {
-            final O<String> apply = updater.apply(av.getValue());
-            return apply.map($ -> new KvAllValues<>($, O.empty(), O.empty()));
-        }).mapLeft($ -> $.map(KvAllValues::getValue));
     }
 
     @Override

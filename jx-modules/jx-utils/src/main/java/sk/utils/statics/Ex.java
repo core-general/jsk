@@ -20,6 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
+import sk.exceptions.NotImplementedException;
 import sk.utils.functional.F0E;
 import sk.utils.functional.RE;
 import sk.utils.javafixes.BuilderStringWriter;
@@ -41,6 +42,10 @@ public final class Ex {
             }
         }
         return false;
+    }
+
+    public static <T> T notImplemented() {
+        throw new NotImplementedException();
     }
 
     public static <T> T toRuntime(F0E<T> toRun) {

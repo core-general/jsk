@@ -35,4 +35,8 @@ public class KvVersionedItemAll<T> {
     O<ZonedDateTime> ttl;
     ZonedDateTime created;
     Object version;
+
+    public KvVersionedItem<T> toSimple() {
+        return new KvVersionedItem<>(key, vals.value, ttl, created, version);
+    }
 }

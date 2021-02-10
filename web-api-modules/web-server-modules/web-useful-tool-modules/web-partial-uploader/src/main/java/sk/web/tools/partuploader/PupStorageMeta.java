@@ -43,9 +43,11 @@ public class PupStorageMeta<META, FINISH> {
     Map<Long, PupMUploadMeta<META>> parts = new HashMap<>();
 
     public PupStorageMeta<META, FINISH> exception(PupExc orElse, String info, PupMUploadMeta<META> partMeta, ZonedDateTime now) {
-        status.setStatus(PupEUploadStatus.FAILED);
-        status.setUploadFinish(O.of(now));
-        status.setFirstFail(O.of(X.x(orElse, info, partMeta)));
+        if (status.getStatus() == PupEUploadStatus.IN_PROCESS) {
+            status.setStatus(PupEUploadStatus.FAILED);
+            status.setUploadFinish(O.of(now));
+            status.setFirstFail(O.of(X.x(orElse, info, partMeta)));
+        }
         return this;
     }
 

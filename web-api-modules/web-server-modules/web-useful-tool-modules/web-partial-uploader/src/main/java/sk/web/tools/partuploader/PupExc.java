@@ -33,6 +33,8 @@ public enum PupExc {
     PUP_PART_ALREADY_PROCESSED,
     PUP_SIZE_GT_THAN_ALLOWED,
     PUP_OTHER,
-    PUP_CANT_UPLOAD
+    PUP_CANT_UPLOAD,
+    PUP_NO_UPLOAD;
     /*PUP_PARTS_GT_THAN_STATED, is not needed since we will use PUP_UPLOAD_ALREADY_FINISHED*/
+
 }

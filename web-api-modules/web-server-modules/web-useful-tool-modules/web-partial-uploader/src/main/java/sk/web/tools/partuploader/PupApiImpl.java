@@ -56,7 +56,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Log4j2
 public abstract class PupApiImpl<META, FINISH>
-        implements PupPublicApi<META, FINISH>, PupPrivateApi<META, FINISH>, Identifiable<String> {
+        implements PupPublicApi<META, FINISH>, Identifiable<String> {
     @Inject IKvUnlimitedStore metaStore;
     @Inject PupIByteStorage byteStorage;
     @Inject PupIUserProvider<META> userProvider;
@@ -84,6 +84,7 @@ public abstract class PupApiImpl<META, FINISH>
         validateUploadOnStart(_userToken, partMeta, content);
 
         X1<Boolean> contentUploaded = X.x(false);
+        X1<Exception> except = X.x(null);
         final OneOf<O<PupStorageMeta<META, FINISH>>, Exception> saveResult =
                 metaStore.updateObject(metaKey(uploadId), getMetaDataType(), meta -> {
                     try {
@@ -95,11 +96,16 @@ public abstract class PupApiImpl<META, FINISH>
                     } catch (IOException e) {
                         return webExcept.throwBySubstatus(503, PupExc.PUP_CANT_UPLOAD, "");
                     } catch (JskProblemException e) {
+                        except.setI1(e);
                         return O.of(meta.exception(getExceptionCode(e.getProblem().getCode()), Ex.getInfo(e), partMeta, now));
                     } catch (Exception e) {
+                        except.setI1(e);
                         return O.of(meta.exception(PupExc.PUP_OTHER, Ex.getInfo(e), partMeta, now));
                     }
                 });
+        if (except.get() != null) {
+            return Ex.thRow(except.get());
+        }
         return saveResult.collect(O::get, Ex::thRow).getStatus();
     }
 
@@ -107,6 +113,9 @@ public abstract class PupApiImpl<META, FINISH>
     public PupMUploadStatus<META, FINISH> getUploadStatus(String _userToken, PupMUploadId id) {
         X1<PupMUploadStatus<META, FINISH>> toRet = new X1<>();
         metaStore.updateObject(metaKey(id), getMetaDataType(), meta -> {
+            if (meta == null || meta.getStatus().getId() == null) {
+                return except.throwByCode(PupExc.PUP_NO_UPLOAD);
+            }
             toRet.setI1(meta.getStatus());
             if (meta.getStatus().getStatus() == PupEUploadStatus.PRE_FINISHED) {
                 return privatePrepareAndProcessFullInfo(oneOf -> {
@@ -123,7 +132,7 @@ public abstract class PupApiImpl<META, FINISH>
                 return O.empty();
             }
         });
-        return toRet.get();
+        return O.ofNull(toRet.get()).orElseGet(() -> except.throwByCode(PupExc.PUP_NO_UPLOAD));
     }
 
     private O<PupStorageMeta<META, FINISH>> privatePrepareAndProcessFullInfo(
@@ -168,20 +177,24 @@ public abstract class PupApiImpl<META, FINISH>
         if (meta.getStatus().getStatus() == PupEUploadStatus.FAILED) {
             return except.throwByCode(PupExc.PUP_UPLOAD_ALREADY_FAILED);
         }
-        if (meta.getStatus().getStatus() == PupEUploadStatus.FINISHED) {
+        if (meta.getStatus().getStatus() == PupEUploadStatus.FINISHED
+                || meta.getStatus().getStatus() == PupEUploadStatus.PRE_FINISHED) {
             return except.throwByCode(PupExc.PUP_UPLOAD_ALREADY_FINISHED);
         }
-        if (meta.getStatus().getUploadedSize() + partMeta.getCurrentSize() < meta.getStatus().getMaxSize()) {
-            return except.throwByCode(PupExc.PUP_SIZE_GT_THAN_STATED);
-        }
-        if (meta.getStatus().getMaxSize() != partMeta.getOverallSize()) {
-            return except.throwByCode(PupExc.PUP_WRONG_SIZE);
-        }
-        if (meta.getStatus().getMaxParts() != partMeta.getMaxParts()) {
-            return except.throwByCode(PupExc.PUP_WRONG_PART_COUNT);
-        }
-        if (meta.getParts().containsKey(partMeta.getPartId().getCurrentPart())) {
-            return except.throwByCode(PupExc.PUP_PART_ALREADY_PROCESSED);
+
+        if (meta.getStatus().getId() != null) {
+            if (meta.getStatus().getUploadedSize() + partMeta.getCurrentSize() > meta.getStatus().getMaxSize()) {
+                return except.throwByCode(PupExc.PUP_SIZE_GT_THAN_STATED);
+            }
+            if (meta.getStatus().getMaxSize() != partMeta.getOverallSize()) {
+                return except.throwByCode(PupExc.PUP_WRONG_SIZE);
+            }
+            if (meta.getStatus().getMaxParts() != partMeta.getMaxParts()) {
+                return except.throwByCode(PupExc.PUP_WRONG_PART_COUNT);
+            }
+            if (meta.getParts().containsKey(partMeta.getPartId().getCurrentPart())) {
+                return except.throwByCode(PupExc.PUP_PART_ALREADY_PROCESSED);
+            }
         }
         return true;
     }
