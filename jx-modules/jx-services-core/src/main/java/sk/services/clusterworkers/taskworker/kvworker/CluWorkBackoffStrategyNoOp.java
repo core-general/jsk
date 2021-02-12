@@ -24,9 +24,10 @@ import sk.utils.ifaces.Identifiable;
 
 import java.time.Duration;
 
-public class CluWorkBackoffStrategyNoOp<T extends Identifiable<String>, R> implements CluWorkBackoffStrategy<T, R> {
+public class CluWorkBackoffStrategyNoOp<TASK_INPUT extends Identifiable<String>, RESULT>
+        implements CluWorkBackoffStrategy<TASK_INPUT, RESULT> {
     @Override
-    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task) {
+    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<TASK_INPUT, RESULT> task) {
         return Duration.ZERO;
     }
 }

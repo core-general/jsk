@@ -31,7 +31,7 @@ import java.time.ZonedDateTime;
 @With
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
-public class CluWorkMetaInfo<M> {
+public class CluWorkMetaInfo<CUSTOM_META> {
     String runId;
     O<ZonedDateTime> startedAt = O.empty();
     O<ZonedDateTime> finishedAt = O.empty();
@@ -50,9 +50,9 @@ public class CluWorkMetaInfo<M> {
     MinMaxAvgWithObj<String> retryCounts = new MinMaxAvgWithObj<>();
     O<ZonedDateTime> lastMetaCountUpdate = O.empty();
     O<String> failMessage = O.empty();
-    O<M> additionalInfo = O.empty();
+    O<CUSTOM_META> additionalInfo = O.empty();
 
-    DequeWithLimit<CluWorkMetaInfo<M>> deque = new DequeWithLimit<>(5);
+    DequeWithLimit<CluWorkMetaInfo<CUSTOM_META>> deque = new DequeWithLimit<>(5);
 
     public boolean isWorkActive() {
         return status == Status.STARTED;
@@ -71,14 +71,14 @@ public class CluWorkMetaInfo<M> {
         return overallChunkCount - finalDoneChunkCount - finalFailChunkCount;
     }
 
-    public DequeWithLimit<CluWorkMetaInfo<M>> getDeque() {
+    public DequeWithLimit<CluWorkMetaInfo<CUSTOM_META>> getDeque() {
         if (deque == null) {
             deque = new DequeWithLimit<>(5);
         }
         return deque;
     }
 
-    public void restart(String newRunId, ZonedDateTime now, int overallChunkCount, O<M> additionalInfo) {
+    public void restart(String newRunId, ZonedDateTime now, int overallChunkCount, O<CUSTOM_META> additionalInfo) {
         if (runId != null) {
             getDeque().addFirst(this.withDeque(null));
         }

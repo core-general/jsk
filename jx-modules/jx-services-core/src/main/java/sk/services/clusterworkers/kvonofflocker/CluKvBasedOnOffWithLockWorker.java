@@ -41,7 +41,8 @@ import javax.inject.Inject;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 @Log4j2
-public class CluKvBasedOnOffWithLockWorker<C extends CluKvBasedOnOffWithLockWorker.IConf> extends CluOnOffWithLockWorker<C> {
+public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLockWorker.IConf>
+        extends CluOnOffWithLockWorker<CONFIG> {
     protected @Inject IKvLimitedStore kv;
     protected @Inject INodeInfo nodeInfo;
 
@@ -56,7 +57,7 @@ public class CluKvBasedOnOffWithLockWorker<C extends CluKvBasedOnOffWithLockWork
     }
 
     @Override
-    public synchronized void start(C c) throws RuntimeException {
+    public synchronized void start(CONFIG c) throws RuntimeException {
         CluOnOffKvKey onOffKey = new CluOnOffKvKey(name);
         KvLockOrRenewKey lockKey = new KvLockOrRenewKey(name);
         IConf conf = new IConf() {
@@ -109,7 +110,7 @@ public class CluKvBasedOnOffWithLockWorker<C extends CluKvBasedOnOffWithLockWork
                 return c.getErrorConsumer();
             }
         };
-        super.start((C) conf);
+        super.start((CONFIG) conf);
     }
 
     public interface IConf extends CluOnOffWithLockWorker.IConf {

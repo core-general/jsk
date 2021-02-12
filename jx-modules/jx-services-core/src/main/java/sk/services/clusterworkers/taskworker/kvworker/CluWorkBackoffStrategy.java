@@ -24,6 +24,6 @@ import sk.utils.ifaces.Identifiable;
 
 import java.time.Duration;
 
-public interface CluWorkBackoffStrategy<T extends Identifiable<String>, R> {
-    Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task);
+public interface CluWorkBackoffStrategy<TASK_INPUT extends Identifiable<String>, RESULT> {
+    Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<TASK_INPUT, RESULT> task);
 }

@@ -21,34 +21,24 @@ package sk.services.rand;
  */
 
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sk.utils.paging.RingPicker;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 @SuppressWarnings("unused")
 public class RandTestImpl extends RandImpl implements IRandSetter {
-
-    private AtomicReference<RingPicker<Integer>> intSequence;
-    private AtomicReference<RingPicker<Double>> doubleSequence;
-    private AtomicReference<RingPicker<String>> stringSequence;
-    private Random testRandom;
-
-    @PostConstruct
-    public RandTestImpl init() {
-        intSequence = new AtomicReference<>(null);
-        doubleSequence = new AtomicReference<>(null);
-        stringSequence = new AtomicReference<>(null);
-        testRandom = customRandom();
-        return this;
-    }
+    private final AtomicReference<RingPicker<Integer>> intSequence = new AtomicReference<>(null);
+    private final AtomicReference<RingPicker<Double>> doubleSequence = new AtomicReference<>(null);
+    private final AtomicReference<RingPicker<String>> stringSequence = new AtomicReference<>(null);
+    private final Random testRandom = new Rand4Test(intSequence, doubleSequence);
 
     @Override
     public Random getRandom() {
@@ -108,17 +98,69 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
         }
     }
 
-    @NotNull
-    private Random customRandom() {
-        return new Rand4Test(intSequence, doubleSequence);
-    }
-
     @RequiredArgsConstructor
     private static class Rand4Test extends Random {
-        @Delegate(excludes = Rand4TestExcludes.class) Random r = ThreadLocalRandom.current();
+        Random r;
 
         final AtomicReference<RingPicker<Integer>> intSequence;
         final AtomicReference<RingPicker<Double>> doubleSequence;
+
+        public Random getR() {
+            if (r == null) {
+                r = ThreadLocalRandom.current();
+            }
+            return r;
+        }
+
+        public void setSeed(long seed) {}
+
+        public void nextBytes(byte[] bytes) {getR().nextBytes(bytes);}
+
+        public int nextInt() {return getR().nextInt();}
+
+        public long nextLong() {return getR().nextLong();}
+
+        public boolean nextBoolean() {return getR().nextBoolean();}
+
+        public float nextFloat() {return getR().nextFloat();}
+
+        public double nextGaussian() {return getR().nextGaussian();}
+
+        public IntStream ints(long streamSize) {return getR().ints(streamSize);}
+
+        public IntStream ints() {return getR().ints();}
+
+        public IntStream ints(long streamSize, int randomNumberOrigin, int randomNumberBound) {
+            return getR().ints(streamSize, randomNumberOrigin, randomNumberBound);
+        }
+
+        public IntStream ints(int randomNumberOrigin, int randomNumberBound) {
+            return getR().ints(randomNumberOrigin, randomNumberBound);
+        }
+
+        public LongStream longs(long streamSize) {return getR().longs(streamSize);}
+
+        public LongStream longs() {return getR().longs();}
+
+        public LongStream longs(long streamSize, long randomNumberOrigin, long randomNumberBound) {
+            return getR().longs(streamSize, randomNumberOrigin, randomNumberBound);
+        }
+
+        public LongStream longs(long randomNumberOrigin, long randomNumberBound) {
+            return getR().longs(randomNumberOrigin, randomNumberBound);
+        }
+
+        public DoubleStream doubles(long streamSize) {return getR().doubles(streamSize);}
+
+        public DoubleStream doubles() {return getR().doubles();}
+
+        public DoubleStream doubles(long streamSize, double randomNumberOrigin, double randomNumberBound) {
+            return getR().doubles(streamSize, randomNumberOrigin, randomNumberBound);
+        }
+
+        public DoubleStream doubles(double randomNumberOrigin, double randomNumberBound) {
+            return getR().doubles(randomNumberOrigin, randomNumberBound);
+        }
 
         @SuppressWarnings("unused")
         private interface Rand4TestExcludes {

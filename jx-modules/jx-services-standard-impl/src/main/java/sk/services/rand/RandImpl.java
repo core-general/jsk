@@ -20,31 +20,13 @@ package sk.services.rand;
  * #L%
  */
 
-import sk.exceptions.NotImplementedException;
-
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("unused")
-public class RandImpl implements IRand, IRandSetter {
+public class RandImpl implements IRand {
     @Override
     public Random getRandom() {
         return ThreadLocalRandom.current();
-    }
-
-    @Override
-    public void setIntSequence(List<Integer> randomSequence) {
-        throw new NotImplementedException("not supposed here");
-    }
-
-    @Override
-    public void setDoubleSequence(List<Double> randomSequence) {
-        throw new NotImplementedException("not supposed here");
-    }
-
-    @Override
-    public void setStringSequence(List<String> randomSequence) {
-        throw new NotImplementedException("not supposed here");
     }
 }

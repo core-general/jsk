@@ -23,23 +23,18 @@ package sk.services.http;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import sk.exceptions.JskProblem;
-import sk.exceptions.NotImplementedException;
-import sk.services.async.IExecutorService;
 import sk.services.http.model.CoreHttpResponse;
 import sk.services.retry.IRepeat;
-import sk.services.retry.utils.BatchRepeatResult;
-import sk.services.retry.utils.IdCallable;
 import sk.services.time.ITime;
-import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.*;
+import sk.utils.functional.F1;
+import sk.utils.functional.F1E;
+import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -55,36 +50,7 @@ public class HttpImpl implements IHttp {
     @Inject IRepeat retry;
     @Inject ITime times;
 
-    protected OkHttpClient okHttpClient;
-
-    @PostConstruct
-    public HttpImpl initHttpRequestUtilImpl() {
-        okHttpClient = prepareBuilder().build();
-        if (retry == null) {
-            retry = new IRepeat() {
-
-                @Override
-                public <T> T repeat(@NotNull F0<T> toRun, @Nullable F0<T> onFail, int count, long sleepBetweenTries,
-                        @NotNull Set<Class<? extends Throwable>> allowedExceptions) {
-                    return toRun.get();
-                }
-
-                @Override
-                public <T> T repeatE(@NotNull F0E<T> toRun, @Nullable F0<T> onFail, int count, long sleepBetweenTries,
-                        @NotNull Set<Class<? extends Throwable>> allowedExceptions) throws Exception {
-                    return toRun.get();
-                }
-
-                @Override
-                public <ID, T, A extends IdCallable<ID, T>> BatchRepeatResult<ID, T, A> repeatAndReturnResults(List<A> tasks,
-                        int maxRetryCount, long sleepAfterFailMs, IExecutorService pool,
-                        Set<Class<? extends Throwable>> exceptRetries, CancelGetter cancel) {
-                    throw new NotImplementedException();
-                }
-            };
-        }
-        return this;
-    }
+    protected OkHttpClient okHttpClient = prepareBuilder().build();
 
     protected OkHttpClient.Builder prepareBuilder() {
         return new OkHttpClient.Builder()

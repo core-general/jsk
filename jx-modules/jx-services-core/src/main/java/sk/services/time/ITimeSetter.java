@@ -25,7 +25,7 @@ import sk.utils.statics.Cc;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface ITimeSetter {
+public interface ITimeSetter extends ITime {
     default void setCurrentTime(Long time) {
         setCurrentTimeSequence(time == null ? null : Cc.l(time));
     }

@@ -40,36 +40,36 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Log4j2
-public abstract class CluWorker<S extends Enum<S> & CluState<S>, M extends CluMessage> {
+public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG extends CluMessage> {
     @Inject protected IAsync async;
     @Inject protected ITime times;
     protected final String name;
 
-    private volatile S state;
-    private final List<CluScheduler<S, ? extends M>> schedulers = Cc.l();
-    private final BlockingQueue<M> messageQue = new LinkedBlockingQueue<>();
+    private volatile STATE state;
+    private final List<CluScheduler<STATE, ? extends MSG>> schedulers = Cc.l();
+    private final BlockingQueue<MSG> messageQue = new LinkedBlockingQueue<>();
     private final ReentrantLock lock = new ReentrantLock(true);
     private ForeverThreadWithFinish processingThread;
 
     @SuppressWarnings("unused")
-    CluWorker(String name, S initialState) {
+    CluWorker(String name, STATE initialState) {
         this.name = name;
         this.state = initialState;
     }
 
-    CluWorker(String name, S initialState, IAsync async, ITime times) {
+    CluWorker(String name, STATE initialState, IAsync async, ITime times) {
         this.name = name;
         this.state = initialState;
         this.async = async;
         this.times = times;
     }
 
-    protected <MM extends M> CluScheduler<S, MM> addScheduler(String schedulerName,
-            CluDelay delay, O<Set<S>> allowedStates, F0<O<MM>> processor, boolean dedicatedThread) {
+    protected <MM extends MSG> CluScheduler<STATE, MM> addScheduler(String schedulerName,
+            CluDelay delay, O<Set<STATE>> allowedStates, F0<O<MM>> processor, boolean dedicatedThread) {
         return inLock(() -> privateAddScheduler(schedulerName, allowedStates, processor, delay, dedicatedThread));
     }
 
-    protected synchronized void start(C2<M, S> processor, C1<Throwable> errorConsumer) throws RuntimeException {
+    protected synchronized void start(C2<MSG, STATE> processor, C1<Throwable> errorConsumer) throws RuntimeException {
         inLock(() -> {
             if (processingThread != null && !processingThread.isFinished()) {
                 stop(1000).thenAccept(w -> {
@@ -79,7 +79,7 @@ public abstract class CluWorker<S extends Enum<S> & CluState<S>, M extends CluMe
             schedulers.forEach(CluScheduler::start);
             processingThread = new ForeverThreadWithFinish(() -> {
                 try {
-                    M msg = messageQue.poll(5, TimeUnit.MILLISECONDS);
+                    MSG msg = messageQue.poll(5, TimeUnit.MILLISECONDS);
                     if (msg != null) {
                         processor.accept(msg, getState());
                         log.trace(() -> name + " - processor for msg: " + msg + " finished");
@@ -107,22 +107,22 @@ public abstract class CluWorker<S extends Enum<S> & CluState<S>, M extends CluMe
         });
     }
 
-    protected void setState(S newState) {
+    protected void setState(STATE newState) {
         inLock(() -> {
             this.state = newState;
             log.debug(() -> name + " - State changed to:" + this.state);
         });
     }
 
-    private S getState() {
+    private STATE getState() {
         return state;
     }
 
     @SuppressWarnings("Convert2MethodRef")
     @NotNull
-    private <MM extends M> CluScheduler<S, MM> privateAddScheduler(String schedulerName, O<Set<S>> allowedStates,
+    private <MM extends MSG> CluScheduler<STATE, MM> privateAddScheduler(String schedulerName, O<Set<STATE>> allowedStates,
             F0<O<MM>> processor, CluDelay periodDelay, boolean dedicatedThread) {
-        CluScheduler<S, MM> scheduler =
+        CluScheduler<STATE, MM> scheduler =
                 new CluScheduler<>(name + "_" + schedulerName,
                         dedicatedThread
                                 ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName)

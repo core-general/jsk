@@ -30,12 +30,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Data
-class CluWorkFullInfo<T extends Identifiable<String>, R> {
-    ArrayDeque<CluKvSplitWorkPartInfo<T, R>> workActive = new ArrayDeque<>();
-    Map<String, CluKvSplitWorkPartInfo<T, R>> workLocked = Cc.m();
+class CluWorkFullInfo<TASK_INPUT extends Identifiable<String>, RESULT> {
+    ArrayDeque<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> workActive = new ArrayDeque<>();
+    Map<String, CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> workLocked = Cc.m();
     //tasks in this list have restartAfter not empty to indicate that they have to wait some time before retry
-    TreeMap<Long, List<CluKvSplitWorkPartInfo<T, R>>> idleTasks = Cc.tm();
+    TreeMap<Long, List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>>> idleTasks = Cc.tm();
 
-    List<CluKvSplitWorkPartInfo<T, R>> workFail = Cc.l();
-    List<CluKvSplitWorkPartInfo<T, R>> workSuccess = Cc.l();
+    List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> workFail = Cc.l();
+    List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> workSuccess = Cc.l();
 }

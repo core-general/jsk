@@ -28,14 +28,14 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 @AllArgsConstructor
-public class CluWorkBackoffStrategyExponentialWithLimits<T extends Identifiable<String>, R>
-        implements CluWorkBackoffStrategy<T, R> {
+public class CluWorkBackoffStrategyExponentialWithLimits<TASK_INPUT extends Identifiable<String>, RESULT>
+        implements CluWorkBackoffStrategy<TASK_INPUT, RESULT> {
     int multiplier;
     O<Duration> min;
     O<Duration> max;
 
     @Override
-    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<T, R> task) {
+    public Duration getWaitDurationForTask(CluKvSplitWorkPartInfo<TASK_INPUT, RESULT> task) {
         Duration msWait = Duration.of((long) (Math.pow(2, task.getTryCount()) * multiplier), ChronoUnit.MILLIS);
         Duration newMsWait = min.map(minVal -> minVal.compareTo(msWait) > 0 ? minVal : msWait).orElse(msWait);
         return max.map(maxVal -> maxVal.compareTo(newMsWait) < 0 ? maxVal : newMsWait).orElse(newMsWait);

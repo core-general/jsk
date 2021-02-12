@@ -21,22 +21,14 @@ package sk.services.time;
  */
 
 
-import sk.exceptions.NotImplementedException;
-
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.List;
 
 
 @SuppressWarnings("unused")
-public class TimeUtcImpl implements ITime, ITimeSetter {
+public class TimeUtcImpl implements ITime {
     @Override
     public ZoneId getZone() {
         return ZoneOffset.UTC;
-    }
-
-    @Override
-    public void setCurrentTimeSequence(List<Long> times) {
-        throw new NotImplementedException("not supposed here");
     }
 }

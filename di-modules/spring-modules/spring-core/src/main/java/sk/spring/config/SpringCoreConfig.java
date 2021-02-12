@@ -23,21 +23,33 @@ package sk.spring.config;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import sk.services.ICoreServices;
 import sk.services.async.AsyncImpl;
+import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
 import sk.services.async.ISizedSemaphoreImpl;
+import sk.services.bean.IServiceProvider;
 import sk.services.bytes.BytesImpl;
+import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.services.free.Freemarker;
+import sk.services.free.IFree;
 import sk.services.http.HttpImpl;
+import sk.services.http.IHttp;
+import sk.services.ids.IIds;
 import sk.services.ids.IdsImpl;
 import sk.services.json.IJson;
 import sk.services.json.JGsonImpl;
 import sk.services.log.ILog;
+import sk.services.log.ILogConsoleImpl;
+import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
+import sk.services.rescache.IResCache;
 import sk.services.rescache.ResCacheImpl;
+import sk.services.retry.IRepeat;
 import sk.services.retry.RepeatImpl;
 import sk.services.shutdown.AppStopService;
+import sk.services.time.ITime;
 import sk.services.time.TimeUtcImpl;
 import sk.spring.services.BootServiceImpl;
 import sk.spring.services.CoreServices;
@@ -45,50 +57,35 @@ import sk.spring.services.ServiceProvider4SpringImpl;
 
 @Configuration
 @Log4j2
-public class SpringCoreConfig {
+public class SpringCoreConfig implements ICoreServices {
     @Bean
-    public TimeUtcImpl ITime() {return new TimeUtcImpl();}
+    public ITime times() {return new TimeUtcImpl();}
 
     @Bean
-    public RandImpl RandImpl() {return new RandImpl();}
+    public IRand rand() {return new RandImpl();}
 
     @Bean
-    public AsyncImpl AsyncImpl() {return new AsyncImpl();}
+    public IAsync async() {return new AsyncImpl();}
 
     @Bean
-    public BytesImpl BytesImpl() {return new BytesImpl();}
+    public IBytes bytes() {return new BytesImpl();}
 
     @Bean
-    public HttpImpl HttpImpl() {return new HttpImpl();}
+    public IHttp http() {return new HttpImpl();}
 
     @Bean
-    public IdsImpl IdsImpl() {return new IdsImpl();}
+    public IIds ids() {return new IdsImpl();}
 
     @Bean
-    public ILog ILog(IJson json) {
-        return (severity, category, type, info, logType) -> {
-            switch (severity) {
-                case ERROR:
-                    log.error(category + "__" + type + "_" + json.to(info));
-                    break;
-                case INFO:
-                    log.info(category + "__" + type + "_" + json.to(info));
-                    break;
-                case DEBUG:
-                    log.debug(category + "__" + type + "_" + json.to(info));
-                    break;
-                case TRACE:
-                    log.trace(category + "__" + type + "_" + json.to(info));
-                    break;
-            }
-        };
+    public ILog iLog() {
+        return new ILogConsoleImpl();
     }
 
     @Bean
-    public ResCacheImpl ResCache() {return new ResCacheImpl();}
+    public IResCache resCache() {return new ResCacheImpl();}
 
     @Bean
-    public RepeatImpl RetryImpl() {return new RepeatImpl();}
+    public IRepeat repeat() {return new RepeatImpl();}
 
     @Bean
     public AppStopService AppStopService() {return new AppStopService();}
@@ -97,21 +94,26 @@ public class SpringCoreConfig {
     public BootServiceImpl BootServiceImpl() {return new BootServiceImpl();}
 
     @Bean
-    public JGsonImpl JsonJacksonImpl() {return new JGsonImpl();}
+    public IJson json() {return new JGsonImpl();}
 
     @Bean
-    public ServiceProvider4SpringImpl IServiceProvider() {
+    public IServiceProvider IServiceProvider() {
         return new ServiceProvider4SpringImpl();
     }
 
     @Bean
-    public IExcept IExcept() {
+    public IExcept except() {
         return new IExcept() {};
     }
 
     @Bean
-    public Freemarker Freemarker() {
+    public IFree free() {
         return new Freemarker();
+    }
+
+    @Bean
+    public ISizedSemaphore sizedSemaphore() {
+        return new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 50L);
     }
 
     @Bean
@@ -119,8 +121,4 @@ public class SpringCoreConfig {
         return new CoreServices();
     }
 
-    @Bean
-    public ISizedSemaphore ISizedSemaphore() {
-        return new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 50L);
-    }
 }

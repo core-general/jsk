@@ -38,7 +38,7 @@ import javax.inject.Inject;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 @Log4j2
-public class CluKvBasedOnOffWorker<C extends CluKvBasedOnOffWorker.IConf> extends CluOnOffWorker<C> {
+public class CluKvBasedOnOffWorker<CONFIG extends CluKvBasedOnOffWorker.IConf> extends CluOnOffWorker<CONFIG> {
     protected @Inject IKvLimitedStore kv;
 
     public CluKvBasedOnOffWorker(String workerName) {
@@ -51,7 +51,7 @@ public class CluKvBasedOnOffWorker<C extends CluKvBasedOnOffWorker.IConf> extend
     }
 
     @Override
-    public synchronized void start(C c) throws RuntimeException {
+    public synchronized void start(CONFIG c) throws RuntimeException {
         CluOnOffKvKey onOffKey = new CluOnOffKvKey(name);
         IConf conf = new IConf() {
             @Override
@@ -79,7 +79,7 @@ public class CluKvBasedOnOffWorker<C extends CluKvBasedOnOffWorker.IConf> extend
                 return c.getErrorConsumer();
             }
         };
-        super.start((C) conf);
+        super.start((CONFIG) conf);
     }
 
     public interface IConf extends CluOnOffWorker.IConf {

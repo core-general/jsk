@@ -27,10 +27,10 @@ import sk.services.retry.utils.QueuedTask;
 
 import java.util.Map;
 
-public class CluTaskBatchResult<R> extends
-                                   BatchRepeatResult<String, CluWorkChunkResult<R>, IdCallable<String, CluWorkChunkResult<R>>> {
+public class CluTaskBatchResult<RESULT>
+        extends BatchRepeatResult<String, CluWorkChunkResult<RESULT>, IdCallable<String, CluWorkChunkResult<RESULT>>> {
     public CluTaskBatchResult(
-            Map<String, QueuedTask<String, CluWorkChunkResult<R>, IdCallable<String, CluWorkChunkResult<R>>>> result) {
+            Map<String, QueuedTask<String, CluWorkChunkResult<RESULT>, IdCallable<String, CluWorkChunkResult<RESULT>>>> result) {
         super(result);
     }
 }

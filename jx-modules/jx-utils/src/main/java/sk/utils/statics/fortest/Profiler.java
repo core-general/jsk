@@ -83,7 +83,7 @@ public final class Profiler {
             long lastMark = byLabel.i2();
             Cc.computeAndApply(profInfo, group,
                     (k, v) -> {
-                        Cc.computeAndApply(v, lbl + "_" + label, (k1, v1) -> v1.add((System.nanoTime() - lastMark) / 1000000f),
+                        Cc.computeAndApply(v, lbl + " -> " + label, (k1, v1) -> v1.add((System.nanoTime() - lastMark) / 1000000f),
                                 MinMaxAvg::new);
                         return v;
                     }, ConcurrentHashMap::new);

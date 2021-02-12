@@ -1,31 +1,43 @@
 package sk.web.tools.partuploader;
 
+/*-
+ * #%L
+ * Swiss Knife
+ * %%
+ * Copyright (C) 2019 - 2021 Core General
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
-import sk.services.async.AsyncImpl;
-import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
 import sk.services.async.ISizedSemaphoreImpl;
-import sk.services.except.IExcept;
-import sk.services.json.IJson;
-import sk.services.json.JGsonImpl;
 import sk.services.kv.IKvLocal4Test;
 import sk.services.kv.IKvUnlimitedStore;
 import sk.services.profile.IAppProfileType;
 import sk.services.retry.IRepeat;
 import sk.services.retry.RepeatImpl;
-import sk.services.time.ITime;
-import sk.services.time.UtcSettableTimeUtilImpl;
 import sk.utils.functional.F0;
 import sk.utils.functional.F0E;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.web.exceptions.IWebExcept;
-import sk.web.renders.WebRender;
 import sk.web.renders.inst.WebJsonRender;
 import sk.web.tools.partuploader.api.*;
 
@@ -36,20 +48,18 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static sk.services.ICore4Test.services;
 import static sk.utils.asserts.JskAssert.checkCatchOrFail;
 
 public class PupApiImplTest {
-    IAsync async = new AsyncImpl();
-    ITime times = new UtcSettableTimeUtilImpl().init();
-    IJson json = new JGsonImpl(O.empty(), times).init();
-    IRepeat repeat = new RepeatImpl(async) {
+    IRepeat repeat = new RepeatImpl(services().async()) {
         @Override
         public <T> T repeatE(@NotNull F0E<T> toRun, @Nullable F0<T> onFail, int retryCount, long sleepBetweenTries,
                 @NotNull Set<Class<? extends Throwable>> okExceptions) throws Exception {
             return toRun.get();
         }
     };
-    IKvUnlimitedStore metaStore = new IKvLocal4Test(json, times);
+    IKvUnlimitedStore metaStore = new IKvLocal4Test(services().json(), services().times());
     PupIByteStorage byteStorage = new PupIByteStorage() {
         Map<PupUploadPartId, byte[]> data = new HashMap<>();
 
@@ -84,32 +94,27 @@ public class PupApiImplTest {
         }
     };
 
-    IWebExcept webExcept = new IWebExcept() {
+    IWebExcept webExcept = () -> new WebJsonRender(services().json(), () -> new IAppProfileType() {
         @Override
-        public WebRender getDefaultExceptionRender() {
-            return new WebJsonRender(json, () -> new IAppProfileType() {
-                @Override
-                public String name() {
-                    return "";
-                }
-
-                @Override
-                public boolean isForDefaultTesting() {
-                    return false;
-                }
-
-                @Override
-                public boolean isForProductionUsage() {
-                    return false;
-                }
-            });
+        public String name() {
+            return "";
         }
-    };
-    IExcept except = new IExcept() {};
-    ISizedSemaphore semaphore = new ISizedSemaphoreImpl(1000, 100, async);
+
+        @Override
+        public boolean isForDefaultTesting() {
+            return false;
+        }
+
+        @Override
+        public boolean isForProductionUsage() {
+            return false;
+        }
+    });
+    ISizedSemaphore semaphore = new ISizedSemaphoreImpl(1000, 100, services().async());
 
     PupApiImpl<UploadMeta, Finish> impl = new PupApiImpl<UploadMeta, Finish>(
-            metaStore, byteStorage, userProvider, config, times, repeat, async, webExcept, except, semaphore,
+            metaStore, byteStorage, userProvider, config, services().times(), repeat, services().async(),
+            webExcept, services().except(), semaphore,
             UploadMeta.class, Finish.class
     ) {
         @Override

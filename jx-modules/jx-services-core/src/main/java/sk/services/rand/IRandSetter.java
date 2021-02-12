@@ -23,7 +23,7 @@ package sk.services.rand;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface IRandSetter {
+public interface IRandSetter extends IRand {
     void setIntSequence(List<Integer> randomSequence);
 
     void setDoubleSequence(List<Double> randomSequence);

@@ -56,17 +56,17 @@ import static sk.utils.functional.OneOf.right;
 
 @SuppressWarnings("Convert2MethodRef")
 @Log4j2
-public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extends CluKvSplitTaskWorker.IConf<M, T, R>>
-        extends CluSplitTaskWorker<M, R, C> {
+public class CluKvSplitTaskWorker<CUSTOM_META, TASK_INPUT extends Identifiable<String>, RESULT,
+        CONFIG extends CluKvSplitTaskWorker.IConf<CUSTOM_META, TASK_INPUT, RESULT>>
+        extends CluSplitTaskWorker<CUSTOM_META, RESULT, CONFIG> {
     @Getter final KvKeyWithDefault kvKey4Task;
 
-    @Inject IAsync async;
     @Inject IIds ids;
     @Inject IJson json;
     @Inject IKvLimitedStore kv;
 
-    volatile F2<O<M>, List<T>, Boolean> restarter;
-    volatile F1<O<byte[]>, CluWorkFullInfo<T, R>> decompressor;
+    volatile F2<O<CUSTOM_META>, List<TASK_INPUT>, Boolean> restarter;
+    volatile F1<O<byte[]>, CluWorkFullInfo<TASK_INPUT, RESULT>> decompressor;
 
     public CluKvSplitTaskWorker(String workerName) {
         super(workerName);
@@ -82,16 +82,17 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     }
 
     @Override
-    public synchronized void start(C c) throws RuntimeException {
-        final C config = wrapConfig(c);
+    public synchronized void start(CONFIG c) throws RuntimeException {
+        final CONFIG config = wrapConfig(c);
 
         restarter = (meta, work) -> kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()),
                 (metaAndWork) -> {
-                    CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(null, metaAndWork, new ConverterImpl<>(
-                            a -> decompressor.apply(a),
-                            b -> O.of(compressFullWork(config, b))),
-                            times.nowZ(), config.getMsForTaskToExpire()
-                    );
+                    CluWorkHelper<CUSTOM_META, TASK_INPUT, RESULT> helper =
+                            new CluWorkHelper<>(null, metaAndWork, new ConverterImpl<>(
+                                    a -> decompressor.apply(a),
+                                    b -> O.of(compressFullWork(config, b))),
+                                    times.nowZ(), config.getMsForTaskToExpire()
+                            );
 
                     helper.initWork(ids.shortIdS(), meta, work);
 
@@ -103,11 +104,11 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         super.start(config);
     }
 
-    public boolean restart(O<M> meta, List<T> work) {
+    public boolean restart(O<CUSTOM_META> meta, List<TASK_INPUT> work) {
         return restarter.apply(meta, work);
     }
 
-    public void updateAdditionalInfo(O<M> meta, Class<M> cls) {
+    public void updateAdditionalInfo(O<CUSTOM_META> meta, Class<CUSTOM_META> cls) {
         kv.updateObject(kvKey4Task, getMetaType(cls),
                 (m) -> {
                     m.setAdditionalInfo(meta);
@@ -115,7 +116,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                 });
     }
 
-    public CluWorkMetaInfo<M> getMeta(Class<M> cls) {
+    public CluWorkMetaInfo<CUSTOM_META> getMeta(Class<CUSTOM_META> cls) {
         return kv.getAsObject(kvKey4Task, getMetaType(cls));
     }
 
@@ -132,23 +133,27 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                 });
     }
 
-    public CompletableFuture<List<X2<T, OneOf<R, String>>>> getFullWorkInfoAfterFinish() {
+    public CompletableFuture<List<X2<TASK_INPUT, OneOf<RESULT, String>>>> getFullWorkInfoAfterFinish() {
+        return getFullWorkInfoAfterFinish(1000);
+    }
+
+    public CompletableFuture<List<X2<TASK_INPUT, OneOf<RESULT, String>>>> getFullWorkInfoAfterFinish(long sleepTime) {
         return async.supplyBuf(() -> {
             while (true) {
                 final CluWorkMetaInfo<?> meta = getMeta();
                 if (!meta.isWorkActive()) {
                     break;
                 }
-                async.sleep(1000);
+                async.sleep(sleepTime);
             }
 
-            final CluWorkFullInfo<T, R> fullWork =
+            final CluWorkFullInfo<TASK_INPUT, RESULT> fullWork =
                     decompressor.apply(kv.getAsObjectWithRaw(kvKey4Task, CluWorkMetaInfo.class).getRawValue());
 
-            List<X2<T, OneOf<R, String>>> toRet = Cc.l();
+            List<X2<TASK_INPUT, OneOf<RESULT, String>>> toRet = Cc.l();
 
-            final Function<CluKvSplitWorkPartInfo<T, R>, X2<T, OneOf<R, String>>> converteR =
-                    $ -> X.x($.getWorkDescription(), $.getLastResult().map($$ -> OneOf.<R, String>left($$))
+            final Function<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>, X2<TASK_INPUT, OneOf<RESULT, String>>> converteR =
+                    $ -> X.x($.getWorkDescription(), $.getLastResult().map($$ -> OneOf.<RESULT, String>left($$))
                             .orElseGet(() -> right($.getLastError().get())));
 
             fullWork.getWorkFail().stream().map(converteR).forEach(toRet::add);
@@ -158,20 +163,20 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         });
     }
 
-    private CluSplitTask<M, R> createTaskForCurrentRun(C config) {
+    private CluSplitTask<CUSTOM_META, RESULT> createTaskForCurrentRun(CONFIG config) {
         String currentTaskId = ids.shortIdS();
 
-        CluSplitTask<M, R> dontStartSplitTask;
+        CluSplitTask<CUSTOM_META, RESULT> dontStartSplitTask;
         {
-            CluWorkMetaInfo<M> oldMeta = kv.getAsObject(kvKey4Task, getMetaType(config.getMetaClass()));
+            CluWorkMetaInfo<CUSTOM_META> oldMeta = kv.getAsObject(kvKey4Task, getMetaType(config.getMetaClass()));
             dontStartSplitTask = new CluSplitTask<>(oldMeta);
             if (!oldMeta.isWorkActive()) {
                 return dontStartSplitTask;
             }
         }
 
-        X1<List<CluWorkChunk<R>>> todo = new X1<>();
-        O<KvAllValues<CluWorkMetaInfo<M>>> lockSuccess =
+        X1<List<CluWorkChunk<RESULT>>> todo = new X1<>();
+        O<KvAllValues<CluWorkMetaInfo<CUSTOM_META>>> lockSuccess =
                 kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()),
                         (metaAndWork) -> prepareTasksAndLockKVStateIfPossible(config, currentTaskId, todo, metaAndWork))
                         .collect($ -> $, e -> O.empty());
@@ -183,19 +188,20 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                 O.of(finishedWork -> finisher(config, finishedWork, currentTaskId)));
     }
 
-    private O<KvAllValues<CluWorkMetaInfo<M>>> prepareTasksAndLockKVStateIfPossible(C config, String currentTaskId,
-            X1<List<CluWorkChunk<R>>> todo, KvAllValues<CluWorkMetaInfo<M>> metaAndWork) {
-        CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork, new ConverterImpl<>(
-                a -> decompressor.apply(a),
-                b -> O.of(compressFullWork(config, b))),
-                times.nowZ(), config.getMsForTaskToExpire()
-        );
+    private O<KvAllValues<CluWorkMetaInfo<CUSTOM_META>>> prepareTasksAndLockKVStateIfPossible(CONFIG config, String currentTaskId,
+            X1<List<CluWorkChunk<RESULT>>> todo, KvAllValues<CluWorkMetaInfo<CUSTOM_META>> metaAndWork) {
+        CluWorkHelper<CUSTOM_META, TASK_INPUT, RESULT> helper =
+                new CluWorkHelper<>(currentTaskId, metaAndWork, new ConverterImpl<>(
+                        a -> decompressor.apply(a),
+                        b -> O.of(compressFullWork(config, b))),
+                        times.nowZ(), config.getMsForTaskToExpire()
+                );
 
         if (helper.noMoreActiveWork()) {
             return O.empty();
         }
 
-        List<CluWorkChunk<R>> work = helper.getActualWork(config.getNumberOfTasksInSplit()).stream()
+        List<CluWorkChunk<RESULT>> work = helper.getActualWork(config.getNumberOfTasksInSplit()).stream()
                 .filter($ -> $ != null)
                 .map($ -> new CluWorkChunk<>($.getWorkDescription().getId(), $.getTryCount(),
                         (cancel) -> config.getMainPayloadProcessor()
@@ -211,13 +217,13 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
         return O.of(helper.serializeBack());
     }
 
-    private void finisher(C config, O<List<CluWorkChunkResult<R>>> finishedWork, String currentTaskId) {
+    private void finisher(CONFIG config, O<List<CluWorkChunkResult<RESULT>>> finishedWork, String currentTaskId) {
         if (finishedWork.isEmpty()) {
             return; //do nothing if no work
         }
 
         kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()), (metaAndWork) -> {
-            CluWorkHelper<M, T, R> helper = new CluWorkHelper<>(currentTaskId, metaAndWork,
+            CluWorkHelper<CUSTOM_META, TASK_INPUT, RESULT> helper = new CluWorkHelper<>(currentTaskId, metaAndWork,
                     new ConverterImpl<>(
                             a -> decompressor.apply(a),
                             b -> O.of(compressFullWork(config, b))
@@ -236,34 +242,34 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
     }
 
     @SuppressWarnings("unchecked")
-    private CluWorkFullInfo<T, R> decompressFullWork(C config, O<byte[]> work) {
+    private CluWorkFullInfo<TASK_INPUT, RESULT> decompressFullWork(CONFIG config, O<byte[]> work) {
         return work
                 .map($ -> config.getRawValueConverter().convertThere($))
-                .map($ -> (CluWorkFullInfo<T, R>) json
+                .map($ -> (CluWorkFullInfo<TASK_INPUT, RESULT>) json
                         .from($, (TypeWrap<?>) TypeWrap
                                 .getCustom(CluWorkFullInfo.class, config.getWorkInfoCls(), config.getResultClass())))
-                .orElseGet(() -> new CluWorkFullInfo<T, R>());
+                .orElseGet(() -> new CluWorkFullInfo<TASK_INPUT, RESULT>());
     }
 
-    private byte[] compressFullWork(C config, CluWorkFullInfo<T, R> fullWork) {
+    private byte[] compressFullWork(CONFIG config, CluWorkFullInfo<TASK_INPUT, RESULT> fullWork) {
         return config.getRawValueConverter().convertBack(json.to(fullWork));
     }
 
     @NotNull
-    private TypeWrap<CluWorkMetaInfo<M>> getMetaType(Class<?> metaClass) {
-        return (TypeWrap<CluWorkMetaInfo<M>>)
+    private TypeWrap<CluWorkMetaInfo<CUSTOM_META>> getMetaType(Class<?> metaClass) {
+        return (TypeWrap<CluWorkMetaInfo<CUSTOM_META>>)
                 TypeWrap.getHolder(CluWorkMetaInfo.class, metaClass);
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
-    private C wrapConfig(C config) {
+    private CONFIG wrapConfig(CONFIG config) {
         CluOnOffKvKey onOffKey = new CluOnOffKvKey(name);
-        IConf<M, T, R> iConf = new IConf<M, T, R>() {
+        IConf<CUSTOM_META, TASK_INPUT, RESULT> iConf = new IConf<CUSTOM_META, TASK_INPUT, RESULT>() {
             @Override
-            public Gett<CluSplitTask<M, R>> getSplitTask() {
+            public Gett<CluSplitTask<CUSTOM_META, RESULT>> getSplitTask() {
                 return () -> {
-                    CluSplitTask<M, R> apply = null;
+                    CluSplitTask<CUSTOM_META, RESULT> apply = null;
                     try {
                         apply = config.getSplitTask() != null
                                 ? config.getSplitTask().apply()
@@ -275,7 +281,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
             }
 
             @Override
-            public void preRun(CluSplitTask<M, R> task) {
+            public void preRun(CluSplitTask<CUSTOM_META, RESULT> task) {
                 config.preRun(task);
             }
 
@@ -314,7 +320,7 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
             }
 
             @Override
-            public F3<M, T, CancelGetter, CluWorkChunkResult<R>> getMainPayloadProcessor() {
+            public F3<CUSTOM_META, TASK_INPUT, CancelGetter, CluWorkChunkResult<RESULT>> getMainPayloadProcessor() {
                 return config.getMainPayloadProcessor();
             }
 
@@ -324,22 +330,22 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
             }
 
             @Override
-            public CluAsyncTaskExecutor<R> getTaskExecutor() {
+            public CluAsyncTaskExecutor<RESULT> getTaskExecutor() {
                 return config.getTaskExecutor();
             }
 
             @Override
-            public Class<M> getMetaClass() {
+            public Class<CUSTOM_META> getMetaClass() {
                 return config.getMetaClass();
             }
 
             @Override
-            public Class<T> getWorkInfoCls() {
+            public Class<TASK_INPUT> getWorkInfoCls() {
                 return config.getWorkInfoCls();
             }
 
             @Override
-            public Class<R> getResultClass() {
+            public Class<RESULT> getResultClass() {
                 return config.getResultClass();
             }
 
@@ -358,12 +364,12 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
                 return config.getBackoff();
             }
         };
-        return (C) iConf;
+        return (CONFIG) iConf;
     }
 
-    public interface IConf<M, T, R> extends CluSplitTaskWorker.IConf<M, R> {
+    public interface IConf<CUSTOM_META, TASK_INPUT, RESULT> extends CluSplitTaskWorker.IConf<CUSTOM_META, RESULT> {
         @Override
-        default Gett<CluSplitTask<M, R>> getSplitTask() {
+        default Gett<CluSplitTask<CUSTOM_META, RESULT>> getSplitTask() {
             return null;
         }
 
@@ -374,17 +380,17 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
         int getNumberOfTasksInSplit();
 
-        F3<M, T, CancelGetter, CluWorkChunkResult<R>> getMainPayloadProcessor();
+        F3<CUSTOM_META, TASK_INPUT, CancelGetter, CluWorkChunkResult<RESULT>> getMainPayloadProcessor();
 
         Converter<byte[], String> getRawValueConverter();
 
-        CluAsyncTaskExecutor<R> getTaskExecutor();
+        CluAsyncTaskExecutor<RESULT> getTaskExecutor();
 
-        Class<M> getMetaClass();
+        Class<CUSTOM_META> getMetaClass();
 
-        Class<T> getWorkInfoCls();
+        Class<TASK_INPUT> getWorkInfoCls();
 
-        Class<R> getResultClass();
+        Class<RESULT> getResultClass();
 
         long getMsForTaskToExpire();
 
@@ -395,20 +401,20 @@ public class CluKvSplitTaskWorker<M, T extends Identifiable<String>, R, C extend
 
     @Getter
     @AllArgsConstructor
-    public static class Config<M, T, R> implements IConf<M, T, R> {
+    public static class Config<CUSTOM_META, TASK_INPUT, RESULT> implements IConf<CUSTOM_META, TASK_INPUT, RESULT> {
         CluDelay mainTaskDelay;
         long onOffCheckPeriod;
         C1<Throwable> errorConsumer;
 
-        F3<M, T, CancelGetter, CluWorkChunkResult<R>> mainPayloadProcessor;
+        F3<CUSTOM_META, TASK_INPUT, CancelGetter, CluWorkChunkResult<RESULT>> mainPayloadProcessor;
         int numberOfTasksInSplit;
         Converter<byte[], String> rawValueConverter;
-        CluAsyncTaskExecutor<R> taskExecutor;
-        Class<M> metaClass;
+        CluAsyncTaskExecutor<RESULT> taskExecutor;
+        Class<CUSTOM_META> metaClass;
         int maxTaskRetries;
-        Class<T> workInfoCls;
+        Class<TASK_INPUT> workInfoCls;
         long msForTaskToExpire;
-        Class<R> resultClass;
+        Class<RESULT> resultClass;
         CluWorkBackoffStrategy backoff;
     }
 

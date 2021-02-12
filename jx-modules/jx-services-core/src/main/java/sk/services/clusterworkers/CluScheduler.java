@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("WeakerAccess")
 @Log4j2
-public class CluScheduler<S extends Enum<S> & CluState<S>, M extends CluMessage> {
+public class CluScheduler<STATE extends Enum<STATE> & CluState<STATE>, MESSAGE extends CluMessage> {
     private final R taskRestarter;
     private ScheduledFuture<?> currentTask;
     private ScheduledExecutorService currentExecutor;
@@ -51,8 +51,8 @@ public class CluScheduler<S extends Enum<S> & CluState<S>, M extends CluMessage>
     private boolean started = false;
 
     CluScheduler(String schedulerName, F0<ScheduledExecutorService> executor,
-            CluDelay delayProvider, O<Set<S>> allowedStates, F0<S> stateGetter,
-            F0<O<M>> processor, Sett<M> resultPublisher) {
+            CluDelay delayProvider, O<Set<STATE>> allowedStates, F0<STATE> stateGetter,
+            F0<O<MESSAGE>> processor, Sett<MESSAGE> resultPublisher) {
         this.schedulerName = schedulerName;
 
         recreateExecutor(executor);
@@ -68,7 +68,7 @@ public class CluScheduler<S extends Enum<S> & CluState<S>, M extends CluMessage>
                         if (allowedStates.isEmpty() || allowedStates.get().contains(stateGetter.get())) {
                             //log.trace(() -> schedulerName + " - Executing task");
                             synchronized (mainTaskLock) {
-                                O<M> apply = processor.apply();
+                                O<MESSAGE> apply = processor.apply();
                                 //log.trace(() -> schedulerName + " - Task result:" + apply);
                                 apply.ifPresent(resultPublisher::setIfNotNull);
                                 //log.debug(() -> schedulerName + " - Run ok : " + apply.map($ -> $.toString()).orElse("O.empty

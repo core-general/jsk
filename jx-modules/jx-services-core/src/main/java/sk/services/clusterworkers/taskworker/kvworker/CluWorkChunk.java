@@ -28,12 +28,12 @@ import sk.utils.ids.IdBase;
 
 @EqualsAndHashCode(callSuper = true)
 @Value
-public class CluWorkChunk<R> extends IdBase<String> {
+public class CluWorkChunk<RESULT> extends IdBase<String> {
     int badRetryCount;
-    F1<CancelGetter, CluWorkChunkResult<R>> executor;
+    F1<CancelGetter, CluWorkChunkResult<RESULT>> executor;
 
     public CluWorkChunk(String id, int badRetryCount,
-            F1<CancelGetter, CluWorkChunkResult<R>> executor) {
+            F1<CancelGetter, CluWorkChunkResult<RESULT>> executor) {
         super(id);
         this.badRetryCount = badRetryCount;
         this.executor = executor;

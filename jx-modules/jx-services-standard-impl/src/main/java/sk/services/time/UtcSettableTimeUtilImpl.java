@@ -23,20 +23,13 @@ package sk.services.time;
 import lombok.val;
 import sk.utils.paging.RingPicker;
 
-import javax.annotation.PostConstruct;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
-public class UtcSettableTimeUtilImpl extends TimeUtcImpl {
-    private AtomicReference<RingPicker<Long>> intSequence;
-
-    @PostConstruct
-    public UtcSettableTimeUtilImpl init() {
-        intSequence = new AtomicReference<>();
-        return this;
-    }
+public class UtcSettableTimeUtilImpl extends TimeUtcImpl implements ITimeSetter {
+    private final AtomicReference<RingPicker<Long>> intSequence = new AtomicReference<>();
 
     @Override
     public ZonedDateTime nowZ() {

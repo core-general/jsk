@@ -43,7 +43,7 @@ import static sk.services.clusterworkers.CluOnOffWithLockWorker.State.*;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 @Log4j2
-public class CluOnOffWithLockWorker<C extends CluOnOffWithLockWorker.IConf>
+public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
         extends CluWorker<CluOnOffWithLockWorker.State, BaseMessage> {
     private CluScheduler<State, BaseMessage> onOffScheduler;
     private CluScheduler<State, BaseMessage> mainTaskScheduler;
@@ -65,7 +65,7 @@ public class CluOnOffWithLockWorker<C extends CluOnOffWithLockWorker.IConf>
     }
 
     @SuppressWarnings("unused")
-    public synchronized void start(C conf) throws RuntimeException {
+    public synchronized void start(CONFIG conf) throws RuntimeException {
         if (onOffScheduler == null) {
             onOffScheduler =
                     addScheduler("OnOffSch", CluDelay.fixed(conf.getSchedulerCheckPeriod()), O.empty(),

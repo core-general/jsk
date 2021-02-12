@@ -38,15 +38,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j2
-class CluWorkHelper<M, T extends Identifiable<String>, R> {
+class CluWorkHelper<CUSTOM_META, TASK_INPUT extends Identifiable<String>, RESULT> {
     private String taskId;
-    CluWorkMetaInfo<M> meta;
-    CluWorkFullInfo<T, R> raw;
-    private Converter<O<byte[]>, CluWorkFullInfo<T, R>> converter;
+    CluWorkMetaInfo<CUSTOM_META> meta;
+    CluWorkFullInfo<TASK_INPUT, RESULT> raw;
+    private Converter<O<byte[]>, CluWorkFullInfo<TASK_INPUT, RESULT>> converter;
     private ZonedDateTime now;
 
-    public CluWorkHelper(String taskId, KvAllValues<CluWorkMetaInfo<M>> data,
-            Converter<O<byte[]>, CluWorkFullInfo<T, R>> converter,
+    public CluWorkHelper(String taskId, KvAllValues<CluWorkMetaInfo<CUSTOM_META>> data,
+            Converter<O<byte[]>, CluWorkFullInfo<TASK_INPUT, RESULT>> converter,
             ZonedDateTime now, long maxLockTime) {
         this.taskId = taskId;
         this.meta = data.getValue();
@@ -55,10 +55,10 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
         this.raw = converter.convertThere(data.getRawValue());
 
         //clear bad locks
-        Iterator<Map.Entry<String, CluKvSplitWorkPartInfo<T, R>>> lockIterator =
+        Iterator<Map.Entry<String, CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>>> lockIterator =
                 raw.getWorkLocked().entrySet().iterator();
         while (lockIterator.hasNext()) {
-            Map.Entry<String, CluKvSplitWorkPartInfo<T, R>> kv = lockIterator.next();
+            Map.Entry<String, CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> kv = lockIterator.next();
             if (kv.getValue().getLock().isPresent()) {
                 if (kv.getValue().getLock().get().isObsolete(now, maxLockTime)) {
                     log.error("Some CluWork lock was old");
@@ -76,10 +76,10 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
 
 
         //check retry allowance
-        final Iterator<Map.Entry<Long, List<CluKvSplitWorkPartInfo<T, R>>>>
+        final Iterator<Map.Entry<Long, List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>>>>
                 backoffIterator = raw.getIdleTasks().entrySet().iterator();
         while (backoffIterator.hasNext()) {
-            final Map.Entry<Long, List<CluKvSplitWorkPartInfo<T, R>>> retryValue = backoffIterator.next();
+            final Map.Entry<Long, List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>>> retryValue = backoffIterator.next();
             if (now.toInstant().toEpochMilli() > retryValue.getKey()) {
                 retryValue.getValue().forEach($ -> raw.getWorkActive().addFirst($));
                 backoffIterator.remove();
@@ -89,10 +89,10 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
         }
     }
 
-    public void initWork(String newRunId, O<M> additionalMeta, List<T> toDo) {
+    public void initWork(String newRunId, O<CUSTOM_META> additionalMeta, List<TASK_INPUT> toDo) {
         meta.restart(newRunId, now, toDo.size(), additionalMeta);
 
-        raw.setWorkActive(toDo.stream().map($ -> new CluKvSplitWorkPartInfo<T, R>($))
+        raw.setWorkActive(toDo.stream().map($ -> new CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>($))
                 .collect(Collectors.toCollection(ArrayDeque::new)));
 
         raw.setWorkFail(Cc.l());
@@ -108,7 +108,7 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
         return meta.isWorkActive();
     }
 
-    public KvAllValues<CluWorkMetaInfo<M>> serializeBack() {
+    public KvAllValues<CluWorkMetaInfo<CUSTOM_META>> serializeBack() {
         meta.setLockedChunkCount(raw.getWorkLocked().size());
         meta.setIdleChunkCount(raw.getIdleTasks().values().stream().mapToInt($ -> $.size()).sum());
         meta.setLastBackoffIdleWait(O.ofNull(raw.getIdleTasks().lastEntry()).map($ -> $.getKey()));
@@ -119,8 +119,8 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
         return new KvAllValues<>(meta, converter.convertBack(raw), O.empty());
     }
 
-    public List<CluKvSplitWorkPartInfo<T, R>> getActualWork(int numberOfTasksInSplit) {
-        List<CluKvSplitWorkPartInfo<T, R>> workParts =
+    public List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> getActualWork(int numberOfTasksInSplit) {
+        List<CluKvSplitWorkPartInfo<TASK_INPUT, RESULT>> workParts =
                 Cc.fillFun(numberOfTasksInSplit, i -> raw.getWorkActive().pollLast());
 
         workParts.stream().filter(Objects::nonNull).forEach($ -> {
@@ -132,15 +132,15 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
         return workParts;
     }
 
-    public void finishProcessing(List<CluWorkChunkResult<R>> finishedWork, int maxRetryCount,
-            CluWorkBackoffStrategy<T, R> backoff) {
+    public void finishProcessing(List<CluWorkChunkResult<RESULT>> finishedWork, int maxRetryCount,
+            CluWorkBackoffStrategy<TASK_INPUT, RESULT> backoff) {
         if (finishedWork.size() == 0) {
             return;
         }
-        ListIterator<CluWorkChunkResult<R>> li = finishedWork.listIterator();
+        ListIterator<CluWorkChunkResult<RESULT>> li = finishedWork.listIterator();
         while (li.hasNext()) {
-            CluWorkChunkResult<R> workResult = li.next();
-            CluKvSplitWorkPartInfo<T, R> lockedWorkPart = raw.getWorkLocked().get(workResult.getId());
+            CluWorkChunkResult<RESULT> workResult = li.next();
+            CluKvSplitWorkPartInfo<TASK_INPUT, RESULT> lockedWorkPart = raw.getWorkLocked().get(workResult.getId());
             if (lockedWorkPart == null) {
                 continue;
             }
@@ -150,7 +150,7 @@ class CluWorkHelper<M, T extends Identifiable<String>, R> {
 
             lockedWorkPart.setLock(O.empty());
             raw.getWorkLocked().remove(workResult.getId());
-            OneOf<R, Exception> result = workResult.getResult();
+            OneOf<RESULT, Exception> result = workResult.getResult();
             if (result.isLeft()) {
                 lockedWorkPart.setLastResult(O.of(result.left()));
                 lockedWorkPart.setLastError(O.empty());

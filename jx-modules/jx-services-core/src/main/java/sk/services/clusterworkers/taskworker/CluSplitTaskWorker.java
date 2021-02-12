@@ -43,7 +43,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> extends CluOnOffWorker<C> {
+public class CluSplitTaskWorker<CUSTOM_META, RESULT, CONFIG extends CluSplitTaskWorker.IConf<CUSTOM_META, RESULT>>
+        extends CluOnOffWorker<CONFIG> {
     public CluSplitTaskWorker(String workerName) {
         super(workerName);
     }
@@ -53,14 +54,14 @@ public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> 
     }
 
     @Override
-    public synchronized void start(C config) throws RuntimeException {
+    public synchronized void start(CONFIG config) throws RuntimeException {
         super.start(config);
     }
 
-    public interface IConf<M, R> extends CluOnOffWorker.IConf {
-        Gett<CluSplitTask<M, R>> getSplitTask();
+    public interface IConf<CUSTOM_META, RESULT> extends CluOnOffWorker.IConf {
+        Gett<CluSplitTask<CUSTOM_META, RESULT>> getSplitTask();
 
-        default void preRun(CluSplitTask<M, R> task) {
+        default void preRun(CluSplitTask<CUSTOM_META, RESULT> task) {
             //does nothing, but could be overridden
         }
 
@@ -69,7 +70,7 @@ public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> 
                 try {
                     //TestProf.mark("start");
 
-                    CluSplitTask<M, R> tasks = getSplitTask().get();
+                    CluSplitTask<CUSTOM_META, RESULT> tasks = getSplitTask().get();
                     if (tasks.getTasksToProcess().isEmpty()) {
                         tasks.finishTasks(O.empty());
                     }
@@ -78,7 +79,7 @@ public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> 
 
                     //TestProf.mark("prepare");
 
-                    List<IdCallable<String, CluWorkChunkResult<R>>> toExecute = tasks.getTasksToProcess().stream()
+                    List<IdCallable<String, CluWorkChunkResult<RESULT>>> toExecute = tasks.getTasksToProcess().stream()
                             .flatMap(Collection::stream)
                             .map($ -> new IdCallableImpl<>($.getId(), (cc) -> {
                                 cc.throwIfCancelled();
@@ -86,13 +87,13 @@ public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> 
                             }))
                             .collect(Collectors.toList());
 
-                    O<CluTaskBatchResult<R>> res = tasks.getExecutor().map($ -> $.apply(toExecute, cancel));
+                    O<CluTaskBatchResult<RESULT>> res = tasks.getExecutor().map($ -> $.apply(toExecute, cancel));
 
                     //TestProf.mark("done");
 
-                    List<CluWorkChunkResult<R>> results = res.stream().flatMap($ -> $.getAllTasks().values().stream())
+                    List<CluWorkChunkResult<RESULT>> results = res.stream().flatMap($ -> $.getAllTasks().values().stream())
                             .map($ -> $.getResult()
-                                    .collect(r -> r, r -> new CluWorkChunkResult<R>($.getTask().getId(), OneOf.right(r))))
+                                    .collect(r -> r, r -> new CluWorkChunkResult<RESULT>($.getTask().getId(), OneOf.right(r))))
                             .collect(Collectors.toList());
 
                     tasks.finishTasks(O.of(results));
@@ -110,9 +111,9 @@ public class CluSplitTaskWorker<M, R, C extends CluSplitTaskWorker.IConf<M, R>> 
 
     @Getter
     @AllArgsConstructor
-    public static class Config<M, R> implements IConf<M, R> {
+    public static class Config<CUSTOM_META, RESULT> implements IConf<CUSTOM_META, RESULT> {
 
-        Gett<CluSplitTask<M, R>> splitTask;
+        Gett<CluSplitTask<CUSTOM_META, RESULT>> splitTask;
         CluDelay mainTaskDelay;
 
         long onOffCheckPeriod;

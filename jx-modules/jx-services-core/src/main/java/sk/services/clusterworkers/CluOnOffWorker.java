@@ -39,7 +39,7 @@ import static sk.services.clusterworkers.CluOnOffWorker.State.OFF;
 import static sk.services.clusterworkers.CluOnOffWorker.State.ON;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-public class CluOnOffWorker<C extends CluOnOffWorker.IConf> extends CluWorker<CluOnOffWorker.State, CluOnOffWorker.Msg> {
+public class CluOnOffWorker<CONFIG extends CluOnOffWorker.IConf> extends CluWorker<CluOnOffWorker.State, CluOnOffWorker.Msg> {
     private CluScheduler<State, Msg> onOffScheduler;
     private CluScheduler<State, Msg> mainTaskScheduler;
     private final CancelToken cancellationToken;
@@ -59,7 +59,7 @@ public class CluOnOffWorker<C extends CluOnOffWorker.IConf> extends CluWorker<Cl
     enum State implements CluState<State> {OFF, ON}
 
     @SuppressWarnings("unused")
-    public synchronized void start(C config) throws RuntimeException {
+    public synchronized void start(CONFIG config) throws RuntimeException {
         if (onOffScheduler == null) {
             onOffScheduler = addScheduler("OnOffSch",
                     CluDelay.fixed(config.getOnOffCheckPeriod()), O.empty(),

@@ -24,13 +24,13 @@ import lombok.Getter;
 import sk.utils.functional.OneOf;
 
 @SuppressWarnings("unused")
-public class QueuedTask<ID, T, A extends IdCallable<ID, T>> {
+public class QueuedTask<ID, RESULT, TASK extends IdCallable<ID, RESULT>> {
     public static final QueuedTask STOP = new QueuedTask();
 
-    @Getter private A task;
+    @Getter private TASK task;
     @Getter private int tryCount;
     @Getter private boolean finished = false;
-    @Getter private volatile OneOf<T, Exception> result;
+    @Getter private volatile OneOf<RESULT, Exception> result;
 
     public boolean isOk() {
         return isFinished() && result.isLeft();
@@ -44,13 +44,13 @@ public class QueuedTask<ID, T, A extends IdCallable<ID, T>> {
         return result != null && finished && result.isRight();
     }
 
-    public QueuedTask(A task) {
+    public QueuedTask(TASK task) {
         this.task = task;
         tryCount = 0;
         result = null;
     }
 
-    private QueuedTask(A task, int tryCount, boolean finished, OneOf<T, Exception> result) {
+    private QueuedTask(TASK task, int tryCount, boolean finished, OneOf<RESULT, Exception> result) {
         this.task = task;
         this.tryCount = tryCount;
         this.finished = finished;
@@ -70,9 +70,10 @@ public class QueuedTask<ID, T, A extends IdCallable<ID, T>> {
         tryCount++;
     }
 
-    public void ok(T call) {
+    public QueuedTask<ID, RESULT, TASK> ok(RESULT call) {
         finished = true;
         result = OneOf.left(call);
+        return this;
     }
 
     public void unknownExcept(Exception e) {

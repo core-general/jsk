@@ -27,5 +27,5 @@ import sk.utils.functional.F2;
 
 import java.util.List;
 
-public interface CluAsyncTaskExecutor<R>
-        extends F2<List<IdCallable<String, CluWorkChunkResult<R>>>, CancelGetter, CluTaskBatchResult<R>> {}
+public interface CluAsyncTaskExecutor<RESULT>
+        extends F2<List<IdCallable<String, CluWorkChunkResult<RESULT>>>, CancelGetter, CluTaskBatchResult<RESULT>> {}

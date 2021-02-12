@@ -33,17 +33,17 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CluSplitTask<M, R> {
-    CluWorkMetaInfo<M> metaInfo;
-    O<List<CluWorkChunk<R>>> tasksToProcess = O.empty();
-    O<CluAsyncTaskExecutor<R>> executor = O.empty();
-    O<C1<O<List<CluWorkChunkResult<R>>>>> finisher = O.empty();
+public class CluSplitTask<CUSTOM_META, RESULT> {
+    CluWorkMetaInfo<CUSTOM_META> metaInfo;
+    O<List<CluWorkChunk<RESULT>>> tasksToProcess = O.empty();
+    O<CluAsyncTaskExecutor<RESULT>> executor = O.empty();
+    O<C1<O<List<CluWorkChunkResult<RESULT>>>>> finisher = O.empty();
 
-    public CluSplitTask(CluWorkMetaInfo<M> metaInfo) {
+    public CluSplitTask(CluWorkMetaInfo<CUSTOM_META> metaInfo) {
         this.metaInfo = metaInfo;
     }
 
-    public void finishTasks(O<List<CluWorkChunkResult<R>>> applyResults) {
+    public void finishTasks(O<List<CluWorkChunkResult<RESULT>>> applyResults) {
         finisher.ifPresent($ -> $.accept(applyResults));
     }
 }

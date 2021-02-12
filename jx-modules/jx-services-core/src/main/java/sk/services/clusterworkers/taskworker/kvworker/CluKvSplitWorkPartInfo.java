@@ -27,9 +27,9 @@ import sk.utils.ifaces.Identifiable;
 
 @Data
 @RequiredArgsConstructor
-public class CluKvSplitWorkPartInfo<T extends Identifiable<String>, R> {
-    final T workDescription;
-    O<R> lastResult = O.empty();
+public class CluKvSplitWorkPartInfo<TASK_INPUT extends Identifiable<String>, RESULT> {
+    final TASK_INPUT workDescription;
+    O<RESULT> lastResult = O.empty();
     O<CluKvSplitLockInfo> lock = O.empty();
     O<String> lastError = O.empty();
     int tryCount = 0;

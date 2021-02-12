@@ -21,7 +21,7 @@ package sk.services.clusterworkers.model;
  */
 
 @SuppressWarnings("unused")
-public interface CluState<T extends Enum<T>> {
+public interface CluState<ENUM extends Enum<ENUM>> {
     @SuppressWarnings("unused")
     String name();
 }
