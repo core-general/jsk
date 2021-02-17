@@ -28,10 +28,13 @@ import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
+import sk.utils.statics.St;
 
 import java.util.Map;
 
 public class MigratorBase {
+    protected IJson json = new JGsonImpl().init();
+
     public final void migrate(String[] args) {
         doMigration(generateMigratorModel(args));
     }
@@ -40,26 +43,32 @@ public class MigratorBase {
         String configFileLocationOrConfigItself = args[0].trim();
         Map<String, String> moreOptions = getMoreOptions(args);
 
-        IJson js = new JGsonImpl().init();
         return Io.getResource(configFileLocationOrConfigItself)
                 .or(() -> Io.sRead(configFileLocationOrConfigItself).oString())
+                .or(() -> Io.getResource(configFileLocationOrConfigItself))
                 .or(() -> configFileLocationOrConfigItself.startsWith("{")
                         ? O.of(configFileLocationOrConfigItself)
                         : O.of("{}"))
                 .map($ -> {
-                    Map<String, String> from = js.from($, TypeWrap.getMap(String.class, String.class));
+                    Map<String, String> from = json.from($, TypeWrap.getMap(String.class, String.class));
                     from.putAll(moreOptions);
-                    return js.to(from);
+                    return json.to(from);
                 })
-                .map($ -> js.from($, MigratorModel.class))
+                .map($ -> json.from($, MigratorModel.class))
+                .map(this::enrich)
                 .orElseThrow();
     }
 
     protected Map<String, String> getMoreOptions(String[] args) {
         Map<String, String> toRet = Cc.m();
-        for (int i = 1; i < args.length; i++) {
-            String arg = args[i];
-            if (!arg.contains("=")) {
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i].trim();
+            if (i == 0) {
+                final boolean firstArgumentIsNotConfig = St.count(arg, "=") == 1 && !arg.startsWith("{");
+                if (!firstArgumentIsNotConfig) {
+                    continue;
+                }
+            } else if (St.count(arg, "=") != 1) {
                 throw new RuntimeException("Bad format:" + arg);
             }
             String[] split = arg.split("=");
@@ -69,6 +78,10 @@ public class MigratorBase {
             toRet.put(split[0].trim(), split.length == 1 ? "" : split[1].trim());
         }
         return toRet;
+    }
+
+    protected MigratorModel enrich(MigratorModel model) {
+        return model;
     }
 
     protected void doMigration(MigratorModel mm) {

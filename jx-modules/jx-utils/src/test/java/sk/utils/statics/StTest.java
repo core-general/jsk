@@ -27,6 +27,14 @@ import static org.junit.Assert.assertEquals;
 public class StTest {
 
     @Test
+    public void count() {
+        final String str = "abc;def,ghk;xx,bb;ioo;";
+        assertEquals(St.count(str, ";"), 4);
+        assertEquals(St.count(str, " "), 0);
+        assertEquals(St.count(str, "oo"), 1);
+    }
+
+    @Test
     public void sub() {
         final String str = "abc;def,ghk;xx,bb;ioo;";
         assertEquals(St.sub(str).leftFirst(";").rightFirst(";").get(), "def,ghk");
