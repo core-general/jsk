@@ -110,7 +110,8 @@ public class MinMaxAvg {
 
     @Override
     public String toString() {
-        return String.format("[min=%.3f, avg=%.3f, last=%.3f, max=%.3f]", min, curAvg, last, max);
+        return String.format("[min=%.3f, avg=%.3f, last=%.3f, max=%.3f, count=%d, sum=%d]", min, curAvg, last, max, count,
+                (long) (count * curAvg));
     }
 
     public static MinMaxAvg zero() {

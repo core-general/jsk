@@ -87,6 +87,7 @@ public class MinMaxAvgWithObj<T> {
 
     @Override
     public String toString() {
-        return String.format("[%f,%f]", min, max);
+        return String.format("[min=%.3f, avg=%.3f, last=%.3f, max=%.3f, count=%d, sum=%d]", min, curAvg, last, max, count,
+                (long) (count * curAvg));
     }
 }
