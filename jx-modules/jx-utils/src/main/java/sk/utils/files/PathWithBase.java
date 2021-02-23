@@ -82,5 +82,5 @@ public class PathWithBase {
         return path.map($ -> endWith($, "/"));
     }
 
-    public String toString() {return this.base + O.ofNull(this.path).flatMap($ -> $).map($ -> St.startWith($, "/"));}
+    public String toString() {return this.base + O.ofNull(this.path).flatMap($ -> $).map($ -> St.startWith($, "/")).orElse("");}
 }
