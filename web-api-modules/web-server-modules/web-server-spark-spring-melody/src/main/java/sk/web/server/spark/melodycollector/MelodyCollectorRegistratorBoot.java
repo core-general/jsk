@@ -65,7 +65,7 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
         String port = String.valueOf(webSrv.getPort());
         String login = moniParam.getLogin();
         String password = moniParam.getPass();
-        String appName = moniColParam.getAppName4MelodyCollector();
+        String appName = moniParam.getAppName();
 
         return String.format(
                 "https://%s:%d/api/%s?" +
@@ -92,6 +92,9 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
 
     @Override
     public long waitBeforeStopMs() {
-        return 3000;
+        if (publicIp.isEmpty()) {
+            return 0;
+        }
+        return 100;
     }
 }

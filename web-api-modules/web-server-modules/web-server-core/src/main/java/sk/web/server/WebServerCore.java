@@ -467,7 +467,7 @@ public class WebServerCore<API>
 
     @Override
     public long waitBeforeStopMs() {
-        return 3000;
+        return 100;
     }
 
     @Override

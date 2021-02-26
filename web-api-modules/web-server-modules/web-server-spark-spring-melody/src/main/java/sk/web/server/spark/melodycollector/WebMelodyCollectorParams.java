@@ -23,8 +23,6 @@ package sk.web.server.spark.melodycollector;
 public interface WebMelodyCollectorParams {
     boolean isMelodyCollectorOn();
 
-    String getAppName4MelodyCollector();
-
     String getHost();
 
     int getPort();

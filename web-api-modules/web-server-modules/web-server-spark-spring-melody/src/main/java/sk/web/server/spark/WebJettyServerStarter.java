@@ -27,7 +27,6 @@ import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import sk.services.shutdown.AppStopListener;
 import sk.utils.statics.Ex;
-import sk.utils.statics.Ti;
 import sk.web.server.params.WebServerParams;
 import sk.web.server.spark.context.WebJettyContextConsumer;
 
@@ -86,7 +85,7 @@ public class WebJettyServerStarter implements AppStopListener {
 
     @Override
     public long waitBeforeStopMs() {
-        return 10 * Ti.second;
+        return params.getShutdownWait().orElse(100L);
     }
 
     @Override

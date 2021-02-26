@@ -29,6 +29,8 @@ public interface WebServerParams {
 
     int getPort();
 
+    O<Long> getShutdownWait();
+
     long getFormLimit();
 
     O<Long> getIdleTimeout();

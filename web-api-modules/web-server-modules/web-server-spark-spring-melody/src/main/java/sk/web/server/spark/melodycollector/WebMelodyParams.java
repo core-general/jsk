@@ -25,6 +25,9 @@ import sk.utils.functional.O;
 public interface WebMelodyParams {
     boolean isMelodyEnabled();
 
+
+    String getAppName();
+
     String getLogin();
 
     String getPass();

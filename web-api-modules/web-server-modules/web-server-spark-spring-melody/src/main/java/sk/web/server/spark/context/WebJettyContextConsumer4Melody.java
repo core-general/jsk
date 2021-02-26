@@ -41,7 +41,7 @@ public class WebJettyContextConsumer4Melody implements WebJettyContextConsumer {
             final FilterHolder filterHolder = new FilterHolder(new MonitoringFilter());
 
             filterHolder.setInitParameter(Parameter.SAMPLING_SECONDS.getCode(), "3");
-            filterHolder.setInitParameter(Parameter.STORAGE_DIRECTORY.getCode(), "/tmp/jsk/melody");
+            filterHolder.setInitParameter(Parameter.STORAGE_DIRECTORY.getCode(), "/tmp/jsk/melody/" + params.getAppName());
             filterHolder.setInitParameter(Parameter.AUTHORIZED_USERS.getCode(), params.getLogin() + ":" + params.getPass());
             filterHolder
                     .setInitParameter(Parameter.MONITORING_PATH.getCode(), params.getMelodyPathSuffix().orElse("/monitoring"));

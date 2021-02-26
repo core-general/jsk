@@ -105,6 +105,6 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
 
     @Override
     public long waitBeforeStopMs() {
-        return 3 * Ti.second;
+        return 100;
     }
 }

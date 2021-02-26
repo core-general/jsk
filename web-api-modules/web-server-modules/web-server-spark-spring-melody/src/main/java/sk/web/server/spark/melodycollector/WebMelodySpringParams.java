@@ -26,6 +26,10 @@ import sk.utils.functional.O;
 
 public class WebMelodySpringParams implements WebMelodyParams {
     @Getter
+    @Value("${melody_app_name}")
+    String appName;
+
+    @Getter
     @Value("${melody_enabled}")
     private boolean melodyEnabled;
 

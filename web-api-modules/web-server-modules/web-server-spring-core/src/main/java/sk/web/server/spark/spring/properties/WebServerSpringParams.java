@@ -40,9 +40,17 @@ public class WebServerSpringParams implements WebServerParams {
     @Value("${web_server_idle_timeout:#{null}}")
     private Long idleTimeout;
 
+    @Value("${web_server_shutdown_wait:#{null}}")
+    private Long shutdownWait;
+
     @Override
     public O<Long> getIdleTimeout() {
         return O.ofNull(idleTimeout);
+    }
+
+    @Override
+    public O<Long> getShutdownWait() {
+        return O.ofNull(shutdownWait);
     }
 
     @Override

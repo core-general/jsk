@@ -29,10 +29,6 @@ public class WebMelodyCollectorSpringParams implements WebMelodyCollectorParams 
     boolean melodyCollectorOn;
 
     @Getter
-    @Value("${melody_collector_app_name}")
-    String appName4MelodyCollector;
-
-    @Getter
     @Value("${melody_collector_host}")
     String host;
 

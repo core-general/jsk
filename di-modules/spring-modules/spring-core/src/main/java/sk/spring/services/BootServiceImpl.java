@@ -25,6 +25,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
 import sk.services.boot.IBoot;
+import sk.services.time.ITime;
+import sk.utils.statics.Ti;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -34,12 +36,16 @@ import java.util.List;
 @Order(10)
 public class BootServiceImpl implements ApplicationListener<ContextRefreshedEvent> {
     @Inject List<IBoot> boots = new ArrayList<>();
+    @Inject ITime times;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         StringBuilder sb = new StringBuilder("\nIBoots\n");
         boots.forEach(bootstrap -> {
-            sb.append("     ").append(bootstrap.getClass()).append("\n");
+            sb.append("     ")
+                    .append(Ti.yyyyMMddHHmmssSSS.format(times.nowZ()))
+                    .append(" ").append(bootstrap.getClass())
+                    .append("\n");
             bootstrap.run();
         });
         log.info(sb.toString());
