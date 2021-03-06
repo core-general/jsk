@@ -5,13 +5,13 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.39</version>
+        <version>jsk.2.4.40</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.2.4.39</version>
+    <version>jsk.2.4.40</version>
     <properties>
         <aws-version>2.15.46</aws-version>
     </properties>
@@ -23,5 +23,7 @@
         <module>aws-dynamodb-spring-core</module>
         <module>aws-spring-core</module>
         <module>aws-ecs-core</module>
+        <module>aws-ec2-core</module>
+        <module>aws-sns-core</module>
     </modules>
 </project>
