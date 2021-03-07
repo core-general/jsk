@@ -85,7 +85,19 @@ public class OneOf<L, R> {
 
     public boolean isLeft() {return left != null;}
 
+    public void ifLeft(C1<L> lFunc) {
+        if (isLeft()) {
+            lFunc.accept(left);
+        }
+    }
+
     public boolean isRight() {return right != null;}
+
+    public void ifRight(C1<R> rFunc) {
+        if (isRight()) {
+            rFunc.accept(right);
+        }
+    }
 
     public L left() {
         return O.ofNull(left).get();

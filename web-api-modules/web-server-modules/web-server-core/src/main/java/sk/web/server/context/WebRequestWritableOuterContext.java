@@ -21,6 +21,8 @@ package sk.web.server.context;
  */
 
 import sk.exceptions.JskProblem;
+import sk.utils.functional.O;
+import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRender;
 import sk.web.renders.WebRenderResult;
 import sk.web.renders.WebReply;
@@ -29,21 +31,21 @@ import sk.web.renders.WebReply;
 public abstract class WebRequestWritableOuterContext {
     public abstract void setResponseHeader(String key, String value);
 
-    protected abstract void innerSetResponse(WebRenderResult result);
+    protected abstract void innerSetResponse(WebRenderResult result, O<WebRedirectResult> redirect);
 
     public final void addProblemHeader() {
         setResponseHeader(JskProblem.PROBLEM_SIGN, "+");
     }
 
     public final void setError(int responseCode, WebRender errorRender, JskProblem problem) {
-        setResponse(errorRender.getResult(WebReply.problem(responseCode, problem), errorRender));
+        setResponse(errorRender.getResult(WebReply.problem(responseCode, problem), errorRender), O.empty());
     }
 
-    public final void setResponse(WebRenderResult result) {
+    public final void setResponse(WebRenderResult result, O<WebRedirectResult> redirect) {
         if (result.getMeta().isProblem()) {
             addProblemHeader();
         }
-        innerSetResponse(result);
+        innerSetResponse(result, redirect);
     }
 
 }

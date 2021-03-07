@@ -1,10 +1,10 @@
-package sk.web.server.spark.melodycollector;
+package sk.web.redirect;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,14 @@ package sk.web.server.spark.melodycollector;
  */
 
 import sk.utils.functional.O;
+import sk.web.infogatherer.WebMethodInfo;
 
-public interface WebMelodyParams {
-    boolean isMelodyEnabled();
-
-    String getAppName();
-
-    String getLogin();
-
-    String getPass();
-
-    O<String> getMelodyPathSuffix();
+/**
+ * Only marker class
+ */
+public class WebRedirectEmptyProvider implements WebRedirectProvider {
+    @Override
+    public O<String> provideRedirect(WebMethodInfo methodInfo) {
+        return O.empty();
+    }
 }

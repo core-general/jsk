@@ -23,6 +23,9 @@ package sk.web.renders;
 import sk.services.bean.IServiceProvider;
 import sk.utils.functional.O;
 
+/**
+ * Only marker class
+ */
 public class WebRenderEmptyProvider implements WebRenderProvider {
     @Override
     public O<? extends WebRender> getRender(IServiceProvider context) {

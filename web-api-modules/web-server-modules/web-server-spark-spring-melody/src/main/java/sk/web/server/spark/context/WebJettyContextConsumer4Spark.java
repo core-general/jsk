@@ -28,14 +28,18 @@ import org.springframework.core.annotation.Order;
 import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
+import sk.services.json.IJson;
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.javafixes.CheckUtf8;
+import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
+import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.web.exceptions.IWebExcept;
+import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRenderResult;
 import sk.web.server.WebServerContext;
 import sk.web.server.WebServerCore;
@@ -74,6 +78,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     @Inject WebServerParams conf;
     @Inject IExcept except;
     @Inject IBytes bytes;
+    @Inject IJson json;
     @Inject IWebExcept webExcept;
     @Inject List<WebServerCore> serverDefinitions = Cc.l();
 
@@ -330,30 +335,58 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
-        protected void innerSetResponse(WebRenderResult result) {
-            response.status(result.getMeta().getHttpCode());
-            response.type(result.getMeta().getContentType());
-            if (result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation()) {
-                response.header("Content-Encoding", "gzip");
-            }
-
-            if (response.body() == null) {
-                result.getValue().apply(
-                        string -> {
-                            response.body(string);
-                        },
-                        bytes -> {
-                            response.header("Content-Length", bytes.length + "");
-                            try (ServletOutputStream stream = response.raw().getOutputStream();
-                                 BufferedOutputStream bos = new BufferedOutputStream(stream)) {
-                                bos.write(bytes);
-                            } catch (Exception e) {
-                                log.error("", e);
+        protected void innerSetResponse(WebRenderResult result, O<WebRedirectResult> oRedirect) {
+            if (oRedirect.isPresent()) {
+                final WebRedirectResult redirect = oRedirect.get();
+                StringBuilder sb = new StringBuilder(St.notEndWith(redirect.getPath(), "/"));
+                if (redirect.isAddModelFieldsAsRedirectParameters()) {
+                    result.getValue().ifLeft(v -> {
+                        try {
+                            final Map<String, Object> dict = json.from(v, TypeWrap.getMap(String.class, Object.class));
+                            boolean hasVariables = redirect.getPath().contains("?");
+                            for (Map.Entry<String, Object> dictVals : dict.entrySet()) {
+                                //!only in case of string we add it to redirect!
+                                if (dictVals.getValue() instanceof String) {
+                                    sb.append(!hasVariables ? "?" : "&")
+                                            .append(dictVals.getKey())
+                                            .append("=")
+                                            .append(dictVals.getValue());
+                                    hasVariables = true;
+                                }
                             }
+                        } catch (Exception e) {
+                            log.error("Can't deserialize " + St.raze(v, 100) + " as json object for redirect. Path: " + path +
+                                    ". Error message : " +
+                                    e.getMessage());
                         }
-                );
+                    });
+                }
+                response.redirect(sb.toString());
             } else {
-                log.error("BODY IS ALREADY SET FOR ENDPOINT:" + path);
+                response.status(result.getMeta().getHttpCode());
+                response.type(result.getMeta().getContentType());
+                if (result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation()) {
+                    response.header("Content-Encoding", "gzip");
+                }
+
+                if (response.body() == null) {
+                    result.getValue().apply(
+                            string -> {
+                                response.body(string);
+                            },
+                            bytes -> {
+                                response.header("Content-Length", bytes.length + "");
+                                try (ServletOutputStream stream = response.raw().getOutputStream();
+                                     BufferedOutputStream bos = new BufferedOutputStream(stream)) {
+                                    bos.write(bytes);
+                                } catch (Exception e) {
+                                    log.error("", e);
+                                }
+                            }
+                    );
+                } else {
+                    log.error("BODY IS ALREADY SET FOR ENDPOINT:" + path);
+                }
             }
         }
 
@@ -367,7 +400,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
         private O<byte[]> multipart(Request req, String paramName) {
             return isMultipart()
-                    ? ofNull(
+                   ? ofNull(
                     multipartCache.computeIfAbsent(paramName, (k) -> {
                         try {
                             return O.ofNull(req.raw().getPart(paramName)).flatMap(p -> {
@@ -391,7 +424,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                             return null;
                         }
                     }))
-                    : empty();
+                   : empty();
         }
 
         private <T> T throwOnBadRequestData(F0<T> toRun) {

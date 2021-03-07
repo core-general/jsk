@@ -134,6 +134,17 @@ public class WebSparkTest {
         public Map<String, Integer> testWebUserToken(Map<String, String> a) {
             return a.entrySet().stream().collect(Cc.toM($ -> $.getKey(), $ -> $.getValue().length()));
         }
+
+        @Override
+        public Map<String, Object> redirectTo() {
+            return Cc.m(
+                    "a", "b",
+                    "c", "d",
+                    "e", new Object(),
+                    "f", 1,
+                    "g", null
+            );
+        }
     }
 
     @Configuration

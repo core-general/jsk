@@ -84,4 +84,8 @@ public interface TestApi1 {
     @WebAuth
     @WebIdempotence(force = true)
     Map<String, Integer> testWebUserToken(Map<String, String> a);
+
+    @WebGET
+    @WebRedirect(redirectPath = "https://google.com/")
+    Map<String, Object> redirectTo();
 }

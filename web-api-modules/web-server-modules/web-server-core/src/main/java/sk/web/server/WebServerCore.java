@@ -35,6 +35,7 @@ import sk.services.time.ITime;
 import sk.utils.functional.*;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.statics.Re;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
@@ -45,6 +46,8 @@ import sk.web.exceptions.IWebExcept;
 import sk.web.infogatherer.WebClassInfo;
 import sk.web.infogatherer.WebClassInfoProvider;
 import sk.web.infogatherer.WebMethodInfo;
+import sk.web.redirect.WebRedirectEmptyProvider;
+import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebFilterOutput;
 import sk.web.renders.WebRenderEmptyProvider;
 import sk.web.renders.WebRenderResult;
@@ -107,8 +110,8 @@ public class WebServerCore<API>
 
     private final F2<String, Boolean, Supplier<Object>> NON_NULL_CHECK = (paramName, nullAllowed) -> () ->
             nullAllowed
-                    ? null
-                    : webExcept.throwMissingParameter(paramName, true);
+            ? null
+            : webExcept.throwMissingParameter(paramName, true);
 
     private final WebServerInfo info;
 
@@ -202,10 +205,20 @@ public class WebServerCore<API>
 
             final sk.web.renders.WebRender foundRender = webApiMethod.getAnnotation(WebRender.class)
                     .flatMap($ -> $.getProvider() == WebRenderEmptyProvider.class
-                            ? $.value().getRender(beanProvider)
-                            : Re.createObjectByDefault($.getProvider()).flatMap(x -> x.getRender(beanProvider)))
+                                  ? $.value().getRender(beanProvider)
+                                  : Re.createObjectByDefault($.getProvider()).flatMap(x -> x.getRender(beanProvider)))
                     .or(() -> getDefaultRender())
                     .orElseGet(() -> except.throwByDescription("Can't find default render and JSON render is not found"));
+
+            final O<WebRedirectResult> foundRedirect = webApiMethod.getAnnotation(WebRedirect.class)
+                    .flatMap($ ->
+                            Fu.equal($.redirectPath(), "")
+                            ? ($.redirectProvider() == WebRedirectEmptyProvider.class
+                               ? empty()
+                               : Re.createObjectByDefault($.redirectProvider())
+                                       .flatMap(x -> x.provideRedirect(methodInfo)
+                                               .map(y -> new WebRedirectResult(y, $.addModelFieldsAsRedirectParameters()))))
+                            : of(new WebRedirectResult($.redirectPath(), $.addModelFieldsAsRedirectParameters())));
 
             final O<WebAuth> webAuth = webApiMethod.getAnnotation(WebAuth.class, WebAuthNO.class);
             final O<WebIdempotence> webIdempotence = webApiMethod.getAnnotation(WebIdempotence.class, WebIdempotenceNO.class);
@@ -218,7 +231,7 @@ public class WebServerCore<API>
                             invokeBaseMethodSupplier(method, paramGetters, methodInfo, mustMultipart, outerContext);
                     curent = createFilterChain(webApiMethod, curent, innerContext, methodFilters);
                     final WebRenderResult renderResult = curent.invokeNext().render(foundRender, webExcept);
-                    outerContext.setResponse(renderResult);
+                    outerContext.setResponse(renderResult, foundRedirect);
                 } catch (WebProblemWithRequestBodyException exc) {
                     //should be fixed, that's why stacktrace
                     log.warn("WebProblemWithRequestBodyException");

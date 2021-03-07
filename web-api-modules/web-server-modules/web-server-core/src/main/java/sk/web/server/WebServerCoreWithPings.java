@@ -93,7 +93,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
 
                         final WebFilterOutput apply = filterChain.invokeNext();
 
-                        context.setResponse(render.getResult(apply, except.getDefaultExceptionRender()));
+                        context.setResponse(render.getResult(apply, except.getDefaultExceptionRender()), O.empty());
                     } catch (Exception e) {
                         log.error("", e);
                         context.setError(500, except.getDefaultExceptionRender(), JskProblem.code(INTERNAL_ERROR));
