@@ -32,10 +32,10 @@ CREATE TABLE abc_t1
 
 CREATE TABLE abc_t2
 (
-    id         UUID   NOT NULL PRIMARY KEY,
+    id         UUID   NOT NULL primary Key,
 
-    type       TEXT   NOT NULL,
-    t1_id      TEXT   NOT NULL,
+    type       TEXT   not null,
+    t1_id      TEXT   NOT null,
     t0_id      UUID   NOT NULL,
     t2_id      bytea  NOT NULL,
 

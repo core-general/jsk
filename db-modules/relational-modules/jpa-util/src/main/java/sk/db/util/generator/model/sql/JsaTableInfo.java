@@ -48,9 +48,11 @@ public class JsaTableInfo {
                     return new JsaTableColumn(fieldName,
                             JsaDbColumnType.parse($.getColDataType().getDataType().toUpperCase()),
                             $.getColumnSpecs() != null
-                                    && $.getColumnSpecs().containsAll(Cc.l("PRIMARY", "KEY")),
+                                    && $.getColumnSpecs().stream().map(x -> x.toUpperCase()).collect(Cc.toS())
+                                    .containsAll(Cc.l("PRIMARY", "KEY")),
                             !($.getColumnSpecs() != null
-                                    && $.getColumnSpecs().containsAll(Cc.l("NOT", "NULL"))),
+                                    && $.getColumnSpecs().stream().map(x -> x.toUpperCase()).collect(Cc.toS())
+                                    .containsAll(Cc.l("NOT", "NULL"))),
                             O.ofNull(tableFieldsToMetaInfos.get(X.x(tableName, fieldName)))
                     );
                 }).collect(Cc.toL());
