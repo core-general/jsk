@@ -63,7 +63,8 @@ public class JsaProcessor {
 
     private static JsaEntityField createField(JsaTableColumn column, String idClass) {
         final JsaEntityFieldType fieldType = JsaEntityFieldType.fromTableColumn(column);
-        String mainType = column.getType().getJavaType().getName();
+        final Class javaType = column.getType().getJavaType();
+        String mainType = javaType == byte[].class ? "byte[]" : javaType.getName();
         String idType = null;
         String relationType = null;
 

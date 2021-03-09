@@ -37,7 +37,9 @@ CREATE TABLE abc_t2
     type       TEXT   NOT NULL,
     t1_id      TEXT   NOT NULL,
     t0_id      UUID   NOT NULL,
+    t2_id      bytea  NOT NULL,
 
+    zzz        timestamp,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     version    BIGINT NOT NULL

@@ -49,12 +49,12 @@ public final class Fu {
         };
     }
 
-    public static <T> T coalesce(T a, T b) {
-        return a == null ? b : a;
+    public static <T> O<T> coalesce(T a, T b) {
+        return O.ofNull(a == null ? b : a);
     }
 
-    public static <T> T coalesce(T a, T b, T c) {
-        return a != null ? a : (b != null ? b : c);
+    public static <T> O<T> coalesce(T a, T b, T c) {
+        return O.ofNull(a != null ? a : (b != null ? b : c));
     }
 
     public static <A, B> O<X2<A, B>> bothPresent(O<A> a, O<B> b) {
@@ -91,6 +91,10 @@ public final class Fu {
 
 
     //region java aliases
+    public static <T> boolean equalIgnoreCase(String o1, String o2) {
+        return Fu.coalesce(o1, o2).map($ -> $.equalsIgnoreCase(o1) && $.equalsIgnoreCase(o2)).orElse(true);
+    }
+
     public static <T> boolean equal(T o1, T o2) {
         return Objects.equals(o1, o2);
     }

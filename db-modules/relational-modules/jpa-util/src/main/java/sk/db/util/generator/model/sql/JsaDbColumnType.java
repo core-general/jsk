@@ -49,6 +49,7 @@ public enum JsaDbColumnType {
 
     BOOLEAN1("BOOLEAN", Boolean.class, empty()),
     BOOLEAN2("BOOL", Boolean.class, empty()),
+    BYTEA("BYTEA", byte[].class, empty()),
 
     TIMESTAMP("TIMESTAMP", ZonedDateTime.class, of(UTZdtToTimestamp.class)),
     JSON("JSONB", Object.class, of(UTObjectToJsonb.class));
@@ -59,7 +60,7 @@ public enum JsaDbColumnType {
 
     public static JsaDbColumnType parse(String type) {
         return Arrays.stream(values())
-                .filter($ -> Fu.equal($.getSqlType().trim(), type.trim()))
+                .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
                 .findFirst()
                 .get();
     }
