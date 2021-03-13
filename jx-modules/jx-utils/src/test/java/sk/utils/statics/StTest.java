@@ -21,6 +21,7 @@ package sk.utils.statics;
  */
 
 import org.junit.Test;
+import sk.utils.functional.O;
 
 import static org.junit.Assert.assertEquals;
 
@@ -51,5 +52,17 @@ public class StTest {
         assertEquals(St.subRF(str, "/"), "http:");
         assertEquals(St.subRL(str, "/"), "http://abc.com");
         assertEquals(St.subRL(str, "/"), "http://abc.com");
+    }
+
+    @Test
+    public void levenshteinDistance() {
+        assertEquals(St.levenshteinDistance("Kivan", "ivakuator"), 7);
+    }
+
+    @Test
+    public void longestCommonSubstring() {
+        assertEquals(St.longestCommonSubstring("kivan", "ivakuator").get(), "iva");
+        assertEquals(St.longestCommonSubstring("kivan", "ivakivauator").get(), "kiva");
+        assertEquals(St.longestCommonSubstring("abc", "def"), O.empty());
     }
 }
