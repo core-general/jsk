@@ -414,7 +414,6 @@ public final class St {
 
         // if true, then no common substring exists
         if (len == 0) {
-            System.out.println("No Common Substring");
             return O.empty();
         }
 
