@@ -36,8 +36,77 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("unused")
 public final class O<T> {
+    /**
+     * Common instance for {@code empty()}.
+     */
+    private static final O<?> EMPTY = new O<>();
+
+    /**
+     * Returns an empty {@code O} instance.  No value is present for this
+     * {@code O}.
+     *
+     * @param <T> The type of the non-existent value
+     * @return an empty {@code O}
+     * @apiNote Though it may be tempting to do so, avoid testing if an object is empty
+     * by comparing with {@code ==} against instances returned by
+     * {@code O.empty()}.  There is no guarantee that it is a singleton.
+     * Instead, use {@link #isPresent()}.
+     */
+    public static <T> O<T> empty() {
+        @SuppressWarnings("unchecked")
+        O<T> t = (O<T>) EMPTY;
+        return t;
+    }
+
     public static <T> O<T> of(Optional<T> value) {
         return value.map(O::of).orElseGet(O::empty);
+    }
+
+    /**
+     * Returns an {@code O} describing the given non-{@code null}
+     * value.
+     *
+     * @param value the value to describe, which must be non-{@code null}
+     * @param <T>   the type of the value
+     * @return an {@code O} with the value present
+     * @throws NullPointerException if value is {@code null}
+     */
+    public static <T> O<T> of(T value) {
+        return new O<>(value);
+    }
+
+    /**
+     * Returns an {@code O} describing the given value, if
+     * non-{@code null}, otherwise returns an empty {@code O}.
+     *
+     * @param value the possibly-{@code null} value to describe
+     * @param <T>   the type of the value
+     * @return an {@code O} with a present value if the specified value
+     * is non-{@code null}, otherwise an empty {@code O}
+     */
+    public static <T> O<T> ofNullable(T value) {
+        return value == null ? empty() : of(value);
+    }
+
+    /**
+     * Returns an {@code O} describing the given value, if
+     * non-{@code null}, otherwise returns an empty {@code O}.
+     *
+     * @param value the possibly-{@code null} value to describe
+     * @param <T>   the type of the value
+     * @return an {@code O} with a present value if the specified value
+     * is non-{@code null}, otherwise an empty {@code O}
+     */
+    public static <T> O<T> ofNull(T value) {
+        return ofNullable(value);
+    }
+
+    public static <A, B, C, D> O<D> allNotNull(O<A> oa, O<B> ob, O<C> oc, F3<A, B, C, O<D>> ifAllNotNull) {
+        return oa.flatMap(a -> ob.flatMap(b -> oc.flatMap(c -> ifAllNotNull.apply(a, b, c))));
+    }
+
+    public static <A, B, C> O<C> allNotNull(O<A> oa, O<B> ob, F2<A, B, O<C>> ifAllNotNull) {
+        return oa.flatMap(a -> ob.flatMap(b -> ifAllNotNull.apply(a, b)));
     }
 
     public Optional<T> toOpt() {
@@ -74,94 +143,6 @@ public final class O<T> {
             O<T> r = O.ofNull(supplier.get());
             return Objects.requireNonNull(r);
         }
-    }
-
-
-    /**
-     * Common instance for {@code empty()}.
-     */
-    private static final O<?> EMPTY = new O<>();
-
-    /**
-     * If non-null, the value; if null, indicates no value is present
-     */
-    private final T value;
-
-    /**
-     * Constructs an empty instance.
-     *
-     * @implNote Generally only one empty instance, {@link O#EMPTY},
-     * should exist per VM.
-     */
-    private O() {
-        this.value = null;
-    }
-
-    /**
-     * Returns an empty {@code O} instance.  No value is present for this
-     * {@code O}.
-     *
-     * @param <T> The type of the non-existent value
-     * @return an empty {@code O}
-     * @apiNote Though it may be tempting to do so, avoid testing if an object is empty
-     * by comparing with {@code ==} against instances returned by
-     * {@code O.empty()}.  There is no guarantee that it is a singleton.
-     * Instead, use {@link #isPresent()}.
-     */
-    public static <T> O<T> empty() {
-        @SuppressWarnings("unchecked")
-        O<T> t = (O<T>) EMPTY;
-        return t;
-    }
-
-    /**
-     * Constructs an instance with the described value.
-     *
-     * @param value the non-{@code null} value to describe
-     * @throws NullPointerException if value is {@code null}
-     */
-    private O(T value) {
-        this.value = Objects.requireNonNull(value);
-    }
-
-    /**
-     * Returns an {@code O} describing the given non-{@code null}
-     * value.
-     *
-     * @param value the value to describe, which must be non-{@code null}
-     * @param <T>   the type of the value
-     * @return an {@code O} with the value present
-     * @throws NullPointerException if value is {@code null}
-     */
-    public static <T> O<T> of(T value) {
-        return new O<>(value);
-    }
-
-
-    /**
-     * Returns an {@code O} describing the given value, if
-     * non-{@code null}, otherwise returns an empty {@code O}.
-     *
-     * @param value the possibly-{@code null} value to describe
-     * @param <T>   the type of the value
-     * @return an {@code O} with a present value if the specified value
-     * is non-{@code null}, otherwise an empty {@code O}
-     */
-    public static <T> O<T> ofNullable(T value) {
-        return value == null ? empty() : of(value);
-    }
-
-    /**
-     * Returns an {@code O} describing the given value, if
-     * non-{@code null}, otherwise returns an empty {@code O}.
-     *
-     * @param value the possibly-{@code null} value to describe
-     * @param <T>   the type of the value
-     * @return an {@code O} with a present value if the specified value
-     * is non-{@code null}, otherwise an empty {@code O}
-     */
-    public static <T> O<T> ofNull(T value) {
-        return ofNullable(value);
     }
 
     /**
@@ -333,7 +314,6 @@ public final class O<T> {
         }
     }
 
-
     /**
      * If a value is present, returns a sequential {@link Stream} containing
      * only that value, otherwise returns an empty {@code Stream}.
@@ -471,7 +451,33 @@ public final class O<T> {
     @Override
     public String toString() {
         return value != null
-                ? String.format("O[%s]", value)
-                : "O.empty";
+               ? String.format("O[%s]", value)
+               : "O.empty";
+    }
+
+
+    /**
+     * If non-null, the value; if null, indicates no value is present
+     */
+    private final T value;
+
+    /**
+     * Constructs an empty instance.
+     *
+     * @implNote Generally only one empty instance, {@link O#EMPTY},
+     * should exist per VM.
+     */
+    private O() {
+        this.value = null;
+    }
+
+    /**
+     * Constructs an instance with the described value.
+     *
+     * @param value the non-{@code null} value to describe
+     * @throws NullPointerException if value is {@code null}
+     */
+    private O(T value) {
+        this.value = Objects.requireNonNull(value);
     }
 }
