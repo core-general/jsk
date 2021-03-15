@@ -24,12 +24,24 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface KvKeyEnum extends KvKey3Categories {
     @Override
     default List<String> categories() {
-        return Arrays.asList(name().split("_"));
+        final String[] names = name().split("_");
+        switch (names.length) {
+            case 0:
+                return Collections.emptyList();
+            case 1:
+            case 2:
+                return Arrays.asList(names);
+            default:
+                return Cc.l(names[0], names[1], Cc.stream(Arrays.copyOfRange(names, 2, names.length, String[].class))
+                        .collect(Collectors.joining("_")));
+        }
     }
 
     String name();
