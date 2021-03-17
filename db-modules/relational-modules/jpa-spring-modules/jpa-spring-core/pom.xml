@@ -5,14 +5,14 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.50</version>
+        <version>jsk.2.4.52</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-spring-core</artifactId>
 
     <packaging>jar</packaging>
-    <version>jsk.2.4.50</version>
+    <version>jsk.2.4.52</version>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.2.4.50</version>
+            <version>jsk.2.4.52</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

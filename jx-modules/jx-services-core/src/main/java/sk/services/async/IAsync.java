@@ -20,16 +20,14 @@ package sk.services.async;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import lombok.val;
 import sk.utils.functional.F0;
 import sk.utils.functional.R;
 import sk.utils.statics.Ex;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -79,6 +77,12 @@ public interface IAsync extends ISleep {
         return Ex.toRuntime(() -> coldTaskFJP().call(toRun::apply).get());
     }
 
+    default CompletableFuture<Void> runAsyncDontWait(List<R> toRun) {
+        return allOf(toRun.stream()
+                .map(this::runBuf)
+                .toArray(CompletableFuture[]::new));
+    }
+
     default CompletableFuture<Void> runBuf(R run) {
         return CompletableFuture.runAsync(run, bufExec().getUnderlying());
     }
@@ -86,8 +90,6 @@ public interface IAsync extends ISleep {
     default <U> CompletableFuture<U> supplyBuf(F0<U> run) {
         return CompletableFuture.supplyAsync(run, bufExec().getUnderlying());
     }
-
-    void stop();
 
     default <T> List<T> supplyParallel(List<F0<T>> suppliers) {
         val job = suppliers.stream().map(this::supplyBuf).collect(Collectors.toList());
@@ -118,9 +120,106 @@ public interface IAsync extends ISleep {
         }
     }
 
-    default CompletableFuture<Void> runAsyncDontWait(List<R> toRun) {
-        return allOf(toRun.stream()
-                .map(this::runBuf)
-                .toArray(CompletableFuture[]::new));
+    default JskBarrier barrier(int partiesNumber) {
+        return new JskBarrierWrapper(partiesNumber);
+    }
+
+    default JskSemaphore semaphore(int partiesNumber) {
+        return new JskSemaphoreWrapper(partiesNumber);
+    }
+
+    void stop();
+
+    public static interface JskBarrier {
+        public void reset();
+
+        public int await();
+    }
+
+    public static interface JskSemaphore {
+        public boolean tryAcquire();
+
+        public void release();
+
+        boolean tryAcquire(long timeout, TimeUnit unit);
+
+        void acquire(int permits);
+
+        boolean tryAcquire(int permits);
+
+        boolean tryAcquire(int permits, long timeout, TimeUnit unit);
+
+        void release(int permits);
+
+        int availablePermits();
+    }
+
+    class JskBarrierWrapper implements JskBarrier {
+        private final CyclicBarrier cyclicBarrier;
+
+        public JskBarrierWrapper(int partiesNumber) {
+            cyclicBarrier = new CyclicBarrier(partiesNumber);
+        }
+
+        public int getParties() {return this.cyclicBarrier.getParties();}
+
+        @SneakyThrows
+        public int await() {
+            return this.cyclicBarrier.await();
+        }
+
+        @SneakyThrows
+        public int await(long timeout, TimeUnit unit) {return this.cyclicBarrier.await(timeout, unit);}
+
+        public boolean isBroken() {return this.cyclicBarrier.isBroken();}
+
+        public void reset() {this.cyclicBarrier.reset();}
+
+        public int getNumberWaiting() {return this.cyclicBarrier.getNumberWaiting();}
+    }
+
+    class JskSemaphoreWrapper implements JskSemaphore {
+        private final Semaphore sema;
+
+        public JskSemaphoreWrapper(int partiesNumber) {
+            sema = new Semaphore(partiesNumber, true);
+        }
+
+        public void acquire() throws InterruptedException {this.sema.acquire();}
+
+        public void acquireUninterruptibly() {this.sema.acquireUninterruptibly();}
+
+        public boolean tryAcquire() {return this.sema.tryAcquire();}
+
+        @SneakyThrows
+        public boolean tryAcquire(long timeout, TimeUnit unit) {
+            return this.sema.tryAcquire(timeout, unit);
+        }
+
+        public void release() {this.sema.release();}
+
+        @SneakyThrows
+        public void acquire(int permits) {this.sema.acquire(permits);}
+
+        public void acquireUninterruptibly(int permits) {this.sema.acquireUninterruptibly(permits);}
+
+        public boolean tryAcquire(int permits) {return this.sema.tryAcquire(permits);}
+
+        @SneakyThrows
+        public boolean tryAcquire(int permits, long timeout, TimeUnit unit) {
+            return this.sema.tryAcquire(permits, timeout, unit);
+        }
+
+        public void release(int permits) {this.sema.release(permits);}
+
+        public int availablePermits() {return this.sema.availablePermits();}
+
+        public int drainPermits() {return this.sema.drainPermits();}
+
+        public boolean isFair() {return this.sema.isFair();}
+
+        public boolean hasQueuedThreads() {return this.sema.hasQueuedThreads();}
+
+        public int getQueueLength() {return this.sema.getQueueLength();}
     }
 }
