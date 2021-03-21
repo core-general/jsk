@@ -4,7 +4,7 @@ package sk.db.relational.spring.proprties;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,8 @@ package sk.db.relational.spring.proprties;
  * #L%
  */
 
-public abstract class RdbPostgresProperties extends RdbPropertiesBackedByJpaPackages {
-    public String getDriver() {
-        return "org.postgresql.Driver";
-    }
+import java.util.List;
 
-    public String getDialect() {
-        return "org.hibernate.dialect.PostgreSQLDialect";
-    }
+public interface RdbJpaPackages {
+    public List<String> getJpaPackages();
 }
