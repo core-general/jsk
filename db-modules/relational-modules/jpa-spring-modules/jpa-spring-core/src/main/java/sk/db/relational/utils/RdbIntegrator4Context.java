@@ -28,7 +28,7 @@ import org.hibernate.event.spi.*;
 import org.hibernate.integrator.spi.Integrator;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 import sk.db.relational.model.JpaWithContext;
-import sk.db.relational.spring.config.RdbConfig;
+import sk.db.relational.spring.config.RdbBaseDbConfig;
 import sk.spring.services.CoreServices;
 
 import java.util.Map;
@@ -38,7 +38,7 @@ public class RdbIntegrator4Context implements Integrator {
     public void integrate(Metadata metadata,
             SessionFactoryImplementor sessionFactory,
             SessionFactoryServiceRegistry serviceRegistry) {
-        final CoreServices ctx = (CoreServices) sessionFactory.getProperties().get(RdbConfig._CTX);
+        final CoreServices ctx = (CoreServices) sessionFactory.getProperties().get(RdbBaseDbConfig._CTX);
         final EventListenerRegistry eventListenerRegistry = serviceRegistry.getService(EventListenerRegistry.class);
 
         eventListenerRegistry.prependListeners(EventType.PRE_LOAD, event -> {

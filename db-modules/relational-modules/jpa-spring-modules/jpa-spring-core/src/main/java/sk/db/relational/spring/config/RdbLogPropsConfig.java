@@ -1,10 +1,10 @@
-package sk.db.kv;
+package sk.db.relational.spring.config;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,11 @@ import sk.utils.statics.Cc;
 @Configuration
 @EnableJpaRepositories(
         value = {
-                "sk.db.kv",
+                "sk.db.relational.spring.services.dao.repo",
         },
         queryLookupStrategy = QueryLookupStrategy.Key.CREATE
 )
-public class RdbKvConfig {
+public class RdbLogPropsConfig {
     @Bean
-    RdbKVStoreImpl RdbKVStoreImpl() {
-        return new RdbKVStoreImpl();
-    }
-
-    @Bean
-    RdbJpaPackages RdbJpaPackagesRdbKv() {return () -> Cc.l("sk.db.kv");}
+    RdbJpaPackages RdbJpaPackagesRdbLogsProps() {return () -> Cc.l("sk.db.relational.model");}
 }

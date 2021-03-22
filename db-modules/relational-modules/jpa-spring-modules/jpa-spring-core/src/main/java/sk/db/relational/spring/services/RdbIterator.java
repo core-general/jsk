@@ -45,7 +45,7 @@ import static sk.utils.statics.Cc.m;
 @NoArgsConstructor
 public class RdbIterator {
     @Inject ILog log;
-    @Inject Optional<IAppProfile> profile;
+    @Inject Optional<IAppProfile> profile = Optional.empty();
 
     public <T, ID extends Serializable> long iterate(
             Consumer<T> toApply,

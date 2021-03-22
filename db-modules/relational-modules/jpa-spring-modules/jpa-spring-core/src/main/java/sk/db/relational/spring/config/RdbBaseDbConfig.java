@@ -39,7 +39,7 @@ import java.util.Properties;
 
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection", "SpringFacetCodeInspection"})
 @Configuration
-public class RdbConfig {
+public class RdbBaseDbConfig {
     public static final String _CTX = "__JSK_INJECTOR__";
 
     @Bean

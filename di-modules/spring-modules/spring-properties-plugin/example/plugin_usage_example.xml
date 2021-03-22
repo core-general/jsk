@@ -1,7 +1,7 @@
 <plugin>
     <groupId>jsk</groupId>
     <artifactId>spring-properties-plugin</artifactId>
-    <version>jsk.2.4.53</version>
+    <version>jsk.2.4.55</version>
     <configuration>
         <propertyPathPrefix>properties</propertyPathPrefix>
     </configuration>

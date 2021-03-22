@@ -21,11 +21,11 @@ package sk.db.relational.types;
  */
 
 import org.hibernate.query.spi.QueryProducerImplementor;
-import sk.db.relational.spring.config.RdbConfig;
+import sk.db.relational.spring.config.RdbBaseDbConfig;
 import sk.spring.services.CoreServices;
 
 public interface UTWithContext {
     public default CoreServices getInjector(QueryProducerImplementor factoryHolder) {
-        return (CoreServices) factoryHolder.getFactory().getProperties().get(RdbConfig._CTX);
+        return (CoreServices) factoryHolder.getFactory().getProperties().get(RdbBaseDbConfig._CTX);
     }
 }

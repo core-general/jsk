@@ -5,10 +5,10 @@
     <parent>
         <artifactId>di-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.53</version>
+        <version>jsk.2.4.55</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>jsk.2.4.53</version>
+    <version>jsk.2.4.55</version>
     <packaging>pom</packaging>
 
     <artifactId>spring-modules</artifactId>
