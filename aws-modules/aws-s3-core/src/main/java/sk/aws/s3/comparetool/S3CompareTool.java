@@ -103,7 +103,7 @@ public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             public AwsCredentials getCredentials() {
                 return in.getProps().getCredentials();
             }
-        }, async, helper, repeat, http).init();
+        }, async.get(), helper, repeat, http).init();
     }
 
     final F2<S3JskClient, S3CompareInput, List<S3ListObject>> getResponse =
@@ -120,8 +120,8 @@ public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
                     @Override
                     public String getId() {
                         return St.isNullOrEmpty(conf.in.getRoot().getPathNoSlash())
-                                ? item.getKey()
-                                : item.getKey().replace(conf.in.getRoot().getPathWithSlash(), "");
+                               ? item.getKey()
+                               : item.getKey().replace(conf.in.getRoot().getPathWithSlash(), "");
                     }
 
                     @Override

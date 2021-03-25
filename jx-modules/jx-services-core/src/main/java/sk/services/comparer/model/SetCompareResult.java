@@ -21,14 +21,25 @@ package sk.services.comparer.model;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import sk.utils.ifaces.Identifiable;
+import lombok.Getter;
 
 import java.util.List;
 
-@Data
 @AllArgsConstructor
-public class CompareResultDif<T extends Identifiable<String>, I> {
-    List<T> notExistingInOther;
-    I integralInfo;
+@Getter
+public class SetCompareResult<T> {
+    List<T> notExistingIn2;
+    List<T> notExistingIn1;
+
+    public boolean hasDifferences() {
+        return notExistingIn2.size() > 0 || notExistingIn1.size() > 0;
+    }
+
+    public String getShortInfo() {
+        return String.format(
+                "\nFirst has, second don't:%d\nSecond has, first don't:%d",
+                notExistingIn2.size(),
+                notExistingIn1.size()
+        );
+    }
 }

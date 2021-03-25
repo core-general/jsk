@@ -23,6 +23,7 @@ package sk.services.comparer;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import sk.services.async.AsyncSingleThreadedImpl;
 import sk.services.async.IAsync;
 import sk.services.comparer.model.CompareResult;
 import sk.services.comparer.model.CompareResultDif;
@@ -32,6 +33,7 @@ import sk.utils.functional.F3;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
+import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -42,8 +44,8 @@ import java.util.concurrent.Future;
 @AllArgsConstructor
 @NoArgsConstructor
 @Log4j2
-public class CompareTool<T extends Comparable<T> & Identifiable<String>, I> {
-    protected @Inject IAsync async;
+public class CompareTool<T extends Identifiable<String>, I> {
+    protected @Inject Optional<IAsync> async = Optional.of(new AsyncSingleThreadedImpl());
 
     private final F1<List<CompareItem<T>>, Map<String, T>> initialConverter =
             list -> list.parallelStream()
@@ -63,10 +65,10 @@ public class CompareTool<T extends Comparable<T> & Identifiable<String>, I> {
             F1<List<T>, I> metaInfoProcessor
     ) {
         try {
-            return async.coldTaskFJP().call(() -> {
-                final List<List<CompareItem<T>>> results = async.supplyParallel(Cc.l(firstSource, secondSource));
-                final Future<Map<String, T>> ftr1 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(0)));
-                final Future<Map<String, T>> ftr2 = async.coldTaskFJP().call(() -> initialConverter.apply(results.get(1)));
+            return async.get().coldTaskFJP().call(() -> {
+                final List<List<CompareItem<T>>> results = async.get().supplyParallel(Cc.l(firstSource, secondSource));
+                final Future<Map<String, T>> ftr1 = async.get().coldTaskFJP().call(() -> initialConverter.apply(results.get(0)));
+                final Future<Map<String, T>> ftr2 = async.get().coldTaskFJP().call(() -> initialConverter.apply(results.get(1)));
                 Map<String, T> first = ftr1.get();
                 Map<String, T> second = ftr2.get();
 
@@ -75,7 +77,7 @@ public class CompareTool<T extends Comparable<T> & Identifiable<String>, I> {
 
                 final HashSet<String> inBoth = Cc.retainAll(new HashSet<>(first.keySet()), second.keySet());
                 final List<X2<T, T>> existButDifferent = inBoth.stream()
-                        .filter($ -> first.get($).compareTo(second.get($)) != 0)
+                        .filter($ -> Fu.notEqual(first.get($), second.get($)))
                         .map($ -> X.x(first.get($), second.get($)))
                         .collect(Cc.toL());
 

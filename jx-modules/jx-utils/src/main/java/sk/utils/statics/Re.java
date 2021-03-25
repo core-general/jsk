@@ -20,10 +20,18 @@ package sk.utils.statics;
  * #L%
  */
 
+import sk.utils.functional.F1;
 import sk.utils.functional.O;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings({"unused"})
 public final class Re {
@@ -52,6 +60,22 @@ public final class Re {
         }
     }
 
+
+    //region fields
+    public static List<Field> getNonStaticPublicFields(Class target) {
+        return getAllNonStaticFields(new ArrayList<>(), target, Class::getFields);
+    }
+
+    public static List<Field> getAllNonStaticFields(Class target) {
+        return getAllNonStaticFields(new ArrayList<>(), target, Class::getDeclaredFields);
+    }
+
+    public static boolean isStatic(Field f) {
+        return Modifier.isStatic(f.getModifiers());
+    }
+    //endregion
+
+
     //region Proxies
     @SuppressWarnings("unchecked")
     public static <T> T singleProxy(Class<T> cls, InvocationHandler handler) {
@@ -63,6 +87,18 @@ public final class Re {
         return (T1) Proxy.newProxyInstance(cls.getClassLoader(), new Class[]{cls, cl2}, handler);
     }
     //endregion
+
+
+    //region private
+    private static List<Field> getAllNonStaticFields(List<Field> fields, Class<?> type, F1<Class<?>, Field[]> clsToFields) {
+        fields.addAll(Stream.of(clsToFields.apply(type)).filter(f -> !isStatic(f)).collect(toList()));
+
+        if (type.getSuperclass() != null) {
+            fields = getAllNonStaticFields(fields, type.getSuperclass(), clsToFields);
+        }
+
+        return fields;
+    }
 
     private Re() {
     }

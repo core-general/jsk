@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import sk.utils.functional.GSet;
 import sk.utils.ifaces.AsList;
+import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Cc;
 
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class X1<I1> implements AsList, GSet<I1> {
+public class X1<I1> implements AsList, GSet<I1>, Identifiable<I1> {
     public I1 i1;
 
     @Override
@@ -51,5 +52,10 @@ public class X1<I1> implements AsList, GSet<I1> {
     @Override
     public I1 get() {
         return getI1();
+    }
+
+    @Override
+    public I1 getId() {
+        return i1;
     }
 }

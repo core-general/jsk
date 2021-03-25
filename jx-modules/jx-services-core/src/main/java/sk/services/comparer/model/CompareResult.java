@@ -29,7 +29,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class CompareResult<T extends Comparable<T> & Identifiable<String>, I> {
+public class CompareResult<T extends Identifiable<String>, I> {
     CompareResultDif<T, I> firstDif;
     CompareResultDif<T, I> secondDif;
     List<X2<T, T>> existButDifferent;
