@@ -27,8 +27,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -62,12 +63,12 @@ public final class Re {
 
 
     //region fields
-    public static List<Field> getNonStaticPublicFields(Class target) {
-        return getAllNonStaticFields(new ArrayList<>(), target, Class::getFields);
+    public static SortedSet<Field> getNonStaticPublicFields(Class target) {
+        return getAllNonStaticFields(new TreeSet<>(Comparator.comparing(Field::getName)), target, Class::getFields);
     }
 
-    public static List<Field> getAllNonStaticFields(Class target) {
-        return getAllNonStaticFields(new ArrayList<>(), target, Class::getDeclaredFields);
+    public static SortedSet<Field> getAllNonStaticFields(Class target) {
+        return getAllNonStaticFields(new TreeSet<>(Comparator.comparing(Field::getName)), target, Class::getDeclaredFields);
     }
 
     public static boolean isStatic(Field f) {
@@ -90,7 +91,8 @@ public final class Re {
 
 
     //region private
-    private static List<Field> getAllNonStaticFields(List<Field> fields, Class<?> type, F1<Class<?>, Field[]> clsToFields) {
+    private static SortedSet<Field> getAllNonStaticFields(SortedSet<Field> fields, Class<?> type,
+            F1<Class<?>, Field[]> clsToFields) {
         fields.addAll(Stream.of(clsToFields.apply(type)).filter(f -> !isStatic(f)).collect(toList()));
 
         if (type.getSuperclass() != null) {

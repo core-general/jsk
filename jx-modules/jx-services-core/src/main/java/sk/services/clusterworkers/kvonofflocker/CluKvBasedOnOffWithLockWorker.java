@@ -30,7 +30,7 @@ import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluOnOffKvKey;
 import sk.services.kv.IKvLimitedStore;
 import sk.services.kv.keys.KvLockOrRenewKey;
-import sk.services.nodeinfo.INodeInfo;
+import sk.services.nodeinfo.INodeId;
 import sk.services.time.ITime;
 import sk.utils.async.cancel.CancelGetter;
 import sk.utils.functional.C1;
@@ -44,16 +44,16 @@ import javax.inject.Inject;
 public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLockWorker.IConf>
         extends CluOnOffWithLockWorker<CONFIG> {
     protected @Inject IKvLimitedStore kv;
-    protected @Inject INodeInfo nodeInfo;
+    protected @Inject INodeId nodeId;
 
     public CluKvBasedOnOffWithLockWorker(String workerName) {
         super(workerName);
     }
 
-    public CluKvBasedOnOffWithLockWorker(String workerName, IAsync async, ITime times, IKvLimitedStore kv, INodeInfo nodeInfo) {
+    public CluKvBasedOnOffWithLockWorker(String workerName, IAsync async, ITime times, IKvLimitedStore kv, INodeId nodeId) {
         super(workerName, async, times);
         this.kv = kv;
-        this.nodeInfo = nodeInfo;
+        this.nodeId = nodeId;
     }
 
     @Override
@@ -77,12 +77,12 @@ public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLoc
 
             @Override
             public Gett<Boolean> getLocker() {
-                return () -> kv.tryLockOrRenew(lockKey, nodeInfo.getNodeId(), O.of(getSchedulerCheckPeriod()));
+                return () -> kv.tryLockOrRenew(lockKey, nodeId.getNodeId(), O.of(getSchedulerCheckPeriod()));
             }
 
             @Override
             public Gett<Boolean> getLockRenewer() {
-                return () -> kv.tryLockOrRenew(lockKey, nodeInfo.getNodeId(), O.empty());
+                return () -> kv.tryLockOrRenew(lockKey, nodeId.getNodeId(), O.empty());
             }
 
             @Override

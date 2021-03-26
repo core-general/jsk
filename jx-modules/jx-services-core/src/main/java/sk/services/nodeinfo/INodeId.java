@@ -1,10 +1,10 @@
-package sk.aws.s3;
+package sk.services.nodeinfo;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,6 @@ package sk.aws.s3;
  * #L%
  */
 
-import sk.aws.AwsProperties;
-
-public interface S3Properties extends AwsProperties {}
+public interface INodeId {
+    public String getNodeId();
+}

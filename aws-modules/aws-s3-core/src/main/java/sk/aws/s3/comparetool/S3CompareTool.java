@@ -39,10 +39,8 @@ import sk.services.http.IHttp;
 import sk.services.json.IJson;
 import sk.services.retry.IRepeat;
 import sk.utils.async.AtomicNotifier;
-import sk.utils.files.PathWithBase;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
-import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -84,16 +82,6 @@ public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
 
     public S3JskClient createClient(S3CompareInput in) {
         return new S3JskClient(new S3Properties() {
-            @Override
-            public O<PathWithBase> get4everStorage() {
-                return O.empty();
-            }
-
-            @Override
-            public O<PathWithBase> getTempStorage() {
-                return O.empty();
-            }
-
             @Override
             public OneOf<URI, Region> getAddress() {
                 return in.getProps().getAddress();

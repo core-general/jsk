@@ -26,9 +26,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.SortedMap;
 
-public interface INodeInfo {
-    public String getNodeId();
-
+public interface INodeInfo extends INodeId {
     public String getNodeVersion();
 
     public ZonedDateTime getBuildTime();
