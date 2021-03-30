@@ -23,10 +23,14 @@ package sk.web.server.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.utils.functional.O;
+import sk.utils.statics.Cc;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 public class WebRequestFinishInfo {
+    List<String> headers = Cc.l();
     String requestId;
     String ip;
     O<String> userToken;

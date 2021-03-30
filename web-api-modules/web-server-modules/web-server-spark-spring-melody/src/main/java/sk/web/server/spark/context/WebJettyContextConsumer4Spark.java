@@ -220,6 +220,20 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
+        public SortedSet<String> getResponseHeaderNames() {
+            return throwOnBadRequestData(() -> {
+                return new TreeSet<>(response.raw().getHeaderNames());
+            });
+        }
+
+        @Override
+        public O<String> getResponseHeader(String name) {
+            return throwOnBadRequestData(() -> {
+                return ofNull(response.raw().getHeader(name));
+            });
+        }
+
+        @Override
         public boolean isMultipart() {
             return throwOnBadRequestData(() -> {
                 HttpServletRequest rawRequest = request.raw();

@@ -18,17 +18,17 @@
  #L%
 -->
 <#-- @ftlvariable name="info" type="sk.web.server.model.WebRequestStartInfo" -->
-
+<#--@formatter:off-->
 ------->>>-------!REQUEST ${info.requestId}------->>>-------
 From:${info.ip} <#if info.userToken.isPresent()>user: ${info.userToken.get()}</#if>
 ${info.httpMethod} ${info.path}
 HEADERS:
 <#list info.headers as header>
-    ${header}
+${header}
 </#list>
 PARAMETERS:
 <#list info.parameters as parameter>
-    ${parameter}
+${parameter}
 </#list>
 <#if info.multipartInfo.isPresent()>MULTIPART: [${info.multipartInfo.get()}]</#if>
 ------->>>-------#REQUEST ${info.requestId}------->>>-------

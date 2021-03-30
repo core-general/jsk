@@ -37,9 +37,13 @@ public interface WebRequestReadableOuterContext {
 
     SortedSet<String> getRequestHeaderNames();
 
-    Map<String, String> getAllParamsAsStrings();
-
     O<String> getRequestHeader(String name);
+
+    SortedSet<String> getResponseHeaderNames();
+
+    O<String> getResponseHeader(String name);
+
+    Map<String, String> getAllParamsAsStrings();
 
     boolean isMultipart();
 

@@ -129,6 +129,16 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
         outerFull.setResponseHeader(key, value);
     }
 
+    @Override
+    public SortedSet<String> getResponseHeaderNames() {
+        return outerFull.getResponseHeaderNames();
+    }
+
+    @Override
+    public O<String> getResponseHeader(String name) {
+        return outerFull.getResponseHeader(name);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> O<T> getVariableValue(WebRequestVariable variable) {

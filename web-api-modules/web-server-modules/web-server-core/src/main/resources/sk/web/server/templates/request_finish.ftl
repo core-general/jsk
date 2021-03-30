@@ -18,9 +18,13 @@
  #L%
 -->
 <#-- @ftlvariable name="info" type="sk.web.server.model.WebRequestFinishInfo" -->
-
+<#--@formatter:off-->
 -------<<<-------!RESPONSE ${info.requestId}-------<<<------
 To:${info.ip} <#if info.userToken.isPresent()>user: ${info.userToken.get()}</#if>
-Code:${info.httpCode} (${info.durationMs} ms)
+Code:${info.httpCode}
+HEADERS:
+<#list info.headers as header>
+${header}
+</#list>
 ${info.response}
 -------<<<-------#RESPONSE ${info.requestId}-------<<<------

@@ -115,6 +115,9 @@ public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
         String ms = difWithNano4Dif / 1_000_000 + "";
         String msRight = St.ss(difWithNano4Dif % 1_000_000 + "", 0, 2);
         return new WebRequestFinishInfo(
+                ctx.getResponseHeaderNames().stream()
+                        .map($ -> $ + ":" + St.raze3dots(ctx.getResponseHeader($).orElse(""), getStringLimit()))
+                        .collect(Cc.toL()),
                 ctx.getServerRequestId(),
                 ctx.getIpInfo().getClientIp(),
                 ctx.getUserToken(),

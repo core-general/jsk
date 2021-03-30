@@ -73,6 +73,10 @@ public interface WebRequestInnerContext {
 
     void setResponseHeader(String key, String value);
 
+    SortedSet<String> getResponseHeaderNames();
+
+    O<String> getResponseHeader(String name);
+
 
     <T> O<T> getVariableValue(WebRequestVariable variable);
 

@@ -47,5 +47,4 @@ public abstract class WebRequestWritableOuterContext {
         }
         innerSetResponse(result, redirect);
     }
-
 }
