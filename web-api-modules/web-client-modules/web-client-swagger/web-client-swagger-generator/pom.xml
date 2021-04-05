@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>web-client-modules</artifactId>
+        <artifactId>web-client-swagger</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.62</version>
+        <version>jsk.2.5.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,13 +14,13 @@
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>web-client-core</artifactId>
-            <version>jsk.2.4.62</version>
+            <artifactId>web-core</artifactId>
+            <version>jsk.2.5.2</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.2.4.62</version>
+            <version>jsk.2.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -33,16 +33,15 @@
             <version>2.0.24</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-cli</artifactId>
+            <version>5.1.0</version>
+        </dependency>
         <!--        <dependency>-->
         <!--            <groupId>com.bluetrainsoftware.maven</groupId>-->
         <!--            <artifactId>openapi-dart-generator</artifactId>-->
         <!--            <version>4.2</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.openapitools</groupId>-->
-        <!--            <artifactId>openapi-generator-cli</artifactId>-->
-        <!--            <version>5.1.0</version>-->
         <!--        </dependency>-->
     </dependencies>
 

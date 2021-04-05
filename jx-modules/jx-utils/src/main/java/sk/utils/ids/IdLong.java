@@ -20,16 +20,9 @@ package sk.utils.ids;
  * #L%
  */
 
-import sk.utils.statics.Ma;
-
 @SuppressWarnings("unused")
 public abstract class IdLong extends IdBase<Long> {
     public IdLong(long id) {
         super(id);
-    }
-
-    @Override
-    public Long idFromString(String id) {
-        return Ma.pl(id);
     }
 }

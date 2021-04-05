@@ -22,7 +22,6 @@ package sk.utils.ids;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import sk.exceptions.NotImplementedException;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Fu;
 
@@ -42,11 +41,6 @@ public abstract class IdBase<T extends Comparable<T>> implements Serializable, C
     @Override
     public String toString() {
         return Objects.toString(id);
-    }
-
-    @SuppressWarnings("unused")
-    public T idFromString(String val) {
-        throw new NotImplementedException("Must be overriden, where it is needed ");
     }
 
     public int compareTo(IdBase<T> o) {

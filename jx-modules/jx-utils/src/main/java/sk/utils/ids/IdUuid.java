@@ -27,9 +27,4 @@ public abstract class IdUuid extends IdBase<UUID> {
     public IdUuid(UUID uuid) {
         super(uuid);
     }
-
-    @Override
-    public UUID idFromString(String val) {
-        return UUID.fromString(val);
-    }
 }

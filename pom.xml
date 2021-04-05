@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.2.4.62</version>
+    <version>jsk.2.5.2</version>
 
     <modules>
         <module>jx-modules</module>
@@ -18,6 +18,7 @@
         <module>z-module-4-experiments-only</module>
         <module>aws-modules</module>
         <module>outer-api-modules</module>
+        <module>mvn-plugins</module>
     </modules>
 
     <properties>

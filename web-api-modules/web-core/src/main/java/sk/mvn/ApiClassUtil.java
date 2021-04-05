@@ -20,10 +20,10 @@ package sk.mvn;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import sk.mvn.model.ApiBuildInfo;
 import sk.mvn.model.ApiClassModel;
 import sk.services.json.IJson;
+import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
@@ -32,9 +32,20 @@ import sk.utils.statics.St;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class ApiClassUtil {
     private IJson json;
+    O<String> pathForGet;
+    F1<String, O<String>> getDataForApiPath;
+
+    public ApiClassUtil(IJson json) {
+        this(json, O.empty(), path -> Io.getResource(path));
+    }
+
+    public ApiClassUtil(IJson json, O<String> pathForGet, F1<String, O<String>> getDataForApiPath) {
+        this.json = json;
+        this.pathForGet = pathForGet;
+        this.getDataForApiPath = getDataForApiPath;
+    }
 
     public String calculateHashCode(String methodPath, String returnType, List<String> parameterTypes) {
         String toHash = methodPath +
@@ -44,18 +55,20 @@ public class ApiClassUtil {
     }
 
     public <T> O<ApiClassModel> getApiClassFromResources(Class<T> apiCls) throws RuntimeException {
-        String apiPath = "__jsk_util/web_api/" + apiCls.getName().replace(".", "_") + ".json";
-        return Io.getResource(apiPath).map($ -> json.from($, ApiClassModel.class));
+        String apiPath =
+                pathForGet.map($ -> St.endWith($, "/")).orElse("") + "__jsk_util/web_api/" + apiCls.getName().replace(".", "_") +
+                        ".json";
+        return getDataForApiPath.apply(apiPath).map($ -> json.from($, ApiClassModel.class));
     }
 
     public <T> void saveApiClassToResources(String outputPath, ApiClassModel model) {
-        Io.reWrite(St.endWith(outputPath, "/") + "/__jsk_util/web_api/" + model.getApiClass().replace(".", "_") + ".json",
+        Io.reWrite(St.endWith(outputPath, "/") + "__jsk_util/web_api/" + model.getApiClass().replace(".", "_") + ".json",
                 w -> w.append(json.to(model, true)));
     }
 
     public O<ApiBuildInfo> getVersionAndBuildTimeFromResources() {
-        String apiPath = "__jsk_util/web_api/__buildInfo.json";
-        return Io.getResource(apiPath).map($ -> json.from($, ApiBuildInfo.class));
+        String apiPath = pathForGet.map($ -> St.endWith($, "/")).orElse("") + "__jsk_util/web_api/__buildInfo.json";
+        return getDataForApiPath.apply(apiPath).map($ -> json.from($, ApiBuildInfo.class));
     }
 
     public void saveVersionAndBuildTime(String outPath, ApiBuildInfo info) {

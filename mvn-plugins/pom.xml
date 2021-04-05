@@ -3,32 +3,22 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>spring-modules</artifactId>
+        <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.62</version>
+        <version>jsk.2.5.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>jsk.2.4.62</version>
-    <artifactId>spring-properties-plugin</artifactId>
-    <packaging>maven-plugin</packaging>
+    <artifactId>mvn-plugins</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>web-api-info-generator-maven-plugin</module>
+        <module>spring-properties-plugin</module>
+        <module>web-client-swagger-maven-plugin</module>
+    </modules>
 
     <dependencies>
-        <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.2.4.62</version>
-        </dependency>
-        <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>spring-properties-plugin-model</artifactId>
-            <version>jsk.2.4.62</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
@@ -47,12 +37,14 @@
         </dependency>
     </dependencies>
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.0</version>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

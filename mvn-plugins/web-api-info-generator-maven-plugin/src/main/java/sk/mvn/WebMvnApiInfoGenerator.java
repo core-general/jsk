@@ -64,7 +64,6 @@ import static sk.web.utils.WebUtils.*;
 public class WebMvnApiInfoGenerator extends AbstractMojo {
     private MavenProject project = null;
 
-
     public static void main(String[] args) throws MojoFailureException, MojoExecutionException {
         WebMvnApiInfoGenerator webMvnApiInfoGenerator = new WebMvnApiInfoGenerator() {
             @Override

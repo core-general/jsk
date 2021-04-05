@@ -20,6 +20,8 @@ package sk.web.infogatherer;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import sk.mvn.ApiClassUtil;
 import sk.mvn.model.ApiClassModel;
 import sk.mvn.model.ApiMethodModel;
@@ -47,6 +49,8 @@ import static sk.utils.statics.St.endWith;
 import static sk.utils.statics.St.startWith;
 import static sk.web.utils.WebUtils.*;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
     @Inject IExcept except;
     @Inject ApiClassUtil hasher;

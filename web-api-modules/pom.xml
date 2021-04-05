@@ -5,17 +5,16 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.4.62</version>
+        <version>jsk.2.5.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-api-modules</artifactId>
-    <version>jsk.2.4.62</version>
+    <version>jsk.2.5.2</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>web-core</module>
-        <module>web-api-info-generator-maven-plugin</module>
         <module>web-client-modules</module>
         <module>web-server-modules</module>
         <module>web-core-spring</module>

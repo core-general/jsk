@@ -25,9 +25,4 @@ public abstract class IdString extends IdBase<String> {
     public IdString(String uuid) {
         super(uuid);
     }
-
-    @Override
-    public String idFromString(String val) {
-        return val;
-    }
 }
