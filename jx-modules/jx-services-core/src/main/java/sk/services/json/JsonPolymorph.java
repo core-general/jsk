@@ -1,4 +1,4 @@
-package test;
+package sk.services.json;
 
 /*-
  * #%L
@@ -20,16 +20,17 @@ package test;
  * #L%
  */
 
-//import org.openapitools.codegen.OpenAPIGenerator;
+public abstract class JsonPolymorph implements IJsonPolymorph {
+    public static final String fieldName = "_jcl_";
+    public String _jcl_;
 
-public class Test {
-    public static void main(String[] args) {
-        //OpenAPIGenerator.main(new String[]{
-        //        "generate",
-        //        "-i", "../scratches/scratch_1.json",
-        //        "-o", "/tmp/dart-generator",
-        //        "-g", "dart2-api",
-        //        });
-        //OpenAPIGenerator.main(new String[]{"help"});
+    @Override
+    public void clearMyType() {
+        _jcl_ = null;
+    }
+
+    @Override
+    public void setMyType() {
+        _jcl_ = getClass().getName();
     }
 }

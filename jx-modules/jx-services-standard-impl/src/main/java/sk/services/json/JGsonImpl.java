@@ -20,10 +20,7 @@ package sk.services.json;
  * #L%
  */
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -33,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
+import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
@@ -56,8 +54,10 @@ public class JGsonImpl implements IJson {
     @Inject ITime times;
     @Inject IBytes bytes;
 
-    private Gson json;
-    private Gson jsonPretty;
+    private Gson jsonPolymorphic;
+    private Gson jsonPrettyPolymorphic;
+    private Gson jsonConcrete;
+    private Gson jsonPrettyConcrete;
 
     public JGsonImpl(O<List<GsonSerDesList>> converters, ITime times) {
         this.converters = converters.toOpt();
@@ -66,32 +66,45 @@ public class JGsonImpl implements IJson {
 
     @PostConstruct
     public JGsonImpl init() {
+        GsonBuilder gsonBuilderConcrete = new GsonBuilder();
+        GsonBuilder gsonBuilderPolymorphic = new GsonBuilder();
+        GsonBuilder gsonBuilderPolymorphicPretty = new GsonBuilder();
+        new GsonDefaultSerDes(times, bytes).getSerDesInfoList().forEach($ -> {
+            gsonBuilderConcrete.registerTypeAdapter($.getCls(), $);
+            gsonBuilderPolymorphic.registerTypeAdapter($.getCls(), $);
+            gsonBuilderPolymorphicPretty.registerTypeAdapter($.getCls(), $);
+        });
+
         List<GsonSerDes<?>> adaptClasses = converters
                 .map($ -> $.stream().flatMap(x -> x.getSerDesInfoList().stream()).collect(Cc.toL()))
                 .orElse(Cc.lEmpty());
-
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        new GsonDefaultSerDes(times, bytes).getSerDesInfoList()
-                .forEach($ -> gsonBuilder.registerTypeAdapter($.getCls(), $));
-
         adaptClasses.forEach((gsonAdapter) -> {
-            gsonBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            gsonBuilderConcrete.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            gsonBuilderPolymorphic.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            gsonBuilderPolymorphicPretty.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
         });
 
-        json = gsonBuilder.disableHtmlEscaping().create();
-        jsonPretty = gsonBuilder.disableHtmlEscaping().setPrettyPrinting().create();
+        jsonConcrete = gsonBuilderConcrete.disableHtmlEscaping().create();
+        jsonPolymorphic = gsonBuilderPolymorphic.disableHtmlEscaping()
+                .registerTypeHierarchyAdapter(IJsonPolymorph.class, new PolySerDes(() -> jsonConcrete, this))
+                .create();
+        jsonPrettyConcrete = gsonBuilderConcrete.disableHtmlEscaping().setPrettyPrinting().create();
+        jsonPrettyPolymorphic = gsonBuilderPolymorphicPretty.disableHtmlEscaping().setPrettyPrinting()
+                .registerTypeHierarchyAdapter(IJsonPolymorph.class, new PolySerDes(() -> jsonPrettyConcrete, this))
+                .create();
+
         return this;
     }
 
     @Override
     public <T> String to(T object, boolean pretty) {
-        return pretty ? jsonPretty.toJson(object) : json.toJson(object);
+        return pretty ? jsonPrettyPolymorphic.toJson(object) : jsonPolymorphic.toJson(object);
     }
 
     @Override
     public <T> T from(String objInJson, Class<T> cls) {
         try {
-            return json.fromJson(objInJson, cls);
+            return jsonPolymorphic.fromJson(objInJson, cls);
         } catch (Exception e) {
             throw new RuntimeException(St.raze3dots(objInJson, 500), e);
         }
@@ -100,7 +113,7 @@ public class JGsonImpl implements IJson {
     @Override
     public <T> T from(InputStream objInJson, Class<T> cls) {
         try (InputStreamReader rdr = new InputStreamReader(objInJson)) {
-            return json.fromJson(rdr, cls);
+            return jsonPolymorphic.fromJson(rdr, cls);
         } catch (Exception e) {
             throw new RuntimeException(St.raze3dots(St.streamToS(objInJson), 500), e);
         }
@@ -109,7 +122,7 @@ public class JGsonImpl implements IJson {
     @Override
     public <T> T from(String objInJson, TypeWrap<T> type) {
         try {
-            return json.fromJson(objInJson, type.getType());
+            return jsonPolymorphic.fromJson(objInJson, type.getType());
         } catch (Exception e) {
             throw new RuntimeException(St.raze3dots(objInJson, 500), e);
         }
@@ -118,7 +131,7 @@ public class JGsonImpl implements IJson {
     @Override
     public <T> T from(InputStream objInJson, TypeWrap<T> type) {
         try (InputStreamReader rdr = new InputStreamReader(objInJson)) {
-            return json.fromJson(rdr, type.getType());
+            return jsonPolymorphic.fromJson(rdr, type.getType());
         } catch (Exception e) {
             throw new RuntimeException(St.raze3dots(St.streamToS(objInJson), 500), e);
         }
@@ -127,7 +140,7 @@ public class JGsonImpl implements IJson {
     @Override
     public boolean validate(String possibleJson) {
         try {
-            json.fromJson(possibleJson, Object.class);
+            jsonPolymorphic.fromJson(possibleJson, Object.class);
             return true;
         } catch (com.google.gson.JsonSyntaxException ex) {
             return false;
@@ -138,11 +151,11 @@ public class JGsonImpl implements IJson {
     public String beautify(String smallJson) {
         JsonElement jsonElement = JsonParser.parseString(smallJson);
         if (jsonElement.isJsonArray()) {
-            return json.toJson(jsonElement.getAsJsonArray());
+            return jsonPolymorphic.toJson(jsonElement.getAsJsonArray());
         } else if (jsonElement.isJsonObject()) {
-            return json.toJson(jsonElement.getAsJsonObject());
+            return jsonPolymorphic.toJson(jsonElement.getAsJsonObject());
         } else if (jsonElement.isJsonPrimitive()) {
-            return json.toJson(jsonElement.getAsJsonPrimitive());
+            return jsonPolymorphic.toJson(jsonElement.getAsJsonPrimitive());
         }
         return smallJson;
     }
@@ -213,6 +226,40 @@ public class JGsonImpl implements IJson {
         @Override
         public String read(String path) {
             return ctx.read(path, new TypeRefFromIJsonTypeWrap<>(TypeWrap.simple(String.class)));
+        }
+    }
+
+    private static class PolySerDes extends GsonSerDes<IJsonPolymorph> {
+        F0<Gson> nonPolymorphicGson;
+        IJsonPolymorphReader ijpr;
+
+        public PolySerDes(F0<Gson> nonPolymorphicGson, IJsonPolymorphReader ijpr) {
+            super(IJsonPolymorph.class);
+            this.nonPolymorphicGson = nonPolymorphicGson;
+            this.ijpr = ijpr;
+        }
+
+        @Override
+        public JsonElement serialize(IJsonPolymorph src, Type typeOfSrc, JsonSerializationContext context) {
+            src.setMyType();
+            final JsonElement toRet = nonPolymorphicGson.get().toJsonTree(src);
+            src.clearMyType();
+            return toRet;
+        }
+
+        @Override
+        public IJsonPolymorph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            try {
+                final JsonObject obj = json.getAsJsonObject();
+                final String clsName = obj.get(ijpr.getClassFieldName()).getAsString();
+                final Class<?> classByClassName = ijpr.getClassByClassName(clsName);
+                final IJsonPolymorph iJsonPolymorph = (IJsonPolymorph) nonPolymorphicGson.get().fromJson(json, classByClassName);
+                iJsonPolymorph.clearMyType();
+                return iJsonPolymorph;
+            } catch (Exception e) {
+                throw new RuntimeException("Can't process json element: " + json.toString() + " for type " + typeOfT, e);
+            }
         }
     }
 }

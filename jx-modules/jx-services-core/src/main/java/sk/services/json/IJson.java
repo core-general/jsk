@@ -27,7 +27,7 @@ import sk.utils.javafixes.TypeWrap;
 import java.io.InputStream;
 
 @SuppressWarnings("unused")
-public interface IJson {
+public interface IJson extends IJsonPolymorphReader {
     default <T> String to(T object) {
         return to(object, false);
     }

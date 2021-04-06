@@ -109,7 +109,7 @@ public class WebSwaggerGenerator {
                                 .addSerializer(Parameter.StyleEnum.class, new ToStringSerializer())
                 );
 
-        return json.writeValueAsString(spec);
+        return json.writerWithDefaultPrettyPrinter().writeValueAsString(spec);
     }
 
     private static void fillOneMethod(Paths paths, WebMethodInfo method,

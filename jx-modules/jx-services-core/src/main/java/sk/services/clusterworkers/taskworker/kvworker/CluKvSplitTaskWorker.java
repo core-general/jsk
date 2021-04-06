@@ -85,19 +85,21 @@ public class CluKvSplitTaskWorker<CUSTOM_META, TASK_INPUT extends Identifiable<S
     public synchronized void start(CONFIG c) throws RuntimeException {
         final CONFIG config = wrapConfig(c);
 
-        restarter = (meta, work) -> kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()),
-                (metaAndWork) -> {
-                    CluWorkHelper<CUSTOM_META, TASK_INPUT, RESULT> helper =
-                            new CluWorkHelper<>(null, metaAndWork, new ConverterImpl<>(
-                                    a -> decompressor.apply(a),
-                                    b -> O.of(compressFullWork(config, b))),
-                                    times.nowZ(), config.getMsForTaskToExpire()
-                            );
+        restarter = (meta, work) -> kv.updateObjectAndRaw(kvKey4Task, getMetaType(config.getMetaClass()), (metaAndWork) -> {
+            CluWorkHelper<CUSTOM_META, TASK_INPUT, RESULT> helper =
+                    new CluWorkHelper<>(null, metaAndWork, new ConverterImpl<>(
+                            a -> decompressor.apply(a),
+                            b -> O.of(compressFullWork(config, b))),
+                            times.nowZ(), config.getMsForTaskToExpire()
+                    );
 
-                    helper.initWork(ids.shortIdS(), meta, work);
+            helper.initWork(ids.shortIdS(), meta, work);
 
-                    return O.of(helper.serializeBack());
-                }).collect($ -> true, e -> false);
+            return O.of(helper.serializeBack());
+        }).collect($ -> true, e -> {
+            config.getErrorConsumer().accept(e);
+            return false;
+        });
 
         decompressor = (obytes) -> decompressFullWork(config, obytes);
 

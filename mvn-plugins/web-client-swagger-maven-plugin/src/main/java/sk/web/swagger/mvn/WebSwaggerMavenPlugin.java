@@ -28,14 +28,12 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.openapitools.codegen.OpenAPIGenerator;
 import sk.mvn.ApiClassUtil;
 import sk.services.except.IExcept;
 import sk.services.json.JGsonImpl;
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
-import sk.utils.statics.Io;
-import sk.utils.statics.St;
+import sk.utils.statics.*;
 import sk.utils.tuples.X;
 import sk.web.infogatherer.WebMethodInfoProviderImpl;
 import sk.web.swagger.WebSwaggerGenerator;
@@ -44,9 +42,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PACKAGE)
 public class WebSwaggerMavenPlugin extends AbstractMojo {
     @Parameter String[] apiClasses;
+    @Parameter String[] generators = new String[0];
 
     @Override
     @SneakyThrows
@@ -58,18 +57,29 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
 
         WebSwaggerGenerator wsg = new WebSwaggerGenerator(
                 new WebMethodInfoProviderImpl(new IExcept() {},
-                        new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString()))
-        );
+                        new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString())));
 
-        final List<? extends Class<?>> apiClasses =
-                Cc.stream(this.apiClasses).map($ -> Ex.toRuntime(() -> Class.forName($))).collect(Collectors.toList());
-
-        final Map<String, String> fileContents = apiClasses.stream()
-                .map($ -> X.x($.getSimpleName(), wsg.generateSwaggerSpec($, O.empty())))
+        final Map<String, String> fileContents = Cc.stream(this.apiClasses)
+                .map($1 -> Ex.toRuntime(() -> Class.forName($1)))
+                .map($ -> X.x(out + "__jsk_util/swagger/api_specs/" + $.getSimpleName() + ".json",
+                        wsg.generateSwaggerSpec($, O.empty())))
                 .collect(Cc.toMX2());
 
+        final List<WebSwaggerMavenGeneratorTypes> generators = Cc.stream(this.generators)
+                .map($ -> Re.findInEnum(WebSwaggerMavenGeneratorTypes.class, $)
+                        .orElseThrow(() -> new RuntimeException("Can't find generator for: " + $)))
+                .collect(Collectors.toList());
+
         fileContents.forEach((k, v) -> {
-            Io.reWrite(out + "__jsk_util/swagger/api_specs/" + k + ".json", w -> w.append(v));
+            Io.reWrite(k, w -> w.append(v));
+            for (WebSwaggerMavenGeneratorTypes generator : generators) {
+                OpenAPIGenerator.main(new String[]{
+                        "generate",
+                        "-i", k,
+                        "-o", out + "__jsk_util/swagger/generators/" + generator.name(),
+                        "-g", generator.getGeneratorName(),
+                        });
+            }
         });
     }
 }
