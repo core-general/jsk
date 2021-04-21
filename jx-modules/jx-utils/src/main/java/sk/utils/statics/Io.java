@@ -283,8 +283,12 @@ public final class Io {
         });
     }
 
-    public static void delete(String location) {
+    public static boolean deleteIfExists(String location) {
         Path path = Paths.get(location);
+        File f = new File(location);
+        if (!f.exists()) {
+            return false;
+        }
         try {
             if (!isDirectory(path)) {
                 Files.delete(path);
@@ -301,8 +305,9 @@ public final class Io {
                     }
                 });
             }
+            return true;
         } catch (IOException e) {
-            Ex.thRow(e);
+            return Ex.thRow(e);
         }
     }
 
@@ -315,10 +320,10 @@ public final class Io {
         try {
             new File(to).getParentFile().mkdirs();
             return copyAttributes
-                    ? Files.copy(new File(from).toPath(), new File(to).toPath(), StandardCopyOption.REPLACE_EXISTING,
+                   ? Files.copy(new File(from).toPath(), new File(to).toPath(), StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.COPY_ATTRIBUTES) != null
-                    : Files.copy(new File(from).toPath(), new File(to).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING) != null
+                   : Files.copy(new File(from).toPath(), new File(to).toPath(),
+                           StandardCopyOption.REPLACE_EXISTING) != null
                     ;
         } catch (IOException e) {
             return false;

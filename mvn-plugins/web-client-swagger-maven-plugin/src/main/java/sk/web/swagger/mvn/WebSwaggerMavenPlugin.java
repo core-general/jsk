@@ -35,6 +35,7 @@ import sk.services.json.JGsonImpl;
 import sk.utils.functional.O;
 import sk.utils.statics.*;
 import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 import sk.web.infogatherer.WebMethodInfoProviderImpl;
 import sk.web.swagger.WebSwaggerGenerator;
 
@@ -59,26 +60,42 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
                 new WebMethodInfoProviderImpl(new IExcept() {},
                         new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString())));
 
-        final Map<String, String> fileContents = Cc.stream(this.apiClasses)
+        final Map<String, X2<String, Class>> fileContents = Cc.stream(this.apiClasses)
                 .map($1 -> Ex.toRuntime(() -> Class.forName($1)))
                 .map($ -> X.x(out + "__jsk_util/swagger/api_specs/" + $.getSimpleName() + ".json",
-                        wsg.generateSwaggerSpec($, O.empty())))
+                        X.x(wsg.generateSwaggerSpec($, O.empty()), (Class) $)))
                 .collect(Cc.toMX2());
 
-        final List<WebSwaggerMavenGeneratorTypes> generators = Cc.stream(this.generators)
-                .map($ -> Re.findInEnum(WebSwaggerMavenGeneratorTypes.class, $)
-                        .orElseThrow(() -> new RuntimeException("Can't find generator for: " + $)))
+        final List<X2<WebSwaggerMavenGeneratorTypes, String>> generators = Cc.stream(this.generators)
+                .map($ -> {
+                    final String[] lr = $.split(":");
+                    final WebSwaggerMavenGeneratorTypes type =
+                            Re.findInEnum(WebSwaggerMavenGeneratorTypes.class, lr[0])
+                                    .orElseThrow(() -> new RuntimeException("Can't find generator for: " + lr[0]));
+
+                    return X.x(type, lr[1]);
+                })
                 .collect(Collectors.toList());
 
         fileContents.forEach((k, v) -> {
-            Io.reWrite(k, w -> w.append(v));
-            for (WebSwaggerMavenGeneratorTypes generator : generators) {
-                OpenAPIGenerator.main(new String[]{
-                        "generate",
+            Io.reWrite(k, w -> w.append(v.i1()));
+            for (X2<WebSwaggerMavenGeneratorTypes, String> generator : generators) {
+
+                Io.deleteIfExists(St.endWith(generator.i2(), "/") + v.i2().getSimpleName());
+                final String pckg = v.i2().getName().replace("." + v.i2().getSimpleName(), "");
+                final List<String> params = Cc.l("generate",
                         "-i", k,
-                        "-o", out + "__jsk_util/swagger/generators/" + generator.name(),
-                        "-g", generator.getGeneratorName(),
-                        });
+                        "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
+                        "-g", generator.i1().getGeneratorName(),
+                        "--global-property", "skipFormModel=false"
+                        //"--api-name-suffix", v.i2().getSimpleName(),
+                        //"--api-package", pckg,
+                        //"--package-name", pckg,
+                );
+
+                generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
+
+                OpenAPIGenerator.main(params.toArray(new String[0]));
             }
         });
     }

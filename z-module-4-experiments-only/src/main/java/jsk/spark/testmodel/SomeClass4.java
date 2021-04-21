@@ -1,4 +1,4 @@
-package sk.web.swagger.mvn;
+package jsk.spark.testmodel;
 
 /*-
  * #%L
@@ -21,17 +21,22 @@ package sk.web.swagger.mvn;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import sk.utils.functional.O;
 
-@AllArgsConstructor
-@Getter
-public enum WebSwaggerMavenGeneratorTypes {
-    DART("dart", O.empty()),
-    DART_DIO("dart-dio", O.of("dart-dio-mod")),
-    DART_DIO_NEXT("dart-dio-next", O.empty()),
-    ;
+import java.util.List;
 
-    String generatorName;
-    O<String> templatePath;
+@AllArgsConstructor
+public class SomeClass4 {
+    String a;
+    O<String> b;
+
+    int c;
+    O<Integer> d;
+
+    SomeEnum e;
+    List<String> f;
+
+    List<SomeClass5> g;
+    SomeClass5 h;
+    O<SomeClass5> i;
 }

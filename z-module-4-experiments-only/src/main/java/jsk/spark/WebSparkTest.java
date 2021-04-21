@@ -20,10 +20,7 @@ package jsk.spark;
  * #L%
  */
 
-import jsk.spark.testmodel.SomeClass1;
-import jsk.spark.testmodel.SomeClass2;
-import jsk.spark.testmodel.SomeClass3;
-import jsk.spark.testmodel.SomeEnum;
+import jsk.spark.testmodel.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
@@ -74,6 +71,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static sk.utils.functional.O.of;
@@ -145,6 +143,39 @@ public class WebSparkTest {
                     "g", null
             );
         }
+
+    }
+
+    public static class Api3Impl implements TestApiSwaggerTest3 {
+        @Override
+        public int testInt(int a) {
+            return new Random().nextInt();
+        }
+
+        @Override
+        public byte[] testIntPost(int a) {
+            return new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+        }
+
+        @Override
+        public String testIntPostMultiForce(byte[] body) {
+            return body.length + "";
+        }
+
+        @Override
+        public String testIntPostMultiForce2(byte[] bd, String x) {
+            return bd.length + " " + x;
+        }
+
+        @Override
+        public String testIntPostMultiForce3(byte[] bd, int z) {
+            return bd.length + " " + z;
+        }
+
+        @Override
+        public SomeClass4 testClass(SomeClass4 cls) {
+            return cls;
+        }
     }
 
     @Configuration
@@ -170,6 +201,26 @@ public class WebSparkTest {
                     return super.getBasePath();
                 }
             };
+        }
+
+        @Bean
+        public WebServerCore<TestApiSwaggerTest3> TestApiSwaggerTest3(Api3Impl impl, WebUserActionLoggingFilter actionLogger) {
+            return new WebServerCoreWithPings<TestApiSwaggerTest3>(TestApiSwaggerTest3.class, impl) {
+                @Override
+                protected O<List<WebServerFilter>> getAdditionalFilters(O<Method> methodOrAll) {
+                    return of(Cc.l(actionLogger));
+                }
+
+                @Override
+                public O<String> getBasePath() {
+                    return super.getBasePath();
+                }
+            };
+        }
+
+        @Bean
+        Api3Impl Api3Impl() {
+            return new Api3Impl();
         }
 
         @Bean

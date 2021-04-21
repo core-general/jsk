@@ -28,8 +28,10 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.core.jackson.mixin.SchemaMixin;
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.headers.Header;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -38,19 +40,19 @@ import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
+import sk.utils.functional.OneOrBoth;
 import sk.utils.ids.IdBase;
 import sk.utils.ids.IdLong;
 import sk.utils.ids.IdString;
 import sk.utils.ids.IdUuid;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
-import sk.utils.statics.Re;
-import sk.utils.statics.St;
+import sk.utils.statics.*;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
+import sk.web.WebMethodType;
 import sk.web.infogatherer.WebClassInfo;
 import sk.web.infogatherer.WebClassInfoProvider;
 import sk.web.infogatherer.WebMethodInfo;
+import sk.web.utils.WebApiMethod;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -62,6 +64,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static sk.utils.functional.O.empty;
+import static sk.utils.functional.O.of;
+
 @AllArgsConstructor
 public class WebSwaggerGenerator {
     private final WebClassInfoProvider infoProvider;
@@ -70,6 +75,8 @@ public class WebSwaggerGenerator {
     public <A> String generateSwaggerSpec(Class<A> apiClass, O<String> basePath) {
         OpenAPI spec = new OpenAPI();
 
+        spec.info(new Info().description("").version("1.0.0").title(apiClass.getName()));
+
         final Paths paths = new Paths();
         spec.setPaths(paths);
 
@@ -77,7 +84,8 @@ public class WebSwaggerGenerator {
         Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents = Cc.m();
         final WebClassInfo classModel = infoProvider.getClassModel(apiClass, basePath);
         for (WebMethodInfo method : classModel.getMethods()) {
-            fillOneMethod(paths, method, classesForComponents);
+            final WebApiMethod<?> webApiMethod = new WebApiMethod<>(apiClass, of(method.getMethod()), false);
+            fillOneMethod(paths, method, webApiMethod, classesForComponents);
         }
 
 
@@ -113,7 +121,7 @@ public class WebSwaggerGenerator {
     }
 
     private static void fillOneMethod(Paths paths, WebMethodInfo method,
-            Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents) {
+            WebApiMethod<?> webApiMethod, Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents) {
         final PathItem item = new PathItem();
         Operation op = new Operation();
 
@@ -130,26 +138,54 @@ public class WebSwaggerGenerator {
         }
 
         op.setOperationId(method.getPrecompiledModel().getMName());
+
+        String responseMediaType = byte[].class.equals(method.getMethod().getReturnType())
+                                   ? "application/octet-stream"
+                                   : "application/json";
+
         op.setResponses(new ApiResponses()
-                .addApiResponse("200", new ApiResponse().content(
-                        new Content().addMediaType("application/json",
+                .addApiResponse("200", new ApiResponse().description("")
+                        .content(new Content().addMediaType(responseMediaType,
                                 new MediaType()
                                         .schema(convertToSchema(method.getMethod().getReturnType(), classesForComponents))))));
 
-        op.setParameters(Cc.mapEachWithIndex(method.getPrecompiledModel().getParams(), ($, i) -> {
-                    Parameter p = new Parameter();
+        prepareParameters(method, classesForComponents, op);
 
-                    final java.lang.reflect.Parameter pp = method.getMethod().getParameters()[i];
-                    final TypeInfoGenericInfoRaw typeGenericInfoRaw = getTypeGenericInfoRaw(pp.getParameterizedType());
+        paths.addPathItem(St.startWith(method.getFullMethodPath(), "/"), item);
+    }
 
-                    p.setRequired(!typeGenericInfoRaw.getType().isOptional());
-                    p.setName($.getName());
-                    p.setSchema(convertToSchema(pp.getParameterizedType(), classesForComponents));
-                    return p;
-                })
-        );
+    private static void prepareParameters(WebMethodInfo method, Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents,
+            Operation op) {
+        final List<Parameter> parameters = Cc.mapEachWithIndex(method.getPrecompiledModel().getParams(), ($, i) -> {
+            Parameter p = new Parameter();
+            p.in("query");
 
-        paths.addPathItem(method.getFullMethodPath(), item);
+            final java.lang.reflect.Parameter pp = method.getMethod().getParameters()[i];
+            final TypeInfoGenericInfoRaw typeGenericInfoRaw = getTypeGenericInfoRaw(pp.getParameterizedType());
+
+            p.setRequired(!typeGenericInfoRaw.getType().isOptional());
+            p.setName($.getName());
+            p.setSchema(convertToSchema(pp.getParameterizedType(), classesForComponents));
+            return p;
+        });
+
+        if (method.getType() == WebMethodType.POST_MULTI || method.getType() == WebMethodType.POST_MULTI_SURE) {
+            final Schema schema = new Schema();
+            schema.setType("object");
+            schema.setProperties(parameters.stream().map($ -> X.x($.getName(), $.getSchema())).collect(Cc.toMX2()));
+            schema.setRequired(
+                    parameters.stream().filter($ -> Fu.isTrue($.getRequired())).map($ -> $.getName()).collect(Cc.toL()));
+            op.setRequestBody(new RequestBody()
+                    .content(new Content().addMediaType("multipart/form-data", new MediaType()
+                            .schema(schema))));
+
+        } else if (method.getType() == WebMethodType.POST_BODY) {
+            op.setRequestBody(new RequestBody()
+                    .content(new Content().addMediaType("application/octet-stream", new MediaType()
+                            .schema(new BinarySchema()))));
+        } else {
+            op.setParameters(parameters);
+        }
     }
 
     private static Schema<?> convertToSchema(Type type, Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents) {
@@ -170,12 +206,17 @@ public class WebSwaggerGenerator {
             return sc;
         }
 
-        final O<Class<?>> arrClass = tt.getArrayClassForSchema();
+        final O<OneOrBoth<Class<?>, SwaggerType>> arrClass = tt.getArrayClassForSchema();
         if (arrClass.isPresent()) {
             ArraySchema sc = new ArraySchema();
-            final Schema<?> schema = convertToSchema(arrClass.get(), classesForComponents);
-            sc.setItems(schema);
-            return schema;
+            if (arrClass.get().isLeft()) {
+                sc.setItems(convertToSchema(arrClass.get().left(), classesForComponents));
+            } else {
+                sc.setItems(new Schema()
+                        .type(arrClass.get().right().getType())
+                        .format(arrClass.get().right().getFormat().orElse(null)));
+            }
+            return sc;
         }
 
         Schema<?> sc = new Schema<>();
@@ -383,8 +424,13 @@ public class WebSwaggerGenerator {
             return itemsRefOrType.flatMap($ -> $.oLeft().map($$ -> Ex.toRuntime(() -> Class.forName($$))));
         }
 
-        public O<Class<?>> getArrayClassForSchema() {
-            return itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema()));
+        public O<OneOrBoth<Class<?>, SwaggerType>> getArrayClassForSchema() {
+            if ("array".equals(type)) {
+                Class<?> classO = itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema())).orElse(null);
+                return of(OneOrBoth.both(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
+            } else {
+                return empty();
+            }
         }
     }
 }
