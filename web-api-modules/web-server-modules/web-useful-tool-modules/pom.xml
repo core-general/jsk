@@ -5,7 +5,7 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.2.5.4</version>
+        <version>jsk.2.5.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
