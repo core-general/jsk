@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import sk.db.relational.utils.ReadWriteRepo;
 import sk.services.log.ILog;
 import sk.services.log.ILogCategory;
@@ -38,6 +39,7 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
 import javax.inject.Inject;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -45,6 +47,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static sk.utils.statics.Cc.m;
 
 @SuppressWarnings({"ForLoopReplaceableByForEach", "UnnecessaryLabelOnBreakStatement", "unused"})
@@ -55,6 +58,11 @@ public class RdbIterator {
     @Inject ILog log;
     @Inject Optional<IAppProfile> profile = Optional.empty();
 
+    @Inject NamedParameterJdbcTemplate jdbc;
+
+    /**
+     * When full table scan is needed, it processes items page per page (1000 items in page)
+     */
     public <T, ID extends Serializable> long iterate(
             Consumer<T> toApply,
             ILogCategory logCategory,
@@ -90,6 +98,10 @@ public class RdbIterator {
         return itemCount;
     }
 
+    /**
+     * It's impossible to pass more than ~30k items in " in (...)" query, so we have to split request to a number of queries and
+     * merge results. Replaces findAllByIds
+     */
     public <ITEM, ID extends Serializable> List<ITEM> getManyItemsByIds(
             Collection<ID> ids,
             QuerydslPredicateExecutor<ITEM> repo,
@@ -108,6 +120,32 @@ public class RdbIterator {
             return ((parallel) ? values.parallelStream() : values.stream())
                     .flatMap($ -> Cc.stream(repo.findAll(formPredicate($, idExpression, additionalWhere))))
                     .collect(Cc.toL());
+        }
+    }
+
+    /**
+     * Count(*) counts items, so is very slow, this method allows to get data directly from metatables, so it's fast
+     * itemCls should be annotated with Table annotation
+     */
+    public O<Long> getFastItemCountInPostgresDb(Class<?> itemCls) {
+        final Table table = itemCls.getAnnotation(Table.class);
+        if (table == null) {
+            return O.empty();
+        } else {
+            try {
+                final String schema = table.schema();
+                final String tName = table.name();
+                final Long n_live_tup = jdbc.query(format(
+                        "select n_live_tup from pg_catalog.pg_stat_all_tables where schemaname='%s' and relname='%s'", schema,
+                        table),
+                        rs -> {
+                            rs.next();
+                            return rs.getLong("n_live_tup");
+                        });
+                return O.of(n_live_tup);
+            } catch (Exception e) {
+                return O.empty();
+            }
         }
     }
 
