@@ -88,10 +88,9 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
                         "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
                         "-g", generator.i1().getGeneratorName(),
                         "--global-property", "skipFormModel=false"
-                        //"--api-name-suffix", v.i2().getSimpleName(),
-                        //"--api-package", pckg,
-                        //"--package-name", pckg,
                 );
+
+                params.add("--additional-properties=pubName=" + v.i2().getSimpleName());
 
                 generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
 
