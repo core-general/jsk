@@ -26,10 +26,13 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 import sk.services.http.model.CoreHttpResponse;
+import sk.services.http.model.IHttpConf;
 import sk.utils.functional.F1;
+import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Ex;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +45,10 @@ public interface IHttp {
     <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToDelete();
 
     F1<HttpHeadBuilder, OneOf<CoreHttpResponse, Exception>> howToHead();
+
+    default IHttpConf getConfig() {
+        return new IHttpConf(Duration.ofSeconds(10), Duration.ofSeconds(20));
+    }
 
     default HttpHeadBuilder head(String url) {
         return new HttpHeadBuilder(url, howToHead());
@@ -102,6 +109,7 @@ public interface IHttp {
         @Nullable Map<String, String> headers = null;
         int tryCount = 1;
         int trySleepMs = 0;
+        O<Duration> timeout = O.empty();
 
         HttpBuilder(String url) {
             this.url = url;

@@ -20,6 +20,7 @@ package sk.services.http;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.exceptions.JskProblem;
 import sk.services.async.IAsync;
@@ -53,6 +54,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static sk.utils.functional.O.ofNullable;
 import static sk.utils.statics.Ex.thRow;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @SuppressWarnings("unused")
 public class HttpImpl implements IHttp {
@@ -74,12 +76,16 @@ public class HttpImpl implements IHttp {
     }
 
     @PostConstruct
-    protected HttpImpl init() {
-        httpClient = HttpClient.newBuilder()
+    protected final HttpImpl init() {
+        httpClient = prepareBuilder().build();
+        return this;
+    }
+
+    protected HttpClient.Builder prepareBuilder() {
+        return HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .executor(async.bufExec().getUnderlying())
-                .build();
-        return this;
+                .connectTimeout(getConfig().getConnectTimeout());
     }
 
     @Override
@@ -135,6 +141,22 @@ public class HttpImpl implements IHttp {
                 .method("DELETE", definePostRequestBody(postBuilder, bld)), false);
     }
 
+    private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) throws IOException {
+        final Builder builder = newBuilder()
+                .uri(URI.create(getBuilder.url()))
+                .GET();
+
+        return execute(getBuilder, builder, false);
+    }
+
+    private CoreHttpResponse executeSingleHead(HttpHeadBuilder headBuilder) throws IOException {
+        final Builder builder = newBuilder()
+                .uri(URI.create(headBuilder.url()))
+                .method("HEAD", BodyPublishers.noBody());
+
+        return execute(headBuilder, builder, true);
+    }
+
     private <T extends HttpPostBuilder<T>> BodyPublisher definePostRequestBody(T pb, Builder builder) {
         switch (pb.getType()) {
             case BODY:
@@ -148,7 +170,7 @@ public class HttpImpl implements IHttp {
                         .map($ -> URLEncoder.encode($.getKey(), UTF_8) + "=" + URLEncoder.encode($.getValue(), UTF_8)));
                 return BodyPublishers.ofString(string, UTF_8);
             case MULTIPART:
-                String boundary = "----" + ids.shortIdS() + "-" + ids.shortIdS();
+                String boundary = "----" + ids.shortIdS();
                 builder.header("Content-Type", "multipart/form-data; boundary=" + boundary);
                 List<byte[]> lines = Cc.l();
 
@@ -177,23 +199,6 @@ public class HttpImpl implements IHttp {
         return thRow(pb.getType() + " unknown");
     }
 
-    private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) throws IOException {
-        final Builder builder = newBuilder()
-                .uri(URI.create(getBuilder.url()))
-                .GET();
-
-        return execute(getBuilder, builder, false);
-    }
-
-    private CoreHttpResponse executeSingleHead(HttpHeadBuilder headBuilder) throws IOException {
-        final Builder builder = newBuilder()
-                .uri(URI.create(headBuilder.url()))
-                .method("HEAD", BodyPublishers.noBody());
-
-        return execute(headBuilder, builder, true);
-    }
-
-
     private <T extends HttpBuilder<T>> CoreHttpResponse execute(HttpBuilder<T> xBuilder, Builder builder,
             boolean forceEmptyContent)
             throws IOException {
@@ -201,6 +206,8 @@ public class HttpImpl implements IHttp {
         if (xBuilder.login() != null && xBuilder.password() != null) {
             builder.header("Authorization", Credentials.basic(xBuilder.login(), xBuilder.password(), bytes));
         }
+        builder.timeout(xBuilder.timeout().orElseGet(() -> getConfig().getReadTimeout()));
+
         ofNullable(xBuilder.headers()).ifPresent($ -> $.forEach(builder::header));
 
         try {
