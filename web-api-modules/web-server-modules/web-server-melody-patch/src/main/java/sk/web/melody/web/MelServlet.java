@@ -21,9 +21,13 @@ package sk.web.melody.web;
  */
 
 import lombok.AllArgsConstructor;
-import okhttp3.OkHttpClient;
 import sk.services.async.AsyncImpl;
+import sk.services.bytes.BytesImpl;
+import sk.services.bytes.IBytes;
 import sk.services.http.HttpImpl;
+import sk.services.ids.IIds;
+import sk.services.ids.IdsImpl;
+import sk.services.rand.RandImpl;
 import sk.services.retry.RepeatImpl;
 import sk.services.time.TimeUtcImpl;
 import sk.utils.tuples.X2;
@@ -47,7 +51,9 @@ public class MelServlet extends HttpServlet {
         final AsyncImpl async = new AsyncImpl();
         final RepeatImpl repeat = new RepeatImpl(async);
         final TimeUtcImpl times = new TimeUtcImpl();
-        final HttpImpl http = new HttpImpl(repeat, times, new OkHttpClient.Builder().build());
+        final IBytes bytes = new BytesImpl();
+        final IIds ids = new IdsImpl(new RandImpl(), bytes);
+        final HttpImpl http = new HttpImpl(repeat, times, async, ids, bytes);
         cleanerTask = new MelCleanTask(async, http);
         cleanerTask.start();
     }

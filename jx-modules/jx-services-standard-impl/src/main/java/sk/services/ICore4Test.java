@@ -60,7 +60,7 @@ public class ICore4Test implements ICoreServices {
 
     private IAsync async = new AsyncImpl();
     private IBytes bytes = new BytesImpl();
-    private IHttp http = new HttpImpl();
+
     private IRand rand = new RandTestImpl();
     private IIds ids = new IdsImpl(rand, bytes);
     private ITimeSetter times = new UtcSettableTimeUtilImpl();
@@ -72,4 +72,6 @@ public class ICore4Test implements ICoreServices {
     private IFree free = new Freemarker();
     private ISizedSemaphore sizedSemaphore = new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 50L, async);
     private IExcept except = new IExcept() {};
+
+    private IHttp http = new HttpImpl(repeat, times, async, ids, bytes);
 }

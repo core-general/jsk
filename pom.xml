@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.2.5.9</version>
+    <version>jsk.3.0.0</version>
 
     <modules>
         <module>jx-modules</module>
@@ -25,6 +25,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>jsk-repo</id>
+            <name>S3 jsk repo</name>
+            <url>https://jsk-maven-repository.s3.eu-north-1.amazonaws.com/release</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jsk-repo</id>
+            <name>S3 jsk repo</name>
+            <url>https://jsk-maven-repository.s3.eu-north-1.amazonaws.com/release</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <snapshotRepository>
@@ -56,7 +71,7 @@
     <build>
         <extensions>
             <extension>
-                <groupId>com.github.platform-team</groupId>
+                <groupId>jsk</groupId>
                 <artifactId>aws-maven</artifactId>
                 <version>6.0.0</version>
             </extension>
@@ -69,8 +84,7 @@
                     <version>3.8.1</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <release>11</release>
                     </configuration>
                 </plugin>
                 <plugin>

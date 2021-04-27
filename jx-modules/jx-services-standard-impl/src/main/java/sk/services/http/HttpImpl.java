@@ -20,11 +20,12 @@ package sk.services.http;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import okhttp3.*;
 import sk.exceptions.JskProblem;
+import sk.services.async.IAsync;
+import sk.services.bytes.IBytes;
 import sk.services.http.model.CoreHttpResponse;
+import sk.services.ids.IIds;
 import sk.services.retry.IRepeat;
 import sk.services.time.ITime;
 import sk.utils.functional.F1;
@@ -35,27 +36,50 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static java.net.http.HttpRequest.*;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static sk.utils.functional.O.ofNullable;
 import static sk.utils.statics.Ex.thRow;
 
-@SuppressWarnings("unused")
-@AllArgsConstructor
 @NoArgsConstructor
+@SuppressWarnings("unused")
 public class HttpImpl implements IHttp {
-    @Inject IRepeat retry;
-    @Inject ITime times;
+    protected @Inject IRepeat retry;
+    protected @Inject ITime times;
+    protected @Inject IAsync async;
+    protected @Inject IIds ids;
+    protected @Inject IBytes bytes;
 
-    protected OkHttpClient okHttpClient = prepareBuilder().build();
+    protected HttpClient httpClient;
 
-    protected OkHttpClient.Builder prepareBuilder() {
-        return new OkHttpClient.Builder()
-                .protocols(Cc.l(Protocol.HTTP_1_1))//for HTTP2 OkHTTP threads are not daemon on java 9+
-                ;
+    public HttpImpl(IRepeat retry, ITime times, IAsync async, IIds ids, IBytes bytes) {
+        this.retry = retry;
+        this.times = times;
+        this.async = async;
+        this.ids = ids;
+        this.bytes = bytes;
+        init();
+    }
+
+    @PostConstruct
+    protected HttpImpl init() {
+        httpClient = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .executor(async.bufExec().getUnderlying())
+                .build();
+        return this;
     }
 
     @Override
@@ -98,71 +122,97 @@ public class HttpImpl implements IHttp {
     }
 
     private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSinglePost(T postBuilder) throws IOException {
-        RequestBody rb = definePostRequestBody(postBuilder);
-
-        return execute(postBuilder, new Request.Builder()
-                .url(postBuilder.url())
-                .post(rb), false);
+        final Builder bld = newBuilder();
+        return execute(postBuilder, bld
+                .uri(URI.create(postBuilder.url()))
+                .POST(definePostRequestBody(postBuilder, bld)), false);
     }
 
     private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSingleDelete(T postBuilder) throws IOException {
-        RequestBody rb = definePostRequestBody(postBuilder);
-
-        return execute(postBuilder, new Request.Builder()
-                .url(postBuilder.url())
-                .delete(rb), false);
+        final Builder bld = newBuilder();
+        return execute(postBuilder, bld
+                .uri(URI.create(postBuilder.url()))
+                .method("DELETE", definePostRequestBody(postBuilder, bld)), false);
     }
 
-    private <T extends HttpPostBuilder<T>> RequestBody definePostRequestBody(T pb) {
+    private <T extends HttpPostBuilder<T>> BodyPublisher definePostRequestBody(T pb, Builder builder) {
         switch (pb.getType()) {
             case BODY:
-                return ((HttpBodyBuilder) pb).body().collect($ -> RequestBody.create(null, $), $ -> RequestBody.create(null, $));
+                return ((HttpBodyBuilder) pb).body().collect(
+                        str -> BodyPublishers.ofString(str, UTF_8),
+                        bytes -> BodyPublishers.ofByteArray(bytes)
+                );
             case FORM:
-                FormBody.Builder formBuilder = new FormBody.Builder();
-                ofNullable(((HttpFormBuilder) pb).parameters()).ifPresent($ -> $.forEach(formBuilder::add));
-                return formBuilder.build();
+                builder.header("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+                final String string = Cc.join("&", ((HttpFormBuilder) pb).parameters().entrySet().stream()
+                        .map($ -> URLEncoder.encode($.getKey(), UTF_8) + "=" + URLEncoder.encode($.getValue(), UTF_8)));
+                return BodyPublishers.ofString(string, UTF_8);
             case MULTIPART:
-                MultipartBody.Builder multiBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-                ofNullable(((HttpMultipartBuilder) pb).parameters()).ifPresent($ -> $.forEach(multiBuilder::addFormDataPart));
-                ofNullable(((HttpMultipartBuilder) pb).rawParameters()).ifPresent(
-                        $ -> $.forEach((k, v) -> multiBuilder.addFormDataPart(k, null, RequestBody.create(null, v))));
-                return multiBuilder.build();
+                String boundary = "----" + ids.shortIdS() + "-" + ids.shortIdS();
+                builder.header("Content-Type", "multipart/form-data; boundary=" + boundary);
+                List<byte[]> lines = Cc.l();
+
+                byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=").getBytes(UTF_8);
+
+
+                for (Map.Entry<String, String> entry : ((HttpMultipartBuilder) pb).parameters().entrySet()) {
+                    lines.add(separator);
+                    lines.add((String.format("\"%s\"\r\n\r\n%s\r\n", entry.getKey(), entry.getValue()))
+                            .getBytes(StandardCharsets.UTF_8));
+                }
+
+                for (Map.Entry<String, byte[]> entry : ((HttpMultipartBuilder) pb).rawParameters().entrySet()) {
+                    lines.add(separator);
+
+                    lines.add((String.format("\"%s\"\r\nContent-Type: application/octet-stream\r\n\r\n", entry.getKey()))
+                            .getBytes(StandardCharsets.UTF_8));
+                    lines.add(entry.getValue());
+                    lines.add("\r\n".getBytes(StandardCharsets.UTF_8));
+                }
+
+                lines.add(("--" + boundary + "--").getBytes(StandardCharsets.UTF_8));
+
+                return BodyPublishers.ofByteArrays(lines);
         }
         return thRow(pb.getType() + " unknown");
     }
 
     private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) throws IOException {
-        Request.Builder builder = new Request.Builder()
-                .url(getBuilder.url())
-                .get();
+        final Builder builder = newBuilder()
+                .uri(URI.create(getBuilder.url()))
+                .GET();
+
         return execute(getBuilder, builder, false);
     }
 
     private CoreHttpResponse executeSingleHead(HttpHeadBuilder headBuilder) throws IOException {
-        Request.Builder builder = new Request.Builder()
-                .url(headBuilder.url())
-                .head();
+        final Builder builder = newBuilder()
+                .uri(URI.create(headBuilder.url()))
+                .method("HEAD", BodyPublishers.noBody());
+
         return execute(headBuilder, builder, true);
     }
 
 
-    private <T extends HttpBuilder<T>> CoreHttpResponse execute(HttpBuilder<T> xBuilder, Request.Builder builder,
+    private <T extends HttpBuilder<T>> CoreHttpResponse execute(HttpBuilder<T> xBuilder, Builder builder,
             boolean forceEmptyContent)
             throws IOException {
         long start = times.now();
         if (xBuilder.login() != null && xBuilder.password() != null) {
-            builder.header("Authorization", Credentials.basic(xBuilder.login(), xBuilder.password()));
+            builder.header("Authorization", Credentials.basic(xBuilder.login(), xBuilder.password(), bytes));
         }
-        ofNullable(xBuilder.headers()).ifPresent($ -> $.forEach(builder::addHeader));
-        try (Response execute = okHttpClient
-                .newCall(builder.build())
-                .execute()) {
-            int code = execute.code();
+        ofNullable(xBuilder.headers()).ifPresent($ -> $.forEach(builder::header));
+
+        try {
+            final HttpResponse<byte[]> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());
+            int code = response.statusCode();
             @SuppressWarnings("ConstantConditions")
-            byte[] bytes = forceEmptyContent ? new byte[0] : execute.body().bytes();
-            final Map<String, List<String>> headers = execute.headers().toMultimap();
+            byte[] bytes = forceEmptyContent ? new byte[0] : response.body();
+            final Map<String, List<String>> headers = response.headers().map();
             long finish = times.now();
             return new CoreHttpResponseDefaultImpl(finish - start, code, bytes, headers);
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
@@ -213,7 +263,7 @@ public class HttpImpl implements IHttp {
 
         @Override
         public String newAsString() {
-            return new String(bytes, StandardCharsets.UTF_8);
+            return new String(bytes, UTF_8);
         }
 
         @Override
@@ -239,6 +289,22 @@ public class HttpImpl implements IHttp {
         @Override
         public Set<String> getHeaders() {
             return headerKeysOriginal;
+        }
+    }
+
+    private static class Credentials {
+        private Credentials() {
+        }
+
+        /** Returns an auth credential for the Basic scheme. */
+        public static String basic(String username, String password, IBytes bytes) {
+            return basic(username, password, ISO_8859_1, bytes);
+        }
+
+        public static String basic(String username, String password, Charset charset, IBytes bytes) {
+            String usernameAndPassword = username + ":" + password;
+            final String encoded = bytes.enc64(usernameAndPassword.getBytes(charset));
+            return "Basic " + encoded;
         }
     }
 }
