@@ -16,7 +16,6 @@
         <module>fb-modules</module>
         <module>outer-core</module>
         <module>ios-modules</module>
-        <module>messengers-modules</module>
     </modules>
 
 

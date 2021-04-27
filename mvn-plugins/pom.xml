@@ -16,6 +16,7 @@
         <module>web-api-info-generator-maven-plugin</module>
         <module>spring-properties-plugin</module>
         <module>web-client-swagger-maven-plugin</module>
+        <module>mvn-s3-deployer</module>
     </modules>
 
     <dependencies>
