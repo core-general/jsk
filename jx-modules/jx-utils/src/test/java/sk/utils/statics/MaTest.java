@@ -21,11 +21,19 @@ package sk.utils.statics;
  */
 
 import org.junit.Test;
+import sk.utils.functional.O;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class MaTest {
+
+    @Test
+    public void optimalSampleSizeTest() {
+        assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._95, 0.05, O.empty()), 384);
+        assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._95, 0.05, O.of(1000l)), 278);
+        assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._99, 0.05, O.empty()), 666);
+        assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._99, 0.05, O.of(1000l)), 400);
+    }
 
     @Test
     public void isInt() {

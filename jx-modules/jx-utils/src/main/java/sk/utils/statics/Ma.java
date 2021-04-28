@@ -1,5 +1,8 @@
 package sk.utils.statics;
 
+import lombok.AllArgsConstructor;
+import sk.utils.functional.O;
+
 import static java.lang.Math.min;
 import static java.lang.Math.random;
 
@@ -86,6 +89,21 @@ public final class Ma {
             return false;
         }
         return true;
+    }
+
+    @AllArgsConstructor
+    public enum SampleSizeAccuracy {
+        _85(1.44), _90(1.65), _95(1.96), _97(2.18), _99(2.58), _99_7(3.00);
+        double Z;
+    }
+
+    /**
+     * @param allowedErrorPercen 0.0-1.0
+     * @return
+     */
+    public static int optimalSampleSize(SampleSizeAccuracy accuracy, double allowedErrorPercent, O<Long> fullSize) {
+        double SS = ((accuracy.Z * accuracy.Z) * (0.5) * (0.5)) / (allowedErrorPercent * allowedErrorPercent);
+        return (int) Math.round(fullSize.map($ -> SS / (1 + (SS - 1) / $)).orElse(SS));
     }
 
     //region parsing
