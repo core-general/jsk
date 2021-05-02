@@ -17,12 +17,13 @@
  limitations under the License.
  #L%
 -->
+<#-- @ftlvariable name="server_name" type="java.lang.String" -->
 <#-- @ftlvariable name="postman_id" type="java.lang.String" -->
 <#-- @ftlvariable name="url_var_id" type="java.lang.String" -->
 <#-- @ftlvariable name="methods" type="java.util.Set<sk.web.infogatherer.WebMethodInfo>" -->
 {
 "info": {
-"name": "Generic-Server",
+"name": "${server_name}",
 "_postman_id": "${postman_id}",
 "description": "",
 "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"

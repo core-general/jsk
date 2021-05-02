@@ -36,6 +36,13 @@ public class MaTest {
     }
 
     @Test
+    public void errorRateOfSampleTest() {
+        assertEquals(Math.round(Ma.errorRateOfSample(Ma.SampleSizeAccuracy._95, 50000, O.empty()) * 10000), 44);//0.44%
+        assertEquals(Math.round(Ma.errorRateOfSample(Ma.SampleSizeAccuracy._99, 50000, O.empty()) * 10000), 58);//0.58%
+        assertEquals(Math.round(Ma.errorRateOfSample(Ma.SampleSizeAccuracy._99, 50000, O.of(100000l)) * 10000), 41);//0.41%
+    }
+
+    @Test
     public void isInt() {
         assertTrue(Ma.isInt("1234567890"));
         assertTrue(Ma.isInt("1"));

@@ -197,6 +197,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
 
         final String s = free.processHtml("sk/web/server/templates/postman_template.json.ftl", Cc.m(
+                "server_name", getApiClass().getName(),
                 "postman_id", ids.shortIdS(),
                 "url_var_id", ids.shortIdS(),
                 "methods", apiModel.getMethods()

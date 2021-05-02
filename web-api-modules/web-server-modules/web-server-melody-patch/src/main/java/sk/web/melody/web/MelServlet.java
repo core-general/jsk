@@ -21,6 +21,7 @@ package sk.web.melody.web;
  */
 
 import lombok.AllArgsConstructor;
+import okhttp3.OkHttpClient;
 import sk.services.async.AsyncImpl;
 import sk.services.bytes.BytesImpl;
 import sk.services.bytes.IBytes;
@@ -53,7 +54,7 @@ public class MelServlet extends HttpServlet {
         final TimeUtcImpl times = new TimeUtcImpl();
         final IBytes bytes = new BytesImpl();
         final IIds ids = new IdsImpl(new RandImpl(), bytes);
-        final HttpImpl http = new HttpImpl(repeat, times, async, ids, bytes);
+        final HttpImpl http = new HttpImpl(repeat, times, new OkHttpClient.Builder().build());
         cleanerTask = new MelCleanTask(async, http);
         cleanerTask.start();
     }

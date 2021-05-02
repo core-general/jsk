@@ -98,12 +98,20 @@ public final class Ma {
     }
 
     /**
-     * @param allowedErrorPercen 0.0-1.0
+     * @param allowedErrorPercent 0.0-1.0
      * @return
      */
     public static int optimalSampleSize(SampleSizeAccuracy accuracy, double allowedErrorPercent, O<Long> fullSize) {
         double SS = ((accuracy.Z * accuracy.Z) * (0.5) * (0.5)) / (allowedErrorPercent * allowedErrorPercent);
         return (int) Math.round(fullSize.map($ -> SS / (1 + (SS - 1) / $)).orElse(SS));
+    }
+
+    /**
+     * @return
+     */
+    public static double errorRateOfSample(SampleSizeAccuracy accuracy, int partialSampleSize, O<Long> fullSize) {
+        return accuracy.Z *
+                Math.sqrt((0.5 * 0.5 / partialSampleSize) * fullSize.map($ -> (1d * $ - partialSampleSize) / ($ - 1)).orElse(1d));
     }
 
     //region parsing

@@ -32,4 +32,8 @@ import java.time.Duration;
 public class IHttpConf {
     Duration connectTimeout;
     Duration readTimeout;
+
+    public boolean forceHttp2() {
+        return false;
+    }
 }
