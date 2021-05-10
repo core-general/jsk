@@ -26,7 +26,6 @@ import sk.utils.functional.O;
 import static org.junit.Assert.*;
 
 public class MaTest {
-
     @Test
     public void optimalSampleSizeTest() {
         assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._95, 0.05, O.empty()), 384);

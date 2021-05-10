@@ -43,15 +43,6 @@ public final class Ma {
         return (max.doubleValue() - min.doubleValue()) * random() + min.doubleValue();
     }
 
-    public static String miliToS(int millival) {
-        return millival / 100 + "." + millival % 100;
-    }
-
-    public static Integer sToMill(String val) {
-        int[] ints = Cc.stream(val.split("\\.")).mapToInt(Ma::pi).toArray();
-        return ints[0] * 100 + ints[1];
-    }
-
     public static boolean isInt(String value) {
         if (value == null || value.isEmpty()) {
             return false;

@@ -36,11 +36,11 @@ import java.util.concurrent.TimeUnit;
  *
  * The cache stores values forever and is not bounded in any way.
  */
-public class UpdateableCache<V> {
+public class UpdateableCacheWithMustValueOnStart<V> {
     private volatile V value;
     private final ScheduledFuture<?> future;
 
-    public UpdateableCache(F0<V> cacheUpdater, C1<Exception> onError, ScheduledExecutorService executor,
+    public UpdateableCacheWithMustValueOnStart(F0<V> cacheUpdater, C1<Exception> onError, ScheduledExecutorService executor,
             Duration repeatDescription) {
         value = cacheUpdater.apply();
         future = executor.scheduleWithFixedDelay(() -> {
