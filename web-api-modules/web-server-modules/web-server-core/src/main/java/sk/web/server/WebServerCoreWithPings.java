@@ -205,7 +205,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
                 "server_name", getApiClass().getSimpleName(),
                 "postman_id", ids.shortIdS(),
                 "url_var_id", ids.shortIdS(),
-                "methods", apiModel.getMethods().toString(),
+                "methods", apiModel.getMethods(),
                 "additionalParams", getAdditionalParams4Postman()
         ));
 

@@ -51,22 +51,22 @@
         "key": "${param.name}",
         "value": "Type: ${param.getTypeName()}",
         "type": "text",
-        "description": ""
+        "description": "Main parameter"
         },
     </#list>
     <#list additionalParams as key,val>
         {
         "key": "${key}",
-        "value": "Type: ${val}",
+        "value": "${val}",
         "type": "text",
-        "description": ""
+        "description": "Additional parameter"
         },
     </#list>
     {
     "key": "no_meaning_mark",
     "value": "no_meaning_mark",
     "type": "text",
-    "description": ""
+    "description": "No meaning mark"
     }
     ]
     },
