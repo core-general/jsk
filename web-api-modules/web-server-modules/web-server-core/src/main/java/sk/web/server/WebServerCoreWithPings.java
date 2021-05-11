@@ -49,6 +49,7 @@ import sk.web.utils.WebUtils;
 
 import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 
@@ -159,6 +160,10 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         }
     }
 
+    protected Map<String, String> getAdditionalParams4Postman() {
+        return Cc.m();
+    }
+
     private void checkBasicAuth() {
         apiInfoParams.ifPresent(apiInfoPar -> {
             ctxHolder.get().getRequestHeader("Authorization")
@@ -200,7 +205,8 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
                 "server_name", getApiClass().getSimpleName(),
                 "postman_id", ids.shortIdS(),
                 "url_var_id", ids.shortIdS(),
-                "methods", apiModel.getMethods()
+                "methods", apiModel.getMethods().toString(),
+                "additionalParams", getAdditionalParams4Postman()
         ));
 
         return s;

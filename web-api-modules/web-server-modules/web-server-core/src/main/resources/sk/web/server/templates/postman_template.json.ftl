@@ -21,6 +21,7 @@
 <#-- @ftlvariable name="postman_id" type="java.lang.String" -->
 <#-- @ftlvariable name="url_var_id" type="java.lang.String" -->
 <#-- @ftlvariable name="methods" type="java.util.Set<sk.web.infogatherer.WebMethodInfo>" -->
+<#-- @ftlvariable name="additionalParams" type="java.util.Map<String,String>" -->
 {
 "info": {
 "name": "${server_name}",
@@ -53,9 +54,17 @@
         "description": ""
         },
     </#list>
+    <#list additionalParams as key,val>
+        {
+        "key": "${key}",
+        "value": "Type: ${val}",
+        "type": "text",
+        "description": ""
+        },
+    </#list>
     {
-    "key": "_clientVersion",
-    "value": "Android|9.9.9",
+    "key": "no_meaning_mark",
+    "value": "no_meaning_mark",
     "type": "text",
     "description": ""
     }

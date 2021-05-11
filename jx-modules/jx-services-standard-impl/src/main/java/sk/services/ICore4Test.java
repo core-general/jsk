@@ -64,7 +64,7 @@ public class ICore4Test implements ICoreServices {
     private IRand rand = new RandTestImpl();
     private IIds ids = new IdsImpl(rand, bytes);
     private ITimeSetter times = new UtcSettableTimeUtilImpl();
-    private IJson json = new JGsonImpl(O.empty(), times).init();
+    private IJson json = new JGsonImpl(O.empty(), times, bytes).init();
     private ILog iLog = new ILogConsoleImpl(json);
 
     private IResCache resCache = new ResCacheImpl();

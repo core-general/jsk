@@ -59,9 +59,10 @@ public class JGsonImpl implements IJson {
     private Gson jsonConcrete;
     private Gson jsonPrettyConcrete;
 
-    public JGsonImpl(O<List<GsonSerDesList>> converters, ITime times) {
+    public JGsonImpl(O<List<GsonSerDesList>> converters, ITime times, IBytes bytes) {
         this.converters = converters.toOpt();
         this.times = times;
+        this.bytes = bytes;
     }
 
     @PostConstruct
