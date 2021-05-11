@@ -73,6 +73,8 @@ public interface WebRequestInnerContext {
 
     void setResponseHeader(String key, String value);
 
+    void setResponseCookie(String key, String value, int secondsDuration);
+
     SortedSet<String> getResponseHeaderNames();
 
     O<String> getResponseHeader(String name);

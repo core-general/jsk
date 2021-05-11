@@ -130,6 +130,11 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
+    public void setResponseCookie(String key, String value, int secondsDuration) {
+        outerFull.setCookie(key, value, secondsDuration);
+    }
+
+    @Override
     public SortedSet<String> getResponseHeaderNames() {
         return outerFull.getResponseHeaderNames();
     }

@@ -29,6 +29,8 @@ import sk.web.renders.WebReply;
 
 
 public abstract class WebRequestWritableOuterContext {
+    public abstract void setCookie(String key, String value, int seconds);
+
     public abstract void setResponseHeader(String key, String value);
 
     protected abstract void innerSetResponse(WebRenderResult result, O<WebRedirectResult> redirect);

@@ -33,6 +33,7 @@ import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -162,32 +163,32 @@ public class JGsonImpl implements IJson {
     }
 
     @Override
-    public <T> O<T> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt) {
+    public <T> OneOf<T, Exception> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt) {
         try {
             T data = jsonPathParse(jsonFull).read(jsonPath, new TypeRefFromIJsonTypeWrap<>(tt));
-            return O.ofNullable(data);
+            return OneOf.left(data);
         } catch (Exception e) {
-            return O.empty();
+            return OneOf.right(e);
         }
     }
 
     @Override
-    public <T> O<T> jsonPath(String jsonFull, F1<JsonPathContext, T> contextProvider) {
+    public <T> OneOf<T, Exception> jsonPath(String jsonFull, F1<JsonPathContext, T> contextProvider) {
         try {
             T val = contextProvider.apply(new JsonPathContextImpl(jsonPathParse(jsonFull)));
-            return O.ofNullable(val);
+            return OneOf.left(val);
         } catch (Exception e) {
-            return O.empty();
+            return OneOf.right(e);
         }
     }
 
     @Override
-    public O<String> jsonPathToJson(String jsonFull, String jsonPath, boolean pretty) {
+    public OneOf<String, Exception> jsonPathToJson(String jsonFull, String jsonPath, boolean pretty) {
         try {
             Object v = jsonPathParse(jsonFull).read(jsonPath);
-            return O.ofNullable(to(v, pretty));
+            return OneOf.left(to(v, pretty));
         } catch (Exception e) {
-            return O.empty();
+            return OneOf.right(e);
         }
     }
 

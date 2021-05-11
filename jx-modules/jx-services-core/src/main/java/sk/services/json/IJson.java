@@ -21,7 +21,7 @@ package sk.services.json;
  */
 
 import sk.utils.functional.F1;
-import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 
 import java.io.InputStream;
@@ -46,11 +46,11 @@ public interface IJson extends IJsonPolymorphReader {
 
     boolean validate(String possibleJson);
 
-    <T> O<T> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt);
+    <T> OneOf<T, Exception> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt);
 
-    <T> O<T> jsonPath(String jsonFull, F1<JsonPathContext, T> contextProvider);
+    <T> OneOf<T, Exception> jsonPath(String jsonFull, F1<JsonPathContext, T> contextProvider);
 
-    O<String> jsonPathToJson(String jsonFull, String pathInJson, boolean pretty);
+    OneOf<String, Exception> jsonPathToJson(String jsonFull, String pathInJson, boolean pretty);
 
     interface JsonPathContext {
         <T> T read(String path, TypeWrap<T> typeRef);
