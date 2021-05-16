@@ -52,6 +52,28 @@ public class OneOf<L, R> {
         }
     }
 
+    public static <E extends Exception> OneOf<Void, E> checkException(sk.utils.functional.R function, Class<E> cls) {
+        try {
+            function.run();
+            return left(null);
+        } catch (RuntimeException e) {
+            if (cls.isAssignableFrom(e.getClass())) {
+                return right((E) e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public static OneOf<Void, RuntimeException> checkException(sk.utils.functional.R function) {
+        try {
+            function.run();
+            return left(null);
+        } catch (RuntimeException e) {
+            return right(e);
+        }
+    }
+
     OneOf(L l, R r) {
         if (l == null && r == null) {
             throw new IllegalArgumentException("Both values are null");
