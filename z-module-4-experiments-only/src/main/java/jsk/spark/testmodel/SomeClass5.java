@@ -22,6 +22,8 @@ package jsk.spark.testmodel;
 
 import jsk.spark.TestApiSwaggerTest3;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import sk.mvn.ApiClassUtil;
 import sk.services.except.IExcept;
 import sk.services.json.JGsonImpl;
@@ -31,6 +33,8 @@ import sk.web.infogatherer.WebMethodInfoProviderImpl;
 import sk.web.swagger.WebSwaggerGenerator;
 
 @AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class SomeClass5 {
     String xx;
 

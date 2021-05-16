@@ -32,6 +32,26 @@ public class OneOf<L, R> {
 
     public static <L, R> OneOf<L, R> right(R value) {return new OneOf<>(null, value);}
 
+    public static <L, E extends Exception> OneOf<L, E> checkException(F0<L> function, Class<E> cls) {
+        try {
+            return left(function.get());
+        } catch (RuntimeException e) {
+            if (cls.isAssignableFrom(e.getClass())) {
+                return right((E) e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public static <L> OneOf<L, RuntimeException> checkException(F0<L> function) {
+        try {
+            return left(function.get());
+        } catch (RuntimeException e) {
+            return right(e);
+        }
+    }
+
     OneOf(L l, R r) {
         if (l == null && r == null) {
             throw new IllegalArgumentException("Both values are null");

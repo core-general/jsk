@@ -1,4 +1,4 @@
-package jsk.spark.testmodel;
+package org.modelmapper;
 
 /*-
  * #%L
@@ -20,27 +20,15 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import sk.utils.functional.O;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+public abstract class JskModelMapperConverter<A, B> extends AbstractConverter<A, B> {
+    Class<A> sourceType;
+    Class<B> destType;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class SomeClass4 {
-    String a;
-    O<String> b;
-
-    int c;
-    O<Integer> d;
-
-    SomeEnum e;
-    List<String> f;
-
-    List<SomeClass5> g;
-    SomeClass5 h;
-    O<SomeClass5> i;
+    public JskModelMapperConverter(Class<A> sourceType, Class<B> destType) {
+        this.sourceType = sourceType;
+        this.destType = destType;
+    }
 }

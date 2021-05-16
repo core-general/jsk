@@ -1,4 +1,4 @@
-package jsk.spark.testmodel;
+package sk.services.mapping;
 
 /*-
  * #%L
@@ -20,27 +20,13 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import sk.utils.functional.O;
+import org.modelmapper.JskModelMapperConverter;
+import org.modelmapper.JskModelMapperPropertyMap;
 
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class SomeClass4 {
-    String a;
-    O<String> b;
+public interface ModelMapperConfig {
+    List<JskModelMapperPropertyMap> getMappings();
 
-    int c;
-    O<Integer> d;
-
-    SomeEnum e;
-    List<String> f;
-
-    List<SomeClass5> g;
-    SomeClass5 h;
-    O<SomeClass5> i;
+    List<JskModelMapperConverter> getConverters();
 }

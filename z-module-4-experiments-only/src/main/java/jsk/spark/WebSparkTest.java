@@ -33,6 +33,7 @@ import sk.services.except.IExcept;
 import sk.services.idempotence.IIdempParameters;
 import sk.services.idempotence.IIdempProviderUnlimitedKV;
 import sk.services.json.IJson;
+import sk.services.mapping.IMapper;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
 import sk.services.rand.IRand;
@@ -147,6 +148,8 @@ public class WebSparkTest {
     }
 
     public static class Api3Impl implements TestApiSwaggerTest3 {
+        @Inject IMapper mapper;
+
         @Override
         public int testInt(int a) {
             return new Random().nextInt();
@@ -174,7 +177,9 @@ public class WebSparkTest {
 
         @Override
         public SomeClass4 testClass(SomeClass4 cls) {
-            return cls;
+            final O<SomeClass4> clone = mapper.clone(cls);
+
+            return clone.get();
         }
     }
 

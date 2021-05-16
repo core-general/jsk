@@ -42,6 +42,8 @@ import sk.services.json.IJson;
 import sk.services.json.JGsonImpl;
 import sk.services.log.ILog;
 import sk.services.log.ILogConsoleImpl;
+import sk.services.mapping.IMapper;
+import sk.services.mapping.ModelMapperImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
 import sk.services.rescache.IResCache;
@@ -79,6 +81,11 @@ public class SpringCoreConfig implements ICoreServices {
     @Bean
     public ILog iLog() {
         return new ILogConsoleImpl();
+    }
+
+    @Bean
+    public IMapper iMapper() {
+        return new ModelMapperImpl();
     }
 
     @Bean

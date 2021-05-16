@@ -1,4 +1,4 @@
-package jsk.spark.testmodel;
+package sk.services.mapping;
 
 /*-
  * #%L
@@ -20,27 +20,10 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import sk.utils.functional.O;
 
-import java.util.List;
+public interface IMapper {
+    public <ME> O<ME> clone(ME object);
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class SomeClass4 {
-    String a;
-    O<String> b;
-
-    int c;
-    O<Integer> d;
-
-    SomeEnum e;
-    List<String> f;
-
-    List<SomeClass5> g;
-    SomeClass5 h;
-    O<SomeClass5> i;
+    public <IN, OUT> O<OUT> map(IN object, Class<OUT> target);
 }

@@ -1,4 +1,4 @@
-package jsk.spark.testmodel;
+package org.modelmapper;
 
 /*-
  * #%L
@@ -20,27 +20,8 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import sk.utils.functional.O;
+public abstract class JskModelMapperPropertyMap<S, D> extends PropertyMap<S, D> {
+    public Class<S> getInType() {return sourceType;}
 
-import java.util.List;
-
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class SomeClass4 {
-    String a;
-    O<String> b;
-
-    int c;
-    O<Integer> d;
-
-    SomeEnum e;
-    List<String> f;
-
-    List<SomeClass5> g;
-    SomeClass5 h;
-    O<SomeClass5> i;
+    public Class<D> getOutType() {return destinationType;}
 }
