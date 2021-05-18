@@ -52,10 +52,10 @@ public class OneOf<L, R> {
         }
     }
 
-    public static <E extends Exception> OneOf<Void, E> checkException(sk.utils.functional.R function, Class<E> cls) {
+    public static <E extends Exception> OneOf<Object, E> checkException(sk.utils.functional.R function, Class<E> cls) {
         try {
             function.run();
-            return left(null);
+            return left(Boolean.TRUE);
         } catch (RuntimeException e) {
             if (cls.isAssignableFrom(e.getClass())) {
                 return right((E) e);
@@ -65,10 +65,10 @@ public class OneOf<L, R> {
         }
     }
 
-    public static OneOf<Void, RuntimeException> checkException(sk.utils.functional.R function) {
+    public static OneOf<Object, RuntimeException> checkException(sk.utils.functional.R function) {
         try {
             function.run();
-            return left(null);
+            return left(Boolean.TRUE);
         } catch (RuntimeException e) {
             return right(e);
         }
