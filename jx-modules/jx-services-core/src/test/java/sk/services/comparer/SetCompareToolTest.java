@@ -26,8 +26,7 @@ import sk.utils.statics.Cc;
 
 import static org.junit.Assert.*;
 
-public class CollectionCompareToolTest {
-
+public class SetCompareToolTest {
     @Test
     public void compare() {
         SetCompareResult<String> res = SetCompareTool.compare(Cc.s("a", "b", "c"), Cc.s("e", "d", "c"));

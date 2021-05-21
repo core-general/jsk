@@ -54,6 +54,15 @@ public class ModelMapperImpl implements IMapper {
         return in == null ? O.empty() : O.ofNullable(mapper.map(in, outCls));
     }
 
+    @Override
+    public <IN, OUT> O<OUT> map(IN in, OUT out) {
+        if (in == null) {
+            return O.empty();
+        }
+        mapper.map(in, out);
+        return O.of(out);
+    }
+
     @PostConstruct
     protected ModelMapperImpl initModelMapperImpl() {
         mapper = new ModelMapper();

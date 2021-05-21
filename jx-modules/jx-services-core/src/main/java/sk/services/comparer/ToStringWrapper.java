@@ -1,4 +1,4 @@
-package sk.services.mapping;
+package sk.services.comparer;
 
 /*-
  * #%L
@@ -20,12 +20,17 @@ package sk.services.mapping;
  * #L%
  */
 
-import sk.utils.functional.O;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import sk.utils.ifaces.Identifiable;
 
-public interface IMapper {
-    public <ME> O<ME> clone(ME object);
+@AllArgsConstructor
+@Data
+class ToStringWrapper<X> implements Identifiable<String> {
+    protected X val;
 
-    public <IN, OUT> O<OUT> map(IN object, Class<OUT> target);
-
-    <IN, OUT> O<OUT> map(IN in, OUT out);
+    @Override
+    public String getId() {
+        return val.toString();
+    }
 }

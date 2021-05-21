@@ -21,12 +21,10 @@ package sk.services.comparer;
  */
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.comparer.model.CompareResult;
 import sk.services.comparer.model.CompareResultDif;
 import sk.services.comparer.model.SetCompareResult;
-import sk.utils.functional.F1;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Cc;
 
@@ -35,48 +33,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SetCompareTool<A extends Identifiable<String>> extends CompareTool<A, Void> {
+public class SetCompareTool<A extends Identifiable<String>> extends CollectionCompareTool<List<A>, A> {
     public static <X> SetCompareResult<X> compare(Set<X> col1, Set<X> col2) {
-        F1<Set<X>, Set<ToStringWrapper<X>>> to = xes -> xes.stream().map(ToStringWrapper::new).collect(Cc.toS());
-        F1<CompareResultDif<ToStringWrapper<X>, Void>, List<X>> from =
-                xes -> xes.getNotExistingInOther().stream().map($ -> $.val).collect(Collectors.toList());
-
         final CompareResult<ToStringWrapper<X>, Void> result =
-                new SetCompareTool<ToStringWrapper<X>>().innerCompare(to.apply(col1), to.apply(col2));
+                new SetCompareTool<ToStringWrapper<X>>().innerCompare(setTo(col1), setTo(col2));
 
         return new SetCompareResult<>(
-                from.apply(result.getFirstDif()),
-                from.apply(result.getSecondDif())
+                setFrom(result.getFirstDif()),
+                setFrom(result.getSecondDif())
         );
     }
 
-    private CompareResult<A, Void> innerCompare(Set<A> col1, Set<A> col2) {
-        F1<Set<A>, List<CompareItem<A>>> converter = col -> col.stream().map($ -> new CompareItem<A>() {
-            @Override
-            public String getId() {
-                return $.getId();
-            }
-
-            @Override
-            public A getItemInfo() {
-                return $;
-            }
-        }).collect(Cc.toL());
-
-        return this.innerCompare(
-                () -> converter.apply(col1),
-                () -> converter.apply(col2),
-                as -> null
-        );
+    private static <X> List<ToStringWrapper<X>> setTo(Set<X> xes) {
+        return xes.stream().map(ToStringWrapper::new).collect(Cc.toL());
     }
 
-    @AllArgsConstructor
-    private static class ToStringWrapper<X> implements Identifiable<String> {
-        X val;
-
-        @Override
-        public String getId() {
-            return val.toString();
-        }
+    private static <X> List<X> setFrom(CompareResultDif<ToStringWrapper<X>, Void> xes) {
+        return xes.getNotExistingInOther().stream().map($ -> $.val).collect(Collectors.toList());
     }
 }

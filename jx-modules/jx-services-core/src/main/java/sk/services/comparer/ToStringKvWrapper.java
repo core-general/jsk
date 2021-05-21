@@ -1,4 +1,4 @@
-package sk.services.mapping;
+package sk.services.comparer;
 
 /*-
  * #%L
@@ -20,12 +20,16 @@ package sk.services.mapping;
  * #L%
  */
 
-import sk.utils.functional.O;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public interface IMapper {
-    public <ME> O<ME> clone(ME object);
+@EqualsAndHashCode(callSuper = true)
+@Getter
+class ToStringKvWrapper<X, Y> extends ToStringWrapper<X> {
+    Y add;
 
-    public <IN, OUT> O<OUT> map(IN object, Class<OUT> target);
-
-    <IN, OUT> O<OUT> map(IN in, OUT out);
+    public ToStringKvWrapper(X key, Y add) {
+        super(key);
+        this.add = add;
+    }
 }

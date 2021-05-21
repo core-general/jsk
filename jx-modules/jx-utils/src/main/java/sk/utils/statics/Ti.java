@@ -43,12 +43,12 @@ public final class Ti {
     public static ZoneId UTC = ZoneOffset.UTC;
 
     public static double naiveProfile(R r, int count) {
-        long start = System.nanoTime();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             r.run();
         }
-        long end = System.nanoTime();
-        return ((double) (end - start)) / (count * 1_000_000/*to millis*/);
+        long end = System.currentTimeMillis();
+        return ((double) (end - start)) / (count /*to millis*/);
     }
 
     public static String cronEveryXSeconds(int xSec) {
