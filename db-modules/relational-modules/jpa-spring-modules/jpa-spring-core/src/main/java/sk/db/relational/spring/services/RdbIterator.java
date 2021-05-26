@@ -135,9 +135,9 @@ public class RdbIterator {
             try {
                 final String schema = table.schema();
                 final String tName = table.name();
-                final Long n_live_tup = jdbc.query(format(
-                        "select n_live_tup from pg_catalog.pg_stat_all_tables where schemaname='%s' and relname='%s'", schema,
-                        table),
+                final Long n_live_tup = jdbc.query(
+                        format("select n_live_tup from pg_catalog.pg_stat_all_tables where schemaname='%s' and relname='%s'",
+                                schema, tName),
                         rs -> {
                             rs.next();
                             return rs.getLong("n_live_tup");

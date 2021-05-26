@@ -22,6 +22,7 @@ package sk.utils.ids;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Fu;
 
@@ -31,12 +32,14 @@ import java.util.Objects;
 @SuppressWarnings("WeakerAccess")
 @Data
 @EqualsAndHashCode(of = {"id"})
-public abstract class IdBase<T extends Comparable<T>> implements Serializable, Comparable<IdBase<T>>, Identifiable<T> {
+@NoArgsConstructor(onConstructor_ = @Deprecated)
+public class IdBase<T extends Comparable<T>> implements Serializable, Comparable<IdBase<T>>, Identifiable<T> {
     protected T id;
 
     public IdBase(T id) {
         this.id = id;
     }
+
 
     @Override
     public String toString() {

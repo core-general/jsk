@@ -20,7 +20,10 @@ package sk.utils.ids;
  * #L%
  */
 
+import lombok.NoArgsConstructor;
+
 @SuppressWarnings("unused")
+@NoArgsConstructor(onConstructor_ = @Deprecated)
 public abstract class IdLong extends IdBase<Long> {
     public IdLong(long id) {
         super(id);

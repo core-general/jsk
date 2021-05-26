@@ -45,7 +45,7 @@ public class SimplePage<A, B> {
         return new SimplePage<>(Cc.map(data, f), nextPageId);
     }
 
-    public static <A, B, C> List<C> getAll(F1<Optional<B>, SimplePage<A, B>> getter, F1<A, C> conv) {
+    public static <A, B, C> List<C> getAll(F1<Optional<B>, ? extends SimplePage<A, B>> getter, F1<A, C> conv) {
         Optional<B> curPage = empty();
         List<C> toRet = Cc.l();
         while (curPage != null) {
@@ -61,7 +61,7 @@ public class SimplePage<A, B> {
         return toRet;
     }
 
-    public static <A, B> List<A> getAll(F1<Optional<B>, SimplePage<A, B>> getter) {
+    public static <A, B> List<A> getAll(F1<Optional<B>, ? extends SimplePage<A, B>> getter) {
         return getAll(getter, a -> a);
     }
 }

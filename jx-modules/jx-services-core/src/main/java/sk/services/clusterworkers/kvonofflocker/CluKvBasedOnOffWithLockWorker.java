@@ -140,4 +140,16 @@ public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLoc
 
         C1<Throwable> errorConsumer;
     }
+
+    @Getter
+    public static class ConfAlwaysOn extends Conf {
+        public ConfAlwaysOn(long schedulerCheckPeriod, long mainTaskIsOldAfter, CluDelay mainTaskDelay,
+                C1<CancelGetter> mainTaskRunner, C1<Throwable> errorConsumer) {
+            super(schedulerCheckPeriod, mainTaskIsOldAfter, mainTaskDelay, mainTaskRunner, errorConsumer);
+        }
+
+        public Gett<Boolean> getOnOffSwitchChecker() {
+            return () -> true;
+        }
+    }
 }

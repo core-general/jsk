@@ -20,9 +20,12 @@ package sk.utils.ids;
  * #L%
  */
 
+import lombok.NoArgsConstructor;
+
 import java.util.UUID;
 
 @SuppressWarnings("unused")
+@NoArgsConstructor(onConstructor_ = @Deprecated)
 public abstract class IdUuid extends IdBase<UUID> {
     public IdUuid(UUID uuid) {
         super(uuid);
