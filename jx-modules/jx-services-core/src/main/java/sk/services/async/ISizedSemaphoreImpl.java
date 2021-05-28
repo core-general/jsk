@@ -31,6 +31,7 @@ import javax.inject.Inject;
 public class ISizedSemaphoreImpl implements ISizedSemaphore {
     private final Object sync = new Object();
     private final long maxSize;
+    private final long maxCount;
     private final long waitTime;
 
     @Inject ISleep sleeper;
@@ -38,8 +39,9 @@ public class ISizedSemaphoreImpl implements ISizedSemaphore {
     @Getter volatile long curSize = 0;
     @Getter volatile long count = 0;
 
-    public ISizedSemaphoreImpl(long maxSize, long waitTime, ISleep sleeper) {
+    public ISizedSemaphoreImpl(long maxSize, long maxCount, long waitTime, ISleep sleeper) {
         this.maxSize = maxSize;
+        this.maxCount = maxCount;
         this.waitTime = waitTime;
         this.sleeper = sleeper;
     }
@@ -54,7 +56,7 @@ public class ISizedSemaphoreImpl implements ISizedSemaphore {
     private Lock lock(long lockSize) {
         while (true) {
             synchronized (sync) {
-                if (count == 0 || curSize + lockSize < maxSize) {
+                if (count == 0 || curSize + lockSize <= maxSize && count + 1 <= maxCount) {
                     curSize += lockSize;
                     count += 1;
                     return new Lock(lockSize);

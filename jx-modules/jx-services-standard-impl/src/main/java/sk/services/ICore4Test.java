@@ -70,7 +70,7 @@ public class ICore4Test implements ICoreServices {
     private IResCache resCache = new ResCacheImpl();
     private IRepeat repeat = new RepeatImpl(async);
     private IFree free = new Freemarker();
-    private ISizedSemaphore sizedSemaphore = new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 50L, async);
+    private ISizedSemaphore sizedSemaphore = new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 10, 50L, async);
     private IExcept except = new IExcept() {};
 
     private IHttp http = new HttpImpl();

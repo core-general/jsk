@@ -5,19 +5,19 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.1.9</version>
+        <version>jsk.3.1.11</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-core</artifactId>
-    <version>jsk.3.1.9</version>
+    <version>jsk.3.1.11</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-core</artifactId>
-            <version>jsk.3.1.9</version>
+            <version>jsk.3.1.11</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

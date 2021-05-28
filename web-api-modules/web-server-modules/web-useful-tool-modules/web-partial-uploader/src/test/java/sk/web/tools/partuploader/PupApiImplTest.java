@@ -110,7 +110,7 @@ public class PupApiImplTest {
             return false;
         }
     });
-    ISizedSemaphore semaphore = new ISizedSemaphoreImpl(1000, 100, services().async());
+    ISizedSemaphore semaphore = new ISizedSemaphoreImpl(1000, 10, 100L, services().async());
 
     PupApiImpl<UploadMeta, Finish> impl = new PupApiImpl<UploadMeta, Finish>(
             metaStore, byteStorage, userProvider, config, services().times(), repeat, services().async(),
