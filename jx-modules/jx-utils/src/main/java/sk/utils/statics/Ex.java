@@ -56,6 +56,14 @@ public final class Ex {
         }
     }
 
+    public static void toRuntime(RE toRun) {
+        try {
+            toRun.run();
+        } catch (Exception e) {
+            Ex.thRow(e);
+        }
+    }
+
     public static <T> T thRow(Exception e) {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;

@@ -120,7 +120,7 @@ public class SpringCoreConfig implements ICoreServices {
 
     @Bean
     public ISizedSemaphore sizedSemaphore() {
-        return new ISizedSemaphoreImpl(Math.min(Runtime.getRuntime().maxMemory() / 5, 200_000_000), 10, 50L);
+        return new ISizedSemaphoreImpl(Math.min(Runtime.getRuntime().maxMemory() / 5, 200_000_000), 5);
     }
 
     @Bean

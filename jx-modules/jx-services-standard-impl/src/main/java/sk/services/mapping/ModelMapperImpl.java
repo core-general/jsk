@@ -21,6 +21,7 @@ package sk.services.mapping;
  */
 
 import org.modelmapper.AbstractConverter;
+import org.modelmapper.Conditions;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import sk.services.time.ITime;
@@ -67,6 +68,7 @@ public class ModelMapperImpl implements IMapper {
     protected ModelMapperImpl initModelMapperImpl() {
         mapper = new ModelMapper();
         mapper.getConfiguration().setDeepCopyEnabled(true);
+        mapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
 
         defaultConverters();
 

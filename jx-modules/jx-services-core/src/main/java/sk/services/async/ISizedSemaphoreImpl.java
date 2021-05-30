@@ -22,28 +22,20 @@ package sk.services.async;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import sk.utils.functional.F0;
+import sk.utils.statics.Ex;
 
-import javax.inject.Inject;
-
-@RequiredArgsConstructor
 public class ISizedSemaphoreImpl implements ISizedSemaphore {
     private final Object sync = new Object();
     private final long maxSize;
     private final long maxCount;
-    private final long waitTime;
 
-    @Inject ISleep sleeper;
+    @Getter long curSize = 0;
+    @Getter long count = 0;
 
-    @Getter volatile long curSize = 0;
-    @Getter volatile long count = 0;
-
-    public ISizedSemaphoreImpl(long maxSize, long maxCount, long waitTime, ISleep sleeper) {
+    public ISizedSemaphoreImpl(long maxSize, long maxCount) {
         this.maxSize = maxSize;
         this.maxCount = maxCount;
-        this.waitTime = waitTime;
-        this.sleeper = sleeper;
     }
 
     @Override
@@ -54,15 +46,13 @@ public class ISizedSemaphoreImpl implements ISizedSemaphore {
     }
 
     private Lock lock(long lockSize) {
-        while (true) {
-            synchronized (sync) {
-                if (count == 0 || curSize + lockSize <= maxSize && count + 1 <= maxCount) {
-                    curSize += lockSize;
-                    count += 1;
-                    return new Lock(lockSize);
-                }
+        synchronized (sync) {
+            while (!(count == 0 || curSize + lockSize <= maxSize && count + 1 <= maxCount)) {
+                Ex.toRuntime(() -> sync.wait());
             }
-            sleeper.sleep(waitTime);
+            curSize += lockSize;
+            count += 1;
+            return new Lock(lockSize);
         }
     }
 
@@ -75,34 +65,39 @@ public class ISizedSemaphoreImpl implements ISizedSemaphore {
             synchronized (sync) {
                 curSize -= lockSize;
                 count -= 1;
+                sync.notifyAll();
             }
         }
     }
-    //
+
     //public static void main(String[] args) {
-    //    SizedSemaphore ss = new SizedSemaphore(1000, () -> Ti.sleep(100));
+    //    ISizedSemaphoreImpl ss = new ISizedSemaphoreImpl(Long.MAX_VALUE, 3);
     //    ForkJoinPool fjp = new ForkJoinPool(200);
     //    AtomicLong lng = new AtomicLong();
+    //    Profiler.mark("1");
+    //    XXX x = new XXX();
     //    fjp.submit(() -> {
-    //        IntStream.range(0, 1000).parallel().mapToObj($ -> $)
-    //                .sorted((o1, o2) -> (int) Math.round(Math.random() * 1000))
-    //                .map($ ->
-    //                        X.x($, (R) () -> {
-    //                            try {
-    //                                System.out
-    //                                        .println("Processing " + $ + ". Size:" + ss.getCurSize() + " Count:" + ss
-    //                                        .getCount());
-    //                                Ti.sleep($);
-    //                                System.out.println("Stopping " + $ + ". Size:" + ss.getCurSize() + " Count:" + ss
-    //                                .getCount());
-    //                                lng.addAndGet($);
-    //                            } catch (Exception e) {
-    //                                e.printStackTrace();
-    //                            }
-    //                        }))
-    //                .forEach($ -> ss.acquireLockAndRun($.i1, $.i2));
+    //        IntStream.range(0, 30_000_000).parallel()
+    //                .forEach($ -> ss.acquireLockAndRun(200, () -> {
+    //                    for (int j = 0; j < 1; j++) {
+    //                        x.al.incrementAndGet();
+    //                    }
+    //                }));
     //    }).join();
+    //    Profiler.mark("2");
+    //    //double x = 5;
+    //    //for (int i = 0; i < 30_000_000; i++) {
+    //    //    for (int j = 0; j < 100; j++) {
+    //    //        x *= x;
+    //    //    }
+    //    //}
+    //    //Profiler.mark("3");
+    //    System.out.println(Profiler.getInfo());
+    //    System.out.println(x.al.get());
     //
-    //    System.out.println(lng.get());
+    //}
+    //
+    //private static class XXX {
+    //    AtomicLong al = new AtomicLong(0);
     //}
 }
