@@ -344,6 +344,11 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
+        public void redirect(String url) {
+            response.redirect(url);
+        }
+
+        @Override
         public void setCookie(String key, String value, int seconds) {
             response.cookie(key, value, seconds);
         }
@@ -380,7 +385,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                         }
                     });
                 }
-                response.redirect(sb.toString());
+                redirect(sb.toString());
             } else {
                 response.status(result.getMeta().getHttpCode());
                 response.type(result.getMeta().getContentType());

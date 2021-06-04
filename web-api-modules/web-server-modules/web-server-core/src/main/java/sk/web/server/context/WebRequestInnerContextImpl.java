@@ -162,6 +162,11 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
+    public void redirect(String url) {
+        outerFull.redirect(url);
+    }
+
+    @Override
     public Map<String, String> getAllParamValues() {
         return outerFull.getAllParamsAsStrings();
     }

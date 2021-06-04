@@ -91,6 +91,8 @@ public interface WebRequestInnerContext {
 
     boolean isShouldStop();
 
+    void redirect(String url);
+
     O<sk.web.annotations.WebAuth> getWebAuth();
 
     O<sk.web.annotations.WebIdempotence> getWebIdempotence();

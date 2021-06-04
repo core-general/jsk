@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -101,7 +102,7 @@ public class S3JskClient {
      * Puts data to S3 and returns nothing
      */
     public void putPublicNoUrl(PathWithBase base, byte[] body) {
-        putPublicNoUrl(base, body, true, empty(), empty());
+        putPublicNoUrl(base, body, true, empty(), empty(), null);
     }
 
     /**
@@ -109,14 +110,21 @@ public class S3JskClient {
      */
     public void putPublicNoUrl(PathWithBase base, byte[] body,
             O<String> contentType, O<String> contentEncoding) {
-        putPublicNoUrl(base, body, true, contentType, contentEncoding);
+        putPublicNoUrl(base, body, true, contentType, contentEncoding, null);
     }
 
     /**
      * Puts data to S3 and returns URL
      */
     public String putPublic(PathWithBase base, byte[] body) {
-        return putPublic(base, body, true, empty(), empty());
+        return putPublic(base, body, null);
+    }
+
+    /**
+     * Puts data to S3 and returns URL
+     */
+    public String putPublic(PathWithBase base, byte[] body, Map<String, String> metadata) {
+        return putPublic(base, body, true, empty(), empty(), metadata);
     }
 
     /**
@@ -132,7 +140,15 @@ public class S3JskClient {
      */
     public String putPublic(PathWithBase base, byte[] body, boolean allRead, O<String> contentType,
             O<String> contentEncoding) {
-        putPublicNoUrl(base, body, allRead, contentType, contentEncoding);
+        return putPublic(base, body, allRead, contentType, contentEncoding, null);
+    }
+
+    /**
+     * Puts data to S3 and returns URL
+     */
+    public String putPublic(PathWithBase base, byte[] body, boolean allRead, O<String> contentType,
+            O<String> contentEncoding, Map<String, String> metadata) {
+        putPublicNoUrl(base, body, allRead, contentType, contentEncoding, metadata);
         return getUrl(base);
     }
 
@@ -153,7 +169,7 @@ public class S3JskClient {
      * Puts data to S3 and returns URL
      */
     public void putPublicNoUrl(PathWithBase base, byte[] body, boolean allRead, O<String> contentType,
-            O<String> contentEncoding) {
+            O<String> contentEncoding, Map<String, String> metadata) {
         PutObjectRequest.Builder builder = PutObjectRequest.builder();
         contentType.ifPresent(builder::contentType);
         contentEncoding.ifPresent(builder::contentEncoding);
@@ -163,6 +179,10 @@ public class S3JskClient {
 
         if (allRead) {
             builder = builder.acl(ObjectCannedACL.PUBLIC_READ);
+        }
+
+        if (metadata != null && !metadata.isEmpty()) {
+            builder = builder.metadata(metadata);
         }
 
         PutObjectRequest putObjectRequest = builder.build();
@@ -267,8 +287,8 @@ public class S3JskClient {
         final ListObjectsResponse response = s3.listObjects(request);
 
         O<String> marker = response.isTruncated()
-                ? O.ofNull(response.nextMarker()).or(() -> Cc.last(response.contents()).map($ -> $.key()))
-                : empty();
+                           ? O.ofNull(response.nextMarker()).or(() -> Cc.last(response.contents()).map($ -> $.key()))
+                           : empty();
 
         return new S3ListResponse(marker, response.contents().stream().map($ -> new S3ListObject($.key())).collect(Cc.toL()));
     }
