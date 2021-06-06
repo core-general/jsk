@@ -32,6 +32,7 @@ import sk.services.json.IJson;
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.javafixes.CheckUtf8;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
@@ -41,10 +42,12 @@ import sk.utils.tuples.X;
 import sk.web.exceptions.IWebExcept;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRenderResult;
+import sk.web.renders.WebReplyMeta;
 import sk.web.server.WebServerContext;
 import sk.web.server.WebServerCore;
 import sk.web.server.context.WebRequestOuterFullContext;
 import sk.web.server.model.WebProblemWithRequestBodyException;
+import sk.web.server.params.WebAdditionalParams;
 import sk.web.server.params.WebServerParams;
 import spark.Request;
 import spark.Response;
@@ -76,6 +79,7 @@ import static sk.utils.statics.St.bytesToS;
 @Log4j2
 public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, SparkApplication {
     @Inject WebServerParams conf;
+    @Inject WebAdditionalParams additional;
     @Inject IExcept except;
     @Inject IBytes bytes;
     @Inject IJson json;
@@ -107,6 +111,14 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             final WebServerContext env = provideContext(spark, definition.getApiClass());
             definition.create(env);
         }
+
+        spark.options("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
+            additional.getCrossOrigin().ifPresent($ -> ctx.setResponseHeader("Access-Control-Allow-Origin", $));
+            ctx.setResponse(
+                    new WebRenderResult(new WebReplyMeta(200, "text/html; charset=UTF-8", false, false), OneOf.left("")),
+                    empty());
+        }));
+
         spark.exception(Exception.class, (exception, request, response) -> {
             log.error("UNHANDLED EXCEPTION", exception);
             response.header(JskProblem.PROBLEM_SIGN, "+");

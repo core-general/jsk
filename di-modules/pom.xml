@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.1.16</version>
+        <version>jsk.3.1.18</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
