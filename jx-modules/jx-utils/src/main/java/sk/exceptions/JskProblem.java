@@ -23,18 +23,21 @@ package sk.exceptions;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import sk.utils.functional.O;
 
 @Data
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class JskProblem {
     public final static String PROBLEM_SIGN = "__problem";
     private final String __problem = "+";
-    private final String code;
-    private final String substatus;
-    private final String description;
+    private O<String> code = O.empty();
+    private O<String> substatus = O.empty();
+    private O<String> description = O.empty();
 
     public static JskProblem code(String code) {
-        return new JskProblem(code, null, null);
+        return new JskProblem(O.of(code), O.empty(), O.empty());
     }
 
     public static <A extends Enum<A>> JskProblem code(A code) {
@@ -42,7 +45,7 @@ public class JskProblem {
     }
 
     public static JskProblem substatus(String code, String substatus) {
-        return new JskProblem(code, substatus, null);
+        return new JskProblem(O.of(code), O.of(substatus), O.empty());
     }
 
     public static <A extends Enum<A>> JskProblem substatus(A code, String substatus) {
@@ -50,13 +53,26 @@ public class JskProblem {
     }
 
     public static JskProblem description(String description) {
-        return new JskProblem(null, null, description);
+        return new JskProblem(O.empty(), O.empty(), O.of(description));
+    }
+
+    public String getCode() {
+        return code.orElse(null);
+    }
+
+    public String getSubstatus() {
+        return substatus.orElse(null);
+    }
+
+    public String getDescription() {
+        return description.orElse(null);
     }
 
     @Override
     public String toString() {
-        return description != null
-                ? description
-                : (code != null ? "code='" + code + "'" : "") + (substatus != null ? ", subStatus='" + substatus + '\'' : "");
+        return description != null && description.isPresent()
+               ? description.get()
+               : (code != null && code.isPresent() ? "code='" + code.get() + "'" : "") +
+                       (substatus != null && substatus.isPresent() ? ", subStatus='" + substatus.get() + '\'' : "");
     }
 }

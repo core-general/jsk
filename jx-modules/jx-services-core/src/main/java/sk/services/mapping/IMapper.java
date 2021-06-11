@@ -23,9 +23,9 @@ package sk.services.mapping;
 import sk.utils.functional.O;
 
 public interface IMapper {
-    public <ME> O<ME> clone(ME object);
+    public <ME> O<ME> clone(ME object, boolean deep);
 
-    public <IN, OUT> O<OUT> map(IN object, Class<OUT> target);
+    public <IN, OUT> O<OUT> map(IN object, Class<OUT> target, boolean deep);
 
-    <IN, OUT> O<OUT> map(IN in, OUT out);
+    <IN, OUT> O<OUT> map(IN in, OUT out, boolean deep, boolean copyNulls);
 }

@@ -177,7 +177,7 @@ public class WebSparkTest {
 
         @Override
         public SomeClass4 testClass(SomeClass4 cls) {
-            final O<SomeClass4> clone = mapper.clone(cls);
+            final O<SomeClass4> clone = mapper.clone(cls, false);
 
             return clone.get();
         }

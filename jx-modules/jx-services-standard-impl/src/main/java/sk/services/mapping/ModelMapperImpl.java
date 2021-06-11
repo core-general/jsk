@@ -20,11 +20,13 @@ package sk.services.mapping;
  * #L%
  */
 
+import lombok.NoArgsConstructor;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Conditions;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import sk.services.time.ITime;
+import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
@@ -39,38 +41,54 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 
+@NoArgsConstructor
 public class ModelMapperImpl implements IMapper {
     @Inject ITime times;
     @Inject protected Optional<List<ModelMapperConfig>> configs = Optional.empty();
 
+    public ModelMapperImpl(ITime times, Optional<List<ModelMapperConfig>> configs) {
+        this.times = times;
+        this.configs = configs;
+    }
+
     protected ModelMapper mapper;
+    protected ModelMapper mapperDeep;
+    protected ModelMapper mapperDoNotCopyNulls;
+    protected ModelMapper mapperDoNotCopyNullsDeep;
 
     @Override
-    public <ME> O<ME> clone(ME in) {
-        return in == null ? O.empty() : O.ofNullable(mapper.map(in, (Class<ME>) in.getClass()));
+    public <ME> O<ME> clone(ME in, boolean deep) {
+        return in == null ? O.empty() : O.ofNullable(getMapper(deep, true).map(in, (Class<ME>) in.getClass()));
     }
 
     @Override
-    public <IN, OUT> O<OUT> map(IN in, Class<OUT> outCls) {
-        return in == null ? O.empty() : O.ofNullable(mapper.map(in, outCls));
+    public <IN, OUT> O<OUT> map(IN in, Class<OUT> outCls, boolean deep) {
+        return in == null ? O.empty() : O.ofNullable(getMapper(deep, true).map(in, outCls));
     }
 
     @Override
-    public <IN, OUT> O<OUT> map(IN in, OUT out) {
+    public <IN, OUT> O<OUT> map(IN in, OUT out, boolean deep, boolean copyNulls) {
         if (in == null) {
             return O.empty();
         }
-        mapper.map(in, out);
+        getMapper(deep, copyNulls).map(in, out);
         return O.of(out);
     }
 
     @PostConstruct
     protected ModelMapperImpl initModelMapperImpl() {
         mapper = new ModelMapper();
-        mapper.getConfiguration().setDeepCopyEnabled(true);
-        mapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+        mapperDeep = new ModelMapper();
+        mapperDoNotCopyNulls = new ModelMapper();
+        mapperDoNotCopyNullsDeep = new ModelMapper();
 
-        defaultConverters();
+        mapperDeep.getConfiguration().setDeepCopyEnabled(true);
+        mapperDoNotCopyNullsDeep.getConfiguration().setDeepCopyEnabled(true);
+
+        mapperDoNotCopyNulls.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+        mapperDoNotCopyNullsDeep.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+
+        allMappers(this::defaultConverters);
 
         Map<Class<?>, Map<Class<?>, Boolean>> propertyMap = Cc.m();
         Map<Class<?>, Map<Class<?>, Boolean>> converterMap = Cc.m();
@@ -87,7 +105,7 @@ public class ModelMapperImpl implements IMapper {
                         return b;
                     }, () -> Cc.m(pm.getOutType(), true));
 
-                    mapper.addMappings(pm);
+                    allMappers(mapper -> mapper.addMappings(pm));
                 });
 
         configs.stream()
@@ -103,13 +121,20 @@ public class ModelMapperImpl implements IMapper {
                         return b;
                     }, () -> Cc.m(c.getDestType(), true));
 
-                    mapper.addConverter(c);
+                    allMappers(mapper -> mapper.addConverter(c));
                 });
 
         return this;
     }
 
-    private void defaultConverters() {
+    private void allMappers(C1<ModelMapper> toDoWithMapper) {
+        toDoWithMapper.accept(mapper);
+        toDoWithMapper.accept(mapperDeep);
+        toDoWithMapper.accept(mapperDoNotCopyNulls);
+        toDoWithMapper.accept(mapperDoNotCopyNullsDeep);
+    }
+
+    private void defaultConverters(ModelMapper mapper) {
         mapper.addConverter(new AbstractConverter<Long, ZonedDateTime>() {
             @Override
             protected ZonedDateTime convert(Long source) {
@@ -170,4 +195,79 @@ public class ModelMapperImpl implements IMapper {
             }
         });
     }
+
+    private ModelMapper getMapper(boolean deep, boolean copyNulls) {
+        if (!deep && copyNulls) {
+            return mapper;
+        } else if (deep && copyNulls) {
+            return mapperDeep;
+        } else if (!deep) {
+            return mapperDoNotCopyNulls;
+        } else {
+            return mapperDoNotCopyNullsDeep;
+        }
+    }
+
+    //public static void main(String[] args) {
+    //    Y y = new Y(new GG(4), 5, "c", 7);
+    //
+    //    ModelMapperImpl mi = new ModelMapperImpl(new TimeUtcImpl(), Optional.empty()).initModelMapperImpl();
+    //
+    //    final X x = mi.map(y, X.class, false).get();
+    //    int i = 0;
+    //
+    //}
+    //
+    //static class GG {
+    //    int II;
+    //
+    //    public GG() {
+    //    }
+    //
+    //    public GG(int II) {
+    //        this.II = II;
+    //    }
+    //}
+    //
+    //@Data
+    //@NoArgsConstructor
+    //public static abstract class A {
+    //    GG ctx;
+    //
+    //    public A(GG ctx) {
+    //        this.ctx = ctx;
+    //    }
+    //}
+    //
+    //@Data
+    //@NoArgsConstructor
+    //public static abstract class AA extends A {
+    //    int b;
+    //    String c;
+    //
+    //    public AA(GG ctx, int b, String c) {
+    //        super(ctx);
+    //        this.b = b;
+    //        this.c = c;
+    //    }
+    //}
+    //
+    //@Data
+    //@NoArgsConstructor
+    //public static class X extends AA {
+    //    public X(GG ctx, int b, String c) {
+    //        super(ctx, b, c);
+    //    }
+    //}
+    //
+    //@Data
+    //@NoArgsConstructor
+    //public static class Y extends AA {
+    //    int z;
+    //
+    //    public Y(GG ctx, int b, String c, int z) {
+    //        super(ctx, b, c);
+    //        this.z = z;
+    //    }
+    //}
 }

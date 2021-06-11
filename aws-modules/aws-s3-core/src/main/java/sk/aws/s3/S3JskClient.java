@@ -30,6 +30,7 @@ import sk.services.rand.IRand;
 import sk.services.retry.IRepeat;
 import sk.utils.async.AtomicNotifier;
 import sk.utils.files.PathWithBase;
+import sk.utils.functional.C1;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -174,21 +175,26 @@ public class S3JskClient {
         contentType.ifPresent(builder::contentType);
         contentEncoding.ifPresent(builder::contentEncoding);
         builder.bucket(base.getBase())
-                .key(base.getPathNoSlash())
-                .cacheControl("no-cache, max-age=0");
+                .key(base.getPathNoSlash());
 
         if (allRead) {
-            builder = builder.acl(ObjectCannedACL.PUBLIC_READ);
+            builder.acl(ObjectCannedACL.PUBLIC_READ);
         }
 
         if (metadata != null && !metadata.isEmpty()) {
-            builder = builder.metadata(metadata);
+            getAndDelete(metadata, "Content-Type", builder::contentType);
+            getAndDelete(metadata, "Content-Encoding", builder::contentEncoding);
+            getAndDelete(metadata, "Content-Disposition", builder::contentDisposition);
+            getAndDelete(metadata, "Cache-Control", builder::cacheControl);
+
+            builder.metadata(metadata);
         }
 
         PutObjectRequest putObjectRequest = builder.build();
 
         s3.putObject(putObjectRequest, RequestBody.fromBytes(body));
     }
+
 
     public int deleteByKeys(PathWithBase base, String... keys) {
         try {
@@ -359,5 +365,12 @@ public class S3JskClient {
         Ex.toRuntime(() -> async.coldTaskFJP().submit(() -> getAllItems(base, msBetweenPageRequests)
                 .parallelStream()
                 .forEach($ -> repeat.repeat(() -> deleteOne(base.replacePath($.getKey())), 10))).get());
+    }
+
+    void getAndDelete(Map<String, String> metadata, String key, C1<String> ifPresent) {
+        final String val = metadata.remove(key);
+        if (val != null) {
+            ifPresent.accept(val);
+        }
     }
 }
