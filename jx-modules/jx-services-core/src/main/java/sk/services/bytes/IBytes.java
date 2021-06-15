@@ -103,19 +103,11 @@ public interface IBytes {
     }
 
     default String urlEncode(String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return Ex.thRow(e);
-        }
+        return URLEncoder.encode(value, UTF_8);
     }
 
     default String urlDecode(String value) {
-        try {
-            return URLDecoder.decode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return Ex.thRow(e);
-        }
+        return URLDecoder.decode(value, UTF_8);
     }
 
     //endregion

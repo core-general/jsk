@@ -23,6 +23,7 @@ package sk.services.http;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 import sk.services.http.model.CoreHttpResponse;
@@ -111,8 +112,10 @@ public interface IHttp {
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
 
+        @SneakyThrows
         HttpBuilder(String url) {
-            this.url = url;
+            //very simple solution for percent-encoding problem, there exist better but heavier solutions
+            this.url = url.replace(" ", "%20");
         }
 
         public Map<String, String> headers() {
