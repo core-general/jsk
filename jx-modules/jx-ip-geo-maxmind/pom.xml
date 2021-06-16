@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>web-api-modules</artifactId>
+        <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
         <version>jsk.3.2.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-core</artifactId>
+    <artifactId>jx-ip-geo-maxmind</artifactId>
     <version>jsk.3.2.0</version>
     <packaging>jar</packaging>
 
@@ -24,11 +24,22 @@
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>jx-test</artifactId>
-            <version>jsk.3.2.0</version>
-            <scope>test</scope>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>2.15.0</version>
+        </dependency>
+
+        <!--        latitude longitude 2 timezone if needed in the future-->
+        <!--        <dependency>-->
+        <!--            <groupId>us.dustinj.timezonemap</groupId>-->
+        <!--            <artifactId>timezonemap</artifactId>-->
+        <!--            <version>4.5</version>-->
+        <!--        </dependency>-->
     </dependencies>
 
 </project>
