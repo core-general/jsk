@@ -25,6 +25,7 @@ import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
+import sk.db.relational.spring.services.RdbTransactionWrapperRequiresNew;
 import sk.services.retry.IRepeat;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
@@ -46,6 +47,7 @@ import static sk.utils.statics.Cc.s;
 public abstract class RdbTransactionManagerImpl implements RdbTransactionManager {
     @Inject IRepeat retry;
     @Inject RdbTransactionWrapper trans;
+    @Inject RdbTransactionWrapperRequiresNew transForceNew;
     @PersistenceContext EntityManager manager;
 
     @SuppressWarnings("WeakerAccess")
@@ -54,48 +56,88 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     @Override
     public <A, T extends X1<A>> T transactionWithSaveX1(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 1);
+        return transactionWithSaveUni(howToGet, whatToSave, 1, false);
     }
 
     @Override
     public <A1, A2, T extends X2<A1, A2>> T transactionWithSaveX2(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 2);
+        return transactionWithSaveUni(howToGet, whatToSave, 2, false);
     }
 
     @Override
     public <A1, A2, A3, T extends X3<A1, A2, A3>> T transactionWithSaveX3(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 3);
+        return transactionWithSaveUni(howToGet, whatToSave, 3, false);
     }
 
     @Override
     public <A1, A2, A3, A4, T extends X4<A1, A2, A3, A4>> T transactionWithSaveX4(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 4);
+        return transactionWithSaveUni(howToGet, whatToSave, 4, false);
     }
 
     @Override
     public <A1, A2, A3, A4, A5, T extends X5<A1, A2, A3, A4, A5>> T transactionWithSaveX5(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 5);
+        return transactionWithSaveUni(howToGet, whatToSave, 5, false);
     }
 
     @Override
     public <A1, A2, A3, A4, A5, A6, T extends X6<A1, A2, A3, A4, A5, A6>> T transactionWithSaveX6(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 6);
+        return transactionWithSaveUni(howToGet, whatToSave, 6, false);
     }
 
     @Override
     public <A1, A2, A3, A4, A5, A6, A7, T extends X7<A1, A2, A3, A4, A5, A6, A7>> T transactionWithSaveX7(Supplier<T> howToGet,
             F1<T, List<Object>> whatToSave) {
-        return transactionWithSaveUni(howToGet, whatToSave, 7);
+        return transactionWithSaveUni(howToGet, whatToSave, 7, false);
     }
 
-    private <T> T transactionWithSaveUni(Supplier<T> howToGet, F1<T, List<Object>> toSave, int count) {
+    @Override
+    public <A, T extends X1<A>> T transactionWithSaveX1ForceNew(Supplier<T> howToGet, F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 1, true);
+    }
+
+    @Override
+    public <A1, A2, T extends X2<A1, A2>> T transactionWithSaveX2ForceNew(Supplier<T> howToGet, F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 2, true);
+    }
+
+    @Override
+    public <A1, A2, A3, T extends X3<A1, A2, A3>> T transactionWithSaveX3ForceNew(Supplier<T> howToGet,
+            F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 3, true);
+    }
+
+    @Override
+    public <A1, A2, A3, A4, T extends X4<A1, A2, A3, A4>> T transactionWithSaveX4ForceNew(Supplier<T> howToGet,
+            F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 4, true);
+    }
+
+    @Override
+    public <A1, A2, A3, A4, A5, T extends X5<A1, A2, A3, A4, A5>> T transactionWithSaveX5ForceNew(Supplier<T> howToGet,
+            F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 5, true);
+    }
+
+    @Override
+    public <A1, A2, A3, A4, A5, A6, T extends X6<A1, A2, A3, A4, A5, A6>> T transactionWithSaveX6ForceNew(Supplier<T> howToGet,
+            F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 6, true);
+    }
+
+    @Override
+    public <A1, A2, A3, A4, A5, A6, A7, T extends X7<A1, A2, A3, A4, A5, A6, A7>> T transactionWithSaveX7ForceNew(
+            Supplier<T> howToGet, F1<T, List<Object>> whatToSave) {
+        return transactionWithSaveUni(howToGet, whatToSave, 7, true);
+    }
+
+    private <T> T transactionWithSaveUni(Supplier<T> howToGet, F1<T, List<Object>> toSave, int count, boolean forceNew) {
         return transactionWithSaveUniUni(() -> {
-            return trans.transactional(() -> {
+            final Supplier<T> lambda = () -> {
                 T t = howToGet.get();
                 List<Object> saveObjects = toSave.apply(t);
                 if (saveObjects.size() > count) {
@@ -103,7 +145,8 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
                 }
                 saveObjects.forEach(this::trySave);
                 return t;
-            });
+            };
+            return forceNew ? transForceNew.transactionalForceNew(lambda) : trans.transactional(lambda);
         });
     }
 
@@ -129,7 +172,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     }
 
     private <T> T transactionWithSaveUniUni(F0<T> sup) {
-        return retry.repeat(sup, 50, 50, s(
+        return retry.repeat(sup, 50, 100, s(
                 ObjectOptimisticLockingFailureException.class,
                 OptimisticLockException.class,
                 OptimisticEntityLockException.class,

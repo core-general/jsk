@@ -24,6 +24,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Tuplizer;
+import sk.db.relational.utils.CtxAwarePojoTuplizer;
 import sk.spring.services.CoreServices;
 
 import javax.persistence.Transient;
@@ -32,6 +34,7 @@ import javax.persistence.Transient;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Tuplizer(impl = CtxAwarePojoTuplizer.class)
 public abstract class JpaWithContext {
     protected @Transient CoreServices ctx;
 }

@@ -61,20 +61,6 @@ public class RdbBaseDbConfig {
         cpds.setProperties(properties);
 
         return cpds;
-        //HikariConfig cpds = new HikariConfig();
-        //
-        //cpds.setDriverClassName(conf.getDriver());
-        //
-        //cpds.setJdbcUrl(conf.getUrl());
-        //cpds.setUsername(conf.getUser());
-        //cpds.setPassword(conf.getPass());
-        //cpds.setMaximumPoolSize(conf.getMaxPoolSize());
-        //
-        //Properties properties = cpds.getDataSourceProperties();
-        //properties.put("stringtype", "unspecified");
-        //cpds.setDataSourceProperties(properties);
-        //
-        //return new HikariDataSource(cpds);
     }
 
     @Bean

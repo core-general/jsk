@@ -66,15 +66,27 @@ public class RdbIntegrator4Context implements Integrator {
         eventListenerRegistry.prependListeners(EventType.SAVE, (SaveOrUpdateEventListener) event -> {
             inject(ctx, event.getEntity());
         });
+        eventListenerRegistry.prependListeners(EventType.MERGE, new MergeEventListener() {
+            @Override
+            public void onMerge(MergeEvent event) throws HibernateException {
+                inject(ctx, event.getEntity());
+            }
+
+            @Override
+            public void onMerge(MergeEvent event, Map copiedAlready) throws HibernateException {
+                inject(ctx, event.getEntity());
+            }
+        });
         eventListenerRegistry.prependListeners(EventType.UPDATE, (SaveOrUpdateEventListener) event -> {
             inject(ctx, event.getEntity());
         });
     }
 
-    private void inject(CoreServices ctx, Object entity) {
-        if (entity instanceof JpaWithContext) {
+    public static Object inject(CoreServices ctx, Object entity) {
+        if (entity instanceof JpaWithContext && ((JpaWithContext) entity).getCtx() == null) {
             ((JpaWithContext) entity).setCtx(ctx);
         }
+        return entity;
     }
 
     @Override
