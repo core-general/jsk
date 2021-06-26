@@ -28,6 +28,7 @@ import sk.exceptions.JskProblem;
 import sk.services.bean.IServiceProvider;
 import sk.services.except.IExcept;
 import sk.services.ids.IIds;
+import sk.services.ipgeo.IIpGeoExtractor;
 import sk.services.json.IJson;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.shutdown.AppStopListener;
@@ -102,6 +103,8 @@ public class WebServerCore<API>
     @Inject protected IJson json;
     @Inject protected ITime time;
     @Inject protected IIds ids;
+
+    @Inject protected Optional<IIpGeoExtractor> geoService = Optional.empty();
 
     @Getter
     @Setter
@@ -331,7 +334,7 @@ public class WebServerCore<API>
         );
     }
 
-    private WebRequestIp getIpInfo(WebRequestOuterFullContext outerContext) {
+    protected WebRequestIp getIpInfo(WebRequestOuterFullContext outerContext) {
         final String ip = outerContext.getIp();
         final O<String> proxy1 = outerContext.getRequestHeader("X-Forwarded-For");
         final O<String> proxy2 = outerContext.getRequestHeader("X-Forwarded-For-1");
@@ -344,7 +347,9 @@ public class WebServerCore<API>
             proxy1.ifPresent((x) -> proxies.add(ip));
         });
 
-        return new WebRequestIp(proxy2.or(() -> proxy1).orElse(ip), proxies);
+        final String realIp = proxy2.or(() -> proxy1).orElse(ip);
+        return new WebRequestIp(realIp, proxies,
+                O.of(geoService).flatMap($ -> $.ipToGeoData(realIp)));
     }
 
     private boolean mustMultipart(WebMethodInfo methodInfo, WebApiMethod<API> apiMethod) {

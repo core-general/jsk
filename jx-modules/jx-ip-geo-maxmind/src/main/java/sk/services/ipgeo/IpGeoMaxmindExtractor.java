@@ -42,15 +42,15 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
     @Inject IExcept except;
     @Inject IHttp http;
 
-    final O<String> url;
+    final O<String> mmdbFileUrl;
     DatabaseReader reader;
 
     public IpGeoMaxmindExtractor() {
-        url = O.empty();
+        mmdbFileUrl = O.empty();
     }
 
-    public IpGeoMaxmindExtractor(String url) {
-        this.url = O.of(url);
+    public IpGeoMaxmindExtractor(String mmdbFileUrl) {
+        this.mmdbFileUrl = O.of(mmdbFileUrl);
     }
 
     @PostConstruct
@@ -62,8 +62,8 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
         2. In resources: "jsk/ip2country.mmdb"
         3. Throw exception if neither 1 or 2
          */
-        try (var is = url.<InputStream>flatMap(
-                u -> http.get(url.get()).goBytes().collect(by -> O.of(new ByteArrayInputStream(by)), ex -> O.empty()))
+        try (var is = mmdbFileUrl.<InputStream>flatMap(
+                u -> http.get(mmdbFileUrl.get()).goBytes().collect(by -> O.of(new ByteArrayInputStream(by)), ex -> O.empty()))
                 .or(() -> Io.getResourceStream("jsk/ip2country.mmdb"))
                 .orElseGet(() -> except.throwByCode("CAN'T INIT IPGEO SUBSYSTEM"))) {
             DatabaseReader.Builder b = new DatabaseReader.Builder(is);

@@ -21,6 +21,8 @@ package sk.web.server.context;
  */
 
 import lombok.Value;
+import sk.services.ipgeo.IpGeoData;
+import sk.utils.functional.O;
 
 import java.util.List;
 
@@ -28,4 +30,5 @@ import java.util.List;
 public class WebRequestIp {
     String clientIp;
     List<String> proxyChainIps;
+    O<IpGeoData> geoData;
 }
