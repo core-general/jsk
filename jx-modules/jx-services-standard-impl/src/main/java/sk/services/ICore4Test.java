@@ -73,5 +73,5 @@ public class ICore4Test implements ICoreServices {
     private ISizedSemaphore sizedSemaphore = new ISizedSemaphoreImpl(Runtime.getRuntime().maxMemory() / 5, 10);
     private IExcept except = new IExcept() {};
 
-    private IHttp http = new HttpImpl();
+    private IHttp http = new HttpImpl(repeat, times, async, ids, bytes);
 }
