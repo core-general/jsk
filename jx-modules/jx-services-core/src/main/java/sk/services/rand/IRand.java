@@ -25,9 +25,7 @@ import sk.utils.random.MapRandom;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static sk.utils.functional.O.ofNullable;
@@ -48,6 +46,7 @@ public interface IRand {
         return getRandom().nextLong();
     }
 
+
     default int rndInt(int bound) {
         return getRandom().nextInt(bound);
     }
@@ -62,6 +61,26 @@ public interface IRand {
 
     default <T> O<T> rndFromList(List<T> list) {
         return ofNullable(list.size() == 0 ? null : list.get(rndInt(list.size())));
+    }
+
+    default <Z extends Comparable<Z>> List<Z> rndManyFromListAndSort(int count, List<Z> items) {
+        if (count >= items.size()) {
+            return Cc.sort(new ArrayList<>(items));
+        } else {
+            final List<Z> stillNotUsed = new LinkedList<>(items);
+            final List<Z> toRet = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                final int index = rndInt(stillNotUsed.size());
+                final Z item = stillNotUsed.get(index);
+                toRet.add(item);
+                stillNotUsed.remove(index);
+            }
+            return Cc.sort(toRet);
+        }
+    }
+
+    default <Z extends Comparable<Z>> List<Z> rndManyFromListAndSort(List<Z> items) {
+        return rndManyFromListAndSort(rndInt(1, items.size() + 1), items);
     }
 
     default char rndChar(String str) {
