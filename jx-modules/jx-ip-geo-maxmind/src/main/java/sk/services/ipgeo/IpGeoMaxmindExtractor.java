@@ -24,6 +24,7 @@ import com.maxmind.db.Reader;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.model.CountryResponse;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import sk.services.except.IExcept;
 import sk.services.http.IHttp;
 import sk.utils.functional.O;
@@ -38,6 +39,7 @@ import java.net.InetAddress;
 import java.time.ZoneId;
 import java.util.Optional;
 
+@Log4j2
 public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
     @Inject IExcept except;
     @Inject IHttp http;
@@ -70,6 +72,10 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
             b.withCache(new IpGeoCache());
             b.fileMode(Reader.FileMode.MEMORY);
             reader = b.build();
+            //check
+            if (ipToGeoData("18.133.68.153").flatMap($ -> O.ofNull($.getCountry())).orElse(null) == null) {
+                except.throwByCode("IpGeoMaxmindExtractor CANT LOAD");
+            }
         }
 
         return this;
@@ -85,6 +91,7 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
                 return new IpGeoData(ip, country, OneOf.left(ZoneId.of(country.getApproxTimeZone())));
             });
         } catch (Exception e) {
+            log.error("Problem with ip:" + ip, e);
             return O.empty();
         }
     }
