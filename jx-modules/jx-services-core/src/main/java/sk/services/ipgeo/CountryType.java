@@ -76,6 +76,7 @@ public enum CountryType {
     CR("America/Costa_Rica"),
     CU("America/Havana"),
     CV("Atlantic/Cape_Verde"),
+    CW("Etc/GMT-4"),
     CX("Indian/Christmas"),
     CY("Asia/Nicosia"),
     CZ("Europe/Prague"),

@@ -23,13 +23,16 @@ package sk.services.ids;
 import com.fasterxml.uuid.Generators;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
 import sk.services.rand.IRand;
 import sk.utils.statics.St;
 
 import javax.inject.Inject;
-import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Random;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -46,15 +49,44 @@ public class IdsImpl implements IIds {
 
     @Override
     public String customId(int length) {
-        String s = new BigInteger(length * 5, random.getRandom()).toString(32);
-        if (s.length() < length) {
-            s = St.repeat("0", length - s.length()) + s;
-        }
-        return s;
+        final Random random = this.random.getRandom();
+        byte[] bytes = new byte[length];
+
+        random.nextBytes(bytes);
+
+        String s = enc64LeaveLettersAndNumbers(bytes);
+
+        return s.substring(0, length);
     }
 
     @Override
-    public UUID uniqueFrom(String val) {
+    public UUID text2Uuid(String val) {
         return UUID.nameUUIDFromBytes(val.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public String unique(byte[] val, int iterations, boolean valIsCloned) {
+        if (iterations > 255) {
+            throw new RuntimeException("Must be less than 255 bytes");
+        }
+        if (valIsCloned) {
+            val = Arrays.copyOf(val, val.length);
+        }
+        ByteBuffer bb = ByteBuffer.allocate(iterations * 4);
+
+        bb.putInt(0, this.bytes.crc32Signed(val));
+
+        for (byte i = -128; i < 127 - (255 - iterations + 1); i++) {
+            val[0] = i;
+            bb.putInt((i + 128 + 1) * 4, this.bytes.crc32Signed(val));
+        }
+
+        return enc64LeaveLettersAndNumbers(bb.array());
+    }
+
+    @NotNull
+    private String enc64LeaveLettersAndNumbers(byte[] array) {
+        final String s = bytes.enc64(array);
+        return St.ss(s, 0, s.indexOf('=')).replaceAll("[+/=]", "0");
     }
 }

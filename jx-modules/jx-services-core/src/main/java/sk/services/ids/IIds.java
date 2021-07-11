@@ -20,6 +20,7 @@ package sk.services.ids;
  * #L%
  */
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -32,5 +33,15 @@ public interface IIds {
 
     String customId(int length);
 
-    UUID uniqueFrom(String val);
+    UUID text2Uuid(String val);
+
+    default String unique(String val) {
+        return unique(val.getBytes(StandardCharsets.UTF_8), 8, false);
+    }
+
+    default String unique(String val, int iterations) {
+        return unique(val.getBytes(StandardCharsets.UTF_8), iterations, false);
+    }
+
+    String unique(byte[] val, int iterations, boolean valIsCloned);
 }

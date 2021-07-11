@@ -83,7 +83,7 @@ public class RdbILogImpl implements ILog {
     private JpaImportantLog createImportantLog(boolean randomId, @NotNull String category, @Nullable String type,
             Map<String, Object> info) {
         return new JpaImportantLog(
-                new ImportantLogId(randomId ? ids.shortId() : ids.uniqueFrom(category + type + info)),
+                new ImportantLogId(randomId ? ids.shortId() : ids.text2Uuid(category + type + info)),
                 category, type, json.to(info, true), null, null, null
         );
     }

@@ -64,6 +64,11 @@ public interface IBytes {
         return checksum.getValue();
     }
 
+    default int crc32Signed(byte[] bytes) {
+        final long l = crc32(bytes);
+        return (int) (l - Integer.MAX_VALUE / 2);
+    }
+
     default long crc32(String utf) {
         return crc32(utf.getBytes(UTF_8));
     }

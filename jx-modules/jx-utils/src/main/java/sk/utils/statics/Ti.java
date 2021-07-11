@@ -51,6 +51,10 @@ public final class Ti {
         return ((double) (end - start)) / (count /*to millis*/);
     }
 
+    public static String naiveProfileMS(R r, int count) {
+        return String.format("%.5fms", naiveProfile(r, count));
+    }
+
     public static String cronEveryXSeconds(int xSec) {
         return String.format("0/%d * * * * ?", xSec);
     }
