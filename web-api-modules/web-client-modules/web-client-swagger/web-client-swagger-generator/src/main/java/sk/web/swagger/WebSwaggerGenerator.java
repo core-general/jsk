@@ -206,24 +206,35 @@ public class WebSwaggerGenerator {
             return sc;
         }
 
-        final O<OneOrBoth<Class<?>, SwaggerType>> arrClass = tt.getArrayClassForSchema();
-        if (arrClass.isPresent()) {
-            ArraySchema sc = new ArraySchema();
-            if (arrClass.get().isLeft()) {
-                sc.setItems(convertToSchema(arrClass.get().left(), classesForComponents));
-            } else {
-                sc.setItems(new Schema()
-                        .type(arrClass.get().right().getType())
-                        .format(arrClass.get().right().getFormat().orElse(null)));
+        {
+            final O<OneOrBoth<Class<?>, SwaggerType>> arrClass = tt.getArrayClassForSchema();
+            if (arrClass.isPresent()) {
+                ArraySchema sc = new ArraySchema();
+                if (arrClass.get().isLeft()) {
+                    sc.setItems(convertToSchema(arrClass.get().left(), classesForComponents));
+                } else {
+                    sc.setItems(new Schema()
+                            .type(arrClass.get().right().getType())
+                            .format(arrClass.get().right().getFormat().orElse(null)));
+                }
+                return sc;
             }
-            return sc;
         }
 
         Schema<?> sc = new Schema<>();
         sc.setType(tt.getType());
         tt.getFormat().ifPresent($ -> sc.setFormat($));
-        if (tt.isMap()) {
-            sc.setAdditionalProperties(true);
+        {
+            final O<OneOrBoth<Class<?>, SwaggerType>> mapClass = tt.getMapClassForSchema();
+            if (mapClass.isPresent()) {
+                if (mapClass.get().isLeft()) {
+                    sc.setAdditionalProperties(convertToSchema(mapClass.get().left(), classesForComponents));
+                } else {
+                    sc.setAdditionalProperties(new Schema()
+                            .type(mapClass.get().right().getType())
+                            .format(mapClass.get().right().getFormat().orElse(null)));
+                }
+            }
         }
         return sc;
     }
@@ -275,9 +286,10 @@ public class WebSwaggerGenerator {
                 cir.setClassName(typeInfoGenericInfoRaw.getClassName());
                 cir.setType(SwaggerType.array(typeInfoGenericInfoRaw.getType()));
             } else if (name.startsWith("java.util.Map")) {
+                final TypeInfoGenericInfoRaw typeInfoGenericInfoRaw = collect.size() > 1 ? collect.get(1) : collect.get(0);
                 cir.setJavaType(type);
                 cir.setClassName(name);
-                cir.setType(SwaggerType.map());
+                cir.setType(SwaggerType.map(typeInfoGenericInfoRaw.getType()));
             }
         } else if (type == String.class) {
             cir.setType(SwaggerType.simple("string"));
@@ -410,8 +422,8 @@ public class WebSwaggerGenerator {
             return new SwaggerType("array", O.empty(), O.of(OneOf.right(type)), false);
         }
 
-        public static <T> SwaggerType map() {
-            final SwaggerType object = new SwaggerType("object", O.empty(), O.empty(), false);
+        public static <T> SwaggerType map(SwaggerType valueType) {
+            final SwaggerType object = new SwaggerType("object", O.empty(), O.of(OneOf.right(valueType)), false);
             object.setMap(true);
             return object;
         }
@@ -426,6 +438,15 @@ public class WebSwaggerGenerator {
 
         public O<OneOrBoth<Class<?>, SwaggerType>> getArrayClassForSchema() {
             if ("array".equals(type)) {
+                Class<?> classO = itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema())).orElse(null);
+                return of(OneOrBoth.both(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
+            } else {
+                return empty();
+            }
+        }
+
+        public O<OneOrBoth<Class<?>, SwaggerType>> getMapClassForSchema() {
+            if (isMap) {
                 Class<?> classO = itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema())).orElse(null);
                 return of(OneOrBoth.both(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
             } else {

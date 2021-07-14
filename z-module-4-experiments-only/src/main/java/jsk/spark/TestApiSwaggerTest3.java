@@ -58,6 +58,5 @@ public interface TestApiSwaggerTest3 {
     @WebMethod(method = WebMethodType.POST_MULTI_SURE)
     String testIntPostMultiForce3(byte[] bd, int z);
 
-
     SomeClass4 testClass(SomeClass4 cls);
 }

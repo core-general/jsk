@@ -45,7 +45,7 @@ public class SomeClass5 {
                                 O.of("/home/kivan/projects/Actual/jsk/core-general-jsk-new/z-module-4-experiments-only/target" +
                                         "/classes"),
                                 s -> Io.sRead(s).oString())));
-        wsg.generateSwaggerSpec(TestApiSwaggerTest3.class, O.empty());
+        final String s = wsg.generateSwaggerSpec(TestApiSwaggerTest3.class, O.empty());
         int i = 0;
     }
 }

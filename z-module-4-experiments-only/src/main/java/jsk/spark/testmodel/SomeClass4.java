@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 import sk.utils.functional.O;
 
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,4 +44,6 @@ public class SomeClass4 {
     List<SomeClass5> g;
     SomeClass5 h;
     O<SomeClass5> i;
+
+    Map<String, SomeClass5> cls;
 }

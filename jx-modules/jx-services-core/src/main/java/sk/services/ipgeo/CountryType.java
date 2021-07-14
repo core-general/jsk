@@ -233,6 +233,7 @@ public enum CountryType {
     SR("America/Paramaribo"),
     ST("Africa/Sao_Tome"),
     SV("America/El_Salvador"),
+    SX("Etc/GMT−4"),
     SY("Asia/Damascus"),
     SZ("Africa/Mbabane"),
     TC("America/Grand_Turk"),
