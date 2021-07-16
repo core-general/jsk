@@ -20,6 +20,7 @@ package sk.aws.translate;
  * #L%
  */
 
+import lombok.NoArgsConstructor;
 import sk.aws.AwsUtilityHelper;
 import sk.services.translate.ITranslate;
 import sk.services.translate.LangType;
@@ -38,6 +39,7 @@ import java.util.Comparator;
 
 import static sk.services.translate.LangType.*;
 
+@NoArgsConstructor
 public class AwsTranslate implements ITranslate {
     @Inject AwsTranslateProperties trConf;
     @Inject AwsComprehendProperties compConf;
@@ -45,6 +47,13 @@ public class AwsTranslate implements ITranslate {
 
     private ComprehendClient comprehend;
     private TranslateClient translate;
+
+    public AwsTranslate(AwsTranslateProperties trConf, AwsComprehendProperties compConf, AwsUtilityHelper helper) {
+        this.trConf = trConf;
+        this.compConf = compConf;
+        this.helper = helper;
+        init();
+    }
 
     @PostConstruct
     public AwsTranslate init() {
@@ -210,6 +219,7 @@ public class AwsTranslate implements ITranslate {
             case "ru":return Russian;
             case "sr":return Serbian;
             case "si":return Sinhala;
+
             case "sk":return Slovak;
             case "sl":return Slovenian;
             case "so":return Somali;
