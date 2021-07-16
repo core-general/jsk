@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.12</version>
+        <version>jsk.3.2.13</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.3.2.12</version>
+            <version>jsk.3.2.13</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.3.2.12</version>
+            <version>jsk.3.2.13</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

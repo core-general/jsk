@@ -23,22 +23,19 @@ package sk.services.translate;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
-import lombok.AllArgsConstructor;
 import org.checkerframework.checker.index.qual.NonNegative;
 import sk.services.json.IJson;
 
-import javax.inject.Inject;
 
-
-@AllArgsConstructor
 public class TranslateWithInMemoryCache implements ITranslate {
-    @Inject IJson json;
+    IJson json;
 
     final ITranslate next;
     final Cache<String, TranslateInfo> tranlateCache;
     final Cache<String, LangType> langCache;
 
-    public TranslateWithInMemoryCache(ITranslate next) {
+    public TranslateWithInMemoryCache(IJson json, ITranslate next) {
+        this.json = json;
         this.next = next;
         tranlateCache = Caffeine.newBuilder()
                 .maximumWeight(Runtime.getRuntime().maxMemory() / 10)

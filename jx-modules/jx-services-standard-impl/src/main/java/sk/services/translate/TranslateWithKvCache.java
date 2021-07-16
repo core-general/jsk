@@ -25,20 +25,12 @@ import sk.services.json.IJson;
 import sk.services.kv.IKvStore;
 import sk.services.kv.keys.KvSimpleKeyWithName;
 
-import javax.inject.Inject;
-
 
 @AllArgsConstructor
 public class TranslateWithKvCache implements ITranslate {
-    @Inject IJson json;
-
+    IJson json;
     IKvStore kv;
     ITranslate next;
-
-    public TranslateWithKvCache(ITranslate next, IKvStore kvStore) {
-        this.next = next;
-        this.kv = kvStore;
-    }
 
     @Override
     public LangType recognizeLanguage(Text2Translate text) {
