@@ -34,7 +34,7 @@ public class TranslateWithKvCache implements ITranslate {
 
     @Override
     public LangType recognizeLanguage(Text2Translate text) {
-        return kv.getAsObject(new KvSimpleKeyWithName(text.getHash() + "_lang", null) {
+        return kv.getAsObject(new KvSimpleKeyWithName("localize-reco_" + text.getHash(), null) {
             @Override
             public String getDefaultValue() {
                 return json.to(next.recognizeLanguage(text));
@@ -44,7 +44,7 @@ public class TranslateWithKvCache implements ITranslate {
 
     @Override
     public TranslateInfo translate(LangType from, LangType to, Text2Translate text) {
-        return kv.getAsObject(new KvSimpleKeyWithName(text.getHash() + "_" + from + "->" + to, null) {
+        return kv.getAsObject(new KvSimpleKeyWithName("localize_" + from + "->" + to + "_" + text.getHash(), null) {
             @Override
             public String getDefaultValue() {
                 return json.to(next.translate(from, to, text));
