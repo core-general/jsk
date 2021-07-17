@@ -29,7 +29,7 @@ import sk.utils.functional.O;
 public enum WebSwaggerMavenGeneratorTypes {
     DART("dart", O.empty()),
     DART_DIO("dart-dio", O.of("dart-dio-mod")),
-    DART_DIO_NEXT("dart-dio-next", O.empty()),
+    DART_DIO_NEXT("dart-dio-next", O.of("dart-dio-next-mod")),
     ;
 
     String generatorName;

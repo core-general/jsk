@@ -29,6 +29,8 @@ import sk.web.annotations.type.WebMethod;
 import sk.web.annotations.type.WebPOST;
 import sk.web.renders.WebRenderType;
 
+import java.util.List;
+
 @SuppressWarnings("JavadocReference")
 @WebPath("test3")
 public interface TestApiSwaggerTest3 {
@@ -59,4 +61,6 @@ public interface TestApiSwaggerTest3 {
     String testIntPostMultiForce3(byte[] bd, int z);
 
     SomeClass4 testClass(SomeClass4 cls);
+
+    List<String> testClassXX(List<String> cls);
 }

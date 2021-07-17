@@ -181,6 +181,11 @@ public class WebSparkTest {
 
             return clone.get();
         }
+
+        @Override
+        public List<String> testClassXX(List<String> cls) {
+            return cls;
+        }
     }
 
     @Configuration
