@@ -20,6 +20,7 @@ package sk.web.server.context;
  * #L%
  */
 
+import sk.services.translate.LangType;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
@@ -39,11 +40,11 @@ public interface WebRequestInnerContext {
 
     WebRequestIp getIpInfo();
 
+    O<LangType> getRequestLangType();
+
     WebMethodType getApiMethodType();
 
-
     WebRender getWebRender();
-
 
     String getUrlPathPart();
 

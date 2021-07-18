@@ -20,80 +20,115 @@ package sk.services.translate;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import sk.utils.functional.F1;
+import sk.utils.statics.Cc;
 
-@AllArgsConstructor
+import java.util.Arrays;
+import java.util.Map;
+
 @Getter
 public enum LangType {
-    Afrikaans,
-    Albanian,
-    Amharic,
-    Arabic,
-    Armenian,
-    Azerbaijani,
-    Bengali,
-    Bosnian,
-    Bulgarian,
-    Catalan,
-    Chinese,
-    Croatian,
-    Czech,
-    Danish,
-    Dari,
-    Dutch,
-    English,
-    Estonian,
-    Farsi,
-    Filipino,
-    Finnish,
-    French,
-    Georgian,
-    German,
-    Greek,
-    Gujarati,
-    Haitian,
-    Hausa,
-    Hebrew,
-    Hindi,
-    Hungarian,
-    Icelandic,
-    Indonesian,
-    Italian,
-    Japanese,
-    Kannada,
-    Kazakh,
-    Korean,
-    Latvian,
-    Lithuanian,
-    Macedonian,
-    Malay,
-    Malayalam,
-    Maltese,
-    Mongolian,
-    Norwegian,
-    Pashto,
-    Persian,
-    Polish,
-    Portuguese,
-    Romanian,
-    Russian,
-    Serbian,
-    Sinhala,
-    Slovak,
-    Slovenian,
-    Somali,
-    Spanish,
-    Swahili,
-    Swedish,
-    Tagalog,
-    Tamil,
-    Telugu,
-    Thai,
-    Turkish,
-    Ukrainian,
-    Urdu,
-    Uzbek,
-    Vietnamese,
-    Welsh;
+    Afrikaans("Afrikaans", "af"),
+    Albanian("Shqip", "sq"),
+    Amharic("አማርኛ", "am"),
+    Arabic("العربية", "ar"),
+    Armenian("Հայերեն", "hy"),
+    Azerbaijani("Azərbaycan", "az"),
+    Bengali("বাংলা", "bn"),
+    Bosnian("Bosanski", "bs"),
+    Bulgarian("Български език", "bg"),
+    Catalan("Català", "ca"),
+    Chinese("中文", "zh"),
+    Croatian("Hrvatski", "hr"),
+    Czech("Čeština", "cs"),
+    Danish("Dansk", "da"),
+    Dutch("Nederlands", "nl"),
+    English("English", "en"),
+    Estonian("Eesti", "et"),
+    Farsi("فارسی", "fa"),
+    Filipino("Pilipino", "tl"),
+    Finnish("Suomi", "fi"),
+    French("Français", "fr"),
+    Georgian("ქართული", "ka"),
+    German("Deutsch", "de"),
+    Greek("Ελληνικά", "el"),
+    Gujarati("ગુજરાતી", "gu"),
+    Haitian("Ayisyen", "ht"),
+    Hausa("هَوُسَ", "ha"),
+    Hebrew("עברית", "he"),
+    Hindi("हिन्दी", "hi"),
+    Hungarian("Magyar", "hu"),
+    Icelandic("Íslenska", "is"),
+    Indonesian("Indonesia", "id"),
+    Italian("Italiano", "it"),
+    Japanese("日本語", "ja"),
+    Kannada("ಕನ್ನಡ", "kn"),
+    Kazakh("Қазақ", "kk"),
+    Korean("한국어", "ko"),
+    Latvian("Latviešu", "lv"),
+    Lithuanian("Lietuvių", "lt"),
+    Macedonian("Македонски", "mk"),
+    Malay("Melayu", "ms"),
+    Malayalam("മലയാളം", "ml"),
+    Maltese("Malti", "mt"),
+    Mongolian("Монгол", "mn"),
+    Norwegian("Norsk", "no"),
+    Pashto("پښتو", "ps"),
+    Persian("فارسی", "fa"),
+    Polish("Polski", "pl"),
+    Portuguese("Português", "pt"),
+    Romanian("Română", "ro"),
+    Russian("Русский", "ru"),
+    Serbian("Српски", "sr"),
+    Sinhala("සිංහල", "si"),
+    Slovak("Slovenčina", "sk"),
+    Slovenian("Slovenski", "sl"),
+    Somali("Soomaaliga", "so"),
+    Spanish("Español", "es"),
+    Swahili("Kiswahili", "sw"),
+    Swedish("Svenska", "sv"),
+    Tagalog("Tagalog", "tl"),
+    Tamil("தமிழ்", "ta"),
+    Telugu("తెలుగు", "te"),
+    Thai("ไทย", "th"),
+    Turkish("Türkçe", "tr"),
+    Ukrainian("Українська", "uk"),
+    Urdu("اردو", "ur"),
+    Uzbek("Oʻzbek", "uz"),
+    Vietnamese("Việt", "vi"),
+    Welsh("Cymraeg", "cy");
+
+    String originalName;
+    String code;
+
+    LangType(String originalName, String code) {
+        this.originalName = originalName;
+        this.code = code;
+    }
+
+    private static final Map<String, LangType> originalNames2LangType = Cc.m();
+    private static final Map<String, LangType> code2LangType = Cc.m();
+
+    public static LangType getByOriginalName(String name) {
+        return Maps.NAME_2_LANG.map.get(name);
+    }
+
+    public static LangType getByCode(String code) {
+        return Maps.CODE_2_LANG.map.get(code);
+    }
+
+    private enum Maps {
+        NAME_2_LANG(LangType::getOriginalName),
+        CODE_2_LANG(LangType::getCode);
+
+        Map<String, LangType> map = Cc.m();
+
+        Maps(F1<LangType, String> getter) {
+            Arrays.stream(LangType.values()).forEach($ -> {
+                final String apply = getter.apply($);
+                map.put(apply, $);
+            });
+        }
+    }
 }

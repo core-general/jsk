@@ -23,6 +23,7 @@ package sk.web.server.context;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import sk.services.translate.LangType;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
@@ -62,6 +63,23 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     private volatile String changedToken;
 
     @Override
+    public O<LangType> getRequestLangType() {
+        final O<String> requestHeader = getRequestHeader("Accept-Language");
+        return requestHeader.map(String::trim).flatMap($ -> {
+            if ("*".equals($)) {
+                return O.empty();
+            } else {
+                try {
+                    final String code = $.split(",")[0].trim().split("-")[0].trim();
+                    return O.of(LangType.getByCode(code));
+                } catch (Exception e) {
+                    return O.empty();
+                }
+            }
+        });
+    }
+
+    @Override
     public String getUrlPathPart() {
         return outerFull.getUrlPathPart();
     }
@@ -77,6 +95,7 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
                 .or(() -> methodInfo.getAnnotation(WebUserToken.class)
                         .flatMap($ -> $.isParamOrHeader() ? getParamAsString($.paramName()) : getRequestHeader($.paramName())));
     }
+
 
     @Override
     public void setUserToken(String token) {
