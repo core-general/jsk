@@ -93,12 +93,13 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     public O<String> getUserToken() {
         return O.ofNull(changedToken)
                 .or(() -> methodInfo.getAnnotation(WebUserToken.class)
-                        .flatMap($ -> $.isParamOrHeader() ? getParamAsString($.paramName()) : getRequestHeader($.paramName())));
+                        .flatMap($ -> $.isParamOrHeader() ? getParamAsString($.paramName()) : getRequestHeader($.paramName())))
+                .or(() -> outerFull.getRequestToken());
     }
-
 
     @Override
     public void setUserToken(String token) {
+        outerFull.setResponseToken(token);
         changedToken = token;
     }
 
@@ -144,13 +145,13 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
-    public void setResponseHeader(String key, String value) {
-        outerFull.setResponseHeader(key, value);
+    public void setResponseCookie(String key, String value, int secondsDuration) {
+        outerFull.setCookie(key, value, secondsDuration);
     }
 
     @Override
-    public void setResponseCookie(String key, String value, int secondsDuration) {
-        outerFull.setCookie(key, value, secondsDuration);
+    public void setResponseHeader(String key, String value) {
+        outerFull.setResponseHeader(key, value);
     }
 
     @Override

@@ -58,4 +58,8 @@ public interface WebRequestReadableOuterContext {
     O<List<Part>> getMultipartParamInfo();
 
     String getRequestHash();
+
+    O<String> getRequestToken();
+
+    void setResponseToken(String token);
 }

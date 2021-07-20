@@ -29,6 +29,7 @@ import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.services.json.IJson;
+import sk.services.profile.IAppProfile;
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
@@ -84,6 +85,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     @Inject IBytes bytes;
     @Inject IJson json;
     @Inject IWebExcept webExcept;
+    @Inject IAppProfile<?> profile;
     @Inject List<WebServerCore> serverDefinitions = Cc.l();
 
     @Override
@@ -172,6 +174,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     }
 
     private class SparkWebRequestOuterFullContext extends WebRequestOuterFullContext {
+        public static final String JSK_USR_TOKEN = "_JSK_USR_TOKEN";
         private final String type;
         private final String path;
         private final Request request;
@@ -353,6 +356,19 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                     return old;
                 }
             });
+        }
+
+        @Override
+        public O<String> getRequestToken() {
+            return conf.isUseCookiesForToken() ? O.ofNull(request.cookie(JSK_USR_TOKEN)) : empty();
+        }
+
+        @Override
+        public void setResponseToken(String token) {
+            if (conf.isUseCookiesForToken()) {
+                response.cookie(JSK_USR_TOKEN, token, conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
+                        profile.getProfile().isForProductionUsage(), true);
+            }
         }
 
         @Override

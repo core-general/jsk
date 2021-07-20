@@ -21,7 +21,9 @@ package sk.web.server.model;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class WebProblemWithRequestBodyException extends RuntimeException {
     public WebProblemWithRequestBodyException(Throwable cause) {

@@ -43,6 +43,12 @@ public class WebServerSpringParams implements WebServerParams {
     @Value("${web_server_shutdown_wait:#{null}}")
     private Long shutdownWait;
 
+    @Value("${web_server_token_timeout_sec:#{null}}")
+    private Integer tokenTimeoutSec;
+    @Value("${web_server_token_in_cookies}")
+    @Getter
+    private boolean useCookiesForToken;
+
     @Override
     public O<Long> getIdleTimeout() {
         return O.ofNull(idleTimeout);
@@ -56,5 +62,10 @@ public class WebServerSpringParams implements WebServerParams {
     @Override
     public O<String> getStaticFilesLocation() {
         return O.ofNull(staticFilesLocation);
+    }
+
+    @Override
+    public O<Integer> getTokenTimeoutSec() {
+        return O.ofNull(tokenTimeoutSec);
     }
 }

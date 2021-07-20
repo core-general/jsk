@@ -24,4 +24,8 @@ public interface WebExceptionParams {
     public int getUnhandledJskExceptionHttpCode();
 
     public int getUnknownExceptionHttpCode();
+
+    public default boolean shouldLog(Exception e) {
+        return true;
+    }
 }

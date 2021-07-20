@@ -25,7 +25,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxmind.db.CacheKey;
 import com.maxmind.db.DecodedValue;
 import com.maxmind.db.NodeCache;
-import sk.utils.statics.Ex;
 
 import java.io.IOException;
 
@@ -45,9 +44,14 @@ public class IpGeoCache implements NodeCache {
     @Override
     public DecodedValue get(CacheKey cacheKey, Loader loader) throws IOException {
         try {
-            return cache.get(cacheKey, k -> Ex.toRuntime(() -> loader.load(cacheKey)));
+            DecodedValue cachedValue = cache.getIfPresent(cacheKey);
+            if (cachedValue == null) {
+                final DecodedValue value = loader.load(cacheKey);
+                cachedValue = cache.get(cacheKey, k -> value);
+            }
+            return cachedValue;
         } catch (Exception e) {
-            throw new IOException();
+            throw new IOException(e);
         }
     }
 }

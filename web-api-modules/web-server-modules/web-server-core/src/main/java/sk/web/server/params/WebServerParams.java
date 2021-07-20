@@ -37,4 +37,7 @@ public interface WebServerParams {
 
     O<String> getStaticFilesLocation();
 
+    O<Integer> getTokenTimeoutSec();
+
+    boolean isUseCookiesForToken();
 }

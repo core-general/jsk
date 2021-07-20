@@ -237,13 +237,17 @@ public class WebServerCore<API>
                     outerContext.setResponse(renderResult, foundRedirect);
                 } catch (WebProblemWithRequestBodyException exc) {
                     //should be fixed, that's why stacktrace
-                    log.warn("WebProblemWithRequestBodyException");
+                    if (exceptConf.shouldLog(exc)) {
+                        log.warn("WebProblemWithRequestBodyException", exc);
+                    }
                     outerContext.setError(503,
                             webExcept.getDefaultExceptionRender(), JskProblem.code(IO_PROBLEM_WHILE_READ_BODY));
                 } catch (Exception unknownExc) {
                     //should be fixed, that's why stacktrace
-                    log.error("Error on request unknown: " + exceptConf.getUnknownExceptionHttpCode() + " " +
-                            INTERNAL_ERROR, unknownExc);
+                    if (exceptConf.shouldLog(unknownExc)) {
+                        log.error("Error on request unknown: " + exceptConf.getUnknownExceptionHttpCode() + " " +
+                                INTERNAL_ERROR, unknownExc);
+                    }
                     outerContext.setError(exceptConf.getUnknownExceptionHttpCode(),
                             webExcept.getDefaultExceptionRender(), JskProblem.code(INTERNAL_ERROR));
                 }

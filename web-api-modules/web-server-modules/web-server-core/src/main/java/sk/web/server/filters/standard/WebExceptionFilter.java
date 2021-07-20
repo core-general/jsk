@@ -50,15 +50,21 @@ public class WebExceptionFilter implements WebServerFilter {
             return requestContext.getNextInChain().invokeNext();
         } catch (JskProblemExceptionWithHttpCode exc) {
             final WebFilterOutput webFilterOutput = WebFilterOutput.rawProblem(exc.getHttpCode(), exc.getProblem());
-            log.error("Error on request with code: " + exc.getHttpCode() + " " + exc.getProblem());
+            if (conf.shouldLog(exc)) {
+                log.error(String.format("Error on request with code: %d %s", exc.getHttpCode(), exc.getProblem()));
+            }
             return webFilterOutput;
         } catch (JskProblemException exc) {
             final WebFilterOutput webFilterOutput =
                     WebFilterOutput.rawProblem(conf.getUnhandledJskExceptionHttpCode(), exc.getProblem());
-            log.error("Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + exc.getProblem());
+            if (conf.shouldLog(exc)) {
+                log.error("Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + exc.getProblem());
+            }
             return webFilterOutput;
         } catch (WebProblemWithRequestBodyException exc) {
-            log.warn("WebProblemWithRequestBodyException");
+            if (conf.shouldLog(exc)) {
+                log.warn("WebProblemWithRequestBodyException");
+            }
             return WebFilterOutput.rawProblem(503, JskProblem.code(WebServerCore.IO_PROBLEM_WHILE_READ_BODY));
         } catch (Exception unknownExc) {
             final WebFilterOutput webFilterOutput = requestContext.getRequestContext().getExceptionProcessors()
@@ -67,8 +73,11 @@ public class WebExceptionFilter implements WebServerFilter {
                     .orElseGet(() -> WebFilterOutput.rawProblem(conf.getUnknownExceptionHttpCode(),
                             JskProblem.code(WebServerCore.INTERNAL_ERROR)));
 
-            log.error("Error on request unknown: " + webFilterOutput.getCode() + " " + webFilterOutput.getRawOrRenderedAsString(),
-                    unknownExc);
+            if (conf.shouldLog(unknownExc)) {
+                log.error("Error on request unknown: " + webFilterOutput.getCode() + " " +
+                                webFilterOutput.getRawOrRenderedAsString(),
+                        unknownExc);
+            }
             return webFilterOutput;
         }
     }
