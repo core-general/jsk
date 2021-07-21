@@ -61,5 +61,5 @@ public interface WebRequestReadableOuterContext {
 
     O<String> getRequestToken();
 
-    void setResponseToken(String token);
+    boolean setResponseToken(String token);
 }

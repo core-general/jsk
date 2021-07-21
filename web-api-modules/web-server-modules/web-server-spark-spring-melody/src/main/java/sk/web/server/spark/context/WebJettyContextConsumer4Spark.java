@@ -115,7 +115,10 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         spark.options("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
-            additional.getCrossOrigin().ifPresent($ -> ctx.setResponseHeader("Access-Control-Allow-Origin", $));
+            additional.getCrossOrigin().ifPresent($ -> {
+                ctx.setResponseHeader("Access-Control-Allow-Origin", $);
+                ctx.setResponseHeader("Access-Control-Allow-Credentials", "true");
+            });
             ctx.setResponse(
                     new WebRenderResult(new WebReplyMeta(200, "text/html; charset=UTF-8", false, false), OneOf.left("")),
                     empty());
@@ -364,10 +367,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
-        public void setResponseToken(String token) {
+        public boolean setResponseToken(String token) {
             if (conf.isUseCookiesForToken()) {
-                response.cookie(JSK_USR_TOKEN, token, conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
+                response.cookie("/", JSK_USR_TOKEN, token, conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
                         profile.getProfile().isForProductionUsage(), true);
+                return true;
+            } else {
+                return false;
             }
         }
 

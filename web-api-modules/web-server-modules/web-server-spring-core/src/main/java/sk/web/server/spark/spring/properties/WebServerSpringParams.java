@@ -45,7 +45,8 @@ public class WebServerSpringParams implements WebServerParams {
 
     @Value("${web_server_token_timeout_sec:#{null}}")
     private Integer tokenTimeoutSec;
-    @Value("${web_server_token_in_cookies}")
+
+    @Value("${web_server_token_in_cookies:#{false}}")
     @Getter
     private boolean useCookiesForToken;
 

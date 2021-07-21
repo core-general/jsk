@@ -52,7 +52,7 @@ public interface WebRequestInnerContext {
 
     O<String> getUserToken();
 
-    void setUserToken(String token);
+    boolean setUserToken(String token);
 
 
     SortedSet<String> getRequestHeaderNames();

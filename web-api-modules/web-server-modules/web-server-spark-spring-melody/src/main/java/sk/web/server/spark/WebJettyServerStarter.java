@@ -21,6 +21,7 @@ package sk.web.server.spark;
  */
 
 import lombok.extern.log4j.Log4j2;
+import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpGenerator;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
@@ -68,6 +69,7 @@ public class WebJettyServerStarter implements AppStopListener {
         }
 
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setAttribute("org.eclipse.jetty.cookie.sameSiteDefault", HttpCookie.SameSite.STRICT.name());
         contextConsumers.forEach($ -> $.accept(context));
         context.setErrorHandler(new ErrorProcessor());
         jetty.setHandler(context);

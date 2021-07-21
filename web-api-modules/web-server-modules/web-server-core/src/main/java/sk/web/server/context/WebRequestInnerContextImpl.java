@@ -98,9 +98,9 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
-    public void setUserToken(String token) {
-        outerFull.setResponseToken(token);
+    public boolean setUserToken(String token) {
         changedToken = token;
+        return outerFull.setResponseToken(token);
     }
 
     @Override
