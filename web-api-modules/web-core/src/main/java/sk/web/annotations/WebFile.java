@@ -1,10 +1,10 @@
-package sk.web.renders;
+package sk.web.annotations;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,13 @@ package sk.web.renders;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Getter
-@AllArgsConstructor
-public class WebReplyMeta {
-    int httpCode;
-    WebContentTypeMeta contentType;
-    boolean allowDeflation;
-    boolean isProblem;
+@Retention(value = RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface WebFile {
+    String filename();
 }

@@ -42,6 +42,7 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.web.exceptions.IWebExcept;
 import sk.web.redirect.WebRedirectResult;
+import sk.web.renders.WebContentTypeMeta;
 import sk.web.renders.WebRenderResult;
 import sk.web.renders.WebReplyMeta;
 import sk.web.server.WebServerContext;
@@ -120,7 +121,9 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 ctx.setResponseHeader("Access-Control-Allow-Credentials", "true");
             });
             ctx.setResponse(
-                    new WebRenderResult(new WebReplyMeta(200, "text/html; charset=UTF-8", false, false), OneOf.left("")),
+                    new WebRenderResult(
+                            new WebReplyMeta(200, new WebContentTypeMeta("text/html; charset=UTF-8"), false, false),
+                            OneOf.left("")),
                     empty());
         }));
 
@@ -422,7 +425,10 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 redirect(sb.toString());
             } else {
                 response.status(result.getMeta().getHttpCode());
-                response.type(result.getMeta().getContentType());
+                response.type(result.getMeta().getContentType().getContentType());
+                result.getMeta().getContentType().getFileName().ifPresent(file -> {
+                    response.header("Content-Disposition", String.format("attachment; filename=\"%s\"", file));
+                });
                 if (result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation()) {
                     response.header("Content-Encoding", "gzip");
                 }

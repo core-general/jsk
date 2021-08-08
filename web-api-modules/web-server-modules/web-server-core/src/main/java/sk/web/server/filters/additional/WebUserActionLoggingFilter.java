@@ -116,13 +116,13 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
 
     public List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
             O<ZonedDateTime> from, O<ZonedDateTime> to,
-            int maxCount, boolean descending) {
+            int maxCount, boolean ascending) {
         final List<KvListItemAll<String>> items =
                 store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, empty(), empty()),
                         from.map(yyyyMMddHHmmssSSS::format),
                         to.map(yyyyMMddHHmmssSSS::format),
                         maxCount,
-                        descending
+                        ascending
                 );
         return items.stream()
                 .filter($ -> $.getRawValue().isPresent())
@@ -139,13 +139,13 @@ public abstract class WebUserActionLoggingFilter implements WebServerFilter, Web
 
     public List<WebRequestFullInfo> getFullUserHistory(String userId,
             O<ZonedDateTime> from, O<ZonedDateTime> to,
-            int maxCount, boolean descending) {
+            int maxCount, boolean ascending) {
         final List<KvListItemAll<String>> items =
                 store.getRawVersionedListBetweenCategories(new LoggingKvKey(userId, empty(), empty()),
                         from.map(yyyyMMddHHmmssSSS::format),
                         to.map(yyyyMMddHHmmssSSS::format),
                         maxCount,
-                        descending
+                        ascending
                 );
         return items.stream()
                 .filter($ -> $.getRawValue().isPresent())

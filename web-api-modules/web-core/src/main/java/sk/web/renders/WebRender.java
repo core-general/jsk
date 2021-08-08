@@ -21,25 +21,26 @@ package sk.web.renders;
  */
 
 import sk.utils.functional.OneOf;
+import sk.web.utils.WebApiMethod;
 
 public interface WebRender {
-    String contentHeaderProvider(Object val, OneOf<String, byte[]> processed);
+    WebContentTypeMeta contentHeaderProvider(Object val, OneOf<String, byte[]> processed, WebApiMethod<?> method);
 
     boolean allowDeflation(Object val, OneOf<String, byte[]> processed);
 
-    OneOf<String, byte[]> valueProvider(Object val);
+    OneOf<String, byte[]> valueProvider(Object val, WebApiMethod<?> method);
 
-    default public WebRenderResult getResult(WebReply<?> reply, WebRender problemRender) {
+    default public WebRenderResult getResult(WebReply<?> reply, WebRender problemRender, WebApiMethod<?> method) {
         final Object toRender = reply.getValOrProblem().collectSelf();
         final OneOf<String, byte[]> rendered = reply.getValOrProblem()
-                .collect($ -> valueProvider($), $ -> problemRender.valueProvider($));
+                .collect($ -> valueProvider($, method), $ -> problemRender.valueProvider($, method));
 
         return new WebRenderResult(new WebReplyMeta(reply.getHttpCode(),
-                contentHeaderProvider(toRender, rendered), allowDeflation(toRender, rendered),
+                contentHeaderProvider(toRender, rendered, method), allowDeflation(toRender, rendered),
                 reply.getValOrProblem().collect(__ -> false, __ -> true)), rendered);
     }
 
-    default public WebRenderResult getResult(WebFilterOutput reply, WebRender problemRender) {
-        return reply.getRawOrRendered().collect($ -> getResult($, problemRender), $ -> $);
+    default public WebRenderResult getResult(WebFilterOutput reply, WebRender problemRender, WebApiMethod<?> method) {
+        return reply.getRawOrRendered().collect($ -> getResult($, problemRender, method), $ -> $);
     }
 }

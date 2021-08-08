@@ -68,6 +68,7 @@ import web.config.WebCoreConfig;
 import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -143,6 +144,11 @@ public class WebSparkTest {
                     "f", 1,
                     "g", null
             );
+        }
+
+        @Override
+        public byte[] bytes() {
+            return "Wow grechka!".getBytes(StandardCharsets.UTF_8);
         }
 
     }

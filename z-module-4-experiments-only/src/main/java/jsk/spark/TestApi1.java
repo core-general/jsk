@@ -88,4 +88,8 @@ public interface TestApi1 {
     @WebGET
     @WebRedirect(redirectPath = "https://google.com/")
     Map<String, Object> redirectTo();
+
+    @WebGET
+    @WebFile(filename = "test.file")
+    byte[] bytes();
 }

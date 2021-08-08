@@ -55,7 +55,7 @@ public class WebRequestLoggingFilter implements WebServerFilter {
             WebFilterOutput webReply = requestContext.getNextInChain().invokeNext();
             oWr = O.of(WebFilterOutput.rendered(
                     requestContext.getRequestContext().getWebRender()
-                            .getResult(webReply, webExcept.getDefaultExceptionRender())));
+                            .getResult(webReply, webExcept.getDefaultExceptionRender(), requestContext.getApiMethod())));
             return oWr.get();
         } catch (Exception e) {
             oWr = O.of(WebFilterOutput

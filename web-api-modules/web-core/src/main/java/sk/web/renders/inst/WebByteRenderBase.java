@@ -21,8 +21,12 @@ package sk.web.renders.inst;
  */
 
 import sk.exceptions.NotImplementedException;
+import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
+import sk.web.annotations.WebFile;
+import sk.web.renders.WebContentTypeMeta;
 import sk.web.renders.WebRender;
+import sk.web.utils.WebApiMethod;
 
 public abstract class WebByteRenderBase implements WebRender {
     protected String ifNotByteThenThisContentType() {
@@ -38,8 +42,14 @@ public abstract class WebByteRenderBase implements WebRender {
     }
 
     @Override
-    public String contentHeaderProvider(Object val, OneOf<String, byte[]> bs) {
-        return bs.isRight() ? "application/octet-stream" : ifNotByteThenThisContentType();
+    public WebContentTypeMeta contentHeaderProvider(Object val, OneOf<String, byte[]> bs, WebApiMethod<?> method) {
+        if (bs.isRight()) {
+            final O<String> fileName = method.getAnnotation(WebFile.class).flatMap($ -> O.ofNull($.filename()));
+            return fileName.map($ -> new WebContentTypeMeta("application/octet-stream", $))
+                    .orElse(new WebContentTypeMeta("application/octet-stream"));
+        } else {
+            return new WebContentTypeMeta(ifNotByteThenThisContentType());
+        }
     }
 
     @Override
@@ -48,9 +58,9 @@ public abstract class WebByteRenderBase implements WebRender {
     }
 
     @Override
-    public OneOf<String, byte[]> valueProvider(Object val) {
+    public OneOf<String, byte[]> valueProvider(Object val, WebApiMethod<?> method) {
         return (val instanceof byte[])
-                ? OneOf.right((byte[]) val)
-                : OneOf.left(stringValueProvider(val));
+               ? OneOf.right((byte[]) val)
+               : OneOf.left(stringValueProvider(val));
     }
 }

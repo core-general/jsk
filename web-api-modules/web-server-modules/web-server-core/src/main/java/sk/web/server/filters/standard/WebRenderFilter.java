@@ -40,6 +40,7 @@ public class WebRenderFilter implements WebServerFilter {
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
         final WebFilterOutput reply = requestContext.getNextInChain().invokeNext();
-        return WebFilterOutput.rendered(reply.render(requestContext.getRequestContext().getWebRender(), except));
+        return WebFilterOutput
+                .rendered(reply.render(requestContext.getRequestContext().getWebRender(), except, requestContext.getApiMethod()));
     }
 }

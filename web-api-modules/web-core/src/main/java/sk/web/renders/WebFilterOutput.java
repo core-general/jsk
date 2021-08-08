@@ -28,14 +28,15 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.web.exceptions.IWebExcept;
+import sk.web.utils.WebApiMethod;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class WebFilterOutput {
     final OneOf<WebReply<?>, WebRenderResult> rawOrRendered;
 
-    public WebRenderResult render(WebRender okRender, IWebExcept badRenderProvider) {
-        return okRender.getResult(this, badRenderProvider.getDefaultExceptionRender());
+    public WebRenderResult render(WebRender okRender, IWebExcept badRenderProvider, WebApiMethod<?> method) {
+        return okRender.getResult(this, badRenderProvider.getDefaultExceptionRender(), method);
     }
 
     public <T> O<T> getValue() {

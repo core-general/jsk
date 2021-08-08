@@ -233,7 +233,7 @@ public class WebServerCore<API>
                     WebServerFilterNext curent =
                             invokeBaseMethodSupplier(method, paramGetters, methodInfo, mustMultipart, outerContext);
                     curent = createFilterChain(webApiMethod, curent, innerContext, methodFilters);
-                    final WebRenderResult renderResult = curent.invokeNext().render(foundRender, webExcept);
+                    final WebRenderResult renderResult = curent.invokeNext().render(foundRender, webExcept, webApiMethod);
                     outerContext.setResponse(renderResult, foundRedirect);
                 } catch (WebProblemWithRequestBodyException exc) {
                     //should be fixed, that's why stacktrace
@@ -241,7 +241,7 @@ public class WebServerCore<API>
                         log.warn("WebProblemWithRequestBodyException", exc);
                     }
                     outerContext.setError(503,
-                            webExcept.getDefaultExceptionRender(), JskProblem.code(IO_PROBLEM_WHILE_READ_BODY));
+                            webExcept.getDefaultExceptionRender(), JskProblem.code(IO_PROBLEM_WHILE_READ_BODY), webApiMethod);
                 } catch (Exception unknownExc) {
                     //should be fixed, that's why stacktrace
                     if (exceptConf.shouldLog(unknownExc)) {
@@ -249,7 +249,7 @@ public class WebServerCore<API>
                                 INTERNAL_ERROR, unknownExc);
                     }
                     outerContext.setError(exceptConf.getUnknownExceptionHttpCode(),
-                            webExcept.getDefaultExceptionRender(), JskProblem.code(INTERNAL_ERROR));
+                            webExcept.getDefaultExceptionRender(), JskProblem.code(INTERNAL_ERROR), webApiMethod);
                 }
             };
 

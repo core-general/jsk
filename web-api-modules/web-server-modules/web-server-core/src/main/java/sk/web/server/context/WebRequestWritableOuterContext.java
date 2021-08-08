@@ -26,6 +26,7 @@ import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRender;
 import sk.web.renders.WebRenderResult;
 import sk.web.renders.WebReply;
+import sk.web.utils.WebApiMethod;
 
 
 public abstract class WebRequestWritableOuterContext {
@@ -41,8 +42,8 @@ public abstract class WebRequestWritableOuterContext {
         setResponseHeader(JskProblem.PROBLEM_SIGN, "+");
     }
 
-    public final void setError(int responseCode, WebRender errorRender, JskProblem problem) {
-        setResponse(errorRender.getResult(WebReply.problem(responseCode, problem), errorRender), O.empty());
+    public final void setError(int responseCode, WebRender errorRender, JskProblem problem, WebApiMethod<?> method) {
+        setResponse(errorRender.getResult(WebReply.problem(responseCode, problem), errorRender, method), O.empty());
     }
 
     public final void setResponse(WebRenderResult result, O<WebRedirectResult> redirect) {

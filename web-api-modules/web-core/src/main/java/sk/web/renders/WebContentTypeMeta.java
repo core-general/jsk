@@ -1,10 +1,10 @@
-package sk.web.server.filters.additional;
+package sk.web.renders;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2021 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,27 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sk.utils.functional.O;
-import sk.utils.tuples.X3;
 
-import java.time.ZonedDateTime;
-import java.util.List;
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class WebContentTypeMeta {
+    String contentType;
+    O<String> fileName = O.empty();
 
-public interface WebUserHistoryProvider {
-    List<X3<WebUserActionLoggingFilter.LoggingKvMeta, String, ZonedDateTime>> getRenderedUserHistory(String userId,
-            O<ZonedDateTime> from,
-            O<ZonedDateTime> to, int maxCount, boolean ascending);
+    public WebContentTypeMeta(String contentType) {
+        this.contentType = contentType;
+        fileName = O.empty();
+    }
 
-    List<WebRequestFullInfo> getFullUserHistory(String userId,
-            O<ZonedDateTime> from,
-            O<ZonedDateTime> to, int maxCount, boolean ascending);
+    public WebContentTypeMeta(String contentType, String fileName) {
+        this.contentType = contentType;
+        this.fileName = O.of(fileName);
+    }
 }
