@@ -31,9 +31,11 @@ import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import sk.db.relational.utils.ReadWriteRepo;
+import sk.services.async.IAsync;
 import sk.services.log.ILog;
 import sk.services.log.ILogCategory;
 import sk.services.profile.IAppProfile;
+import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
@@ -56,6 +58,7 @@ import static sk.utils.statics.Cc.m;
 public class RdbIterator {
     public static final int SPLIT_SIZE = 10000;
     @Inject ILog log;
+    @Inject IAsync async;
     @Inject Optional<IAppProfile> profile = Optional.empty();
 
     @Inject NamedParameterJdbcTemplate jdbc;
@@ -70,6 +73,17 @@ public class RdbIterator {
             ReadWriteRepo<T, ID> repo,
             Predicate query,
             OrderSpecifier<?>... ordering) {
+        return iterate(toApply, logCategory, logSubCategorySingleFail, repo, query, 1, ordering);
+    }
+
+    public <T, ID extends Serializable> long iterate(
+            Consumer<T> toApply,
+            ILogCategory logCategory,
+            String logSubCategorySingleFail,
+            ReadWriteRepo<T, ID> repo,
+            Predicate query,
+            int threadCount,
+            OrderSpecifier<?>... ordering) {
         int pageSize = profile.map($ -> $.getProfile().isForDefaultTesting()).orElse(false) ? 5 : 1000;
         int pageNumber = 0;
         long itemCount = 0;
@@ -81,15 +95,21 @@ public class RdbIterator {
                     : QPageRequest.of(pageNumber, pageSize));
 
             List<T> content = all.getContent();
-            for (int i = 0, contentSize = content.size(); i < contentSize; i++) {
-                T row = content.get(i);
-                try {
-                    toApply.accept(row);
-                    itemCount++;
-                } catch (Exception e) {
-                    log.logError(logCategory, logSubCategorySingleFail, m("row", row + "", "e", Ex.getInfo(e)));
-                }
-            }
+
+
+            final F1<Boolean, Long> summator =
+                    (parallel) -> (parallel ? content.parallelStream() : content.stream()).mapToLong(row -> {
+                        try {
+                            toApply.accept(row);
+                            return 1;
+                        } catch (Exception e) {
+                            log.logError(logCategory, logSubCategorySingleFail, m("row", row + "", "e", Ex.getInfo(e)));
+                            return 0;
+                        }
+                    }).sum();
+            itemCount += threadCount == 1 ?
+                         summator.apply(false) :
+                         async.coldTaskFJPGet(threadCount, () -> summator.apply(true));
             if (all.getContent().size() < pageSize) {
                 break finish;
             }
