@@ -3,6 +3,8 @@ package sk.utils.statics;
 import lombok.AllArgsConstructor;
 import sk.utils.functional.O;
 
+import java.util.List;
+
 import static java.lang.Math.min;
 import static java.lang.Math.random;
 
@@ -27,6 +29,21 @@ import static java.lang.Math.random;
  */
 @SuppressWarnings({"unused"})
 public final class Ma {
+    public static O<Long> median(List<Long> longs) {
+        final List<Long> sorted = Cc.sort(longs);
+        if (sorted.size() == 0) {
+            return O.empty();
+        }
+        if (sorted.size() == 1) {
+            return Cc.first(sorted);
+        }
+        if (sorted.size() % 2 == 1) {
+            return Cc.getAt(longs, longs.size() / 2);
+        } else {
+            return O.of((Cc.getAt(longs, (longs.size() / 2) - 1).get() + Cc.getAt(longs, (longs.size() / 2)).get()) / 2);
+        }
+    }
+
     public static float mean(float v1, float v2) {return (v1 + v2) / 2;}
 
     public static double mean(double v1, double v2) {return (v1 + v2) / 2;}

@@ -27,6 +27,15 @@ import static org.junit.Assert.*;
 
 public class MaTest {
     @Test
+    public void testMean() {
+        assertEquals(Ma.median(Cc.l()), O.empty());
+        assertTrue(Ma.median(Cc.l(1l)).get() == 1l);
+        assertTrue(Ma.median(Cc.l(1l, 3l)).get() == 2l);
+        assertTrue(Ma.median(Cc.l(1l, 3l, 5l)).get() == 3l);
+        assertTrue(Ma.median(Cc.l(1l, 3l, 5l, 7l)).get() == 4l);
+    }
+
+    @Test
     public void optimalSampleSizeTest() {
         assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._95, 0.05, O.empty()), 384);
         assertEquals(Ma.optimalSampleSize(Ma.SampleSizeAccuracy._95, 0.05, O.of(1000l)), 278);

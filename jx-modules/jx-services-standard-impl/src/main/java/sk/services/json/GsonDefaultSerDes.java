@@ -28,6 +28,8 @@ import sk.utils.statics.Ti;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,6 +93,32 @@ public class GsonDefaultSerDes extends GsonSerDesList {
 
             @Override
             public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(Ti.yyyyMMddHHmmssSSS.format(src));
+            }
+        });
+        add(new GsonSerDes<LocalDate>(LocalDate.class) {
+            @Override
+            public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                String val = json.getAsString();
+                return LocalDate.parse(val, Ti.yyyyMMdd);
+            }
+
+            @Override
+            public JsonElement serialize(LocalDate src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(Ti.yyyyMMdd.format(src));
+            }
+        });
+        add(new GsonSerDes<LocalDateTime>(LocalDateTime.class) {
+            @Override
+            public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                String val = json.getAsString();
+                return LocalDateTime.parse(val, Ti.yyyyMMddHHmmssSSS);
+            }
+
+            @Override
+            public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
                 return context.serialize(Ti.yyyyMMddHHmmssSSS.format(src));
             }
         });
