@@ -22,6 +22,7 @@ package sk.utils.collections;
 
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
+import sk.utils.functional.Gett;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  *
  * The cache stores values forever and is not bounded in any way.
  */
-public class UpdateableCacheWithMustValueOnStart<V> {
+public class UpdateableCacheWithMustValueOnStart<V> implements Gett<V> {
     private volatile V value;
     private final ScheduledFuture<?> future;
 

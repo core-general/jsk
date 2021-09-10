@@ -84,15 +84,30 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
     @Override
     @SneakyThrows
     public O<IpGeoData> ipToGeoData(String ip) {
+        ip = ip.trim();
         try {
-            final Optional<CountryResponse> countryResponse = reader.tryCountry(InetAddress.getByName(ip));
-            return O.of(countryResponse).map($ -> {
-                final CountryType country = CountryType.valueOf($.getCountry().getIsoCode().toUpperCase());
-                return new IpGeoData(ip, country, OneOf.left(ZoneId.of(country.getApproxTimeZone())));
-            });
+            final String[] ips = ip.split(",");
+            if (ips.length == 1) {
+                if (ip.startsWith("192.168")) {
+                    return O.empty();
+                }
+                final Optional<CountryResponse> countryResponse = reader.tryCountry(InetAddress.getByName(ip));
+                String finalIp = ip;
+                return O.of(countryResponse).map($ -> {
+                    final CountryType country = CountryType.valueOf($.getCountry().getIsoCode().toUpperCase());
+                    return new IpGeoData(finalIp, country, OneOf.left(ZoneId.of(country.getApproxTimeZone())));
+                });
+            } else {
+                for (String s : ips) {
+                    final O<IpGeoData> ipGeoDataO = ipToGeoData(s);
+                    if (ipGeoDataO.isPresent()) {
+                        return ipGeoDataO;
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("Problem with ip:" + ip, e);
-            return O.empty();
         }
+        return O.empty();
     }
 }

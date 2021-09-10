@@ -22,6 +22,7 @@ package sk.utils.collections;
 
 import sk.utils.functional.C1;
 import sk.utils.functional.F0;
+import sk.utils.functional.Gett;
 import sk.utils.functional.O;
 
 import java.time.Duration;
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * The goal of this cache is the same
  * The cache stores values forever and is not bounded in any way.
  */
-public class UpdateableCacheWithOptionalValueOnStart<V> {
+public class UpdateableCacheWithOptionalValueOnStart<V> implements Gett<O<V>> {
     private volatile O<V> value;
     private final ScheduledFuture<?> future;
 
@@ -49,7 +50,10 @@ public class UpdateableCacheWithOptionalValueOnStart<V> {
 
         future = executor.scheduleWithFixedDelay(() -> {
             try {
-                value = O.ofNull(cacheUpdater.apply());
+                final V val = cacheUpdater.apply();
+                if (val != null) {
+                    value = O.of(val);
+                }
             } catch (Exception e) {
                 onError.accept(e);
             }

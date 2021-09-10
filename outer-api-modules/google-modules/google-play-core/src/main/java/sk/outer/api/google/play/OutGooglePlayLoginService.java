@@ -23,7 +23,7 @@ package sk.outer.api.google.play;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutSimpleUserInfo;
@@ -47,12 +47,12 @@ public class OutGooglePlayLoginService {
     @Inject private IRepeat retry;
     @Inject private IHttp http;
     private GoogleIdTokenVerifier verifier;
-    private JacksonFactory jsonFactory;
+    private GsonFactory jsonFactory;
 
     @PostConstruct
     private void init() {
-        jsonFactory = new JacksonFactory();
-        verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), jsonFactory)
+        jsonFactory = new GsonFactory();
+        verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setClock(() -> times.now())
                 .build();
     }
