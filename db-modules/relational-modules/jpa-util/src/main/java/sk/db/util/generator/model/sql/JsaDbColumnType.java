@@ -47,6 +47,8 @@ public enum JsaDbColumnType {
     BIGINT1("BIGINT", Long.class, of(UTLongIdToBigInt.class)),
     BIGINT2("INT8", Long.class, of(UTLongIdToBigInt.class)),
 
+    DOUBLE("DOUBLE PRECISION", Double.class, empty()),
+
     BOOLEAN1("BOOLEAN", Boolean.class, empty()),
     BOOLEAN2("BOOL", Boolean.class, empty()),
     BYTEA("BYTEA", byte[].class, empty()),
@@ -59,9 +61,13 @@ public enum JsaDbColumnType {
     O<Class> defaultConverterToNonStandardObject;
 
     public static JsaDbColumnType parse(String type) {
-        return Arrays.stream(values())
-                .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
-                .findFirst()
-                .get();
+        try {
+            return Arrays.stream(values())
+                    .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
+                    .findFirst()
+                    .get();
+        } catch (Exception e) {
+            throw new RuntimeException(type, e);
+        }
     }
 }
