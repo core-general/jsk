@@ -20,15 +20,29 @@ package sk.services.kv.keys;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import sk.utils.functional.F0;
 
-@AllArgsConstructor
 public
 class KvSimpleKeyWithName implements KvKeyEnum {
     @Getter
     @Accessors(fluent = true)
     String name;
-    @Getter String defaultValue;
+    String defaultValue;
+    F0<String> defaultValueProvider;
+
+    public KvSimpleKeyWithName(String name, String defaultValue) {
+        this.name = name;
+        this.defaultValue = defaultValue;
+    }
+
+    public KvSimpleKeyWithName(String name, F0<String> defaultValueProvider) {
+        this.name = name;
+        this.defaultValueProvider = defaultValueProvider;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue != null ? defaultValue : defaultValueProvider.get();
+    }
 }

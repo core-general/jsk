@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import sk.db.relational.utils.ReadWriteRepo;
 import sk.services.async.IAsync;
 import sk.services.log.ILog;
@@ -61,7 +61,7 @@ public class RdbIterator {
     @Inject IAsync async;
     @Inject Optional<IAppProfile> profile = Optional.empty();
 
-    @Inject NamedParameterJdbcTemplate jdbc;
+    @Inject NamedParameterJdbcOperations jdbc;
 
     /**
      * When full table scan is needed, it processes items page per page (1000 items in page)

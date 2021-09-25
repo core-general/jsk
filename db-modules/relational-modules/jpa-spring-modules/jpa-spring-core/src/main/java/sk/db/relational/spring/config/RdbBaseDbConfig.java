@@ -23,10 +23,11 @@ package sk.db.relational.spring.config;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import sk.db.relational.spring.TransactionalNamedParameterJdbcTemplate;
 import sk.db.relational.spring.proprties.RdbProperties;
 import sk.db.relational.spring.services.RdbIterator;
 import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
@@ -109,7 +110,7 @@ public class RdbBaseDbConfig {
     }
 
     @Bean
-    public NamedParameterJdbcTemplate NamedParameterJdbcTemplate(DataSource ds) {
-        return new NamedParameterJdbcTemplate(ds);
+    public NamedParameterJdbcOperations NamedParameterJdbcTemplate(DataSource ds) {
+        return new TransactionalNamedParameterJdbcTemplate(ds);
     }
 }

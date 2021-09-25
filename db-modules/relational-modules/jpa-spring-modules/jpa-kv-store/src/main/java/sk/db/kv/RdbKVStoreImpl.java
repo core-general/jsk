@@ -27,7 +27,7 @@ import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import sk.services.kv.*;
@@ -50,7 +50,7 @@ import static sk.db.kv.QJpaKVItemWithRaw.jpaKVItemWithRaw;
 
 @Log4j2
 public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore {
-    @Inject NamedParameterJdbcTemplate jdbcQuery;
+    @Inject NamedParameterJdbcOperations jdbcQuery;
     @Inject LocalContainerEntityManagerFactoryBean factory;
     @Inject JpaKVRepo kv;
     @Inject JpaKVWithRawRepo kvRaw;
