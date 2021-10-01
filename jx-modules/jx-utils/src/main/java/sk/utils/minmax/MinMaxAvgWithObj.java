@@ -58,7 +58,8 @@ public class MinMaxAvgWithObj<T> {
             max = value;
             maxO = obj;
         }
-        curAvg = (curAvg * count + value) / (count + 1);
+        //https://math.stackexchange.com/questions/106700/incremental-averageing
+        curAvg = curAvg + (value - curAvg) / (count + 1);
         count += 1;
         last = value;
         lastO = obj;

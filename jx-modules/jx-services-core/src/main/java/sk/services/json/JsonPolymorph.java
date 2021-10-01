@@ -33,4 +33,14 @@ public abstract class JsonPolymorph implements IJsonPolymorph {
     public void setMyType() {
         _jcl_ = getClass().getName();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        throw new RuntimeException("PLEASE OVERRIDE EQUALS!");
+    }
+
+    @Override
+    public int hashCode() {
+        throw new RuntimeException("PLEASE OVERRIDE HASHCODE!");
+    }
 }

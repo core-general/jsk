@@ -41,16 +41,7 @@ public class MinMaxAvg {
     double last = 0L;
 
     public MinMaxAvg add(float value) {
-        if (value < min) {
-            min = value;
-        }
-        if (value > max) {
-            max = value;
-        }
-        curAvg = (curAvg * count + value) / (count + 1);
-        count += 1;
-        last = value;
-        return this;
+        return add((double) value);
     }
 
     public MinMaxAvg add(double value) {
@@ -60,7 +51,8 @@ public class MinMaxAvg {
         if (value > max) {
             max = value;
         }
-        curAvg = (curAvg * count + value) / (count + 1);
+        //https://math.stackexchange.com/questions/106700/incremental-averageing
+        curAvg = curAvg + (value - curAvg) / (count + 1);
         count += 1;
         last = value;
         return this;
@@ -73,7 +65,12 @@ public class MinMaxAvg {
         if (value.max > max) {
             max = value.max;
         }
-        curAvg = (curAvg * count + value.getAvg() * value.getCount()) / (count + value.getCount());
+        double mean1 = curAvg;
+        double mean2 = value.getAvg();
+        long count1 = count;
+        long count2 = value.getCount();
+        final long sum = count1 + count2;
+        curAvg = mean1 * (count1 * 1d / sum) + mean2 * (count2 * 1d / sum);
         count += value.count;
         last = value.curAvg;
         return this;
