@@ -30,7 +30,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
-import sk.utils.collections.DequeWithLimit;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -264,9 +263,5 @@ public class JGsonImpl implements IJson {
                 throw new RuntimeException("Can't process json element: " + json.toString() + " for type " + typeOfT, e);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        DequeWithLimit<String> dwl = new DequeWithLimit<>(5);
     }
 }

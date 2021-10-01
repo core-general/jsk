@@ -21,6 +21,7 @@ package sk.utils.statics;
  */
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 public class Ar {
     public static byte[] intToByteArray(int value) {
@@ -39,21 +40,25 @@ public class Ar {
         return ByteBuffer.wrap(value).getLong();
     }
 
-    //public static void main(String[] args) {
-    //    var v = Cc.l(
-    //            longToByteArray(Long.MAX_VALUE),
-    //            longToByteArray(0l),
-    //            longToByteArray(Long.MIN_VALUE),
-    //            bArrToLong(longToByteArray(Long.MAX_VALUE)),
-    //            bArrToLong(longToByteArray(0l)),
-    //            bArrToLong(longToByteArray(Long.MIN_VALUE)),
-    //
-    //            intToByteArray(Integer.MAX_VALUE),
-    //            intToByteArray(0),
-    //            intToByteArray(Integer.MIN_VALUE),
-    //            bArrToInt(intToByteArray(Integer.MAX_VALUE)),
-    //            bArrToInt(intToByteArray(0)),
-    //            bArrToInt(intToByteArray(Integer.MIN_VALUE))
-    //    );
-    //}
+    public static byte[] intToByteArray(int[] vals) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(vals.length * 4);
+        IntBuffer intBuffer = byteBuffer.asIntBuffer();
+        intBuffer.put(vals);
+
+        return byteBuffer.array();
+    }
+
+    public static int[] byteToIntArray(byte[] vals) {
+        if (vals.length % 4 != 0) {
+            throw new RuntimeException("Not int[]!");
+        }
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(vals);
+        final int size = vals.length / 4;
+        int[] ints = new int[size];
+        for (int i = 0; i < size; i++) {
+            ints[i] = byteBuffer.getInt(4 * i);
+        }
+        return ints;
+    }
 }
