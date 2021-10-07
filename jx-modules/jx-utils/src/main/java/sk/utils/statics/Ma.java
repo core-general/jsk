@@ -142,6 +142,46 @@ public final class Ma {
     public static long pl(String s) {
         return Long.parseLong(s);
     }
+
+    public static O<Float> opf(String s) {
+        try {
+            return isFloat(s) ? O.of(pf(s)) : O.empty();
+        } catch (NumberFormatException e) {
+            return O.empty();
+        }
+    }
+
+    public static O<Boolean> opb(String s) {
+        try {
+            return O.of(pb(s));
+        } catch (NumberFormatException e) {
+            return O.empty();
+        }
+    }
+
+    public static O<Double> opd(String s) {
+        try {
+            return isFloat(s) ? O.of(pd(s)) : O.empty();
+        } catch (NumberFormatException e) {
+            return O.empty();
+        }
+    }
+
+    public static O<Integer> opi(String s) {
+        try {
+            return isInt(s) ? O.of(pi(s)) : O.empty();
+        } catch (NumberFormatException e) {
+            return O.empty();
+        }
+    }
+
+    public static O<Long> opl(String s) {
+        try {
+            return isInt(s) ? O.of(pl(s)) : O.empty();
+        } catch (NumberFormatException e) {
+            return O.empty();
+        }
+    }
     //endregion
 
     //region Private

@@ -110,4 +110,10 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
         }
         return O.empty();
     }
+
+    public static void main(String[] args) {
+        IpGeoMaxmindExtractor ipgeo = new IpGeoMaxmindExtractor().init();
+        final IpGeoData ipGeoData = ipgeo.ipToGeoData("").get();
+        int i = 0;
+    }
 }
