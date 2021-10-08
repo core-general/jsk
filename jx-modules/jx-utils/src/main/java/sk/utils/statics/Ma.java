@@ -5,8 +5,7 @@ import sk.utils.functional.O;
 
 import java.util.List;
 
-import static java.lang.Math.min;
-import static java.lang.Math.random;
+import static java.lang.Math.*;
 
 /*-
  * #%L
@@ -48,10 +47,19 @@ public final class Ma {
 
     public static double mean(double v1, double v2) {return (v1 + v2) / 2;}
 
-    public static long clamp(long value, long min, long max) {return value < min ? min : (min(value, max));}
+    public static long clamp(long value, long min, long max) {
+        return value < min ? min : (min(value, max));
+    }
 
     public static double clamp(double value, double min, double max) {
-        return value < min ? min : (min(value, max));
+        if (Double.isNaN(value)) {
+            value = 0;
+        }
+        if (Double.isInfinite(value)) {
+            return signum(value) < 0 ? min : max;
+        }
+
+        return value < min ? min : min(value, max);
     }
 
     public static boolean inside(int value, int min, int max) {return !(value < min || value > max);}
@@ -111,7 +119,7 @@ public final class Ma {
      */
     public static int optimalSampleSize(SampleSizeAccuracy accuracy, double allowedErrorPercent, O<Long> fullSize) {
         double SS = ((accuracy.Z * accuracy.Z) * (0.5) * (0.5)) / (allowedErrorPercent * allowedErrorPercent);
-        return (int) Math.round(fullSize.map($ -> SS / (1 + (SS - 1) / $)).orElse(SS));
+        return (int) round(fullSize.map($ -> SS / (1 + (SS - 1) / $)).orElse(SS));
     }
 
     /**
@@ -119,7 +127,7 @@ public final class Ma {
      */
     public static double errorRateOfSample(SampleSizeAccuracy accuracy, int partialSampleSize, O<Long> fullSize) {
         return accuracy.Z *
-                Math.sqrt((0.5 * 0.5 / partialSampleSize) * fullSize.map($ -> (1d * $ - partialSampleSize) / ($ - 1)).orElse(1d));
+                sqrt((0.5 * 0.5 / partialSampleSize) * fullSize.map($ -> (1d * $ - partialSampleSize) / ($ - 1)).orElse(1d));
     }
 
     //region parsing

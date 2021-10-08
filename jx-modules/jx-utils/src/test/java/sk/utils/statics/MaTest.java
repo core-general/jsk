@@ -27,6 +27,16 @@ import static org.junit.Assert.*;
 
 public class MaTest {
     @Test
+    public void testClamp() {
+        assertEquals((int) Ma.clamp(0D, 10D, 20D), 10);
+        assertEquals((int) Ma.clamp(100D, 10D, 20D), 20);
+        assertEquals((int) Ma.clamp(15, 10D, 20D), 15);
+        assertEquals((int) Ma.clamp(0D / 0D, 10D, 20D), 10);
+        assertEquals((int) Ma.clamp(5D / 0D, 10D, 20D), 20);
+        assertEquals((int) Ma.clamp(-5D / 0D, 10D, 20D), 10);
+    }
+
+    @Test
     public void testMean() {
         assertEquals(Ma.median(Cc.l()), O.empty());
         assertTrue(Ma.median(Cc.l(1l)).get() == 1l);
