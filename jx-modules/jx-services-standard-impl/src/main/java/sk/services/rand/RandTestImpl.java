@@ -38,7 +38,8 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
     private final AtomicReference<RingPicker<Integer>> intSequence = new AtomicReference<>(null);
     private final AtomicReference<RingPicker<Double>> doubleSequence = new AtomicReference<>(null);
     private final AtomicReference<RingPicker<String>> stringSequence = new AtomicReference<>(null);
-    private final Random testRandom = new Rand4Test(intSequence, doubleSequence);
+    private final AtomicReference<RingPicker<Boolean>> boolSequence = new AtomicReference<>(null);
+    private final Random testRandom = new Rand4Test(intSequence, doubleSequence, boolSequence);
 
     @Override
     public Random getRandom() {
@@ -74,6 +75,15 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
     }
 
     @Override
+    public void setBooleanSequence(List<Boolean> randomSequence) {
+        if (randomSequence == null || randomSequence.size() == 0) {
+            boolSequence.set(null);
+        } else {
+            boolSequence.set(RingPicker.create(randomSequence, 0));
+        }
+    }
+
+    @Override
     public String rndString(int fromIncluded, int toExcluded, String charSource) {
         return custom(() -> stringSequence.get(), () -> super.rndString(fromIncluded, toExcluded, charSource));
     }
@@ -83,6 +93,10 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
         return custom(() -> stringSequence.get(), () -> super.rndString(fromAndTo, charSource));
     }
 
+    @Override
+    public boolean rndBool(double trueProbability) {
+        return custom(boolSequence::get, () -> ThreadLocalRandom.current().nextBoolean());
+    }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     private static <T> T custom(Supplier<RingPicker<T>> rpSup, Supplier<T> orElse) {
@@ -104,6 +118,7 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
         final AtomicReference<RingPicker<Integer>> intSequence;
         final AtomicReference<RingPicker<Double>> doubleSequence;
+        final AtomicReference<RingPicker<Boolean>> boolSequence;
 
         public Random getR() {
             if (r == null) {
@@ -120,7 +135,9 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
         public long nextLong() {return getR().nextLong();}
 
-        public boolean nextBoolean() {return getR().nextBoolean();}
+        public boolean nextBoolean() {
+            return custom(boolSequence::get, () -> ThreadLocalRandom.current().nextBoolean());
+        }
 
         public float nextFloat() {return getR().nextFloat();}
 
