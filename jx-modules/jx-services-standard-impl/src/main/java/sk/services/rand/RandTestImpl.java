@@ -22,6 +22,7 @@ package sk.services.rand;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
+import sk.utils.functional.F0;
 import sk.utils.paging.RingPicker;
 
 import java.util.List;
@@ -84,6 +85,14 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
     }
 
     @Override
+    public void clearAllRandSequences() {
+        intSequence.set(null);
+        doubleSequence.set(null);
+        stringSequence.set(null);
+        boolSequence.set(null);
+    }
+
+    @Override
     public String rndString(int fromIncluded, int toExcluded, String charSource) {
         return custom(() -> stringSequence.get(), () -> super.rndString(fromIncluded, toExcluded, charSource));
     }
@@ -114,69 +123,69 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
     @RequiredArgsConstructor
     private static class Rand4Test extends Random {
-        Random r;
+        F0<Random> r;
 
         final AtomicReference<RingPicker<Integer>> intSequence;
         final AtomicReference<RingPicker<Double>> doubleSequence;
         final AtomicReference<RingPicker<Boolean>> boolSequence;
 
-        public Random getR() {
+        public F0<Random> getR() {
             if (r == null) {
-                r = ThreadLocalRandom.current();
+                r = ThreadLocalRandom::current;
             }
             return r;
         }
 
         public void setSeed(long seed) {}
 
-        public void nextBytes(byte[] bytes) {getR().nextBytes(bytes);}
+        public void nextBytes(byte[] bytes) {getR().apply().nextBytes(bytes);}
 
-        public int nextInt() {return getR().nextInt();}
+        public int nextInt() {return getR().apply().nextInt();}
 
-        public long nextLong() {return getR().nextLong();}
+        public long nextLong() {return getR().apply().nextLong();}
 
         public boolean nextBoolean() {
-            return custom(boolSequence::get, () -> ThreadLocalRandom.current().nextBoolean());
+            return custom(boolSequence::get, () -> getR().apply().nextBoolean());
         }
 
-        public float nextFloat() {return getR().nextFloat();}
+        public float nextFloat() {return getR().apply().nextFloat();}
 
-        public double nextGaussian() {return getR().nextGaussian();}
+        public double nextGaussian() {return getR().apply().nextGaussian();}
 
-        public IntStream ints(long streamSize) {return getR().ints(streamSize);}
+        public IntStream ints(long streamSize) {return getR().apply().ints(streamSize);}
 
-        public IntStream ints() {return getR().ints();}
+        public IntStream ints() {return getR().apply().ints();}
 
         public IntStream ints(long streamSize, int randomNumberOrigin, int randomNumberBound) {
-            return getR().ints(streamSize, randomNumberOrigin, randomNumberBound);
+            return getR().apply().ints(streamSize, randomNumberOrigin, randomNumberBound);
         }
 
         public IntStream ints(int randomNumberOrigin, int randomNumberBound) {
-            return getR().ints(randomNumberOrigin, randomNumberBound);
+            return getR().apply().ints(randomNumberOrigin, randomNumberBound);
         }
 
-        public LongStream longs(long streamSize) {return getR().longs(streamSize);}
+        public LongStream longs(long streamSize) {return getR().apply().longs(streamSize);}
 
-        public LongStream longs() {return getR().longs();}
+        public LongStream longs() {return getR().apply().longs();}
 
         public LongStream longs(long streamSize, long randomNumberOrigin, long randomNumberBound) {
-            return getR().longs(streamSize, randomNumberOrigin, randomNumberBound);
+            return getR().apply().longs(streamSize, randomNumberOrigin, randomNumberBound);
         }
 
         public LongStream longs(long randomNumberOrigin, long randomNumberBound) {
-            return getR().longs(randomNumberOrigin, randomNumberBound);
+            return getR().apply().longs(randomNumberOrigin, randomNumberBound);
         }
 
-        public DoubleStream doubles(long streamSize) {return getR().doubles(streamSize);}
+        public DoubleStream doubles(long streamSize) {return getR().apply().doubles(streamSize);}
 
-        public DoubleStream doubles() {return getR().doubles();}
+        public DoubleStream doubles() {return getR().apply().doubles();}
 
         public DoubleStream doubles(long streamSize, double randomNumberOrigin, double randomNumberBound) {
-            return getR().doubles(streamSize, randomNumberOrigin, randomNumberBound);
+            return getR().apply().doubles(streamSize, randomNumberOrigin, randomNumberBound);
         }
 
         public DoubleStream doubles(double randomNumberOrigin, double randomNumberBound) {
-            return getR().doubles(randomNumberOrigin, randomNumberBound);
+            return getR().apply().doubles(randomNumberOrigin, randomNumberBound);
         }
 
         @SuppressWarnings("unused")
@@ -188,12 +197,12 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
         @Override
         public int nextInt(int bound) {
-            return custom(intSequence::get, () -> ThreadLocalRandom.current().nextInt(bound));
+            return custom(intSequence::get, () -> getR().apply().nextInt(bound));
         }
 
         @Override
         public double nextDouble() {
-            return custom(doubleSequence::get, () -> ThreadLocalRandom.current().nextDouble());
+            return custom(doubleSequence::get, () -> getR().apply().nextDouble());
         }
     }
 }

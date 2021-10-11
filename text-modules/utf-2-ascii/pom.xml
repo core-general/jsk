@@ -5,7 +5,7 @@
     <parent>
         <artifactId>text-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.63</version>
+        <version>jsk.3.2.64</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-utils</artifactId>
-            <version>jsk.3.2.63</version>
+            <version>jsk.3.2.64</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

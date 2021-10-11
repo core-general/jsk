@@ -31,4 +31,6 @@ public interface IRandSetter extends IRand {
     void setStringSequence(List<String> randomSequence);
 
     void setBooleanSequence(List<Boolean> randomSequence);
+
+    void clearAllRandSequences();
 }
