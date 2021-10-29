@@ -94,17 +94,17 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
     @Override
     public String rndString(int fromIncluded, int toExcluded, String charSource) {
-        return custom(() -> stringSequence.get(), () -> super.rndString(fromIncluded, toExcluded, charSource));
+        return custom(stringSequence::get, () -> super.rndString(fromIncluded, toExcluded, charSource));
     }
 
     @Override
     public String rndString(int fromAndTo, String charSource) {
-        return custom(() -> stringSequence.get(), () -> super.rndString(fromAndTo, charSource));
+        return custom(stringSequence::get, () -> super.rndString(fromAndTo, charSource));
     }
 
     @Override
     public boolean rndBool(double trueProbability) {
-        return custom(boolSequence::get, () -> ThreadLocalRandom.current().nextBoolean());
+        return custom(boolSequence::get, () -> super.rndBool(trueProbability));
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")

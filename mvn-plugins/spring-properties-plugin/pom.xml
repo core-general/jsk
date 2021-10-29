@@ -5,11 +5,11 @@
     <parent>
         <artifactId>mvn-plugins</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.64</version>
+        <version>jsk.3.2.65</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>jsk.3.2.64</version>
+    <version>jsk.3.2.65</version>
     <artifactId>spring-properties-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
@@ -17,12 +17,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.3.2.64</version>
+            <version>jsk.3.2.65</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-properties-plugin-model</artifactId>
-            <version>jsk.3.2.64</version>
+            <version>jsk.3.2.65</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
