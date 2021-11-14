@@ -1,4 +1,4 @@
-package t;
+package sk.services.translate;
 
 /*-
  * #%L
@@ -20,11 +20,32 @@ package t;
  * #L%
  */
 
-import software.amazon.awssdk.services.translate.TranslateClient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public class Test {
-    public static void main(String[] args) {
-        final TranslateClient cli = TranslateClient.builder().build();
-        //cli.translateText(TranslateTextRequest.builder().sourceLanguageCode().text("").build());
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+public class AwsLangRecoResult {
+    List<AwsLangRecoItem> langRecoResult;
+    boolean fictive;
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class AwsLangRecoItem {
+        private LangType lang;
+        private float val;
+
+        public int size() {
+            return lang.toString().length() * 2 + 4 + 4;
+        }
+    }
+
+    public int size() {
+        return langRecoResult.stream().mapToInt($ -> $.size()).sum();
     }
 }

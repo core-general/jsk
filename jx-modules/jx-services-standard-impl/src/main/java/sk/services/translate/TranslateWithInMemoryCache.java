@@ -32,7 +32,7 @@ public class TranslateWithInMemoryCache implements ITranslate {
 
     final ITranslate next;
     final Cache<String, TranslateInfo> tranlateCache;
-    final Cache<String, LangType> langCache;
+    final Cache<String, AwsLangRecoResult> langCache;
 
     public TranslateWithInMemoryCache(IJson json, ITranslate next) {
         this.json = json;
@@ -49,10 +49,10 @@ public class TranslateWithInMemoryCache implements ITranslate {
                 .build();
         langCache = Caffeine.newBuilder()
                 .maximumWeight(Runtime.getRuntime().maxMemory() / 10)
-                .weigher(new Weigher<String, LangType>() {
+                .weigher(new Weigher<String, AwsLangRecoResult>() {
                     @Override
-                    public @NonNegative int weigh(String key, LangType value) {
-                        return key.length() * 2 + value.name().length() * 2;
+                    public @NonNegative int weigh(String key, AwsLangRecoResult value) {
+                        return key.length() * 2 + value.size();
                     }
                 })
                 .softValues()
@@ -60,7 +60,7 @@ public class TranslateWithInMemoryCache implements ITranslate {
     }
 
     @Override
-    public LangType recognizeLanguage(Text2Translate text) {
+    public AwsLangRecoResult recognizeLanguage(Text2Translate text) {
         return langCache.asMap().computeIfAbsent(text.getHash() + "_lang", k -> next.recognizeLanguage(text));
     }
 

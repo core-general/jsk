@@ -21,13 +21,15 @@ package sk.aws.translate;
  */
 
 import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import sk.aws.AwsUtilityHelper;
-import sk.services.translate.ITranslate;
-import sk.services.translate.LangType;
-import sk.services.translate.Text2Translate;
-import sk.services.translate.TranslateInfo;
+import sk.services.translate.*;
+import sk.services.translate.AwsLangRecoResult.AwsLangRecoItem;
+import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import software.amazon.awssdk.services.comprehend.ComprehendClient;
 import software.amazon.awssdk.services.comprehend.model.DetectDominantLanguageRequest;
+import software.amazon.awssdk.services.comprehend.model.DetectDominantLanguageResponse;
 import software.amazon.awssdk.services.translate.TranslateClient;
 import software.amazon.awssdk.services.translate.model.TranslateTextRequest;
 import software.amazon.awssdk.services.translate.model.TranslateTextResponse;
@@ -35,9 +37,14 @@ import software.amazon.awssdk.services.translate.model.TranslateTextResponse;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
+@Log4j2
 public class AwsTranslate implements ITranslate {
+    public static final AwsLangRecoItem DEFAULT_ENGLISH = new AwsLangRecoItem(LangType.English, 1f);
+
     @Inject AwsTranslateProperties trConf;
     @Inject AwsComprehendProperties compConf;
     @Inject AwsUtilityHelper helper;
@@ -60,12 +67,34 @@ public class AwsTranslate implements ITranslate {
     }
 
     @Override
-    public LangType recognizeLanguage(Text2Translate text) {
-        String langCode = comprehend.detectDominantLanguage(DetectDominantLanguageRequest.builder()
-                .text(text.getTxt())
-                .build()).languages().stream().max(Comparator.comparing($ -> $.score())).map($ -> $.languageCode())
-                .orElseThrow();
-        return LangType.getByCode(langCode);
+    public AwsLangRecoResult recognizeLanguage(Text2Translate text) {
+        try {
+            final DetectDominantLanguageResponse response =
+                    comprehend.detectDominantLanguage(DetectDominantLanguageRequest.builder()
+                            .text(text.getTxt())
+                            .build());
+
+            List<AwsLangRecoItem> possibleLanguages = response.languages().stream()
+                    .map($ -> {
+                        try {
+                            return new AwsLangRecoItem(LangType.getByCode($.languageCode()), $.score());
+                        } catch (Exception e) {
+                            log.error($.languageCode().toString(), e);
+                            return null;
+                        }
+                    })
+                    .filter(Fu.notNull())
+                    .sorted(Comparator.comparing($ -> -$.getVal()))
+                    .collect(Collectors.toList());
+            if (possibleLanguages.size() == 0) {
+                return new AwsLangRecoResult(Cc.l(DEFAULT_ENGLISH), true);
+            } else {
+                return new AwsLangRecoResult(possibleLanguages, false);
+            }
+        } catch (Exception e) {
+            log.error("", e);
+            return new AwsLangRecoResult(Cc.l(DEFAULT_ENGLISH), true);
+        }
     }
 
     @Override

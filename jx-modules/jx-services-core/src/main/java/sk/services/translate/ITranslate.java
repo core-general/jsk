@@ -20,12 +20,18 @@ package sk.services.translate;
  * #L%
  */
 
+import sk.utils.functional.O;
+import sk.utils.statics.Cc;
+
 public interface ITranslate {
-    default public TranslateInfo translate(LangType to, Text2Translate text) {
-        return translate(recognizeLanguage(text), to, text);
+    default public O<TranslateInfo> translate(LangType to, Text2Translate text) {
+        final AwsLangRecoResult langRecoResult = recognizeLanguage(text);
+        return langRecoResult.isFictive()
+               ? O.empty()
+               : O.of(translate(Cc.first(langRecoResult.getLangRecoResult()).get().getLang(), to, text));
     }
 
-    public LangType recognizeLanguage(Text2Translate text);
+    public AwsLangRecoResult recognizeLanguage(Text2Translate text);
 
     public TranslateInfo translate(LangType from, LangType to, Text2Translate text);
 }

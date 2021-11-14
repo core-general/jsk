@@ -33,10 +33,10 @@ public class TranslateWithKvCache implements ITranslate {
     ITranslate next;
 
     @Override
-    public LangType recognizeLanguage(Text2Translate text) {
+    public AwsLangRecoResult recognizeLanguage(Text2Translate text) {
         return kv.getAsObject(
-                new KvSimpleKeyWithName("localize-reco_" + text.getHash(), () -> json.to(next.recognizeLanguage(text))),
-                LangType.class);
+                new KvSimpleKeyWithName("localize-lang_" + text.getHash(), () -> json.to(next.recognizeLanguage(text))),
+                AwsLangRecoResult.class);
     }
 
     @Override
