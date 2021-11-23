@@ -22,6 +22,7 @@ package sk.services.translate;
 
 import lombok.Getter;
 import sk.utils.functional.F1;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.Arrays;
@@ -110,19 +111,19 @@ public enum LangType {
     private static final Map<String, LangType> originalNames2LangType = Cc.m();
     private static final Map<String, LangType> code2LangType = Cc.m();
 
-    public static LangType getByOriginalName(String name) {
-        return Maps.NAME_2_LANG.map.get(name);
+    public static O<LangType> getByOriginalName(String name) {
+        return O.ofNull(Maps.NAME_2_LANG.map.get(name));
     }
 
-    public static LangType getByCode(String code) {
-        return Maps.CODE_2_LANG.map.get(code);
+    public static O<LangType> getByCode(String code) {
+        return O.ofNull(Maps.CODE_2_LANG.map.get(code));
     }
 
     private enum Maps {
         NAME_2_LANG(LangType::getOriginalName),
         CODE_2_LANG(LangType::getCode);
 
-        Map<String, LangType> map = Cc.m();
+        private Map<String, LangType> map = Cc.m();
 
         Maps(F1<LangType, String> getter) {
             Arrays.stream(LangType.values()).forEach($ -> {

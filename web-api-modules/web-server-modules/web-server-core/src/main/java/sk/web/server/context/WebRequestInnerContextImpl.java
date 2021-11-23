@@ -71,7 +71,7 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
             } else {
                 try {
                     final String code = $.split(",")[0].trim().split("-")[0].trim();
-                    return O.of(LangType.getByCode(code));
+                    return LangType.getByCode(code);
                 } catch (Exception e) {
                     return O.empty();
                 }

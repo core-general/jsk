@@ -77,7 +77,7 @@ public class AwsTranslate implements ITranslate {
             List<AwsLangRecoItem> possibleLanguages = response.languages().stream()
                     .map($ -> {
                         try {
-                            return new AwsLangRecoItem(LangType.getByCode($.languageCode()), $.score());
+                            return new AwsLangRecoItem(LangType.getByCode($.languageCode()).get(), $.score());
                         } catch (Exception e) {
                             log.error($.languageCode().toString(), e);
                             return null;
@@ -106,8 +106,8 @@ public class AwsTranslate implements ITranslate {
                 .build());
 
         return new TranslateInfo(
-                LangType.getByCode(result.sourceLanguageCode()),
-                LangType.getByCode(result.targetLanguageCode()),
+                from,
+                to,
                 text.getTxt(),
                 result.translatedText()
         );
