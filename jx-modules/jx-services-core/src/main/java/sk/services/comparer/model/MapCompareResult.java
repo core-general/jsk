@@ -27,12 +27,19 @@ import sk.utils.tuples.X2;
 import java.util.Map;
 
 @AllArgsConstructor
-@Getter
 public class MapCompareResult<X, Y> {
     Map<X, Y> notExistingIn2;
     Map<X, Y> notExistingIn1;
 
-    Map<X, X2<Y, Y>> existButDifferent;
+    @Getter Map<X, X2<Y, Y>> existButDifferent;
+
+    public Map<X, Y> getIn1NotIn2() {
+        return notExistingIn2;
+    }
+
+    public Map<X, Y> getIn2NotIn1() {
+        return notExistingIn1;
+    }
 
     public boolean hasDifferences() {
         return existButDifferent.size() > 0

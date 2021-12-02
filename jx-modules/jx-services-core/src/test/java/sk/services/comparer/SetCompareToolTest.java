@@ -31,30 +31,30 @@ public class SetCompareToolTest {
     public void compare() {
         SetCompareResult<String> res = SetCompareTool.compare(Cc.s("a", "b", "c"), Cc.s("e", "d", "c"));
         assertTrue(res.hasDifferences());
-        assertTrue(res.getNotExistingIn2().containsAll(Cc.l("a", "b")));
-        assertEquals(res.getNotExistingIn2().size(), 2);
-        assertTrue(res.getNotExistingIn1().containsAll(Cc.l("e", "d")));
-        assertEquals(res.getNotExistingIn1().size(), 2);
+        assertTrue(res.getIn1NotIn2().containsAll(Cc.l("a", "b")));
+        assertEquals(res.getIn1NotIn2().size(), 2);
+        assertTrue(res.getIn2NotIn1().containsAll(Cc.l("e", "d")));
+        assertEquals(res.getIn2NotIn1().size(), 2);
 
         res = SetCompareTool.compare(Cc.s("a", "b", "c"), Cc.s("c"));
         assertTrue(res.hasDifferences());
-        assertTrue(res.getNotExistingIn2().containsAll(Cc.l("a", "b")));
-        assertEquals(res.getNotExistingIn2().size(), 2);
-        assertTrue(res.getNotExistingIn1().containsAll(Cc.l()));
-        assertEquals(res.getNotExistingIn1().size(), 0);
+        assertTrue(res.getIn1NotIn2().containsAll(Cc.l("a", "b")));
+        assertEquals(res.getIn1NotIn2().size(), 2);
+        assertTrue(res.getIn2NotIn1().containsAll(Cc.l()));
+        assertEquals(res.getIn2NotIn1().size(), 0);
 
         res = SetCompareTool.compare(Cc.s("c"), Cc.s("e", "d", "c"));
         assertTrue(res.hasDifferences());
-        assertTrue(res.getNotExistingIn2().containsAll(Cc.l()));
-        assertEquals(res.getNotExistingIn2().size(), 0);
-        assertTrue(res.getNotExistingIn1().containsAll(Cc.l("e", "d")));
-        assertEquals(res.getNotExistingIn1().size(), 2);
+        assertTrue(res.getIn1NotIn2().containsAll(Cc.l()));
+        assertEquals(res.getIn1NotIn2().size(), 0);
+        assertTrue(res.getIn2NotIn1().containsAll(Cc.l("e", "d")));
+        assertEquals(res.getIn2NotIn1().size(), 2);
 
         res = SetCompareTool.compare(Cc.s("a"), Cc.s("a"));
         assertFalse(res.hasDifferences());
-        assertTrue(res.getNotExistingIn2().containsAll(Cc.l()));
-        assertEquals(res.getNotExistingIn2().size(), 0);
-        assertTrue(res.getNotExistingIn1().containsAll(Cc.l()));
-        assertEquals(res.getNotExistingIn1().size(), 0);
+        assertTrue(res.getIn1NotIn2().containsAll(Cc.l()));
+        assertEquals(res.getIn1NotIn2().size(), 0);
+        assertTrue(res.getIn2NotIn1().containsAll(Cc.l()));
+        assertEquals(res.getIn2NotIn1().size(), 0);
     }
 }

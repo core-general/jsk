@@ -39,8 +39,8 @@ public class SetCompareTool<A extends Identifiable<String>> extends CollectionCo
                 new SetCompareTool<ToStringWrapper<X>>().innerCompare(setTo(col1), setTo(col2));
 
         return new SetCompareResult<>(
-                setFrom(result.getFirstDif()),
-                setFrom(result.getSecondDif())
+                setFrom(result.getIn1NotIn2()),
+                setFrom(result.getIn2NotIn1())
         );
     }
 

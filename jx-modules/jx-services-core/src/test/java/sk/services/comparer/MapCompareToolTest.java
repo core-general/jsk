@@ -34,8 +34,8 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("a", "1", "b", "2", "c", "3"), Cc.m("a", "1", "b", "2", "c", "3")
             );
-            assertEquals(Cc.joinMap(res.getNotExistingIn2()), "");
-            assertEquals(Cc.joinMap(res.getNotExistingIn1()), "");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
 
@@ -43,8 +43,8 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("a", "1", "b", "2", "c", "3"), Cc.m("a", "1")
             );
-            assertEquals(Cc.joinMap(res.getNotExistingIn2()), "b:2, c:3");
-            assertEquals(Cc.joinMap(res.getNotExistingIn1()), "");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "b:2, c:3");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
 
@@ -52,8 +52,8 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("c", "3"), Cc.m("a", "1", "b", "2", "c", "3")
             );
-            assertEquals(Cc.joinMap(res.getNotExistingIn2()), "");
-            assertEquals(Cc.joinMap(res.getNotExistingIn1()), "a:1, b:2");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "a:1, b:2");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
 
@@ -61,8 +61,8 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("a", "1", "c", "3"), Cc.m("b", "2", "c", "3")
             );
-            assertEquals(Cc.joinMap(res.getNotExistingIn2()), "a:1");
-            assertEquals(Cc.joinMap(res.getNotExistingIn1()), "b:2");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "a:1");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "b:2");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
 
@@ -70,8 +70,8 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("a", "1", "c", "5"), Cc.m("b", "2", "c", "3")
             );
-            assertEquals(Cc.joinMap(res.getNotExistingIn2()), "a:1");
-            assertEquals(Cc.joinMap(res.getNotExistingIn1()), "b:2");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "a:1");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "b:2");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "c:{1=5,2=3}");
         }
     }

@@ -60,21 +60,27 @@ public class CountMinSketchCounterImpl extends ICountElementsInGroups {
     }
 
     //public static void main(String[] args) {
-    //    CountMinSketchCounterImpl impl = new CountMinSketchCounterImpl(0.2f, 0.05f);
-    //    final int ELEMENT_NUM = 16;
+    //    CountMinSketchCounterImpl impl = new CountMinSketchCounterImpl(0.0001f, 0.00001f);
+    //    final int ELEMENT_NUM = 500000;
+    //    Map<Integer, Integer> counter = Cc.m();
     //    for (int i = 1; i <= ELEMENT_NUM; i++) {
-    //        for (int j = 0; j < 5000000; j++) {
+    //        for (int j = 0; j < 100; j++) {
     //            impl.addElement(i);
+    //            Cc.compute(counter, i, (k, v) -> v + 1, () -> 1);
     //        }
     //    }
     //
     //    List<X2<Integer, Long>> vals = Cc.l();
+    //    List<X2<Integer, Long>> vals2 = Cc.l();
     //    for (int i = 1; i <= ELEMENT_NUM; i++) {
     //        vals.add(X.x(i, impl.getElementCount(i)));
+    //        vals2.add(X.x(i, counter.get(i).longValue()));
     //    }
     //
-    //    System.out.println(Cc.join("\n", vals));
-    //    System.out.println(impl.serialize().length);
+    //    System.out.println(vals.stream().mapToLong($ -> $.i2()).summaryStatistics());
+    //    System.out.println(vals2.stream().mapToLong($ -> $.i2()).summaryStatistics());
+    //    System.out.println(impl.serialize().length/8+" bytes");
+    //    System.out.println(vals2.size()*12+" bytes");
     //}
 
     /**

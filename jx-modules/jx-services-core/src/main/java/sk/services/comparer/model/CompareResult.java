@@ -20,8 +20,10 @@ package sk.services.comparer.model;
  * #L%
  */
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import sk.utils.ifaces.Identifiable;
 import sk.utils.tuples.X2;
 
@@ -30,9 +32,18 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CompareResult<T extends Identifiable<String>, I> {
-    CompareResultDif<T, I> firstDif;
-    CompareResultDif<T, I> secondDif;
+    @Getter(AccessLevel.PRIVATE) CompareResultDif<T, I> firstDif;
+    @Getter(AccessLevel.PRIVATE) CompareResultDif<T, I> secondDif;
     List<X2<T, T>> existButDifferent;
+
+
+    public CompareResultDif<T, I> getIn1NotIn2() {
+        return firstDif;
+    }
+
+    public CompareResultDif<T, I> getIn2NotIn1() {
+        return secondDif;
+    }
 
     public boolean hasDifferences() {
         return existButDifferent.size() > 0

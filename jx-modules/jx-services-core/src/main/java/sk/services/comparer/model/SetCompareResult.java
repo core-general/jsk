@@ -21,15 +21,21 @@ package sk.services.comparer.model;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.util.List;
 
 @AllArgsConstructor
-@Getter
 public class SetCompareResult<T> {
     List<T> notExistingIn2;
     List<T> notExistingIn1;
+
+    public List<T> getIn1NotIn2() {
+        return notExistingIn2;
+    }
+
+    public List<T> getIn2NotIn1() {
+        return notExistingIn1;
+    }
 
     public boolean hasDifferences() {
         return notExistingIn2.size() > 0 || notExistingIn1.size() > 0;
@@ -38,8 +44,8 @@ public class SetCompareResult<T> {
     public String getShortInfo() {
         return String.format(
                 "\nFirst has, second don't:%d\nSecond has, first don't:%d",
-                notExistingIn2.size(),
-                notExistingIn1.size()
+                getIn1NotIn2().size(),
+                getIn2NotIn1().size()
         );
     }
 }

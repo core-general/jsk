@@ -112,13 +112,13 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
         Cc.<R>l(
                 () -> {
                     if (syncVariant.copyToFirst) {
-                        runTasks(result.getSecondDif().getNotExistingInOther(),
+                        runTasks(result.getIn2NotIn1().getNotExistingInOther(),
                                 clientSecond, clientFirst, second.getRoot(), first.getRoot(), an);
                     }
                 },
                 () -> {
                     if (syncVariant.copyToSecond) {
-                        runTasks(result.getFirstDif().getNotExistingInOther(),
+                        runTasks(result.getIn1NotIn2().getNotExistingInOther(),
                                 clientFirst, clientSecond, first.getRoot(), second.getRoot(), an);
                     }
                 },
@@ -172,8 +172,8 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
 
     private int getCopyCount(CompareResult<S3ItemMeta, S3CompareMeta> result, SyncVariant syncVariant) {
         return result.getExistButDifferent().size() +
-                (syncVariant.isCopyToFirst() ? result.getSecondDif().getNotExistingInOther().size() : 0) +
-                (syncVariant.isCopyToSecond() ? result.getFirstDif().getNotExistingInOther().size() : 0);
+                (syncVariant.isCopyToFirst() ? result.getIn2NotIn1().getNotExistingInOther().size() : 0) +
+                (syncVariant.isCopyToSecond() ? result.getIn1NotIn2().getNotExistingInOther().size() : 0);
     }
 
     @AllArgsConstructor

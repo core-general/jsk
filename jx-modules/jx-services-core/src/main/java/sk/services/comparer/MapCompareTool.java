@@ -35,8 +35,8 @@ public class MapCompareTool<K, V>
                 new MapCompareTool<X, Y>().innerCompare(mapTo(col1), mapTo(col2));
 
         return new MapCompareResult<>(
-                mapFrom(result.getFirstDif()),
-                mapFrom(result.getSecondDif()),
+                mapFrom(result.getIn1NotIn2()),
+                mapFrom(result.getIn2NotIn1()),
                 result.getExistButDifferent().stream()
                         .map($ -> sk.utils.tuples.X.x($.i1().getVal(), sk.utils.tuples.X.x($.i1().getAdd(), $.i2().getAdd())))
                         .collect(Cc.toMX2())
