@@ -45,7 +45,9 @@ import javax.persistence.OptimisticLockException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static sk.db.kv.QJpaKVItem.jpaKVItem;
 import static sk.db.kv.QJpaKVItemWithRaw.jpaKVItemWithRaw;
 
 @Log4j2
@@ -207,6 +209,30 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
     @Override
     public void clearAll() {
         kv.deleteAll();
+    }
+
+    @Override
+    public void clearAll(O<List<KvKey>> except) {
+        if (except.orElse(Cc.lEmpty()).size() == 0) {
+            clearAll();
+            return;
+        }
+        final List<BooleanExpression> expressions = except.orElse(Cc.lEmpty()).stream()
+                .map($ -> {
+                    if ($.categories().size() == 1) {
+                        return jpaKVItem.id.key1.eq($.categories().get(0));
+                    } else {
+                        return jpaKVItem.id.key1.eq($.categories().get(0)).and(jpaKVItem.id.key2.eq($.categories().get(1)));
+                    }
+                })
+                .collect(Collectors.toList());
+        BooleanExpression mustPersist = expressions.get(0);
+        for (int i = 1; i < expressions.size(); i++) {
+            mustPersist = mustPersist.or(expressions.get(i));
+        }
+
+        final Iterable<JpaKVItem> mustBeDeleted = kv.findAll(mustPersist.not());
+        kv.deleteAll(mustBeDeleted);
     }
 
     @NotNull

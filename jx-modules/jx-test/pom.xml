@@ -5,26 +5,26 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.69</version>
+        <version>jsk.3.2.70</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-test</artifactId>
 
-    <version>jsk.3.2.69</version>
+    <version>jsk.3.2.70</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
+            <version>4.13.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.7.7</version>
+            <version>4.1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

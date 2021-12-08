@@ -20,9 +20,15 @@ package sk.services.kv;
  * #L%
  */
 
+import sk.services.kv.keys.KvKey;
+import sk.utils.functional.O;
+
+import java.util.List;
+
 /**
  * Limited KV store is not optimized for unlimited high-load and should be used mostly to store configuration data, which is
  * important for the application.
  */
 public interface IKvLimitedStore extends IKvStore {
+    void clearAll(O<List<KvKey>> except);
 }

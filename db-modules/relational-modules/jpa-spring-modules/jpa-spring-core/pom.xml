@@ -5,25 +5,25 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.69</version>
+        <version>jsk.3.2.70</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-spring-core</artifactId>
 
     <packaging>jar</packaging>
-    <version>jsk.3.2.69</version>
+    <version>jsk.3.2.70</version>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>
-        <spring-data.version>2.3.9.RELEASE</spring-data.version>
+        <spring-data.version>2.6.0</spring-data.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.3.2.69</version>
+            <version>jsk.3.2.70</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>5.4.22.Final</version>
+            <version>5.6.1.Final</version>
         </dependency>
         <dependency>
             <groupId>com.mchange</groupId>

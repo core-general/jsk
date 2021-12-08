@@ -39,10 +39,11 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore, IKvUnlimitedStore {
-    private final Map<Key, KvVersionedItemAll<String>> data = new HashMap<>();
+    private Map<Key, KvVersionedItemAll<String>> data = new HashMap<>();
 
     @Inject ITime times;
 
@@ -118,12 +119,24 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
         return new Key(kk);
     }
 
+    @Override
+    public void clearAll(O<List<KvKey>> except) {
+        final List<Key> toPreserve = except.orElse(Cc.lEmpty()).stream().map(Key::new).collect(Collectors.toList());
+        data = data.entrySet().stream()
+                .filter($ -> toPreserve.stream().anyMatch($$ -> $.getKey().startsWith($$)))
+                .collect(Cc.toMEntry());
+    }
+
     @Value
     private static class Key {
         String key;
 
         public Key(KvKey key) {
             this.key = Cc.join(key.categories());
+        }
+
+        public boolean startsWith(Key other) {
+            return key.startsWith(other.key);
         }
     }
 

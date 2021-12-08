@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.3.2.69</version>
+    <version>jsk.3.2.70</version>
 
     <modules>
         <module>jx-modules</module>
@@ -63,7 +63,7 @@
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
-                <version>3.0.2</version>
+                <version>3.0.5</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
