@@ -25,6 +25,7 @@ import lombok.extern.log4j.Log4j2;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -197,7 +198,7 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
                         (Long) raw.getVersion()));
                 return OneOf.left(apply);
             } catch (OptimisticEntityLockException | ObjectOptimisticLockingFailureException
-                    | OptimisticLockException | StaleObjectStateException e) {
+                    | OptimisticLockException | StaleObjectStateException | DataIntegrityViolationException e) {
                 continue;
             } catch (Exception e) {
                 return OneOf.right(e);
@@ -231,8 +232,21 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
             mustPersist = mustPersist.or(expressions.get(i));
         }
 
-        final Iterable<JpaKVItem> mustBeDeleted = kv.findAll(mustPersist.not());
-        kv.deleteAll(mustBeDeleted);
+        int k = 10000;
+
+        while (k-- >= 0) {
+            try {
+                final Iterable<JpaKVItem> mustBeDeleted = kv.findAll(mustPersist.not());
+                kv.deleteAll(mustBeDeleted);
+                return;
+            } catch (OptimisticEntityLockException | ObjectOptimisticLockingFailureException
+                    | OptimisticLockException | StaleObjectStateException e) {
+                continue;
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        }
+        log.error("new OptimisticLockException(\"Can't delete all\")");
     }
 
     @NotNull

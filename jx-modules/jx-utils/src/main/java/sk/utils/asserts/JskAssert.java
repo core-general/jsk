@@ -21,7 +21,9 @@ package sk.utils.asserts;
  */
 
 import sk.exceptions.JskProblemException;
+import sk.utils.functional.R;
 import sk.utils.statics.Fu;
+import sk.utils.statics.Ti;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -104,6 +106,24 @@ public class JskAssert {
         checkEquals(true, obtained);
     }
 
+    public static void checkAndWaitForOk(int maxWaitSeconds, R toRun) {
+        JskAssertException lastException = null;
+        final long started = System.currentTimeMillis() / 1000;
+        while (System.currentTimeMillis() / 1000 - started < maxWaitSeconds) {
+            try {
+                toRun.run();
+                return;
+            } catch (JskAssertException e) {
+                lastException = e;
+            } finally {
+                Ti.sleep(500);
+            }
+        }
+        if (lastException != null) {
+            throw lastException;
+        }
+    }
+
     public static void checkCatchOrFail(Runnable r, String errorMessage, String compareWithServerError) {
         checkCatchOrFail(r, errorMessage, (Consumer<? super Exception>) e -> {
             final JskProblemException e1 = (JskProblemException) e;
@@ -131,7 +151,6 @@ public class JskAssert {
         checkCatchOrFail(r, e -> {
         });
     }
-
 
     public static void checkCatchOrFail(Runnable r, String errorMessage, Consumer<? super Exception> consumeException) {
         try {
