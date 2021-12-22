@@ -196,11 +196,11 @@ public class S3JskClient {
     }
 
 
-    public int deleteByKeys(PathWithBase base, String... keys) {
+    public int deleteByKeys(PathWithBase base, String... keysFromRoot) {
         try {
             base = base.replacePath("");
             PathWithBase finalBase = base;
-            ObjectIdentifier[] objectIdentifiers = Cc.stream(keys)
+            ObjectIdentifier[] objectIdentifiers = Cc.stream(keysFromRoot)
                     .map($ -> ObjectIdentifier.builder().key($).build())
                     .toArray(ObjectIdentifier[]::new);
 
@@ -329,36 +329,44 @@ public class S3JskClient {
         return empty();
     }
 
-    public O<S3ItemMeta> getMeta(PathWithBase base, String path, boolean mustBePublic) {
-        CoreHttpResponse rsp = null;
-        HeadObjectResponse head = null;
-        final PathWithBase filePath = base.replacePath(path);
+    public O<S3ItemMeta> getMeta(PathWithBase base, String pathFromRoot, boolean mustBePublic) {
+        return getMeta(base.replacePath(pathFromRoot), mustBePublic);
+    }
 
-        if (mustBePublic) {
-            String url = getUrl(filePath);
-            rsp = http.headResp(url);
-            if (rsp.code() == 403) {
-                makeFilePublic(filePath);
+    public O<S3ItemMeta> getMeta(PathWithBase fullPath, boolean mustBePublic) {
+        try {
+            CoreHttpResponse rsp = null;
+            HeadObjectResponse head = null;
+            final String pathFromRoot = fullPath.getPathNoSlash();
+
+            if (mustBePublic) {
+                String url = getUrl(fullPath);
                 rsp = http.headResp(url);
+                if (rsp.code() == 403) {
+                    makeFilePublic(fullPath);
+                    rsp = http.headResp(url);
+                }
+            } else {
+                head = headObject(fullPath);
             }
-        } else {
-            head = headObject(filePath);
-        }
 
-        HeadObjectResponse finalHead = head;
-        return O.ofNull(rsp)
-                .map($ -> new S3ItemMeta(path,
-                        $.getHeader("Content-Length").map(Ma::pl).get(), $.getHeader("ETag").get(), false))
-                .or(() -> O.ofNull(finalHead)
-                        .map($ -> new S3ItemMeta(path, $.contentLength(), $.eTag(), false)));
+            HeadObjectResponse finalHead = head;
+            return O.ofNull(rsp)
+                    .map($ -> new S3ItemMeta(pathFromRoot,
+                            $.getHeader("Content-Length").map(Ma::pl).get(), $.getHeader("ETag").get(), false))
+                    .or(() -> O.ofNull(finalHead)
+                            .map($ -> new S3ItemMeta(pathFromRoot, $.contentLength(), $.eTag(), false)));
+        } catch (Exception e) {
+            return empty();
+        }
     }
 
     public void clearAll(PathWithBase base, O<Long> msBetweenPageRequests) {
         Cc.splitCollectionRandomly(getAllItems(base, msBetweenPageRequests), 1000, () -> rand.rndLong())
                 .values().parallelStream().forEach($ -> {
-            repeat.repeat(() -> deleteByKeys(base,
-                    $.stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
-        });
+                    repeat.repeat(() -> deleteByKeys(base,
+                            $.stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);
+                });
     }
 
     public void clearAllByOneParallel(PathWithBase base, O<Long> msBetweenPageRequests) {

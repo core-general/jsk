@@ -55,9 +55,18 @@ public interface IHttp {
         return new HttpHeadBuilder(url, howToHead());
     }
 
+    default O<EtagAndSize> headEtagLength(String url) {
+        try {
+            return headResp(url).getEtagAndSize();
+        } catch (Exception e) {
+            return O.empty();
+        }
+    }
+
     default CoreHttpResponse headResp(String url) {
         return head(url).tryCount(5).goResponse().left();
     }
+
 
     default HttpGetBuilder get(String url) {
         return new HttpGetBuilder(url, howToGet());

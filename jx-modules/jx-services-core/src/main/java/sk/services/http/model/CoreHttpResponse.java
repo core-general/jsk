@@ -20,7 +20,9 @@ package sk.services.http.model;
  * #L%
  */
 
+import sk.services.http.EtagAndSize;
 import sk.utils.functional.O;
+import sk.utils.statics.Ma;
 
 import java.util.List;
 import java.util.Set;
@@ -44,4 +46,9 @@ public interface CoreHttpResponse {
     public O<List<String>> getHeaders(String header);
 
     public Set<String> getHeaders();
+
+    public default O<EtagAndSize> getEtagAndSize() {
+        return O.allNotNull(getHeader("etag"), getHeader("content-length"),
+                (etag, length) -> O.of(new EtagAndSize(etag, Ma.pl(length))));
+    }
 }

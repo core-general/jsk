@@ -22,10 +22,7 @@ package sk.utils.statics;
 
 import lombok.experimental.Accessors;
 import sk.exceptions.NotImplementedException;
-import sk.utils.functional.C1Char;
-import sk.utils.functional.F0;
-import sk.utils.functional.F1;
-import sk.utils.functional.O;
+import sk.utils.functional.*;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -78,6 +75,10 @@ public final class St {
         for (int i = 0; i < str.length(); i++) {
             ch.accept(str.charAt(i));
         }
+    }
+
+    public static void forEachCodePoint(String str, C1Int ch) {
+        str.codePoints().forEach(ch::accept);
     }
 
     public static String capFirst(String str) {
