@@ -414,7 +414,9 @@ public final class Io {
     //endregion
 
     public static ExecuteInfo execute(String command) {
-        ProcessBuilder ps = new ProcessBuilder(command.split("\\s+"));
+        ProcessBuilder ps = command.contains("|")
+                            ? new ProcessBuilder("/bin/sh", "-c", command)
+                            : new ProcessBuilder(command.split("\\s+"));
         ps.redirectErrorStream(true);
 
         try {
@@ -448,6 +450,5 @@ public final class Io {
         r.accept(file.toPath());
     }
 
-    private Io() {
-    }
+    private Io() {}
 }
