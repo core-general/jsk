@@ -103,4 +103,9 @@ public class BytesImpl implements IBytes {
     private LZ4Factory getLz4Factory() {
         return LZ4Factory.fastestInstance();
     }
+
+
+    //public static void main(String[] args) {
+    //    var ungzip2 = bytes.unGzipString(gzip);
+    //}
 }

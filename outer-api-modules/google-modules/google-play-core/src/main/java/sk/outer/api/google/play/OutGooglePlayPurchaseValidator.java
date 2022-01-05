@@ -50,6 +50,7 @@ public class OutGooglePlayPurchaseValidator {
         gsonFactory = new GsonFactory();
     }
 
+    //https://developers.google.com/identity/protocols/oauth2/service-account
     public OutGooglePurchaseResult verifyPurchase_v_3_0(
             String jsonFileSecret,
             String GOOGLE_PRODUCT_NAME,

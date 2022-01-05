@@ -21,10 +21,7 @@ package sk.services.bytes;
  */
 
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
-import sk.utils.statics.Ma;
-import sk.utils.statics.St;
+import sk.utils.statics.*;
 
 import java.io.*;
 import java.net.URLDecoder;
@@ -35,6 +32,8 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -189,5 +188,43 @@ public interface IBytes {
     boolean zipArchive(OutputStream output, Map<String, byte[]> in);
 
     boolean zipArchiveWithPassword(OutputStream output, Map<String, byte[]> in, String password);
+    //endregion
+
+    //region gzip direct
+
+    default byte[] gzip(String data) {
+        return gzip(data.getBytes(UTF_8));
+    }
+
+    default String unGzipString(byte[] data) {
+        return new String(unGzipBytes(data), UTF_8);
+    }
+
+    default byte[] gzip(byte[] data) {
+        if (data == null || data.length == 0) {
+            throw new RuntimeException("zip data is bad");
+        }
+
+        try (final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+             final GZIPOutputStream gzipStream = new GZIPOutputStream(bytes)) {
+            gzipStream.write(data);
+            gzipStream.finish();
+            return bytes.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Can't compress");
+        }
+    }
+
+    default byte[] unGzipBytes(byte[] data) {
+        if (data == null || data.length == 0) {
+            throw new RuntimeException("unGzip data is bad");
+        }
+
+        try (final GZIPInputStream gzipInput = new GZIPInputStream(new ByteArrayInputStream(data));) {
+            return Io.streamToBytes(gzipInput);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while decompression!", e);
+        }
+    }
     //endregion
 }
