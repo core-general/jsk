@@ -24,6 +24,7 @@ import sk.utils.functional.R;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 @SuppressWarnings({"unused", "WeakerAccess", "SpellCheckingInspection"})
@@ -41,6 +42,21 @@ public final class Ti {
 
     public static ZoneId Moscow = ZoneId.of("Europe/Moscow");
     public static ZoneId UTC = ZoneOffset.UTC;
+
+    public static boolean isSequence(ZonedDateTime... dates) {
+        if (dates.length == 0 || dates.length == 1) {
+            return true;
+        }
+
+        ZonedDateTime curDate = dates[0];
+        for (int i = 1; i < dates.length; i++) {
+            if (curDate.isAfter(dates[i])) {
+                return false;
+            }
+            curDate = dates[i];
+        }
+        return true;
+    }
 
     public static double naiveProfile(R r, int count) {
         long start = System.currentTimeMillis();
