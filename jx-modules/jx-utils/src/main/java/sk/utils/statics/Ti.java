@@ -22,6 +22,7 @@ package sk.utils.statics;
 
 import sk.utils.functional.R;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -40,8 +41,13 @@ public final class Ti {
     public static final DateTimeFormatter yyyyMMddHHmm = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     public static final DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public static ZoneId Moscow = ZoneId.of("Europe/Moscow");
-    public static ZoneId UTC = ZoneOffset.UTC;
+    public static final ZoneId Moscow = ZoneId.of("Europe/Moscow");
+    public static final ZoneId UTC = ZoneOffset.UTC;
+
+    public static final Instant minInstant = Instant.ofEpochMilli(Long.MIN_VALUE);
+    public static final Instant maxInstant = Instant.ofEpochMilli(Long.MAX_VALUE);
+    public static final ZonedDateTime minZonedDateTime = minInstant.atZone(ZoneOffset.UTC);
+    public static final ZonedDateTime maxZonedDateTime = maxInstant.atZone(ZoneOffset.UTC);
 
     public static boolean isSequence(ZonedDateTime... dates) {
         if (dates.length == 0 || dates.length == 1) {
