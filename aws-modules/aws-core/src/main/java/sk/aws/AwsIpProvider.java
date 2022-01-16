@@ -39,7 +39,23 @@ public class AwsIpProvider implements IIpProvider {
                     .get("http://169.254.169.254/latest/meta-data/public-ipv4")
                     .goResponseAndThrow();
             if (response.code() != 200) {
-                throw new RuntimeException("Can't get my ip by AWS");
+                throw new RuntimeException("Can't get my ip by AWS: " + response.code() + " " + response.newAsString());
+            }
+            return O.of(response.newAsString().trim());
+        } catch (Exception e) {
+            log.error("", e);
+            return O.empty();
+        }
+    }
+
+    @Override
+    public O<String> getMyPrivateIp() {
+        try {
+            final CoreHttpResponse response = http
+                    .get("http://169.254.169.254/latest/meta-data/local-ipv4")
+                    .goResponseAndThrow();
+            if (response.code() != 200) {
+                throw new RuntimeException("Can't get my ip by AWS: " + response.code() + " " + response.newAsString());
             }
             return O.of(response.newAsString().trim());
         } catch (Exception e) {

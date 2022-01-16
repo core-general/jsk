@@ -24,4 +24,6 @@ import sk.utils.functional.O;
 
 public interface IIpProvider {
     O<String> getMyIp();
+
+    O<String> getMyPrivateIp();
 }

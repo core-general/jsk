@@ -33,6 +33,8 @@ public interface INodeInfo extends INodeId {
 
     public O<String> getPublicIp();
 
+    public O<String> getPrivateIp();
+
     /**
      * Obtain information about current server state as the sum of states of all his beans.
      * The information should be gathered automatically from beans, which implement IBeanInfo interface

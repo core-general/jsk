@@ -41,13 +41,13 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
     @Inject private WebMelodyParams moniParam;
     @Inject private WebMelodyCollectorParams moniColParam;
     @Inject private WebServerParams webSrv;
-    private O<String> publicIp;
+    private O<String> ip;
 
     @Override
     public void run() {
-        publicIp = nodeInfo.getPublicIp();
-        if (publicIp.isEmpty()) {
-            log.error("Can't obtain public UP");
+        ip = moniColParam.isUsePrivateIp() ? nodeInfo.getPrivateIp() : nodeInfo.getPublicIp();
+        if (ip.isEmpty()) {
+            log.error("Can't obtain Ip");
             return;
         }
         invokeCollectorTask(getUrlNodeWithAction("add_node"), 120_000, true);
@@ -55,7 +55,7 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
 
     @Override
     public void onStop() {
-        if (publicIp.isEmpty()) {
+        if (ip.isEmpty()) {
             return;
         }
         invokeCollectorTask(getUrlNodeWithAction("remove_node"), 1000, false);
@@ -70,15 +70,15 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
         return String.format(
                 "https://%s:%d/api/%s?" +
                         "app_name=%s&node_ip=%s&node_port=%s&node_login=%s&node_password=%s&use_https=false",
-                moniColParam.getHost(), moniColParam.getPort(), action, appName, publicIp.get(), port, login, password);
+                moniColParam.getHost(), moniColParam.getPort(), action, appName, ip.get(), port, login, password);
     }
 
 
     private void invokeCollectorTask(String url, long delay, boolean continueOnSuccess) {
         final GuaranteedOneTimeTask<String> oneTimeTask = new GuaranteedOneTimeTask<>(
                 () -> moniColParam.isMelodyCollectorOn()
-                        ? http.get(url).login(moniColParam.getLogin()).password(moniColParam.getPass()).go().left()
-                        : "", async.scheduledExec(), delay, 0);
+                      ? http.get(url).login(moniColParam.getLogin()).password(moniColParam.getPass()).go().left()
+                      : "", async.scheduledExec(), delay, 0);
         oneTimeTask.getFuture().thenApply(res -> {
             if (continueOnSuccess) {
                 invokeCollectorTask(url, delay, continueOnSuccess);
@@ -92,7 +92,7 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
 
     @Override
     public long waitBeforeStopMs() {
-        if (publicIp.isEmpty()) {
+        if (ip.isEmpty()) {
             return 0;
         }
         return 100;

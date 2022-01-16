@@ -72,6 +72,11 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     }
 
     @Override
+    public O<String> getPrivateIp() {
+        return O.of(ipProvider).flatMap($ -> $.getMyPrivateIp());
+    }
+
+    @Override
     public SortedMap<String, Object> getCurrentServerInfo(O<List<String>> filter) {
         final Map<String, Object> collect = beanInfos.stream()
                 .map($ -> {
@@ -86,10 +91,10 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
                 .collect(Collectors.groupingBy($ -> $.i1(), Collectors.mapping($ -> $.i2(), Cc.toL())))
                 .entrySet().stream()
                 .map($ -> X.<String, Object>x($.getKey(), $.getValue().size() == 0
-                        ? ""
-                        : $.getValue().size() == 1
-                                ? $.getValue().get(0)
-                                : $.getValue()))
+                                                          ? ""
+                                                          : $.getValue().size() == 1
+                                                            ? $.getValue().get(0)
+                                                            : $.getValue()))
                 .collect(Cc.toMX2());
         collect.put("_nodeId", Cc.l(nodeId));
         collect.put("_nodeVersion", Cc.l(nodeVersion));

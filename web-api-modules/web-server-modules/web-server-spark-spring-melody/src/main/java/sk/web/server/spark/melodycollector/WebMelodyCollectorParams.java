@@ -30,4 +30,6 @@ public interface WebMelodyCollectorParams {
     String getLogin();
 
     String getPass();
+
+    boolean isUsePrivateIp();
 }

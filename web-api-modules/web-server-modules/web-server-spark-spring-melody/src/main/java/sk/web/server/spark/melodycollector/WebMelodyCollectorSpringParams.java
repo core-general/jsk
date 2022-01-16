@@ -43,4 +43,8 @@ public class WebMelodyCollectorSpringParams implements WebMelodyCollectorParams 
     @Getter
     @Value("${melody_collector_password}")
     String pass;
+
+    @Getter
+    @Value("${melody_collector_use_private_ip:#{false}}")
+    boolean usePrivateIp;
 }
