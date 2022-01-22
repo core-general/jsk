@@ -20,6 +20,8 @@ package sk.aws;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.http.IHttp;
 import sk.services.http.model.CoreHttpResponse;
@@ -29,6 +31,8 @@ import sk.utils.functional.O;
 import javax.inject.Inject;
 
 @Log4j2
+@NoArgsConstructor
+@AllArgsConstructor
 public class AwsIpProvider implements IIpProvider {
     @Inject IHttp http;
 

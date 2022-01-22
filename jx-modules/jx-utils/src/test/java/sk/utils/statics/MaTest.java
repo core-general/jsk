@@ -27,6 +27,14 @@ import static org.junit.Assert.*;
 
 public class MaTest {
     @Test
+    public void testMedian() {
+        assertEquals(Ma.median(Cc.l(1L, 5L, 3L, 5L, 2L)).get().longValue(), 3L);
+        assertEquals(Ma.median(Cc.l(1L, 5L, 3L, 5L)).get().longValue(), 4L);
+        assertEquals(Ma.medianD(Cc.l(1D, 5D, 3D, 5D)).get(), 4D, 0.01D);
+        assertEquals(Ma.medianD(Cc.l(1D, 5D, 3D, 5D, 2D)).get(), 3D, 0.01D);
+    }
+
+    @Test
     public void testClamp() {
         assertEquals((int) Ma.clamp(0D, 10D, 20D), 10);
         assertEquals((int) Ma.clamp(100D, 10D, 20D), 20);

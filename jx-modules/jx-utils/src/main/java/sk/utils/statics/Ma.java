@@ -1,8 +1,11 @@
 package sk.utils.statics;
 
 import lombok.AllArgsConstructor;
+import sk.utils.functional.F2;
 import sk.utils.functional.O;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.lang.Math.*;
@@ -29,18 +32,11 @@ import static java.lang.Math.*;
 @SuppressWarnings({"unused"})
 public final class Ma {
     public static O<Long> median(List<Long> longs) {
-        final List<Long> sorted = Cc.sort(longs);
-        if (sorted.size() == 0) {
-            return O.empty();
-        }
-        if (sorted.size() == 1) {
-            return Cc.first(sorted);
-        }
-        if (sorted.size() % 2 == 1) {
-            return Cc.getAt(longs, longs.size() / 2);
-        } else {
-            return O.of((Cc.getAt(longs, (longs.size() / 2) - 1).get() + Cc.getAt(longs, (longs.size() / 2)).get()) / 2);
-        }
+        return medianN(longs, Long::compareTo, (a, b) -> (a + b) / 2);
+    }
+
+    public static O<Double> medianD(List<Double> doubles) {
+        return medianN(doubles, Double::compareTo, (a, b) -> (a + b) / 2);
     }
 
     public static float mean(float v1, float v2) {return (v1 + v2) / 2;}
@@ -194,5 +190,22 @@ public final class Ma {
 
     //region Private
     private Ma() {}
+
+
+    private static <T extends Number> O<T> medianN(List<T> numbers, Comparator<T> comparator, F2<T, T, T> averager) {
+        Collections.sort(numbers, comparator);
+        if (numbers.size() == 0) {
+            return O.empty();
+        }
+        if (numbers.size() == 1) {
+            return Cc.first(numbers);
+        }
+        if (numbers.size() % 2 == 1) {
+            return Cc.getAt(numbers, numbers.size() / 2);
+        } else {
+            return O.of(averager.apply(Cc.getAt(numbers, (numbers.size() / 2) - 1).get(),
+                    Cc.getAt(numbers, (numbers.size() / 2)).get()));
+        }
+    }
     //endregion
 }
