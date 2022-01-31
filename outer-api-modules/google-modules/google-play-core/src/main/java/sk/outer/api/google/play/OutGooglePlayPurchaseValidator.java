@@ -26,10 +26,12 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.androidpublisher.AndroidPublisher;
 import com.google.api.services.androidpublisher.model.ProductPurchase;
+import com.google.api.services.androidpublisher.model.SubscriptionPurchase;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.extern.log4j.Log4j2;
 import sk.services.json.IJson;
+import sk.utils.functional.OneOf;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -78,6 +80,28 @@ public class OutGooglePlayPurchaseValidator {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new OutGooglePurchaseResult(e.getMessage(), OutGooglePurchaseState.BAD);
+        }
+    }
+
+    //https://developers.google.com/identity/protocols/oauth2/service-account
+    public OneOf<SubscriptionPurchase, Exception> getSubscription_v_3_0_raw(
+            String jsonFileSecret,
+            String GOOGLE_PRODUCT_NAME,
+            String GOOGLE_PACKAGE_NAME,
+            String productId,
+            String purchaseToken
+    ) {
+        try {
+            GoogleCredentials googleCredentials = fromStream(new ByteArrayInputStream(jsonFileSecret.getBytes(UTF_8)));
+            HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(googleCredentials);
+
+            return OneOf.left(new AndroidPublisher.Builder(transport, gsonFactory, requestInitializer)
+                    .setApplicationName(GOOGLE_PRODUCT_NAME)
+                    .build().purchases().subscriptions()
+                    .get(GOOGLE_PACKAGE_NAME, productId, purchaseToken).execute());
+
+        } catch (Exception e) {
+            return OneOf.right(e);
         }
     }
 }

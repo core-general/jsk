@@ -5,19 +5,19 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.2.95</version>
+        <version>jsk.3.2.96</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-ip-geo-maxmind</artifactId>
-    <version>jsk.3.2.95</version>
+    <version>jsk.3.2.96</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.3.2.95</version>
+            <version>jsk.3.2.96</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.maxmind.geoip2</groupId>
             <artifactId>geoip2</artifactId>
-            <version>2.15.0</version>
+            <version>2.16.1</version>
         </dependency>
 
         <!--        latitude longitude 2 timezone if needed in the future-->

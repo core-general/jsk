@@ -153,11 +153,11 @@ public class JGsonImpl implements IJson {
     public String beautify(String smallJson) {
         JsonElement jsonElement = JsonParser.parseString(smallJson);
         if (jsonElement.isJsonArray()) {
-            return jsonPolymorphic.toJson(jsonElement.getAsJsonArray());
+            return jsonPrettyPolymorphic.toJson(jsonElement.getAsJsonArray());
         } else if (jsonElement.isJsonObject()) {
-            return jsonPolymorphic.toJson(jsonElement.getAsJsonObject());
+            return jsonPrettyPolymorphic.toJson(jsonElement.getAsJsonObject());
         } else if (jsonElement.isJsonPrimitive()) {
-            return jsonPolymorphic.toJson(jsonElement.getAsJsonPrimitive());
+            return jsonPrettyPolymorphic.toJson(jsonElement.getAsJsonPrimitive());
         }
         return smallJson;
     }
