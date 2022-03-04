@@ -175,6 +175,14 @@ public final class St {
         return init.length() > limit ? convertIfLonger.apply(init) : init;
     }
 
+    public static String convertIfSmaller(String init, int limit, F1<String, String> convertIfShorter) {
+        return init.length() < limit ? convertIfShorter.apply(init) : init;
+    }
+
+    public static String minSymbolsOtherwisePrefix(String num, int minSymbols, String prefix) {
+        return convertIfSmaller(num, minSymbols, s -> St.repeat(prefix, minSymbols - s.length()) + num);
+    }
+
     public static String raze(String init, int limit) {
         return convertIfBigger(init, limit, s -> St.ss(init, 0, limit));
     }
@@ -402,14 +410,14 @@ public final class St {
            up fashion. */
         for (int i = 0; i <= m; i++) {
             for (int j = 0; j <= n; j++) {
-                if (i == 0 || j == 0) { LCSuff[i][j] = 0; } else if (x.charAt(i - 1) == y.charAt(j - 1)) {
+                if (i == 0 || j == 0) {LCSuff[i][j] = 0;} else if (x.charAt(i - 1) == y.charAt(j - 1)) {
                     LCSuff[i][j] = LCSuff[i - 1][j - 1] + 1;
                     if (len < LCSuff[i][j]) {
                         len = LCSuff[i][j];
                         row = i;
                         col = j;
                     }
-                } else { LCSuff[i][j] = 0; }
+                } else {LCSuff[i][j] = 0;}
             }
         }
 

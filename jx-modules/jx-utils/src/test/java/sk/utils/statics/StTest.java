@@ -36,6 +36,13 @@ public class StTest {
     }
 
     @Test
+    public void minSymbolsOtherwisePrefixTest() {
+        assertEquals(St.minSymbolsOtherwisePrefix("1", 2, "0"), "01");
+        assertEquals(St.minSymbolsOtherwisePrefix("1", 3, "0"), "001");
+        assertEquals(St.minSymbolsOtherwisePrefix("555", 3, "0"), "555");
+    }
+
+    @Test
     public void sub() {
         final String str = "abc;def,ghk;xx,bb;ioo;";
         assertEquals(St.sub(str).leftFirst(";").rightFirst(";").get(), "def,ghk");

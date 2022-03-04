@@ -63,6 +63,10 @@ public interface IRand {
         return ofNullable(list.size() == 0 ? null : list.get(rndInt(list.size())));
     }
 
+    default <T> O<T> rndFromListAndRemove(List<T> list) {
+        return ofNullable(list.size() == 0 ? null : list.remove(rndInt(list.size())));
+    }
+
     default <Z extends Comparable<Z>> List<Z> rndManyFromListAndSort(int count, List<Z> items) {
         if (count >= items.size()) {
             return Cc.sort(new ArrayList<>(items));
