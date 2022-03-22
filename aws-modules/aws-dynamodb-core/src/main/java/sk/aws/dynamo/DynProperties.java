@@ -24,4 +24,8 @@ import sk.aws.AwsProperties;
 
 public interface DynProperties extends AwsProperties {
     String getTablePrefix();
+
+    default boolean isDynamoDisableOk() {
+        return false;
+    }
 }

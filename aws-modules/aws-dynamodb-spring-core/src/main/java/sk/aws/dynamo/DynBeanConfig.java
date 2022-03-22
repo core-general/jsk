@@ -24,9 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.List;
 
@@ -36,17 +34,11 @@ public abstract class DynBeanConfig extends DynConfigurator {
     @Bean /* in inheritor */
     public abstract DynProperties DynProperties();
 
-    @Override
     @Bean
-    public DynamoDbClient DynamoDbClient(DynProperties properties, AwsUtilityHelper helper) {
-        return super.DynamoDbClient(properties, helper);
-    }
-
-    @Override
-    @Bean
-    public DynamoDbEnhancedClient DynamoDbEnhancedClient(DynamoDbClient client,
-            CreatedAndUpdatedAtExtension createUpdateExtension, List<DynamoDbEnhancedClientExtension> plugins) {
-        return super.DynamoDbEnhancedClient(client, createUpdateExtension, plugins);
+    public DynClient DynClient(DynProperties properties, AwsUtilityHelper helper,
+            CreatedAndUpdatedAtExtension createUpdateExtension,
+            List<DynamoDbEnhancedClientExtension> plugins) {
+        return new DynClient(properties, this, helper, createUpdateExtension, plugins);
     }
 
     @Override

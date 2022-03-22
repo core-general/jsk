@@ -21,7 +21,6 @@ package sk.aws.dynamo;
  */
 
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
 import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
 import sk.services.ids.IIds;
@@ -36,15 +35,11 @@ import sk.services.time.ITime;
 import sk.utils.functional.*;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import javax.inject.Inject;
@@ -58,8 +53,9 @@ import static sk.utils.statics.St.endWith;
 
 @Log4j2
 public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedStore {
-    @Inject DynamoDbEnhancedClient dynaHighLvl;
-    @Inject DynamoDbClient dynaLowLvl;
+    //@Inject DynamoDbEnhancedClient dynaHighLvl;
+    //@Inject DynamoDbClient dynaLowLvl;
+    @Inject DynClient client;
     @Inject DynProperties conf;
 
     @Inject IAsync async;
@@ -200,7 +196,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         });
     }
 
-    private KvVersionedItemAll<String> getOrCreateNewAllValues(DynamoDbTable<DynKVItem> table, KvKeyWithDefault outerKey) {
+    private KvVersionedItemAll<String> getOrCreateNewAllValues(DynTable<DynKVItem> table, KvKeyWithDefault outerKey) {
         return getRawVersionedAll(outerKey).orElseGet(() -> {
             trySaveNewStringAndRaw(outerKey, new KvAllValues<>(outerKey.getDefaultValue(), O.empty(), O.empty()));
             DynKVItem one = privateItemGet(table, outerKey);
@@ -226,13 +222,13 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         if (!appProfile.getProfile().isForProductionUsage()) {
             tableCache.values().stream()
                     .parallel()
-                    .forEach($ -> dynaLowLvl.deleteTable(DeleteTableRequest.builder().tableName($.tableName()).build()));
+                    .forEach($ -> client.deleteTable($.tableName()));
         }
     }
 
 
-    protected <T> T withTableEnsure(KvKey key, F1<DynamoDbTable<DynKVItem>, T> executor) {
-        final DynamoDbTable<DynKVItem> table = getTable(key);
+    protected <T> T withTableEnsure(KvKey key, F1<DynTable<DynKVItem>, T> executor) {
+        final DynTable<DynKVItem> table = getTable(key);
         for (int i = 0; i < 30; i++) {
             try {
                 return executor.apply(table);
@@ -240,23 +236,23 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                 //AWS table not exist yet
                 try {
                     table.createTable();
-                } catch (ResourceInUseException tableAlreadyCreatedIgnoreIt) { }
+                } catch (ResourceInUseException tableAlreadyCreatedIgnoreIt) {}
                 async.sleep(2000);
             }
         }
         throw DynamoDbException.builder().message("Table '" + table.tableName() + "' is unavailable").build();
     }
 
-    protected void withTableEnsureRun(KvKey key, C1<DynamoDbTable<DynKVItem>> executor) {
+    protected void withTableEnsureRun(KvKey key, C1<DynTable<DynKVItem>> executor) {
         withTableEnsure(key, t -> {
             executor.accept(t);
             return null;
         });
     }
 
-    protected final Map<String, DynamoDbTable<DynKVItem>> tableCache = new ConcurrentHashMap<>();
+    protected final Map<String, DynTable<DynKVItem>> tableCache = new ConcurrentHashMap<>();
 
-    protected DynamoDbTable<DynKVItem> getTable(KvKey key) {
+    protected DynTable<DynKVItem> getTable(KvKey key) {
         final String profilePrefix = endWith(conf.getTablePrefix(), "_");
         String tableName;
         final List<String> categories = key.categories();
@@ -269,7 +265,7 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         }
 
         return tableCache
-                .computeIfAbsent(profilePrefix + tableName, s -> dynaHighLvl.table(s, TableSchema.fromBean(DynKVItem.class)));
+                .computeIfAbsent(profilePrefix + tableName, s -> client.table(s, TableSchema.fromBean(DynKVItem.class)));
     }
 
     private final F2<String, String, Key> keyCreator =
@@ -308,12 +304,8 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
         return new KvKeyRaw(newCategories);
     }
 
-    @NotNull
-    private GetItemEnhancedRequest consistentGet(KvKey key) {
-        return GetItemEnhancedRequest.builder().key(toAwsKey(key)).consistentRead(true).build();
-    }
 
-    private DynKVItem privateItemGet(DynamoDbTable<DynKVItem> table, KvKey outerKey) {
-        return table.getItem(consistentGet(outerKey));
+    private DynKVItem privateItemGet(DynTable<DynKVItem> table, KvKey outerKey) {
+        return table.consistentGetItem(toAwsKey(outerKey));
     }
 }
