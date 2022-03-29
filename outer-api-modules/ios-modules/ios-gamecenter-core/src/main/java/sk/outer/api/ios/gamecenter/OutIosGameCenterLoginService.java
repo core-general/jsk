@@ -1,4 +1,4 @@
-package sk.outer.api.google.play;
+package sk.outer.api.ios.gamecenter;
 
 /*-
  * #%L

@@ -1,10 +1,10 @@
-package sk.outer.api.google.play;
+package sk.outer.api.ios.signin;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,16 @@ package sk.outer.api.google.play;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.google.gson.annotations.JsonAdapter;
 import lombok.Data;
+import sk.outer.api.ios.purchases.iossub.JwsJsonAdapter;
 
 @Data
-@AllArgsConstructor
-@Builder
-public class OutIosPurchaseResult {
-    String rawResponse;
-    boolean valid;
+public class OutIosSignInTokenResponse {
+    private String access_token;
+    private String token_type;
+    private Long expires_in;
+    private String refresh_token;
+    @JsonAdapter(JwsJsonAdapter.class)
+    private OutIosTokenPayload id_token;
 }

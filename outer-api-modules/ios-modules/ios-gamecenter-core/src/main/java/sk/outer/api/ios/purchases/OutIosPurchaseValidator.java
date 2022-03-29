@@ -1,4 +1,4 @@
-package sk.outer.api.google.play;
+package sk.outer.api.ios.purchases;
 
 /*-
  * #%L
@@ -37,7 +37,7 @@ import java.util.Optional;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Log4j2
-public class OutIosGameCenterPurchaseValidator {
+public class OutIosPurchaseValidator {
     @Inject IJson json;
     @Inject IBytes crypt;
     @Inject IHttp http;

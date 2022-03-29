@@ -60,9 +60,10 @@ public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
     public IpGeoMaxmindExtractor init() {
         /*
         Db search:
+        (probably you can use https://db-ip.com/db/download/ip-to-country-lite, but see license)
         1. If URL is set - from URL
         2. In resources: "jsk/ip2country.mmdb"
-        3. Throw exception if neither 1 or 2
+        3. Throw exception if neither 1 nor 2
          */
         try (var is = mmdbFileUrl.<InputStream>flatMap(
                 u -> http.get(mmdbFileUrl.get()).goBytes().collect(by -> O.of(new ByteArrayInputStream(by)), ex -> O.empty()))
