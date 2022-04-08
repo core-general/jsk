@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.3.2</version>
+        <version>jsk.3.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,7 @@
         <module>fb-modules</module>
         <module>outer-core</module>
         <module>ios-modules</module>
+        <module>telegram-modules</module>
     </modules>
 
 

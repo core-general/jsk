@@ -5,13 +5,18 @@
     <parent>
         <artifactId>outer-api-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.3.2</version>
+        <version>jsk.3.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>outer-core</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-utils</artifactId>
+            <version>jsk.3.3.3</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
