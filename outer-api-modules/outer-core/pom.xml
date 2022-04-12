@@ -5,7 +5,7 @@
     <parent>
         <artifactId>outer-api-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.3.3</version>
+        <version>jsk.3.3.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,23 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-utils</artifactId>
-            <version>jsk.3.3.3</version>
+            <version>jsk.3.3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-services-core</artifactId>
+            <version>jsk.3.3.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-ext</artifactId>
+            <version>1.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

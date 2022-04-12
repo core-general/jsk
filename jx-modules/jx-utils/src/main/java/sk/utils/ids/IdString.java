@@ -21,10 +21,11 @@ package sk.utils.ids;
  */
 
 import lombok.NoArgsConstructor;
+import sk.utils.ifaces.IdentifiableString;
 
 @SuppressWarnings("unused")
 @NoArgsConstructor(onConstructor_ = @Deprecated)
-public abstract class IdString extends IdBase<String> {
+public abstract class IdString extends IdBase<String> implements IdentifiableString {
     public IdString(String uuid) {
         super(uuid);
     }

@@ -28,19 +28,16 @@ import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.request.SendSticker;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X2;
 
-import javax.inject.Inject;
 import java.util.List;
 
 @AllArgsConstructor
-@NoArgsConstructor
 public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
-    @Inject TelegramBot bot;
+    final TelegramBot bot;
 
     @Override
     public BaseResponse send(String userId, O<String> text, O<String> image,

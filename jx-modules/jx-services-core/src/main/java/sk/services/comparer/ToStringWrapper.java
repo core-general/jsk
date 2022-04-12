@@ -26,7 +26,7 @@ import sk.utils.ifaces.Identifiable;
 
 @AllArgsConstructor
 @Data
-class ToStringWrapper<X> implements Identifiable<String> {
+public class ToStringWrapper<X> implements Identifiable<String> {
     protected X val;
 
     @Override

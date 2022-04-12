@@ -1,0 +1,45 @@
+START: n_initial
+
+---
+
+p1 p2 c1
+p1 p4 c2
+p2 p3 c3
+p2 p4 c4
+p2 ? c5
+? p7 c6
+
+---
+
+p1 PTYPE1 10 20
+You are in a dark room, it's scary here
+
+p2
+This room is extremely dark
+
+p3 PTYPE2 param1
+There is only one way to the left, you go there
+
+p4
+Well it's brighter, but there is a zombie
+
+p7 PTYPE1 10 20
+Now you are nowhere
+
+c1
+Go left
+
+c2 CTYPE1 param3
+Go right
+
+c3
+Go left again
+
+c4 CTYPE1 param4
+Kick wall
+
+c5
+Go somewhere
+
+c6
+Where am I?
