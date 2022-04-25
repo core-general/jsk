@@ -20,8 +20,10 @@ package sk.utils.statics;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.ifaces.IdentifiableString;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -36,6 +38,10 @@ import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings({"unused"})
 public final class Re {
+    @SneakyThrows
+    public Class<?> cls(String clsName) {
+        return Class.forName(clsName);
+    }
 
     public static <T> O<T> createObjectByDefault(Class<T> claz) {
         try {
@@ -51,6 +57,12 @@ public final class Re {
         } catch (Exception e) {
             return O.empty();
         }
+    }
+
+    public static <T extends Enum<T> & IdentifiableString> O<T> findInEnumById(String text, Class<T> cls) {
+        return O.of(Cc.stream(cls.getEnumConstants())
+                .filter($ -> Fu.equal(text.trim().toLowerCase(), $.getId().toLowerCase()))
+                .findAny());
     }
 
     public static O<Class<?>> getClassIfExist(String className) {
@@ -103,6 +115,11 @@ public final class Re {
     }
 
     private Re() {
+    }
+
+    @SneakyThrows
+    public static Class<?> cls4Name(String cls) {
+        return Class.forName(cls);
     }
     //endregion
 }

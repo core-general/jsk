@@ -30,15 +30,15 @@ import java.util.List;
 
 public interface MgcGraphExecutionContext {
     default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX) {
-        return getGraphHistory(lastX, O.empty(), false, O.empty()).getData();
+        return getGraphHistory(lastX, O.empty(), false, MgcObjectType.BOTH).getData();
     }
 
-    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX, boolean isNode) {
-        return getGraphHistory(lastX, O.empty(), false, O.of(isNode)).getData();
+    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX, MgcObjectType type) {
+        return getGraphHistory(lastX, O.empty(), false, type).getData();
     }
 
     SimplePage<MgcGraphHistoryItem, String> getGraphHistory(int count, O<String> npa,
-            boolean ascending, O<Boolean> isNodeOrAll);
+            boolean ascending, MgcObjectType type);
 
     MgcGraph getExecutedGraph();
 

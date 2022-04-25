@@ -59,6 +59,15 @@ public interface IRand {
         return getRandom().nextDouble();
     }
 
+    default double randomGaussian(double SKO) {
+        return getRandom().nextGaussian() * SKO;
+    }
+
+    default double rndDouble(double min, double max) {
+        double val = getRandom().nextDouble();
+        return min + val * (max - min);
+    }
+
     default <T> O<T> rndFromList(List<T> list) {
         return ofNullable(list.size() == 0 ? null : list.get(rndInt(list.size())));
     }

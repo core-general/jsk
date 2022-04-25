@@ -1,10 +1,10 @@
-package sk.utils.math;
+package sk.math.data.func.standard.x1;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2021 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,27 @@ package sk.utils.math;
  * #L%
  */
 
-import org.junit.Test;
+import sk.math.data.func.MFuncProto;
 
-import static org.junit.Assert.assertEquals;
+/** y = a*log(x+b)+c; */
+public class MX1Log1 extends MFuncProto {
+    @Override
+    public double value(double[] x, double[] p) {
+        return p[0] * Math.log(x[0] + p[1]) + p[2];
+    }
 
-public class MilliNumTest {
-    @Test
-    public void toNonMilli() {
-        assertEquals("15.13", MilliNum.create("15.1343").toNonMilli());
-        assertEquals("111.10", MilliNum.create("111.1").toNonMilli());
-        assertEquals("111.01", MilliNum.create("111.01").toNonMilli());
-        assertEquals("111.00", MilliNum.create("111").toNonMilli());
-        assertEquals(11110L, MilliNum.create("111.1").getMultValue());
+    @Override
+    public double[] jacobian(double[] x, double[] p) {
+        final double xx = x[0] + p[1];
+        return new double[]{
+                Math.log(xx),
+                p[0] / (xx),
+                1
+        };
+    }
+
+    @Override
+    public int paramCount() {
+        return 3;
     }
 }

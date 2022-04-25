@@ -22,8 +22,21 @@ package sk.utils.statics;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 
 public class Ar {
+    public static double[] fill(int size, double value) {
+        double[] arr = new double[size];
+        Arrays.fill(arr, value);
+        return arr;
+    }
+
+    public static boolean[] fill(int size, boolean value) {
+        boolean[] arr = new boolean[size];
+        Arrays.fill(arr, value);
+        return arr;
+    }
+
     public static byte[] intToByteArray(int value) {
         return ByteBuffer.allocate(4).putInt(value).array();
     }

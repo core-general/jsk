@@ -183,6 +183,10 @@ public final class St {
         return convertIfSmaller(num, minSymbols, s -> St.repeat(prefix, minSymbols - s.length()) + num);
     }
 
+    public static String minSymbolsOtherwiseSuffix(String num, int minSymbols, String prefix) {
+        return convertIfSmaller(num, minSymbols, s -> num + St.repeat(prefix, minSymbols - s.length()));
+    }
+
     public static String raze(String init, int limit) {
         return convertIfBigger(init, limit, s -> St.ss(init, 0, limit));
     }

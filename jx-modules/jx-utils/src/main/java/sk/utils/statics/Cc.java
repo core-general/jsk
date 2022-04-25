@@ -211,7 +211,7 @@ public final class Cc {
     }
 
     public static <T> BinaryOperator<T> throwingMerger() {
-        return (u, v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
+        return (u, v) -> {throw new IllegalStateException(String.format("Duplicate key %s", u));};
     }
     //endregion
 
@@ -419,6 +419,60 @@ public final class Cc {
 
     public static <T, X, A extends Map<T, X>> A put(A map, T key, X val) {
         map.put(key, val);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1) {
+        map.put(key, val);
+        map.put(key1, val1);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1, T key2, X val2) {
+        map.put(key, val);
+        map.put(key1, val1);
+        map.put(key2, val2);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1, T key2, X val2, T key3, X val3) {
+        map.put(key, val);
+        map.put(key1, val1);
+        map.put(key2, val2);
+        map.put(key3, val3);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1, T key2, X val2, T key3, X val3, T key4,
+            X val4) {
+        map.put(key, val);
+        map.put(key1, val1);
+        map.put(key2, val2);
+        map.put(key3, val3);
+        map.put(key4, val4);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1, T key2, X val2, T key3, X val3, T key4,
+            X val4, T key5, X val5) {
+        map.put(key, val);
+        map.put(key1, val1);
+        map.put(key2, val2);
+        map.put(key3, val3);
+        map.put(key4, val4);
+        map.put(key5, val5);
+        return map;
+    }
+
+    public static <T, X, A extends Map<T, X>> A put(A map, T key, X val, T key1, X val1, T key2, X val2, T key3, X val3, T key4,
+            X val4, T key5, X val5, T key6, X val6) {
+        map.put(key, val);
+        map.put(key1, val1);
+        map.put(key2, val2);
+        map.put(key3, val3);
+        map.put(key4, val4);
+        map.put(key5, val5);
+        map.put(key6, val6);
         return map;
     }
 

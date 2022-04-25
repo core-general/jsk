@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.3.3.7</version>
+    <version>jsk.3.3.11</version>
 
     <modules>
         <module>jx-modules</module>
@@ -19,6 +19,7 @@
         <module>aws-modules</module>
         <module>outer-api-modules</module>
         <module>mvn-plugins</module>
+        <module>maths</module>
     </modules>
 
     <properties>

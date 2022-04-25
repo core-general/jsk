@@ -25,4 +25,6 @@ import sk.utils.functional.F1;
 import sk.utils.ifaces.IdentifiableString;
 
 public interface MgcListener extends F1<MgcGraphExecutionContext, MgcListenerResult>, IdentifiableString {
+    @Override
+    MgcListenerResult apply(MgcGraphExecutionContext mgcGraphExecutionContext);
 }
