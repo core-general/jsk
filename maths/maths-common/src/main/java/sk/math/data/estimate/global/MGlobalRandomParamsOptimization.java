@@ -40,6 +40,8 @@ public class MGlobalRandomParamsOptimization<T extends MFuncProto> implements MG
     double[] maxes;
     int paramCount;
     boolean parallel;
+    IRand rand;
+
 
     public MGlobalRandomParamsOptimization(int maxCount, double min, double max, int paramCount) {
         this(maxCount, Ar.fill(paramCount, min), Ar.fill(paramCount, max), false);
@@ -50,6 +52,10 @@ public class MGlobalRandomParamsOptimization<T extends MFuncProto> implements MG
     }
 
     public MGlobalRandomParamsOptimization(int maxCount, double[] mins, double[] maxes, boolean parallel) {
+        this(maxCount, mins, maxes, parallel, new RandImpl());
+    }
+
+    public MGlobalRandomParamsOptimization(int maxCount, double[] mins, double[] maxes, boolean parallel, IRand rand) {
         if (mins.length != maxes.length) {
             throw new RuntimeException(String.format("mins.length!=maxes.length %d!=%d", mins.length, maxes.length));
         }
@@ -58,12 +64,12 @@ public class MGlobalRandomParamsOptimization<T extends MFuncProto> implements MG
         this.maxes = maxes;
         this.paramCount = mins.length;
         this.parallel = parallel;
+        this.rand = rand;
     }
 
     @Override
     public O<MOptimizeInfo<T>> optimize(MDataSet data,
             F1<double[], O<MOptimizeInfo<T>>> initialParamsToOptimizedInfo) {
-        IRand rand = new RandImpl();
         IntStream stream = IntStream.generate(() -> 0);
         if (parallel) {
             stream = stream.parallel();

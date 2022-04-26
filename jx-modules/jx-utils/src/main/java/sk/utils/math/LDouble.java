@@ -22,7 +22,9 @@ package sk.utils.math;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import sk.exceptions.NotImplementedException;
 import sk.utils.statics.Ma;
 import sk.utils.statics.St;
@@ -33,7 +35,8 @@ import java.util.stream.IntStream;
  *
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class LDouble {
+@EqualsAndHashCode
+public class LDouble implements Comparable<LDouble> {
     @Getter
     private long decValueRaw;
     private int precisionDigits;
@@ -203,5 +206,10 @@ public class LDouble {
             //todo possible, but not yet implemented
             throw new NotImplementedException();
         }
+    }
+
+    @Override
+    public int compareTo(@NotNull LDouble o) {
+        return Double.compare(toDouble(), o.toDouble());
     }
 }
