@@ -20,6 +20,7 @@ package sk.utils.math;
  * #L%
  */
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import sk.exceptions.NotImplementedException;
@@ -31,12 +32,17 @@ import java.util.stream.IntStream;
 /**
  *
  */
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class LDouble {
     @Getter
     private long decValueRaw;
     private int precisionDigits;
     private int precisionTens;
+
+    @Override
+    public String toString() {
+        return toStringAsDouble();
+    }
 
     public static LDouble createMilli(String milliVal) {
         return create(milliVal, 2);
@@ -46,12 +52,20 @@ public class LDouble {
         return createRaw(multipliedVal, 2);
     }
 
+    public static LDouble createMilliRaw(double raw) {
+        return createRaw(raw, 2);
+    }
+
     public static LDouble create(String milliVal, int precisionBits) {
         return new LDouble(milliVal, precisionBits);
     }
 
     public static LDouble createRaw(long multipliedVal, int precisionBits) {
         return new LDouble(multipliedVal, precisionBits);
+    }
+
+    public static LDouble createRaw(double val, int precisionBits) {
+        return new LDouble(val, precisionBits);
     }
 
     private LDouble(String realValue, int precisionDigits) {
@@ -74,7 +88,14 @@ public class LDouble {
         this.precisionTens = IntStream.range(0, precisionDigits).map($ -> 10).reduce(1, (left, right) -> left * right);
     }
 
-    public String toNonMilli() {
+    private LDouble(double decValueRaw, int precisionDigits) {
+        this.precisionTens = IntStream.range(0, precisionDigits).map($ -> 10).reduce(1, (left, right) -> left * right);
+        final double val = decValueRaw * precisionTens;
+        this.decValueRaw = Math.round(val);
+        this.precisionDigits = precisionDigits;
+    }
+
+    public String toStringAsDouble() {
         String l = decValueRaw % precisionTens + "";
         return decValueRaw / precisionTens + "." + (l.length() == 2 ? l : "0" + l);
     }

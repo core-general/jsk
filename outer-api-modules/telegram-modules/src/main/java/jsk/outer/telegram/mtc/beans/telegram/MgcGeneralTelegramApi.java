@@ -49,7 +49,7 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         image.ifPresent(s -> requests.add(new SendPhoto(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> requests.add(new SendSticker(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
-        text.ifPresent(s -> requests.add(new SendMessage(userId, s)));
+        text.ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
         document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 
         Cc.last(requests).map($ -> {

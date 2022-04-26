@@ -27,14 +27,15 @@ import static org.junit.Assert.assertEquals;
 public class LDoubleTest {
     @Test
     public void toNonMilli() {
-        assertEquals("5.00", LDouble.createMilli("15").plus(15).div(2).minus(10).toNonMilli());
-        assertEquals("15.00", LDouble.createMilli("15").toNonMilli());
-        assertEquals("15.13", LDouble.createMilli("15.1343").toNonMilli());
-        assertEquals("111.10", LDouble.createMilli("111.1").toNonMilli());
-        assertEquals("111.01", LDouble.createMilli("111.01").toNonMilli());
-        assertEquals("111.00", LDouble.createMilli("111").toNonMilli());
+        assertEquals("5.00", LDouble.createMilli("15").plus(15).div(2).minus(10).toStringAsDouble());
+        assertEquals("15.00", LDouble.createMilli("15").toStringAsDouble());
+        assertEquals("15.13", LDouble.createMilli("15.1343").toStringAsDouble());
+        assertEquals("111.10", LDouble.createMilli("111.1").toStringAsDouble());
+        assertEquals("111.01", LDouble.createMilli("111.01").toStringAsDouble());
+        assertEquals("111.00", LDouble.createMilli("111").toStringAsDouble());
         assertEquals(11110L, LDouble.createMilli("111.1").getDecValueRaw());
         assertEquals(11110000L, LDouble.create("111.1", 5).getDecValueRaw());
         assertEquals(335.8d, LDouble.create("111.1", 5).mult(6).plus(10).minus(5).div(2).toDouble(), 0.00001d);
+        assertEquals("1.24", LDouble.createRaw(1.236, 2).toString());
     }
 }
