@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 public class LDoubleTest {
     @Test
     public void toNonMilli() {
+        assertEquals("0.99000", LDouble.createRaw(0.99, 5).toStringAsDouble());
         assertEquals("5.00", LDouble.createMilli("15").plus(15).div(2).minus(10).toStringAsDouble());
         assertEquals("15.00", LDouble.createMilli("15").toStringAsDouble());
         assertEquals("15.13", LDouble.createMilli("15.1343").toStringAsDouble());

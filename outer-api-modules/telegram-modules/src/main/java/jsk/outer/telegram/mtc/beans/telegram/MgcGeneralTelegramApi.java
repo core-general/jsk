@@ -22,10 +22,7 @@ package jsk.outer.telegram.mtc.beans.telegram;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.request.AbstractSendRequest;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
-import com.pengrad.telegrambot.request.SendSticker;
+import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.AllArgsConstructor;
 import sk.outer.api.OutMessengerApi;
@@ -49,6 +46,7 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         image.ifPresent(s -> requests.add(new SendPhoto(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> requests.add(new SendSticker(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
+        mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> requests.add(new SendVideo(userId, s)));
         text.ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
         document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 

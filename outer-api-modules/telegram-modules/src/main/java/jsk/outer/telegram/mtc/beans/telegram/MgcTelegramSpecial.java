@@ -34,12 +34,21 @@ import static sk.utils.functional.O.of;
 public class MgcTelegramSpecial {
     O<SendInvoice> payments;
     O<String> sticker;
+    O<String> video;
+
+    public static MgcTelegramSpecial select(O<SendInvoice> payments, O<String> sticker, O<String> video) {
+        return new MgcTelegramSpecial(payments, sticker, video);
+    }
 
     public static MgcTelegramSpecial payments(SendInvoice payments) {
-        return new MgcTelegramSpecial(of(payments), empty());
+        return new MgcTelegramSpecial(of(payments), empty(), empty());
     }
 
     public static MgcTelegramSpecial sticker(String sticker) {
-        return new MgcTelegramSpecial(empty(), of(sticker));
+        return new MgcTelegramSpecial(empty(), of(sticker), empty());
+    }
+
+    public static MgcTelegramSpecial video(String video) {
+        return new MgcTelegramSpecial(empty(), empty(), of(video));
     }
 }

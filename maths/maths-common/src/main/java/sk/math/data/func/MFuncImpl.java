@@ -32,6 +32,10 @@ public class MFuncImpl<T extends MFuncProto> {
         return proto.value(x, params);
     }
 
+    public double value(double x) {
+        return value(new double[]{x});
+    }
+
     public Class<T> getProtoClass() {
         return (Class<T>) proto.getClass();
     }

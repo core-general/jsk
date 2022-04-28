@@ -58,7 +58,9 @@ public final class Ma {
         return value < min ? min : min(value, max);
     }
 
-    public static boolean inside(int value, int min, int max) {return !(value < min || value > max);}
+    public static boolean inside(int value, int min, int max) {return value >= min && value <= max;}
+
+    public static boolean inside(double value, double min, double max) {return value >= min && value <= max;}
 
     public static Double rand(Number min, Number max) {
         return (max.doubleValue() - min.doubleValue()) * random() + min.doubleValue();
