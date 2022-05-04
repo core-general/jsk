@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.3.3.19</version>
+    <version>jsk.3.4.1</version>
 
     <modules>
         <module>jx-modules</module>
@@ -58,7 +58,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.14</version>
+                <version>1.18.24</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

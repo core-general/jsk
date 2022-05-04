@@ -5,13 +5,13 @@
     <parent>
         <artifactId>relational-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.3.19</version>
+        <version>jsk.3.4.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-util</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.3.3.19</version>
+    <version>jsk.3.4.1</version>
 
     <dependencies>
         <dependency>
@@ -21,12 +21,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-spring-core</artifactId>
-            <version>jsk.3.3.19</version>
+            <version>jsk.3.4.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
-            <version>3.2</version>
+            <version>4.4</version>
         </dependency>
     </dependencies>
 </project>

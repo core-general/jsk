@@ -182,8 +182,8 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
     private O<BaseMessage> mainTaskHealthScheduler(long mainTaskIsOldAfter) {
         return withExceptionHandler(() ->
                 (mainTaskStartedAt != -1) && (times.now() - mainTaskStartedAt > mainTaskIsOldAfter)
-                        ? O.of(MainTaskIdOld)
-                        : O.empty());
+                ? O.of(MainTaskIdOld)
+                : O.empty());
     }
 
     private O<BaseMessage> withExceptionHandler(F0<O<BaseMessage>> provider) {
