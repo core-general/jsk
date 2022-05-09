@@ -23,25 +23,99 @@ package sk.utils.files;
 import sk.utils.collections.MultiBiMap;
 import sk.utils.statics.Cc;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class CsvReader {
     public static List<Map<String, String>> getFromCsv(String csv) {
-        final String[] ccsv = csv.split("\n");
-        MultiBiMap<String, Integer> i2s = new MultiBiMap<>(Cc.ordering(Cc.l(ccsv[0].trim().split(","))));
+        return getFromCsv(csv, ",");
+    }
+
+    public static List<Map<String, String>> getFromCsv(String csv, String columnSplitter) {
+        return getFromCsvUni(new SimpleCsvProcessor(csv, columnSplitter));
+    }
+
+    public static List<Map<String, String>> getFromListList(List<List<String>> data) {
+        return getFromCsvUni(new ListListCsvProcessor(data));
+    }
+
+    private static <T extends ObjectProcessor> List<Map<String, String>> getFromCsvUni(T csvObject) {
+        final String[] firstLine = csvObject.getFirstLine();
+        MultiBiMap<String, Integer> i2s = new MultiBiMap<>(Cc.ordering(Cc.l(firstLine)));
 
         List<Map<String, String>> toRet = Cc.l();
-        for (int i = 1; i < ccsv.length; i++) {
-            String s = ccsv[i];
-            final String[] data = s.split(",");
+        csvObject.forEachRemaining(strings -> {
             Map<String, String> toAdd = Cc.m();
-            for (int j = 0; j < data.length; j++) {
-                String datum = data[j];
+            for (int j = 0; j < strings.length; j++) {
+                String datum = strings[j];
                 toAdd.put(i2s.getSecondByFirst().get(j).iterator().next(), datum);
             }
+
+            for (int i = strings.length; i < firstLine.length; i++) {
+                toAdd.put(i2s.getSecondByFirst().get(i).iterator().next(), null);
+            }
             toRet.add(toAdd);
-        }
+        });
+
         return toRet;
+    }
+
+    private interface ObjectProcessor extends Iterator<String[]> {
+        String[] getFirstLine();
+    }
+
+    private static class SimpleCsvProcessor implements ObjectProcessor {
+        private final String text;
+        private final String splitter;
+        private final String[] ccsv;
+        private int curIndex = 0;
+
+        public SimpleCsvProcessor(String text, String splitter) {
+            this.text = text;
+            this.splitter = splitter;
+            ccsv = this.text.split("\n");
+        }
+
+        @Override
+        public String[] getFirstLine() {
+            return ccsv[0].trim().split(splitter);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return 1 + curIndex < ccsv.length;
+        }
+
+        @Override
+        public String[] next() {
+            curIndex++;
+            return ccsv[curIndex].split(splitter);
+        }
+    }
+
+    private static class ListListCsvProcessor implements ObjectProcessor {
+        private final List<List<String>> text;
+        private int curIndex = 0;
+
+        public ListListCsvProcessor(List<List<String>> text) {
+            this.text = text;
+        }
+
+        @Override
+        public String[] getFirstLine() {
+            return text.get(0).toArray(String[]::new);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return 1 + curIndex < text.size();
+        }
+
+        @Override
+        public String[] next() {
+            curIndex++;
+            return text.get(curIndex).toArray(String[]::new);
+        }
     }
 }
