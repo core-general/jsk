@@ -22,6 +22,7 @@ package sk.utils.files;
 
 import sk.utils.collections.MultiBiMap;
 import sk.utils.statics.Cc;
+import sk.utils.statics.St;
 
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +50,7 @@ public class CsvReader {
             Map<String, String> toAdd = Cc.m();
             for (int j = 0; j < strings.length; j++) {
                 String datum = strings[j];
-                toAdd.put(i2s.getSecondByFirst().get(j).iterator().next(), datum);
+                toAdd.put(i2s.getSecondByFirst().get(j).iterator().next(), St.isNullOrEmpty(datum) ? null : datum);
             }
 
             for (int i = strings.length; i < firstLine.length; i++) {
