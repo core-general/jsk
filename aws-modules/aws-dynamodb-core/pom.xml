@@ -5,19 +5,19 @@
     <parent>
         <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.4.4</version>
+        <version>jsk.3.4.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-dynamodb-core</artifactId>
-    <version>jsk.3.4.4</version>
+    <version>jsk.3.4.5</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.3.4.4</version>
+            <version>jsk.3.4.5</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-core</artifactId>
-            <version>jsk.3.4.4</version>
+            <version>jsk.3.4.5</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.3.4.4</version>
+            <version>jsk.3.4.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

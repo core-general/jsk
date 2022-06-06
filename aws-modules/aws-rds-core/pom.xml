@@ -3,35 +3,29 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>spring-modules</artifactId>
+        <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
         <version>jsk.3.4.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>spring-core</artifactId>
-    <version>jsk.3.4.5</version>
-    <packaging>jar</packaging>
+    <artifactId>aws-rds-core</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>jx-services-standard-impl</artifactId>
+            <artifactId>aws-core</artifactId>
             <version>jsk.3.4.5</version>
-        </dependency>
-        <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>spring-properties-plugin-model</artifactId>
-            <version>jsk.3.4.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.3.19</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>rds</artifactId>
+            <version>${aws-version}</version>
         </dependency>
     </dependencies>
 </project>
