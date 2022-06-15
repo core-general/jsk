@@ -84,7 +84,7 @@ public class WebSparkTest {
         final SpringApp<SpringAppEntryPoint> rSpringApp = SpringApp.createWithWelcomeAndLogAndInit(
                 "Hello!", "tst_logger", new WebJettyEntryPoint(), Config.class);
 
-        Io.endlessReadFromKeyboard("exit", in -> { });
+        Io.endlessReadFromKeyboard("exit", in -> {});
     }
 
 
@@ -149,6 +149,11 @@ public class WebSparkTest {
         @Override
         public byte[] bytes() {
             return "Wow grechka!".getBytes(StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public List<String> getStrings(List<String> abc) {
+            return abc;
         }
 
     }

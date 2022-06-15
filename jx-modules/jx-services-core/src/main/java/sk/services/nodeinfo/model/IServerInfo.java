@@ -1,10 +1,10 @@
-package sk.services.nodeinfo;
+package sk.services.nodeinfo.model;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,16 @@ package sk.services.nodeinfo;
  * #L%
  */
 
-import sk.services.nodeinfo.model.IServerInfo;
-import sk.utils.functional.O;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import sk.utils.functional.F1;
 
-import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.SortedMap;
 
-public interface INodeInfo extends INodeId {
-    public String getNodeVersion();
-
-    public ZonedDateTime getBuildTime();
-
-    public O<String> getPublicIp();
-
-    public O<String> getPrivateIp();
-
-    public IServerInfo getCurrentServerInfo();
-
-    public boolean isShuttingDown();
+@Data
+@AllArgsConstructor
+public class IServerInfo {
+    List<String> categories;
+    F1<List<String>, SortedMap<String, ?>> infoGetterByFilter;
 }

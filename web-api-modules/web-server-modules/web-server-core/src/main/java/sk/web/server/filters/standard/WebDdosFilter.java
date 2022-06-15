@@ -26,9 +26,8 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import lombok.extern.log4j.Log4j2;
 import sk.exceptions.JskProblem;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
+import sk.services.nodeinfo.model.IBeanInfo;
 import sk.utils.statics.Cc;
-import sk.utils.tuples.X;
-import sk.utils.tuples.X2;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
@@ -79,8 +78,10 @@ public class WebDdosFilter implements WebServerFilter, IBeanInfoSubscriber<Map<S
     }
 
     @Override
-    public X2<String, Map<String, String>> gatherDiagnosticInfo() {
-        return X.x("DDOS_JAIL", Cc.m("jail_size", jail.estimatedSize() + "", "court_size", court.estimatedSize() + ""));
+    public IBeanInfo<Map<String, String>> gatherDiagnosticInfo() {
+        return new IBeanInfo<>(
+                "UTILITY/DDOS_JAIL",
+                () -> Cc.m("jail_size", jail.estimatedSize() + "", "court_size", court.estimatedSize() + ""));
     }
 
     @Override

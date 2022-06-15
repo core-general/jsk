@@ -79,7 +79,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
             schedulers.forEach(CluScheduler::start);
             processingThread = new ForeverThreadWithFinish(() -> {
                 try {
-                    MSG msg = messageQue.poll(5, TimeUnit.MILLISECONDS);
+                    MSG msg = messageQue.poll(1000, TimeUnit.MILLISECONDS);
                     if (msg != null) {
                         processor.accept(msg, getState());
                         log.trace(() -> name + " - processor for msg: " + msg + " finished");

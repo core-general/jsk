@@ -28,6 +28,7 @@ import sk.web.annotations.type.WebGET;
 import sk.web.annotations.type.WebPOST;
 import sk.web.renders.WebRenderType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -92,4 +93,7 @@ public interface TestApi1 {
     @WebGET
     @WebFile(filename = "test.file")
     byte[] bytes();
+
+    @WebGET
+    List<String> getStrings(List<String> abc);
 }

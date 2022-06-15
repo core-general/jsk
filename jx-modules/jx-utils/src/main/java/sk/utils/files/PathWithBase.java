@@ -24,12 +24,14 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import sk.utils.functional.O;
+import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.St;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static sk.utils.statics.St.*;
 
@@ -41,6 +43,10 @@ public class PathWithBase {
 
     public PathWithBase(String base) {
         this(base, O.empty());
+    }
+
+    public PathWithBase(String base, String... path) {
+        this(base, path.length == 0 ? O.empty() : O.of(Cc.join("/", Arrays.asList(path))));
     }
 
     public String getPathWithSlash() {

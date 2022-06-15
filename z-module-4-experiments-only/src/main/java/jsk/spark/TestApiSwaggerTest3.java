@@ -42,7 +42,9 @@ public interface TestApiSwaggerTest3 {
      *
      * @param a test parameter
      * @return test stuff
-     * @throws BAD exception
+     * @throws BAD      exception
+     * @throws VERY_BAD exception
+     * @throws AWFUL    exception
      */
     @WebPOST
     @WebPath("level1")

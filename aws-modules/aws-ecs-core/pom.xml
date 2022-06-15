@@ -5,7 +5,7 @@
     <parent>
         <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.3.4.5</version>
+        <version>jsk.3.5.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-spring-core</artifactId>
-            <version>jsk.3.4.5</version>
+            <version>jsk.3.5.4</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

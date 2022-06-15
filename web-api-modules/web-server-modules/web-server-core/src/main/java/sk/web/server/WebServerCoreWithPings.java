@@ -25,9 +25,11 @@ import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
 import sk.services.free.IFree;
 import sk.services.nodeinfo.INodeInfo;
+import sk.services.nodeinfo.model.IServerInfo;
 import sk.utils.functional.C1;
 import sk.utils.functional.F3;
 import sk.utils.functional.O;
+import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.statics.St;
@@ -49,6 +51,7 @@ import sk.web.utils.WebUtils;
 
 import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -107,12 +110,21 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
             env.addPost(pingPath, processor.apply(POST_FORM, () -> WebFilterOutput.empty(), jsonRender), false, O.empty());
         }
 
+
         {//todo move to WebJettyContextConsumer4Spark or in some other way
-            final String infoPath = base + "jsk-srv-info";
+            final String infoPath = base + "jskinfo";
             final WebServerFilterNext infoProcessor =
                     () -> {
-                        checkBasicAuth();
-                        return WebFilterOutput.rawValue(200, nodeInfo.getCurrentServerInfo(O.empty()));
+                        List<String> categories = getCategoriesFromRequest();
+                        final IServerInfo info = nodeInfo.getCurrentServerInfo();
+                        if (categories.size() == 0) {
+                            return WebFilterOutput.rawValue(200, Cc.m(
+                                    "parameterNameAndType", "json - List<String> needInfo",
+                                    "value", info.getCategories()
+                            ));
+                        } else {
+                            return WebFilterOutput.rawValue(200, info.getInfoGetterByFilter().apply(categories));
+                        }
                     };
             env.addGet(infoPath, processor.apply(GET, infoProcessor, jsonRender), O.empty());
             env.addPost(infoPath, processor.apply(POST_FORM, infoProcessor, jsonRender), false, O.empty());
@@ -157,6 +169,15 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
                     };
             env.addGet(postmanApiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
             env.addPost(postmanApiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
+        }
+    }
+
+    private List<String> getCategoriesFromRequest() {
+        final O<String> needInfo = ctxHolder.get().getParamAsString("needInfo");
+        if (needInfo.isEmpty()) {
+            return Cc.l();
+        } else {
+            return json.from(needInfo.get(), TypeWrap.getList(String.class));
         }
     }
 

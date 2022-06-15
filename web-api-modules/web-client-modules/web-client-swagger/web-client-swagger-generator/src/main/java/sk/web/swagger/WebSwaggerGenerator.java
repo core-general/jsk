@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import io.swagger.v3.core.jackson.mixin.MediaTypeMixin;
 import io.swagger.v3.core.jackson.mixin.SchemaMixin;
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.headers.Header;
@@ -108,6 +109,7 @@ public class WebSwaggerGenerator {
         final ObjectMapper json = ObjectMapperFactory.createJson()
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .addMixIn(Schema.class, SchemaMixin.class)
+                .addMixIn(MediaType.class, MediaTypeMixin.class)
                 .addMixIn(Parameter.class, ParameterMixin.class)
                 .addMixIn(Header.class, ParameterMixin.class)
                 .registerModule(

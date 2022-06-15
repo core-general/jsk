@@ -20,9 +20,9 @@ package sk.services.nodeinfo;
  * #L%
  */
 
-import sk.utils.tuples.X2;
+import sk.services.nodeinfo.model.IBeanInfo;
 
 //todo implement system with server info
 public interface IBeanInfoSubscriber<INFO> {
-    X2<String, INFO> gatherDiagnosticInfo();
+    IBeanInfo<INFO> gatherDiagnosticInfo();
 }

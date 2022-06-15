@@ -31,6 +31,7 @@ import sk.services.ids.IIds;
 import sk.services.ipgeo.IIpGeoExtractor;
 import sk.services.json.IJson;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
+import sk.services.nodeinfo.model.IBeanInfo;
 import sk.services.shutdown.AppStopListener;
 import sk.services.time.ITime;
 import sk.utils.functional.*;
@@ -38,6 +39,7 @@ import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.statics.Re;
+import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 import sk.web.WebMethodType;
@@ -483,8 +485,8 @@ public class WebServerCore<API>
     }
 
     @Override
-    public X2<String, WebServerShortInfo> gatherDiagnosticInfo() {
-        return X.x("WEB_" + serverApiImpl.getClass().getName(), info.toShortInfo());
+    public IBeanInfo<WebServerShortInfo> gatherDiagnosticInfo() {
+        return new IBeanInfo<>("WEB/SERVERS/" + serverApiImpl.getClass().getName(), () -> info.toShortInfo());
     }
 
     @Override
@@ -526,15 +528,25 @@ public class WebServerCore<API>
         @Getter final List<OneOf<WebMethodInfo, String>> getMethods = Cc.l();
         @Getter final List<OneOf<WebMethodInfo, String>> postMethods = Cc.l();
 
-        final F1<List<OneOf<WebMethodInfo, String>>, SortedMap<String, List<String>>> converter = x -> x.stream()
-                .map($ -> X.x(
-                        $.collect(w -> w.getFullMethodPath() + "(" + Cc.join(", ", w.getParamAndTypes(),
-                                pit -> subLL(pit.getType().getType().getTypeName(), ".") + " " + pit.getName()) + ")",
-                                w -> w),
-                        $.collect(w -> w.getPrecompiledModel().getExceptions().stream().map(y -> y.getExceptionName())
-                                .sorted()
-                                .collect(Cc.toL()), Cc::l)
-                )).collect(Collectors.toMap(X2::i1, X2::i2, (a, b) -> a, TreeMap::new));
+        final F1<List<OneOf<WebMethodInfo, String>>, SortedMap<String, String>> converter = x -> x.stream()
+                .map($ -> {
+                    final String except =
+                            $.collect(w -> w.getPrecompiledModel().getExceptions().stream().map(y -> y.getExceptionName())
+                                    .sorted()
+                                    .collect(joining(",")), s -> "");
+                    final X2<String, String> x1 = X.x(
+                            $.collect(w -> String.format("%s %s(%s)",
+                                            St.subLL(w.getReturnValue().getTypeName(), "."),
+                                            w.getFullMethodPath(),
+                                            Cc.join(", ", w.getParamAndTypes(),
+                                                    pit -> subLL(pit.getType().getType().getTypeName(), ".") + " " + pit.getName())),
+                                    w -> w),
+                            except.length() > 0 ? "Exceptions: " + except : "No exceptions"
+                    );
+                    return x1;
+                }).collect(Collectors.toMap(
+                        X2::i1,
+                        X2::i2, (String a, String b) -> a, TreeMap::new));
 
         public WebServerShortInfo toShortInfo() {
             return new WebServerShortInfo(apiClassName, converter.apply(getMethods), converter.apply(postMethods));
@@ -544,7 +556,7 @@ public class WebServerCore<API>
     @RequiredArgsConstructor
     public static class WebServerShortInfo {
         final String apiClassName;
-        final SortedMap<String, List<String>> getMethods;
-        final SortedMap<String, List<String>> postMethods;
+        final SortedMap<String, String> getMethods;
+        final SortedMap<String, String> postMethods;
     }
 }

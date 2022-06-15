@@ -27,17 +27,17 @@ import sk.mvn.model.ApiBuildInfo;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.nodeinfo.IIpProvider;
 import sk.services.nodeinfo.INodeInfo;
+import sk.services.nodeinfo.model.IServerInfo;
 import sk.services.rand.IRand;
 import sk.services.shutdown.AppStopListener;
 import sk.services.shutdown.AppStopService;
 import sk.services.time.ITime;
+import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
-import sk.utils.statics.Fu;
+import sk.utils.statics.Ex;
 import sk.utils.statics.St;
-import sk.utils.statics.Ti;
 import sk.utils.tuples.X;
-import sk.utils.tuples.X2;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -52,11 +52,14 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     @Inject ApiClassUtil clsUtil;
     @Inject AppStopService appStop;
     @Inject Optional<IIpProvider> ipProvider = Optional.empty();
-    @Inject List<IBeanInfoSubscriber> beanInfos = Cc.l();
 
     @Getter String nodeId;
     @Getter String nodeVersion;
     @Getter ZonedDateTime buildTime;
+
+    @Inject List<IBeanInfoSubscriber<?>> beanInfos = Cc.l();
+    Map<String, F0<?>> beanInfosProcessed;
+    IServerInfo serverInfo;
 
     @PostConstruct
     void init() {
@@ -64,6 +67,21 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
         final O<ApiBuildInfo> bi = clsUtil.getVersionAndBuildTimeFromResources();
         buildTime = bi.map($ -> times.toZDT($.getBuildTime())).orElseGet(() -> times.toZDT(0));
         nodeVersion = bi.map($ -> $.getVersion()).orElse("?") + "-" + times.toMilli(buildTime);
+        beanInfosProcessed = beanInfos.stream().map($ -> $.gatherDiagnosticInfo())
+                .collect(Collectors.toMap($ -> $.getName().trim(), $ -> (F0<?>) $.getInfoProvider()));
+        final List<String> allCategories = Collections.unmodifiableList(Cc.sort(new ArrayList<>(beanInfosProcessed.keySet())));
+        serverInfo = new IServerInfo(
+                allCategories,
+                (filterList) -> {
+                    return (filterList.size() == 0 ? allCategories : filterList).stream()
+                            .map($ -> X.x($.trim(), beanInfosProcessed.getOrDefault($.trim(), () -> null).apply()))
+                            .filter($ -> $.i2() != null)
+                            .collect(Collectors.toMap($ -> $.i1(), $ -> $.i2(),
+                                    (a, b) -> Ex.thRow(String.format("keys equals: %s==%s", a, b)), TreeMap::new));
+
+                }
+        );
+
     }
 
     @Override
@@ -77,6 +95,11 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     }
 
     @Override
+    public IServerInfo getCurrentServerInfo() {
+        return serverInfo;
+    }
+
+/*    @Override
     public SortedMap<String, Object> getCurrentServerInfo(O<List<String>> filter) {
         final Map<String, Object> collect = beanInfos.stream()
                 .map($ -> {
@@ -101,7 +124,7 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
         collect.put("_buildTime", Cc.l(Ti.yyyyMMddHHmmss.format(buildTime)));
 
         return new TreeMap<>(collect);
-    }
+    }*/
 
     @Override
     public boolean isShuttingDown() {
