@@ -486,7 +486,8 @@ public class WebServerCore<API>
 
     @Override
     public IBeanInfo<WebServerShortInfo> gatherDiagnosticInfo() {
-        return new IBeanInfo<>("WEB/SERVERS/" + serverApiImpl.getClass().getName(), () -> info.toShortInfo());
+        return new IBeanInfo<>("WEB/SERVERS/" + apiClass.getSimpleName(),
+                () -> info.toShortInfo());
     }
 
     @Override
