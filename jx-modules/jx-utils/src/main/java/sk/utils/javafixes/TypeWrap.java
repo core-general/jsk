@@ -24,6 +24,7 @@ package sk.utils.javafixes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import sk.utils.statics.Fu;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -93,6 +94,16 @@ public class TypeWrap<T> {
         return typeToken;
     }
 
+    public boolean equalsTo(Type otherType) {
+        if (Fu.equal(type, otherType)) {
+            return true;
+        }
+        if (type instanceof CustomType && otherType instanceof ParameterizedType) {
+            return ((CustomType) type).equalsToParametrizedType((ParameterizedType) otherType);
+        }
+        return false;
+    }
+
     @Data
     public static class CustomType implements ParameterizedType {
         Type rawType;
@@ -103,6 +114,12 @@ public class TypeWrap<T> {
             this.rawType = rawType;
             this.actualTypeArguments = actualTypes;
         }
-    }
 
+        public boolean equalsToParametrizedType(ParameterizedType that) {
+            if (this == that) {return true;}
+            return Objects.equals(rawType, that.getRawType()) &&
+                    Arrays.equals(actualTypeArguments, that.getActualTypeArguments()) &&
+                    Objects.equals(ownerType, that.getOwnerType());
+        }
+    }
 }

@@ -75,11 +75,11 @@ public final class Re {
 
 
     //region fields
-    public static SortedSet<Field> getNonStaticPublicFields(Class target) {
+    public static SortedSet<Field> getNonStaticPublicFields(Class<?> target) {
         return getAllNonStaticFields(new TreeSet<>(Comparator.comparing(Field::getName)), target, Class::getFields);
     }
 
-    public static SortedSet<Field> getAllNonStaticFields(Class target) {
+    public static SortedSet<Field> getAllNonStaticFields(Class<?> target) {
         return getAllNonStaticFields(new TreeSet<>(Comparator.comparing(Field::getName)), target, Class::getDeclaredFields);
     }
 

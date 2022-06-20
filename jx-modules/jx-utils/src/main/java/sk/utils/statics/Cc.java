@@ -312,6 +312,25 @@ public final class Cc {
         return toRet;
     }
 
+    public static <T> Comparator<T> orderingComparator(Map<T, Integer> ordering) {
+        return new Comparator<T>() {
+            @Override
+            public int compare(T o1, T o2) {
+                final Integer order1 = ordering.get(o1);
+                final Integer order2 = ordering.get(o2);
+                return (order1 != null && order2 != null
+                        ? order1.compareTo(order2)
+                        : order1 == null && order2 == null
+                          ? 0
+                          : order1 != null && order2 == null
+                            ? -1
+                            : order1 == null && order2 != null
+                              ? 1
+                              : 0);
+            }
+        };
+    }
+
     public static <T extends Enum<T>> EnumMap<T, Integer> orderingEnum(Class<T> cls, List<T> in) {
         EnumMap<T, Integer> toRet = em(cls);
         eachWithIndex(in, toRet::put);
@@ -530,59 +549,67 @@ public final class Cc {
         return new HashMap<>();
     }
 
+    private static <K, V> void putToMapWithCheck(Map<K, V> map, K k, V v) {
+        if (!map.containsKey(k)) {
+            map.put(k, v);
+        } else {
+            throw new RuntimeException(String.format("Key %s is already in map", k));
+        }
+    }
+
     public static <K, V> Map<K, V> m(K k, V v) {
         Map<K, V> ret = m();
-        ret.put(k, v);
+        putToMapWithCheck(ret, k, v);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1) {
         Map<K, V> ret = m(k, v);
-        ret.put(k1, v1);
+        putToMapWithCheck(ret, k1, v1);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1, K k2, V v2) {
         Map<K, V> ret = m(k, v, k1, v1);
-        ret.put(k2, v2);
+        putToMapWithCheck(ret, k2, v2);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2);
-        ret.put(k3, v3);
+        putToMapWithCheck(ret, k3, v3);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3);
-        ret.put(k4, v4);
+        putToMapWithCheck(ret, k4, v4);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4);
-        ret.put(k5, v5);
+        putToMapWithCheck(ret, k5, v5);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5);
-        ret.put(k6, v6);
+        putToMapWithCheck(ret, k6, v6);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6);
-        ret.put(k7, v7);
+        putToMapWithCheck(ret, k7, v7);
         return ret;
     }
 
     public static <K, V> Map<K, V> m(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7);
-        ret.put(k8, v8);
+        putToMapWithCheck(ret, k8, v8);
         return ret;
     }
 
@@ -590,7 +617,7 @@ public final class Cc {
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
             K k9, V v9) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8);
-        ret.put(k9, v9);
+        putToMapWithCheck(ret, k9, v9);
         return ret;
     }
 
@@ -598,7 +625,7 @@ public final class Cc {
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
             K k9, V v9, K k10, V v10) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9);
-        ret.put(k10, v10);
+        putToMapWithCheck(ret, k10, v10);
         return ret;
     }
 
@@ -606,7 +633,7 @@ public final class Cc {
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
             K k9, V v9, K k10, V v10, K k11, V v11) {
         Map<K, V> ret = m(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10);
-        ret.put(k11, v11);
+        putToMapWithCheck(ret, k11, v11);
         return ret;
     }
 
@@ -616,59 +643,59 @@ public final class Cc {
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v) {
         TreeMap<K, V> ret = tm();
-        ret.put(k, v);
+        putToMapWithCheck(ret, k, v);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1) {
         TreeMap<K, V> ret = tm(k, v);
-        ret.put(k1, v1);
+        putToMapWithCheck(ret, k1, v1);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1, K k2, V v2) {
         TreeMap<K, V> ret = tm(k, v, k1, v1);
-        ret.put(k2, v2);
+        putToMapWithCheck(ret, k2, v2);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2);
-        ret.put(k3, v3);
+        putToMapWithCheck(ret, k3, v3);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3);
-        ret.put(k4, v4);
+        putToMapWithCheck(ret, k4, v4);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5,
             V v5) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3, k4, v4);
-        ret.put(k5, v5);
+        putToMapWithCheck(ret, k5, v5);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5,
             K k6, V v6) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5);
-        ret.put(k6, v6);
+        putToMapWithCheck(ret, k6, v6);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6);
-        ret.put(k7, v7);
+        putToMapWithCheck(ret, k7, v7);
         return ret;
     }
 
     public static <K extends Comparable, V> TreeMap<K, V> tm(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7);
-        ret.put(k8, v8);
+        putToMapWithCheck(ret, k8, v8);
         return ret;
     }
 
@@ -676,7 +703,7 @@ public final class Cc {
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8, K k9,
             V v9) {
         TreeMap<K, V> ret = tm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8);
-        ret.put(k9, v9);
+        putToMapWithCheck(ret, k9, v9);
         return ret;
     }
 
@@ -686,32 +713,32 @@ public final class Cc {
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v) {
         EnumMap<K, V> ret = em(cls);
-        ret.put(k, v);
+        putToMapWithCheck(ret, k, v);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1) {
         EnumMap<K, V> ret = em(cls, k, v);
-        ret.put(k1, v1);
+        putToMapWithCheck(ret, k1, v1);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1);
-        ret.put(k2, v2);
+        putToMapWithCheck(ret, k2, v2);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2);
-        ret.put(k3, v3);
+        putToMapWithCheck(ret, k3, v3);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4,
             V v4) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3);
-        ret.put(k4, v4);
+        putToMapWithCheck(ret, k4, v4);
         return ret;
     }
 
@@ -719,7 +746,7 @@ public final class Cc {
             K k5,
             V v5) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4);
-        ret.put(k5, v5);
+        putToMapWithCheck(ret, k5, v5);
         return ret;
     }
 
@@ -727,21 +754,21 @@ public final class Cc {
             K k5, V v5,
             K k6, V v6) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5);
-        ret.put(k6, v6);
+        putToMapWithCheck(ret, k6, v6);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
             K k5, V v5, K k6, V v6, K k7, V v7) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6);
-        ret.put(k7, v7);
+        putToMapWithCheck(ret, k7, v7);
         return ret;
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> em(Class<K> cls, K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4,
             K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7);
-        ret.put(k8, v8);
+        putToMapWithCheck(ret, k8, v8);
         return ret;
     }
 
@@ -749,7 +776,7 @@ public final class Cc {
             K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8, K k9,
             V v9) {
         EnumMap<K, V> ret = em(cls, k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8);
-        ret.put(k9, v9);
+        putToMapWithCheck(ret, k9, v9);
         return ret;
     }
 
@@ -760,58 +787,58 @@ public final class Cc {
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v) {
         LinkedHashMap<K, V> ret = lhm();
-        ret.put(k, v);
+        putToMapWithCheck(ret, k, v);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1) {
         LinkedHashMap<K, V> ret = lhm(k, v);
-        ret.put(k1, v1);
+        putToMapWithCheck(ret, k1, v1);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1, K k2, V v2) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1);
-        ret.put(k2, v2);
+        putToMapWithCheck(ret, k2, v2);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2);
-        ret.put(k3, v3);
+        putToMapWithCheck(ret, k3, v3);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3);
-        ret.put(k4, v4);
+        putToMapWithCheck(ret, k4, v4);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4);
-        ret.put(k5, v5);
+        putToMapWithCheck(ret, k5, v5);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6,
             V v6) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5);
-        ret.put(k6, v6);
+        putToMapWithCheck(ret, k6, v6);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6);
-        ret.put(k7, v7);
+        putToMapWithCheck(ret, k7, v7);
         return ret;
     }
 
     public static <K, V> LinkedHashMap<K, V> lhm(
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7);
-        ret.put(k8, v8);
+        putToMapWithCheck(ret, k8, v8);
         return ret;
     }
 
@@ -819,7 +846,7 @@ public final class Cc {
             K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8, K k9,
             V v9) {
         LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8);
-        ret.put(k9, v9);
+        putToMapWithCheck(ret, k9, v9);
         return ret;
     }
 

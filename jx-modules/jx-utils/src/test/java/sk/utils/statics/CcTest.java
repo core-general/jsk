@@ -27,8 +27,7 @@ import sk.utils.functional.O;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 import static sk.utils.statics.Cc.*;
 
 public class CcTest extends MockitoTest {
@@ -54,6 +53,11 @@ public class CcTest extends MockitoTest {
                 put(3, "3");
             }
         };
+    }
+
+    @Test
+    public void hashMapFail() {
+        assertThrows(RuntimeException.class, () -> Cc.m("1", 1, "2", 2, "2", 3));
     }
 
     @Test
