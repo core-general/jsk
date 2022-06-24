@@ -122,7 +122,9 @@ public final class Im {
     //region PNG
     @SneakyThrows
     public static void savePngToFile(String file, BufferedImage image) {
-        ImageIO.write(image, "png", new File(file));
+        final File f = new File(file);
+        f.getParentFile().mkdirs();
+        ImageIO.write(image, "png", f);
     }
     //endregion
 

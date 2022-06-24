@@ -54,11 +54,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Kivan
  * Date: 22.07.12
  * Time: 0:15
- * To change this template use File | Settings | File Templates.
  */
 public class JGraphHelp {
 

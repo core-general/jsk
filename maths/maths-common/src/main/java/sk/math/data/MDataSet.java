@@ -57,18 +57,18 @@ public class MDataSet {
     }
 
     public MDataSet(double[] y, double[][] x) {
-        this("NONAME", defaultXNames("X", x), "Y", y, x);
+        this("NONAME", "Y", defaultXNames("X", x), y, x);
     }
 
     public MDataSet(String name, double[] y, double[][] x) {
-        this(name, defaultXNames("X", x), "Y", y, x);
+        this(name, "Y", defaultXNames("X", x), y, x);
     }
 
-    public MDataSet(String name, String prefiX, String nameY, double[] y, double[][] x) {
-        this(name, defaultXNames(prefiX, x), nameY, y, x);
+    public MDataSet(String name, String nameY, String prefiX, double[] y, double[][] x) {
+        this(name, nameY, defaultXNames(prefiX, x), y, x);
     }
 
-    public MDataSet(String name, String[] nameX, String nameY, double[] y, double[][] x) {
+    public MDataSet(String name, String nameY, String[] nameX, double[] y, double[][] x) {
         //region Validate
         if (y.length != x.length) {
             throw new RuntimeException(String.format("ys.length!=xs.length %d!=%d", y.length, x.length));
@@ -88,14 +88,14 @@ public class MDataSet {
     }
 
     public MDataSet(double[] y, double[] x) {
-        this("NONAME", "X", "Y", y, x);
+        this("NONAME", "Y", "X", y, x);
     }
 
     public MDataSet(String name, double[] y, double[] x) {
-        this(name, "X", "Y", y, x);
+        this(name, "Y", "X", y, x);
     }
 
-    public MDataSet(String name, String nameX, String nameY, double[] y, double[] x) {
+    public MDataSet(String name, String nameY, String nameX, double[] y, double[] x) {
         this(name, nameX, nameY, y, Arrays.stream(x).mapToObj($ -> new double[]{$}).toArray(double[][]::new));
     }
 
