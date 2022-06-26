@@ -50,7 +50,5 @@ public class Tst {
 
     @Configuration
     @Import({SpringCoreConfigWithProperties.class})
-    public static class Config {
-
-    }
+    public static class Config {}
 }

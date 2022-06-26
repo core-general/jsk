@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.3.5.11</version>
+    <version>jsk.17.0.1</version>
 
     <modules>
         <module>jx-modules</module>
@@ -85,7 +85,7 @@
                     <version>3.8.1</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
-                        <release>11</release>
+                        <release>17</release>
                     </configuration>
                 </plugin>
                 <plugin>

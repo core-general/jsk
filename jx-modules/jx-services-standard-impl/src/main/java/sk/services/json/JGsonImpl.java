@@ -29,6 +29,7 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
+import sk.services.json.marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
@@ -76,6 +77,18 @@ public class JGsonImpl implements IJson {
             gsonBuilderPolymorphic.registerTypeAdapter($.getCls(), $);
             gsonBuilderPolymorphicPretty.registerTypeAdapter($.getCls(), $);
         });
+
+        //region Records
+        {
+            final RecordTypeAdapterFactory recordTypeAdapterFactory = RecordTypeAdapterFactory.builder()
+                    .allowMissingComponentValues()
+                    .allowDuplicateComponentValues()
+                    .create();
+            gsonBuilderConcrete.registerTypeAdapterFactory(recordTypeAdapterFactory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(recordTypeAdapterFactory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(recordTypeAdapterFactory);
+        }
+        //endregion
 
         List<GsonSerDes<?>> adaptClasses = converters
                 .map($ -> $.stream().flatMap(x -> x.getSerDesInfoList().stream()).collect(Cc.toL()))
