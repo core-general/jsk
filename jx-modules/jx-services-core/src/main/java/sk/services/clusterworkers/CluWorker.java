@@ -30,7 +30,6 @@ import sk.services.time.ITime;
 import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.functional.*;
 import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -73,24 +72,25 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
         inLock(() -> {
             if (processingThread != null && !processingThread.isFinished()) {
                 stop(1000).thenAccept(w -> {
-                    if (!w) { throw new RuntimeException("Can't start processingThread!"); }
+                    if (!w) {throw new RuntimeException("Can't start processingThread!");}
                 });
             }
             schedulers.forEach(CluScheduler::start);
             processingThread = new ForeverThreadWithFinish(() -> {
                 try {
-                    MSG msg = messageQue.poll(1000, TimeUnit.MILLISECONDS);
+                    MSG msg = messageQue.poll(3, TimeUnit.SECONDS);
                     if (msg != null) {
                         processor.accept(msg, getState());
-                        log.trace(() -> name + " - processor for msg: " + msg + " finished");
+                        //log.trace(() -> name + " - processor for msg: " + msg + " finished");
                     }
                 } catch (Exception e) {
                     try {
                         errorConsumer.accept(e);
                     } catch (Exception ex2) {
+                        log.error("", e);
                         log.error("", ex2);
                     }
-                    log.trace(() -> name + " - error:" + Ex.getInfo(e));
+                    //log.trace(() -> name + " - error:" + Ex.getInfo(e));
                 }
             }, name + "_EventQueueProcessor", true);
             processingThread.start();
@@ -125,8 +125,8 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
         CluScheduler<STATE, MM> scheduler =
                 new CluScheduler<>(name + "_" + schedulerName,
                         dedicatedThread
-                                ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName)
-                                : () -> new ScheduledExecutorServiceNoShutdownDecorator(async.scheduledExec()),
+                        ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName)
+                        : () -> new ScheduledExecutorServiceNoShutdownDecorator(async.scheduledExec()),
                         periodDelay, allowedStates,
                         () -> getState(), processor, messageQue::add);
         schedulers.add(scheduler);
@@ -173,7 +173,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
         public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay,
                 TimeUnit unit) {return this.scheduledExec.scheduleWithFixedDelay(command, initialDelay, delay, unit);}
 
-        public void shutdown() { }
+        public void shutdown() {}
 
         public List<Runnable> shutdownNow() {return Cc.lEmpty();}
 

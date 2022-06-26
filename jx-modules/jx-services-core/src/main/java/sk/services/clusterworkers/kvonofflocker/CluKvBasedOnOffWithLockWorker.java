@@ -96,6 +96,11 @@ public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLoc
             }
 
             @Override
+            public boolean isDropLockAfterEachMainTask() {
+                return c.isDropLockAfterEachMainTask();
+            }
+
+            @Override
             public CluDelay getMainTaskDelay() {
                 return c.getMainTaskDelay();
             }
@@ -135,6 +140,7 @@ public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLoc
     public static class Conf implements IConf {
         long schedulerCheckPeriod;
         long mainTaskIsOldAfter;
+        boolean dropLockAfterEachMainTask;
         CluDelay mainTaskDelay;
         C1<CancelGetter> mainTaskRunner;
 
@@ -143,9 +149,11 @@ public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLoc
 
     @Getter
     public static class ConfAlwaysOn extends Conf {
-        public ConfAlwaysOn(long schedulerCheckPeriod, long mainTaskIsOldAfter, CluDelay mainTaskDelay,
+        public ConfAlwaysOn(long schedulerCheckPeriod, long mainTaskIsOldAfter, boolean dropLockAfterEachMainTask,
+                CluDelay mainTaskDelay,
                 C1<CancelGetter> mainTaskRunner, C1<Throwable> errorConsumer) {
-            super(schedulerCheckPeriod, mainTaskIsOldAfter, mainTaskDelay, mainTaskRunner, errorConsumer);
+            super(schedulerCheckPeriod, mainTaskIsOldAfter, dropLockAfterEachMainTask, mainTaskDelay, mainTaskRunner,
+                    errorConsumer);
         }
 
         public Gett<Boolean> getOnOffSwitchChecker() {

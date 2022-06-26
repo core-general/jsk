@@ -73,7 +73,7 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
                             false);
             mainTaskScheduler =
                     addScheduler("MainTaskSch", conf.getMainTaskDelay(), O.of(Cc.s(LOCK_OBTAINED)),
-                            () -> mainTaskScheduler(conf.getMainTaskRunner()),
+                            () -> mainTaskScheduler(conf.getMainTaskRunner(), conf.isDropLockAfterEachMainTask()),
                             true);
             lockScheduler =
                     addScheduler("LockSch", CluDelay.fixed(conf.getSchedulerCheckPeriod()), O.of(Cc.s(LOCK_IS_NOT_OBTAINED)),
@@ -146,7 +146,7 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
         mainTaskScheduler.restart();
     }
 
-    private O<BaseMessage> mainTaskScheduler(C1<CancelGetter> mainTaskRunner) {
+    private O<BaseMessage> mainTaskScheduler(C1<CancelGetter> mainTaskRunner, boolean dropLockAfterEachMainTask) {
         return withExceptionHandler(() -> {
             mainTaskStartedAt = times.now();
             try {
@@ -156,7 +156,9 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
             } finally {
                 mainTaskStartedAt = -1;
             }
-            return O.empty();
+            return dropLockAfterEachMainTask
+                   ? O.of(LockRenewFailed)
+                   : O.empty();
         });
     }
 
@@ -219,6 +221,8 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
 
         long getMainTaskIsOldAfter();
 
+        boolean isDropLockAfterEachMainTask();
+
         CluDelay getMainTaskDelay();
 
         C1<CancelGetter> getMainTaskRunner();
@@ -237,6 +241,7 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
     public static class Config implements IConf {
         long schedulerCheckPeriod;
         long mainTaskIsOldAfter;
+        boolean dropLockAfterEachMainTask;
         CluDelay mainTaskDelay;
         C1<CancelGetter> mainTaskRunner;
 

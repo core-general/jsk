@@ -48,7 +48,7 @@ public class CluOnOffLockTest {
                         @Override
                         public synchronized void start(IConf conf) throws RuntimeException {
                             super.start(new Config(
-                                    3, 1000,
+                                    3, 1000, false,
                                     CluDelay.fixed(1000l),
                                     cancel -> {
                                         System.out.println(s);
