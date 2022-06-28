@@ -200,14 +200,29 @@ public final class Cc {
         return Collectors.toMap(keyMapper, valueMapper, mergeFunction, HashMap::new);
     }
 
+    public static <T, K, U>
+    Collector<T, ?, SortedMap<K, U>> toSortedM(F1<? super T, ? extends K> keyMapper, F1<? super T, ? extends U> valueMapper) {
+        return toMap(keyMapper, valueMapper, throwingMerger(), TreeMap::new);
+    }
+
     public static <A, B>
     Collector<X2<A, B>, ?, Map<A, B>> toMX2() {
         return Collectors.toMap($ -> $.i1, $ -> $.i2);
     }
 
     public static <A, B>
+    Collector<X2<A, B>, ?, SortedMap<A, B>> toSortedMX2() {
+        return toMap($ -> $.i1(), $ -> $.i2(), throwingMerger(), TreeMap::new);
+    }
+
+    public static <A, B>
     Collector<Map.Entry<A, B>, ?, Map<A, B>> toMEntry() {
         return Collectors.toMap($ -> $.getKey(), $ -> $.getValue());
+    }
+
+    public static <A, B>
+    Collector<Map.Entry<A, B>, ?, SortedMap<A, B>> toSortedMEntry() {
+        return Collectors.toMap($ -> $.getKey(), $ -> $.getValue(), throwingMerger(), TreeMap::new);
     }
 
     public static <T> BinaryOperator<T> throwingMerger() {

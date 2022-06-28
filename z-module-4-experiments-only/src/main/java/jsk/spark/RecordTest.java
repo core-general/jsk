@@ -37,19 +37,10 @@ public class RecordTest {
     }
 
     public record X(int a, String b, String c) {
-        @Override
-        public int a() {
-            return a;
-        }
-
-        @Override
-        public String b() {
-            return b;
-        }
-
-        @Override
-        public String c() {
-            return c;
+        public X {
+            if (a > b.length()) {
+                throw new RuntimeException();
+            }
         }
     }
 
