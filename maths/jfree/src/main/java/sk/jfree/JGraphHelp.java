@@ -43,14 +43,19 @@ import sk.math.data.func.MFuncProto;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
 import sk.utils.minmax.MinMaxAvg;
+import sk.utils.statics.Ar;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Im;
 import sk.utils.tuples.X2;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +79,12 @@ public class JGraphHelp {
 
     public static BufferedImage image(int width, int height, JFreeChart chart) {
         return chart.createBufferedImage(width, height);
+    }
+
+    public static void save(String fileName, JFreeChart chart) {
+        final BufferedImage image = JGraphHelp.image(1500, 1000, chart);
+        new File(fileName).mkdirs();
+        Im.savePngToFile(fileName, image);
     }
 
     public static JFreeChart barChartX1(MDataSets datasets) {
@@ -143,26 +154,45 @@ public class JGraphHelp {
     }
 
 
-    public static <T extends MFuncProto> JFreeChart functionAndDataSets(MDataSet dataset,
-            List<Class<? extends MFuncProto>> functions,
+    public static void debugLineChartX1(double[]... ys) {
+        debugLineChartX1(Arrays.asList(ys));
+    }
+
+    public static void debugLineChartX1(List<double[]> ys) {
+        AtomicInteger intVal = new AtomicInteger(0);
+        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
+                new MDataSets(ys.stream()
+                        .map($ -> new MDataSet("" + intVal.incrementAndGet(), $, Ar.getValuesIncrementedBy1($.length)))
+                        .toList())));
+    }
+
+    public static void debugLineChartXY(double[] ys, double[] xs) {
+        debugLineChartXY(Cc.l(ys), Cc.l(xs));
+    }
+
+    public static void debugLineChartXY(List<double[]> ys, List<double[]> xs) {
+        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
+                new MDataSets(Cc.mapEachWithIndex(ys, ($, i) -> new MDataSet($, xs.get(i))))));
+    }
+
+    public static <T extends MFuncProto> JFreeChart functionAndDataSet(MDataSet dataset,
             double functionDrawStep,
-            F2<MDataSet, Class<T>, O<MOptimizeInfo<T>>> functionProducer) {
+            MOptimizeInfo<T>... functions) {
         final X2<MinMaxAvg[], MinMaxAvg> limits = dataset.getLimits();
-        final List<MDataSet> datasets = functions.stream()
-                .map($ -> functionProducer.apply(dataset, (Class<T>) $))
+        final List<MDataSet> datasets = Arrays.stream(functions)
                 .map($ -> {
                     final MinMaxAvg minMaxX = limits.i1()[0];
                     List<Double> xx = Cc.l();
                     List<Double> yy = Cc.l();
                     var zvals = (minMaxX.getMax() - minMaxX.getMin()) * 0.1;
                     for (double x = minMaxX.getMin() - zvals; x < minMaxX.getMax() + zvals; x = x + functionDrawStep) {
-                        final double y = $.get().getOptimizedFunction().value(new double[]{x});
+                        final double y = $.getOptimizedFunction().value(new double[]{x});
                         yy.add(y);
                         xx.add(x);
                     }
                     return new MDataSet(
-                            $.get().getOptimizedFunction().getProtoClass().getSimpleName() +
-                                    String.format(" err=%.2f", $.get().getSquareRootError()),
+                            $.getOptimizedFunction().getProtoClass().getSimpleName() +
+                                    String.format(" err=%.2f", $.getSquareRootError()),
                             yy.stream().mapToDouble(y -> y).toArray(),
                             xx.stream().map(x -> new double[]{x}).toArray(double[][]::new)
                     );
@@ -181,6 +211,14 @@ public class JGraphHelp {
                 new MDataSets(datasets),
                 lines, dots
         ));
+    }
+
+    public static <T extends MFuncProto> JFreeChart functionAndDataSets(MDataSet dataset,
+            List<Class<? extends MFuncProto>> functions,
+            double functionDrawStep,
+            F2<MDataSet, Class<T>, O<MOptimizeInfo<T>>> functionProducer) {
+        return functionAndDataSet(dataset, functionDrawStep,
+                functions.stream().map($ -> functionProducer.apply(dataset, (Class<T>) $).get()).toArray(MOptimizeInfo[]::new));
     }
 
     private static JFreeChart defaultRender(JFreeChart chart) {

@@ -23,8 +23,14 @@ package sk.utils.statics;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class Ar {
+
+    public static double[] getValuesIncrementedBy1(int count) {
+        return IntStream.range(0, count).mapToDouble($ -> $).toArray();
+    }
+
     public static double[] fill(int size, double value) {
         double[] arr = new double[size];
         Arrays.fill(arr, value);

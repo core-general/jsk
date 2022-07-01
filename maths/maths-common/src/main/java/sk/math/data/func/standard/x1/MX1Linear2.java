@@ -32,8 +32,8 @@ public class MX1Linear2 extends MFuncProto {
     @Override
     public double[] jacobian(double[] x, double[] p) {
         return new double[]{
-                2 * x[0] * p[0],
-                p[1],
+                x[0] * x[0],
+                x[0],
                 1
         };
     }

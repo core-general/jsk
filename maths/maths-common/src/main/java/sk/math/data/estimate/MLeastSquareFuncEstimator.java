@@ -49,11 +49,17 @@ public class MLeastSquareFuncEstimator {
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
     func(MDataSet data, Class<T> funcCls, int iterations, MGlobalOptimizer<T> globalOptimizer) {
+        return func(data, funcCls.getConstructor().newInstance(), iterations, globalOptimizer);
+    }
+
+    @SneakyThrows
+    public static <T extends MFuncProto> O<MOptimizeInfo<T>>
+    func(MDataSet data, T funcImpl, int iterations, MGlobalOptimizer<T> globalOptimizer) {
         if (data.getX().length == 0) {
             throw new RuntimeException("NO DATA");
         }
 
-        final T protoFunc = funcCls.getConstructor().newInstance();
+        final T protoFunc = funcImpl;
         MFF mff = new MFF(data.getX(), protoFunc);
         AbstractLeastSquaresOptimizer optimizer = new LevenbergMarquardtOptimizer();
         final O<MOptimizeInfo<T>> optimum = globalOptimizer

@@ -22,6 +22,7 @@ package sk.math.data;
 
 import lombok.Getter;
 import sk.utils.minmax.MinMaxAvg;
+import sk.utils.statics.Ar;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
@@ -87,6 +88,10 @@ public class MDataSet {
         this.x = x;
     }
 
+    public MDataSet(double[] y) {
+        this("NONAME", "Y", "X", y, Ar.getValuesIncrementedBy1(y.length));
+    }
+
     public MDataSet(double[] y, double[] x) {
         this("NONAME", "Y", "X", y, x);
     }
@@ -96,7 +101,7 @@ public class MDataSet {
     }
 
     public MDataSet(String name, String nameY, String nameX, double[] y, double[] x) {
-        this(name, nameX, nameY, y, Arrays.stream(x).mapToObj($ -> new double[]{$}).toArray(double[][]::new));
+        this(name, nameY, nameX, y, Arrays.stream(x).mapToObj($ -> new double[]{$}).toArray(double[][]::new));
     }
 
     public void eachPoint(MDataPointConsumer consumer) {
