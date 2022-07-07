@@ -56,6 +56,12 @@ public abstract class ChainedMappedInput {
         final TypeWrap<?> typeParameter = some.getValueClass();
         final Type fieldGenericType = field.getGenericType();
         if (!typeParameter.equalsTo(fieldGenericType)) {
+            try {
+                if (((Class) fieldGenericType).isAssignableFrom((Class<?>) typeParameter.getType())) {
+                    return;
+                }
+            } catch (Exception e) {}
+
             throw new RuntimeException(
                     String.format("Type parameters are different type \"%s  %s!=%s\" for %s", field,
                             typeParameter.getType().getTypeName(),

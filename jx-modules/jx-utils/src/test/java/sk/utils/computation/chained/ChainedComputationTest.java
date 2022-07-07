@@ -47,6 +47,7 @@ public class ChainedComputationTest {
         {
             ChainedComputation cc = new ChainedComputation(
                     Cc.m(
+                            "testAB", new StaticValue<>(new B(), B.class),
                             "constant1", new StaticValue<>(100, Integer.class),
                             "constant2", new StaticValue<>("abc", String.class),
                             "constant3", new StaticValue<>(Cc.l(1, 2, 3, 4, 5), TypeWrap.getList(Integer.class)),
@@ -67,8 +68,8 @@ public class ChainedComputationTest {
 
             final TestMappedInput3 calculate = cc.calculate(TestMappedInput3.class);
             assertEquals(calculate.mappedCalculation3, "15");
-            assertEquals(cc.getDataHolder().get("mappedCalculation2").get(cc), "18");
-            assertEquals(cc.getDataHolder().get("simpleCalculation1").get(cc), 6);
+            assertEquals(cc.getDataHolder().get("mappedCalculation2").get(cc), "21");
+            assertEquals(cc.getDataHolder().get("simpleCalculation1").get(cc), 7);
         }
 
         {
@@ -94,6 +95,7 @@ public class ChainedComputationTest {
 
     @ToString
     private static class TestMappedInput extends ChainedMappedInput {
+        public A testAB;
         public Integer constant1;
         public String constant2;
         public List<Integer> constant3;
@@ -153,4 +155,8 @@ public class ChainedComputationTest {
             super(context);
         }
     }
+
+    public interface A {}
+
+    public static class B implements A {}
 }

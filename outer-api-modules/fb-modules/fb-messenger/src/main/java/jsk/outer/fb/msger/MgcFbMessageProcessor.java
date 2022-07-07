@@ -1,10 +1,10 @@
-package sk.mvn.model;
+package jsk.outer.fb.msger;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,6 @@ package sk.mvn.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor
-public class ApiBuildInfo {
-    String version;
-    long buildTime;
-
-    @Override
-    public String toString() {
-        return version + "-" + buildTime;
-    }
+public interface MgcFbMessageProcessor {
+    void procesUpdate(String update);
 }

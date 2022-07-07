@@ -20,6 +20,25 @@ package jsk.outer.fb.msger;
  * #L%
  */
 
-public interface FbMessageProcessor {
-    void procesUpdate(String update);
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import sk.utils.functional.O;
+
+import static sk.utils.functional.O.of;
+
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class MgcFbSpecial {
+    O<String> video;
+
+    public O<String> getVideo() {
+        return video;
+    }
+
+    public static MgcFbSpecial select(O<String> video) {
+        return new MgcFbSpecial(video);
+    }
+
+    public static MgcFbSpecial video(String video) {
+        return new MgcFbSpecial(of(video));
+    }
 }

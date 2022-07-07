@@ -40,6 +40,7 @@ import com.github.messenger4j.send.message.template.button.Button;
 import com.github.messenger4j.send.message.template.button.PostbackButton;
 import com.github.messenger4j.webhook.Event;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutMessengerApi;
@@ -55,25 +56,35 @@ import javax.inject.Inject;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.github.messenger4j.send.message.richmedia.RichMediaAsset.Type.IMAGE;
+import static com.github.messenger4j.send.message.richmedia.RichMediaAsset.Type.VIDEO;
 import static sk.utils.functional.O.of;
 import static sk.utils.functional.O.ofNullable;
 
 @Log4j2
-public class MgcGeneralFbApi implements OutMessengerApi<String, Void, List<String>, MessageResponse> {
+@NoArgsConstructor
+public class MgcGeneralFbApi implements OutMessengerApi<String, MgcFbSpecial, List<String>, MessageResponse> {
     @Inject Messenger bot;
     @Inject IIds ids;
+    private SimpleCache richCache;
 
-    ConcurrentHashMap<String, String> imageCache;
+    public MgcGeneralFbApi(Messenger bot, SimpleCache richCache) {
+        this(bot, null, richCache);
+    }
+
+    public MgcGeneralFbApi(Messenger bot, IIds ids, SimpleCache richCache) {
+        this.bot = bot;
+        this.ids = ids;
+        this.richCache = richCache;
+    }
+
     @Getter Cache<String, X2<String, byte[]>> cache;
 
     @PostConstruct
     void initMgcGeneralFbApi() {
-        imageCache = new ConcurrentHashMap<>();
         cache = Caffeine.newBuilder()
                 .expireAfterWrite(30, TimeUnit.SECONDS)
                 .build();
@@ -82,32 +93,43 @@ public class MgcGeneralFbApi implements OutMessengerApi<String, Void, List<Strin
 
     @Override
     public MessageResponse send(String userId, O<String> text,
-            O<String> image, O<Void> aVoid,
+            O<String> image, O<MgcFbSpecial> special,
             O<X2<String, byte[]>> document,
             O<List<String>> qr) {
 
         List<Payload> requests = Cc.l();
 
         image.ifPresent($ -> {
-            RichMediaAsset richMediaAsset = imageCache.containsKey($)
-                                            ? ReusableRichMediaAsset.create(IMAGE, imageCache.get($))
+            RichMediaAsset richMediaAsset = richCache.get($).isPresent()
+                                            ? ReusableRichMediaAsset.create(IMAGE, richCache.get($).get())
                                             : UrlRichMediaAsset.create(IMAGE, url($), of(true).toOpt());
 
             final RichMediaMessage richMediaMessage = RichMediaMessage.create(richMediaAsset);
             final MessagePayload payload = MessagePayload.create(userId, MessagingType.RESPONSE, richMediaMessage);
             requests.add(payload);
-
         });
 
-        document.ifPresent($ -> {
-            String key = ids.shortIdS();
-            cache.put(key, $);
-            RichMediaAsset rma =
-                    UrlRichMediaAsset.create(IMAGE, url("http://try-db.com/?_binaryAssetId_" + key + "_"), of(false).toOpt());
-            final RichMediaMessage richMediaMessage = RichMediaMessage.create(rma);
-            final MessagePayload payload = MessagePayload.create(userId, MessagingType.RESPONSE, richMediaMessage);
-            requests.add(payload);
+        special.ifPresent(spec -> {
+            spec.getVideo().ifPresent(video -> {
+                RichMediaAsset richMediaAsset = richCache.get(video).isPresent()
+                                                ? ReusableRichMediaAsset.create(VIDEO, richCache.get(video).get())
+                                                : UrlRichMediaAsset.create(VIDEO, url(video), of(true).toOpt());
+
+                final RichMediaMessage richMediaMessage = RichMediaMessage.create(richMediaAsset);
+                final MessagePayload payload = MessagePayload.create(userId, MessagingType.RESPONSE, richMediaMessage);
+                requests.add(payload);
+            });
         });
+
+        //document.ifPresent($ -> {
+        //    String key = ids.shortIdS();
+        //    cache.put(key, $);
+        //    RichMediaAsset rma =
+        //            UrlRichMediaAsset.create(IMAGE, url("http://some-url.com/?_binaryAssetId_" + key + "_"), of(false).toOpt());
+        //    final RichMediaMessage richMediaMessage = RichMediaMessage.create(rma);
+        //    final MessagePayload payload = MessagePayload.create(userId, MessagingType.RESPONSE, richMediaMessage);
+        //    requests.add(payload);
+        //});
 
         if (qr.isPresent() && qr.get().size() > 0 && qr.get().size() <= 3 && (!text.isPresent() || text.get().length() < 639)) {
             addButtonReply(userId, text, qr, requests);
@@ -127,7 +149,7 @@ public class MgcGeneralFbApi implements OutMessengerApi<String, Void, List<Strin
             if (needCache) {
                 messageResponse.attachmentId()
                         .flatMap(x -> image.map($$ -> X.x($$, x)).toOpt())
-                        .ifPresent(x -> imageCache.put(x.i1(), x.i2()));
+                        .ifPresent(x -> richCache.put(x.i1(), x.i2()));
             }
 
             return messageResponse;
@@ -186,5 +208,11 @@ public class MgcGeneralFbApi implements OutMessengerApi<String, Void, List<Strin
     private MessageResponse botSend(Payload $) {
         log.debug($ + "");
         return bot.send($);
+    }
+
+    public static interface SimpleCache {
+        public boolean put(String key, String value);
+
+        public O<String> get(String key);
     }
 }
