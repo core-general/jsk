@@ -38,7 +38,7 @@ import java.util.Properties;
 
 @SuppressWarnings("unused")
 public class UTLongIdToBigInt implements UserType, ParameterizedType {
-    public final static String type = "sk.db.relational.types.UTTextIdToVarchar";
+    public final static String type = "sk.db.relational.types.UTLongIdToBigInt";
     @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
 
     private Class<?> idClass;
