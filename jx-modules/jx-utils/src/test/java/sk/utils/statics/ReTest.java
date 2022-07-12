@@ -79,6 +79,9 @@ public class ReTest {
     public void getParentParameters() {
         Type[] parentParameters = Re.getParentParameters(XX.class).get();
         assertArrayEquals(new Object[]{String.class, Integer.class}, parentParameters);
+
+        parentParameters = Re.getParentParameters(XXX.class).get();
+        assertArrayEquals(new Object[]{String.class, Integer.class}, parentParameters);
     }
 
     public static class X<T1, T2> {
@@ -88,9 +91,7 @@ public class ReTest {
 
     public static class XX extends X<String, Integer> {}
 
-    @Test
-    public void setter() {
-    }
+    public static class XXX extends XX {}
 
     @Getter
     @Setter

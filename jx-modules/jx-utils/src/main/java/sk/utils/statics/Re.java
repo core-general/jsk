@@ -72,8 +72,6 @@ public final class Re {
     }
 
     public static O<Class<?>> getFirstParentParameter(Class<?> curClass) {
-
-        //TODO MAKE MULTIPARENT
         return getParentParameters(curClass)
                 .map($ -> $[0])
                 .filter($ -> $ instanceof Class)
@@ -81,7 +79,13 @@ public final class Re {
     }
 
     public static O<Type[]> getParentParameters(Class<?> curClass) {
-        return O.ofNull(curClass.getGenericSuperclass()).map($ -> ((ParameterizedType) $).getActualTypeArguments());
+        return O.ofNull(curClass.getGenericSuperclass())
+                .flatMap($ -> $ instanceof ParameterizedType
+                              ? O.ofNull(((ParameterizedType) $).getActualTypeArguments())
+                              : O.empty())
+                .or(() -> curClass.getSuperclass() != null
+                          ? getParentParameters(curClass.getSuperclass())
+                          : O.<Type[]>empty());
     }
 
     //region fields
