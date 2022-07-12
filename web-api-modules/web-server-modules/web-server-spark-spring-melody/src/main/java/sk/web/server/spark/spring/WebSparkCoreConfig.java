@@ -121,7 +121,7 @@ public class WebSparkCoreConfig {
 
     @Bean
     public WebAdditionalParams WebAdditionalParams() {
-        return () -> O.empty();
+        return (w) -> O.empty();
     }
 
     @Bean

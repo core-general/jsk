@@ -32,8 +32,8 @@ import java.util.Map;
  */
 @Log4j2
 public class ObjectEvent<T> {
-    final Map<String, C1<T>> listeners = Cc.lhm();
-    boolean removeOnException;
+    private final Map<String, C1<T>> listeners = Cc.lhm();
+    private boolean removeOnException;
 
     private ObjectEvent(boolean removeOnException) {
         this.removeOnException = removeOnException;
@@ -47,12 +47,12 @@ public class ObjectEvent<T> {
         return new ObjectEvent<>(true);
     }
 
-    public ObjectEvent<T> listen(String id, C1<T> r) {
+    public synchronized ObjectEvent<T> listen(String id, C1<T> r) {
         listeners.put(id, r);
         return this;
     }
 
-    public void fire(T object) {
+    public synchronized void fire(T object) {
         for (Iterator<Map.Entry<String, C1<T>>> iterator = listeners.entrySet().iterator(); iterator.hasNext(); ) {
             final Map.Entry<String, C1<T>> next = iterator.next();
             try {

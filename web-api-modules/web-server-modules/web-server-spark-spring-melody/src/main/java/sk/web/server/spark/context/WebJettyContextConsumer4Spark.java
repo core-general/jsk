@@ -116,7 +116,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         spark.options("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
-            additional.getCrossOrigin().ifPresent($ -> {
+            additional.getCrossOrigin(ctx.getRequestHeader("Origin")).ifPresent($ -> {
                 ctx.setResponseHeader("Access-Control-Allow-Origin", $);
                 ctx.setResponseHeader("Access-Control-Allow-Credentials", "true");
             });

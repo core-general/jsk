@@ -58,7 +58,7 @@ public class WebDefaultHeadersFilter implements WebServerFilter {
             long left = rawDif / 1_000_000;
             long right = rawDif % 1_000_000;
             ctx.setResponseHeader("_rDur", left + "." + (St.ss(right + "", 0, 2)));
-            conf.getCrossOrigin().ifPresent($ -> {
+            conf.getCrossOrigin(ctx.getRequestHeader("Origin")).ifPresent($ -> {
                 ctx.setResponseHeader("Access-Control-Allow-Origin", $);
                 ctx.setResponseHeader("Access-Control-Allow-Credentials", "true");
             });

@@ -154,6 +154,10 @@ public class JGraphHelp {
     }
 
 
+    public static void debugChart(JFreeChart chart) {
+        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", chart);
+    }
+
     public static void debugLineChartX1(double[]... ys) {
         debugLineChartX1(Arrays.asList(ys));
     }

@@ -20,14 +20,14 @@ package sk.spring.services;
  * #L%
  */
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import sk.services.bean.IServiceProvider;
 import sk.utils.functional.O;
 
 import javax.inject.Inject;
 
 public class ServiceProvider4SpringImpl implements IServiceProvider {
-    @Inject AnnotationConfigApplicationContext context;
+    @Inject AbstractApplicationContext context;
 
     @Override
     public <K> O<K> getService(Class<K> cls) {

@@ -32,8 +32,8 @@ import java.util.Map;
  */
 @Log4j2
 public class SimpleEvent {
-    final Map<String, R> listeners = Cc.lhm();
-    boolean removeOnException;
+    private final Map<String, R> listeners = Cc.lhm();
+    private boolean removeOnException;
 
     private SimpleEvent(boolean removeOnException) {
         this.removeOnException = removeOnException;
@@ -47,12 +47,12 @@ public class SimpleEvent {
         return new SimpleEvent(true);
     }
 
-    public SimpleEvent listen(String id, R r) {
+    public synchronized SimpleEvent listen(String id, R r) {
         listeners.put(id, r);
         return this;
     }
 
-    public void fire() {
+    public synchronized void fire() {
         for (Iterator<Map.Entry<String, R>> iterator = listeners.entrySet().iterator(); iterator.hasNext(); ) {
             final Map.Entry<String, R> next = iterator.next();
             try {

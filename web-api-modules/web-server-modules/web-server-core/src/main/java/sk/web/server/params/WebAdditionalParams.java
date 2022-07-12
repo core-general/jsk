@@ -23,5 +23,5 @@ package sk.web.server.params;
 import sk.utils.functional.O;
 
 public interface WebAdditionalParams {
-    public O<String> getCrossOrigin();
+    public O<String> getCrossOrigin(O<String> originHeader);
 }

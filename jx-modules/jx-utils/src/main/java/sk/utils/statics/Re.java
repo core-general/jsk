@@ -21,14 +21,12 @@ package sk.utils.statics;
  */
 
 import lombok.SneakyThrows;
+import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.ifaces.IdentifiableString;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -73,6 +71,18 @@ public final class Re {
         }
     }
 
+    public static O<Class<?>> getFirstParentParameter(Class<?> curClass) {
+
+        //TODO MAKE MULTIPARENT
+        return getParentParameters(curClass)
+                .map($ -> $[0])
+                .filter($ -> $ instanceof Class)
+                .map($ -> (Class<?>) $);
+    }
+
+    public static O<Type[]> getParentParameters(Class<?> curClass) {
+        return O.ofNull(curClass.getGenericSuperclass()).map($ -> ((ParameterizedType) $).getActualTypeArguments());
+    }
 
     //region fields
     public static SortedSet<Field> getNonStaticPublicFields(Class<?> target) {
@@ -85,6 +95,52 @@ public final class Re {
 
     public static boolean isStatic(Field f) {
         return Modifier.isStatic(f.getModifiers());
+    }
+
+    public static O<F1<Object, Object>> getter(Field f) {
+        final Class<?> declaringClass = f.getDeclaringClass();
+        final Class<?> fieldType = f.getType();
+        final String name = f.getName();
+        String getterName = declaringClass.isRecord()
+                            ? name
+                            : fieldType == boolean.class
+                              ? "is" + St.capFirst(name)
+                              : "get" + St.capFirst(name);
+        try {
+            final Method method = declaringClass.getMethod(getterName);
+
+            F1<Object, Object> getter = obj -> {
+                try {
+                    return method.invoke(obj);
+                } catch (Exception e) {
+                    return Ex.thRow(e);
+                }
+            };
+            return O.of(getter);
+        } catch (NoSuchMethodException e) {
+            return O.empty();
+        }
+    }
+
+    public static O<C2<Object, Object>> setter(Field f) {
+        final Class<?> declaringClass = f.getDeclaringClass();
+        final Class<?> fieldType = f.getType();
+        final String name = f.getName();
+        String setterName = "set" + St.capFirst(name);
+        try {
+            final Method method = declaringClass.getMethod(setterName, fieldType);
+
+            C2<Object, Object> setter = (object, setValue) -> {
+                try {
+                    method.invoke(object, setValue);
+                } catch (Exception e) {
+                    Ex.thRow(e);
+                }
+            };
+            return O.of(setter);
+        } catch (NoSuchMethodException e) {
+            return O.empty();
+        }
     }
     //endregion
 
