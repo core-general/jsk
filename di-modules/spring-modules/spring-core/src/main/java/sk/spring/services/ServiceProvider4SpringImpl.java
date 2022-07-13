@@ -20,12 +20,14 @@ package sk.spring.services;
  * #L%
  */
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.support.AbstractApplicationContext;
 import sk.services.bean.IServiceProvider;
 import sk.utils.functional.O;
 
 import javax.inject.Inject;
 
+@Log4j2
 public class ServiceProvider4SpringImpl implements IServiceProvider {
     @Inject AbstractApplicationContext context;
 
@@ -34,6 +36,7 @@ public class ServiceProvider4SpringImpl implements IServiceProvider {
         try {
             return O.ofNull(context.getBean(cls));
         } catch (Exception e) {
+            log.error("", e);
             return O.empty();
         }
     }
@@ -44,6 +47,7 @@ public class ServiceProvider4SpringImpl implements IServiceProvider {
             context.getBeanFactory().autowireBean(someObject);
             return O.ofNull(someObject);
         } catch (Exception e) {
+            log.error("", e);
             return O.empty();
         }
     }
