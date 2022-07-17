@@ -5,13 +5,13 @@
     <parent>
         <artifactId>maths</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.0.24</version>
+        <version>jsk.17.0.26</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>maths-common</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.17.0.24</version>
+    <version>jsk.17.0.26</version>
 
     <dependencies>
         <dependency>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.0.24</version>
+            <version>jsk.17.0.26</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.17.0.24</version>
+            <version>jsk.17.0.26</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
