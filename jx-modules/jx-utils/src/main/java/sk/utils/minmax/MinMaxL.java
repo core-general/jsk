@@ -24,11 +24,11 @@ import lombok.Getter;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 @Getter
-public class MinMax {
-    int min = Integer.MAX_VALUE;
-    int max = Integer.MIN_VALUE;
+public class MinMaxL {
+    long min = Long.MAX_VALUE;
+    long max = Long.MIN_VALUE;
 
-    public MinMax add(MinMax value) {
+    public MinMaxL add(MinMaxL value) {
         if (value.min < min) {
             min = value.min;
         }
@@ -38,7 +38,7 @@ public class MinMax {
         return this;
     }
 
-    public MinMax add(int value) {
+    public MinMaxL add(long value) {
         if (value < min) {
             min = value;
         }
@@ -48,15 +48,15 @@ public class MinMax {
         return this;
     }
 
-    public MinMax add(int... values) {
-        for (int value : values) {
+    public MinMaxL add(long... values) {
+        for (long value : values) {
             add(value);
         }
         return this;
     }
 
     public boolean isValid() {
-        return min != Integer.MAX_VALUE && max != Integer.MIN_VALUE;
+        return min != Long.MAX_VALUE && max != Long.MIN_VALUE;
     }
 
     @Override

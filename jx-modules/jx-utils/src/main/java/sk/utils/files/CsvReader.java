@@ -22,15 +22,21 @@ package sk.utils.files;
 
 import sk.utils.collections.MultiBiMap;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Io;
 import sk.utils.statics.St;
 import sk.utils.tuples.X1;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 
 public class CsvReader {
+
+    public static void main(String[] args) {
+        final String s = "/home/kivan/home_tmp/sb/LS_ADDS_JAN_JUN22.csv";
+        final InputStream inputStream = Io.bRead(s).oIs().get();
+        final List<Map<String, String>> fromCsv = getFromCsv(inputStream);
+        int i = 0;
+    }
 
     public static final String COMMA = ",";
 
@@ -39,7 +45,15 @@ public class CsvReader {
     }
 
     public static List<Map<String, String>> getFromCsv(String csv, String columnSplitter) {
-        return getFromCsvUni(new SimpleCsvProcessor(csv, columnSplitter));
+        return getFromCsvUni(new SimpleCsvProcessor(new Scanner(csv), columnSplitter));
+    }
+
+    public static List<Map<String, String>> getFromCsv(InputStream is) {
+        return getFromCsv(is, ",");
+    }
+
+    public static List<Map<String, String>> getFromCsv(InputStream is, String columnSplitter) {
+        return getFromCsvUni(new SimpleCsvProcessor(is, columnSplitter));
     }
 
     public static List<Map<String, String>> getFromListList(List<List<String>> data) {
@@ -47,45 +61,73 @@ public class CsvReader {
     }
 
     private static <T extends ObjectProcessor> List<Map<String, String>> getFromCsvUni(T csvObject) {
-        final String[] firstLine = csvObject.getFirstLine();
-        MultiBiMap<String, Integer> i2s = new MultiBiMap<>(Cc.ordering(Cc.l(firstLine)));
+        try {
+            final String[] firstLine = csvObject.getFirstLine();
+            MultiBiMap<String, Integer> i2s = new MultiBiMap<>(Cc.ordering(Cc.l(firstLine)));
 
-        List<Map<String, String>> toRet = Cc.l();
-        csvObject.forEachRemaining(strings -> {
-            Map<String, String> toAdd = Cc.m();
-            for (int j = 0; j < strings.length; j++) {
-                String datum = strings[j];
-                toAdd.put(i2s.getSecondByFirst().get(j).iterator().next(), St.isNullOrEmpty(datum) ? null : datum);
+            List<Map<String, String>> toRet = Cc.l();
+            csvObject.forEachRemaining(strings -> {
+                //todo make async if needed
+                Map<String, String> toAdd = Cc.m();
+                for (int j = 0; j < strings.length; j++) {
+                    String datum = strings[j];
+                    toAdd.put(i2s.getSecondByFirst().get(j).iterator().next(), St.isNullOrEmpty(datum) ? null : datum);
+                }
+
+                for (int i = strings.length; i < firstLine.length; i++) {
+                    toAdd.put(i2s.getSecondByFirst().get(i).iterator().next(), null);
+                }
+                toRet.add(toAdd);
+            });
+
+            return toRet;
+        } finally {
+            try {
+                csvObject.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            for (int i = strings.length; i < firstLine.length; i++) {
-                toAdd.put(i2s.getSecondByFirst().get(i).iterator().next(), null);
-            }
-            toRet.add(toAdd);
-        });
-
-        return toRet;
+        }
     }
 
-    private interface ObjectProcessor extends Iterator<String[]> {
+    private interface ObjectProcessor extends Iterator<String[]>, AutoCloseable {
         String[] getFirstLine();
     }
 
     private static class SimpleCsvProcessor implements ObjectProcessor {
-        private final String text;
+        private Scanner scanner;
         private final String splitter;
-        private final String[] ccsv;
+        private final Iterator<String> ccsv;
         private int curIndex = 0;
 
-        public SimpleCsvProcessor(String text, String splitter) {
-            this.text = text;
+        @Override
+        public void close() throws Exception {
+            scanner.close();
+        }
+
+        public SimpleCsvProcessor(InputStream is, String splitter) {
+            this(new Scanner(is), splitter);
+        }
+
+        public SimpleCsvProcessor(Scanner scanner, String splitter) {
+            this.scanner = scanner;
             this.splitter = splitter;
-            ccsv = this.text.split("\n");
+            ccsv = new Iterator<String>() {
+                @Override
+                public boolean hasNext() {
+                    return scanner.hasNextLine();
+                }
+
+                @Override
+                public String next() {
+                    return scanner.nextLine();
+                }
+            };
         }
 
         @Override
         public String[] getFirstLine() {
-            final String[] firstLine = trySplitStrings();
+            final String[] firstLine = trySplitStrings(ccsv.next());
             if (Arrays.stream(firstLine).anyMatch($ -> St.isNullOrEmpty($))) {
                 throw new RuntimeException("First line malformed");
             }
@@ -94,20 +136,19 @@ public class CsvReader {
 
         @Override
         public boolean hasNext() {
-            return 1 + curIndex < ccsv.length;
+            return ccsv.hasNext();
         }
 
         @Override
         public String[] next() {
-            curIndex++;
-            return trySplitStrings();
+            return trySplitStrings(ccsv.next());
         }
 
-        private String[] trySplitStrings() {
+        private String[] trySplitStrings(String curRow) {
             try {
                 return switch (splitter) {
-                    case COMMA -> splitEscapedCsv(ccsv[curIndex]);
-                    default -> ccsv[curIndex].split(splitter);
+                    case COMMA -> splitEscapedCsv(curRow);
+                    default -> curRow.split(splitter);
                 };
             } catch (Exception e) {
                 throw new RuntimeException("Problem in line: " + (curIndex + 1) + " " + e.getMessage(), e);
@@ -194,6 +235,7 @@ public class CsvReader {
             curToken.setLength(0);
         }
 
+
         private enum CSVParseStage {
             NORMAL_START,// Just the normal value, if we meet ',' then we directly create new token
             NORMAL_NO_QUOTE,// Just the normal value, if we meet ',' then we directly create new token
@@ -227,5 +269,8 @@ public class CsvReader {
             curIndex++;
             return text.get(curIndex).toArray(String[]::new);
         }
+
+        @Override
+        public void close() throws Exception {}
     }
 }

@@ -230,6 +230,14 @@ public final class Io {
             }
         }
 
+        public O<InputStream> oIs() {
+            try {
+                return of(new BufferedInputStream(newInputStream(new File(path).toPath())));
+            } catch (IOException e) {
+                return empty();
+            }
+        }
+
         public byte[] bytes() {
             return oBytes().get();
         }

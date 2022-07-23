@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//todo make CsvWriter escape '"' the right way, eg for jsons
+//todo make CsvWriter escape '"' the right way for CSVs, eg for jsons
 public class CsvWriter {
     public static String toCsv(List<Map<String, ?>> listOfFieldNamesAndValues) {
         return toCsv(listOfFieldNamesAndValues,
