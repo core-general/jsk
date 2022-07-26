@@ -36,6 +36,7 @@ public class LDoubleTest {
         assertEquals("111.00", LDouble.createMilli("111").toStringAsDouble());
         assertEquals(11110L, LDouble.createMilli("111.1").getDecValueRaw());
         assertEquals(11110000L, LDouble.create("111.1", 5).getDecValueRaw());
+        assertEquals("0.00001", LDouble.create("0.0000123", 5).toString());
         assertEquals(335.8d, LDouble.create("111.1", 5).mult(6).plus(10).minus(5).div(2).toDouble(), 0.00001d);
         assertEquals("1.24", LDouble.createRaw(1.236, 2).toString());
     }

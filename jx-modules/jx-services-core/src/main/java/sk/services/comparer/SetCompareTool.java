@@ -30,25 +30,32 @@ import sk.utils.statics.Cc;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SetCompareTool<A extends Identifiable<String>> extends CollectionCompareTool<List<A>, A> {
     public static <X> SetCompareResult<X> compare(Set<X> col1, Set<X> col2) {
-        final CompareResult<ToStringWrapper<X>, Void> result =
-                new SetCompareTool<ToStringWrapper<X>>().innerCompare(setTo(col1), setTo(col2));
+        return compare(col1, col2, false);
+    }
+
+    public static <X> SetCompareResult<X> compare(Set<X> col1, Set<X> col2, boolean parallel) {
+        final CompareResult<ToStringWrapper<X>, Void> result = new SetCompareTool<ToStringWrapper<X>>().innerCompare(
+                setTo(col1, parallel),
+                setTo(col2, parallel),
+                parallel
+        );
 
         return new SetCompareResult<>(
-                setFrom(result.getIn1NotIn2()),
-                setFrom(result.getIn2NotIn1())
+                setFrom(result.getIn1NotIn2(), parallel),
+                setFrom(result.getIn2NotIn1(), parallel)
         );
     }
 
-    private static <X> List<ToStringWrapper<X>> setTo(Set<X> xes) {
-        return xes.stream().map(ToStringWrapper::new).collect(Cc.toL());
+    private static <X> List<ToStringWrapper<X>> setTo(Set<X> xes, boolean parallel) {
+        return (parallel ? xes.parallelStream() : xes.stream()).map(ToStringWrapper::new).collect(Cc.toL());
     }
 
-    private static <X> List<X> setFrom(CompareResultDif<ToStringWrapper<X>, Void> xes) {
-        return xes.getNotExistingInOther().stream().map($ -> $.val).collect(Collectors.toList());
+    private static <X> Set<X> setFrom(CompareResultDif<ToStringWrapper<X>, Void> xes, boolean parallel) {
+        return (parallel ? xes.getNotExistingInOther().parallelStream() : xes.getNotExistingInOther().stream())
+                .map($ -> $.val).collect(Cc.toS());
     }
 }

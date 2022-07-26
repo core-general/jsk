@@ -29,18 +29,20 @@ import java.util.Collection;
 import java.util.List;
 
 public class CollectionCompareTool<C extends Collection<A>, A extends Identifiable<String>> extends CompareTool<A, Void> {
-    protected CompareResult<A, Void> innerCompare(C col1, C col2) {
-        F1<C, List<CompareItem<A>>> converter = col -> col.stream().map($ -> new CompareItem<A>() {
-            @Override
-            public String getId() {
-                return $.getId();
-            }
+    protected CompareResult<A, Void> innerCompare(C col1, C col2, boolean parallel) {
+        F1<C, List<CompareItem<A>>> converter =
+                col -> (parallel ? col.parallelStream() : col.stream())
+                        .map($ -> new CompareItem<A>() {
+                            @Override
+                            public String getId() {
+                                return $.getId();
+                            }
 
-            @Override
-            public A getItemInfo() {
-                return $;
-            }
-        }).collect(Cc.toL());
+                            @Override
+                            public A getItemInfo() {
+                                return $;
+                            }
+                        }).collect(Cc.toL());
 
         return this.innerCompare(
                 () -> converter.apply(col1),

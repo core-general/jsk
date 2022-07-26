@@ -28,27 +28,35 @@ import sk.utils.statics.Cc;
 import java.util.List;
 import java.util.Map;
 
+import static sk.utils.tuples.X.x;
+
 public class MapCompareTool<K, V>
         extends CollectionCompareTool<List<ToStringKvWrapper<K, V>>, ToStringKvWrapper<K, V>> {
     public static <X, Y> MapCompareResult<X, Y> compare(Map<X, Y> col1, Map<X, Y> col2) {
-        final CompareResult<ToStringKvWrapper<X, Y>, Void> result =
-                new MapCompareTool<X, Y>().innerCompare(mapTo(col1), mapTo(col2));
+        return compare(col1, col2, false);
+    }
+
+    public static <X, Y> MapCompareResult<X, Y> compare(Map<X, Y> col1, Map<X, Y> col2, boolean parallel) {
+        final CompareResult<ToStringKvWrapper<X, Y>, Void> result = new MapCompareTool<X, Y>()
+                .innerCompare(mapTo(col1, parallel), mapTo(col2, parallel), parallel);
 
         return new MapCompareResult<>(
-                mapFrom(result.getIn1NotIn2()),
-                mapFrom(result.getIn2NotIn1()),
-                result.getExistButDifferent().stream()
-                        .map($ -> sk.utils.tuples.X.x($.i1().getVal(), sk.utils.tuples.X.x($.i1().getAdd(), $.i2().getAdd())))
+                mapFrom(result.getIn1NotIn2(), parallel),
+                mapFrom(result.getIn2NotIn1(), parallel),
+                (parallel ? result.getExistButDifferent().parallelStream() : result.getExistButDifferent().stream())
+                        .map($ -> x($.i1().getVal(), x($.i1().getAdd(), $.i2().getAdd())))
                         .collect(Cc.toMX2())
         );
     }
 
-    private static <X, Y> List<ToStringKvWrapper<X, Y>> mapTo(Map<X, Y> xes) {
-        return xes.entrySet().stream().map((v) -> new ToStringKvWrapper<>(v.getKey(), v.getValue())).collect(Cc.toL());
+    private static <X, Y> List<ToStringKvWrapper<X, Y>> mapTo(Map<X, Y> xes, boolean parallel) {
+        return (parallel ? xes.entrySet().parallelStream() : xes.entrySet().stream()).map(
+                (v) -> new ToStringKvWrapper<>(v.getKey(), v.getValue())).collect(Cc.toL());
     }
 
-    private static <X, Y> Map<X, Y> mapFrom(CompareResultDif<ToStringKvWrapper<X, Y>, Void> xes) {
-        return xes.getNotExistingInOther().stream().map($ -> sk.utils.tuples.X.x($.getVal(), $.getAdd())).collect(Cc.toMX2());
+    private static <X, Y> Map<X, Y> mapFrom(CompareResultDif<ToStringKvWrapper<X, Y>, Void> xes, boolean parallel) {
+        return (parallel ? xes.getNotExistingInOther().parallelStream() : xes.getNotExistingInOther().stream())
+                .map($ -> x($.getVal(), $.getAdd())).collect(Cc.toMX2());
     }
 
 }

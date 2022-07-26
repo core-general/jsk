@@ -100,7 +100,8 @@ public class LDouble implements Comparable<LDouble> {
 
     public String toStringAsDouble() {
         String l = decValueRaw % precisionTens + "";
-        return decValueRaw / precisionTens + "." + (l.length() == precisionDigits ? l : "0" + l);
+        return decValueRaw / precisionTens + "." +
+                (l.length() == precisionDigits ? l : St.repeat("0", precisionDigits - l.length()) + l);
     }
 
     public double toDouble() {

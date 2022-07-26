@@ -22,18 +22,18 @@ package sk.services.comparer.model;
 
 import lombok.AllArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 public class SetCompareResult<T> {
-    List<T> notExistingIn2;
-    List<T> notExistingIn1;
+    Set<T> notExistingIn2;
+    Set<T> notExistingIn1;
 
-    public List<T> getIn1NotIn2() {
+    public Set<T> getIn1NotIn2() {
         return notExistingIn2;
     }
 
-    public List<T> getIn2NotIn1() {
+    public Set<T> getIn2NotIn1() {
         return notExistingIn1;
     }
 
