@@ -92,6 +92,9 @@ public class BloomFilterImpl extends ICountSetExistence {
     //            .map($ -> bf2.isElementExist($) ? 1 : 0)
     //            .toArray();
     //
+    //    final boolean b1 = bf2.addElement("12345");
+    //    final boolean b2 = bf2.addElement("12345");
+    //
     //    int i = 0;
     //}
 
@@ -144,8 +147,9 @@ public class BloomFilterImpl extends ICountSetExistence {
 
         @Override
         public boolean setBit(int index) {
-            this.bitSet.set(index);
-            return true;
+            final boolean was = bitSet.get(index);
+            bitSet.set(index);
+            return !was;
         }
 
         @Override
