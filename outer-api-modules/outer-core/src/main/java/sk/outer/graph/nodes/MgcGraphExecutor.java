@@ -45,7 +45,7 @@ public class MgcGraphExecutor
     public MgcGraphExecutionResult<CTX, T> executeByHistory(O<String> selectedEdge,
             MgcCtxProvider<CTX, T> contextProvider) {
         final CTX ctx = contextProvider.getContext(this, empty(), selectedEdge);
-        return !ctx.getHistory().userHasHistory()
+        return !ctx.getHistory().hasHistory()
                ? executeFirst(contextProvider)
                : executeAnyNode(ctx.getFromNode().get(), selectedEdge.get(), contextProvider);
     }

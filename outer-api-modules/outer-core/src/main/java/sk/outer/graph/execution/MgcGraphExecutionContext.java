@@ -32,23 +32,35 @@ import sk.utils.tuples.X1;
 @Getter
 public abstract class MgcGraphExecutionContext<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
     final protected MgcGraphExecutor<CTX, T> executedGraph;
-    final protected O<MgcNode<CTX, T>> fromNode;
+    private O<MgcNode<CTX, T>> fromNode;
+    private O<MgcNode<CTX, T>> fromNodeInitial;
     final protected O<String> selectedEdge;
 
     final protected GSet<MgcNode<CTX, T>> toNodeHolder = new X1<>();
     final protected MgcListenerResults results = new MgcListenerResults();
-    final protected MgcHistoryProvider history = initHistoryProvider();
+    protected MgcHistoryProvider history;
 
     public abstract MgcHistoryProvider initHistoryProvider();
 
     public MgcGraphExecutionContext(MgcGraphExecutor<CTX, T> executedGraph, O<MgcNode<CTX, T>> fromNode, O<String> selectedEdge) {
         this.executedGraph = executedGraph;
-        if (fromNode.isEmpty() && selectedEdge.isPresent()) {
-            //find in history
-            this.fromNode = history.getLastNode().map($ -> executedGraph.getGraph().getNodeById($.getId()).get());
-        } else {
-            this.fromNode = fromNode;
-        }
+        fromNodeInitial = fromNode;
         this.selectedEdge = selectedEdge;
+    }
+
+    public O<MgcNode<CTX, T>> getFromNode() {
+        if (fromNode == null) {
+            if (fromNodeInitial.isEmpty() && selectedEdge.isPresent()) {
+                //find in history
+                this.fromNode = getHistory().getLastNode().map($ -> executedGraph.getGraph().getNodeById($.getId()).get());
+            } else {
+                this.fromNode = fromNodeInitial;
+            }
+        }
+        return fromNode;
+    }
+
+    public MgcHistoryProvider getHistory() {
+        return history == null ? history = initHistoryProvider() : history;
     }
 }

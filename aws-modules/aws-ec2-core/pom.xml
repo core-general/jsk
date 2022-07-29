@@ -5,7 +5,7 @@
     <parent>
         <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.1.0</version>
+        <version>jsk.17.1.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-core</artifactId>
-            <version>jsk.17.1.0</version>
+            <version>jsk.17.1.5</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

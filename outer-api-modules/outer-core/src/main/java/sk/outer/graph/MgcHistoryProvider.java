@@ -20,6 +20,7 @@ package sk.outer.graph;
  * #L%
  */
 
+import sk.exceptions.NotImplementedException;
 import sk.outer.graph.execution.MgcGraphHistoryItem;
 import sk.outer.graph.execution.MgcObjectType;
 import sk.utils.functional.O;
@@ -30,21 +31,29 @@ import java.util.List;
 public interface MgcHistoryProvider {
     void addGraphHistoryItem(MgcGraphHistoryItem item);
 
-    SimplePage<MgcGraphHistoryItem, String> getGraphHistory(int count, O<String> npa,
+    SimplePage<MgcGraphHistoryItem, String> getHistory(int count, O<String> npa,
             boolean ascending, MgcObjectType type);
 
-    public boolean userHasHistory();
+    boolean hasHistory();
 
-    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX) {
-        return getGraphHistory(lastX, O.empty(), false, MgcObjectType.BOTH).getData();
+    default void clearHistory() {
+        throw new NotImplementedException();
     }
 
-    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX, MgcObjectType type) {
-        return getGraphHistory(lastX, O.empty(), false, type).getData();
+    default void removeHistoryItem(MgcGraphHistoryItem item) {
+        throw new NotImplementedException();
+    }
+
+    default List<MgcGraphHistoryItem> getHistoryDescending(int lastX) {
+        return getHistory(lastX, O.empty(), false, MgcObjectType.BOTH).getData();
+    }
+
+    default List<MgcGraphHistoryItem> getHistoryDescending(int lastX, MgcObjectType type) {
+        return getHistory(lastX, O.empty(), false, type).getData();
     }
 
     default O<MgcGraphHistoryItem> getLastNode() {
-        List<MgcGraphHistoryItem> data = getGraphHistory(1, O.empty(), false, MgcObjectType.NODE).getData();
+        List<MgcGraphHistoryItem> data = getHistory(1, O.empty(), false, MgcObjectType.NODE).getData();
         if (data.size() == 0 || !data.get(0).isNode()) {
             return O.empty();
         } else {

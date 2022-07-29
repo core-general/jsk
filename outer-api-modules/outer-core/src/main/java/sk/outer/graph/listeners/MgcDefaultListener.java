@@ -30,7 +30,7 @@ public class MgcDefaultListener
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
         implements MgcListener<CTX, T> {
     String id;
-    F1<MgcGraphExecutionContext<CTX, T>, MgcListenerResult> processor;
+    F1<CTX, MgcListenerResult> processor;
 
     @Override
     public String getId() {

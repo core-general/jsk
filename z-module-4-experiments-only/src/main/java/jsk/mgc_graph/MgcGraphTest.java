@@ -127,14 +127,14 @@ public class MgcGraphTest {
         }
 
         @Override
-        public synchronized SimplePage<MgcGraphHistoryItem, String> getGraphHistory(int count, O<String> npa, boolean ascending,
+        public synchronized SimplePage<MgcGraphHistoryItem, String> getHistory(int count, O<String> npa, boolean ascending,
                 MgcObjectType type) {
             int skip = npa.map($ -> Ma.pi($)).orElse(0);
             return new SimplePage<>(history.stream().skip(skip).limit(count).collect(Collectors.toList()), (skip + count) + "");
         }
 
         @Override
-        public boolean userHasHistory() {
+        public boolean hasHistory() {
             return history.size() > 0;
         }
     }
