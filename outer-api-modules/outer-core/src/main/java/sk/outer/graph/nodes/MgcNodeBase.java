@@ -23,23 +23,25 @@ package sk.outer.graph.nodes;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.listeners.MgcListenerProcessorBase;
 import sk.outer.graph.listeners.impl.MgcDefaultEdgeVariantsListener;
 import sk.outer.graph.listeners.impl.MgcDefaultHistoryUpdaterListener;
-import sk.outer.graph.listeners.impl.MgcDefaultNodeImgListener;
 import sk.outer.graph.listeners.impl.MgcDefaultNodeTextListener;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 
 @EqualsAndHashCode(of = {"parsedData"}, callSuper = false)
 @Data
 @AllArgsConstructor
-public class MgcNodeBase extends MgcListenerProcessorBase implements MgcNode {
-    MgcParsedData parsedData;
+public class MgcNodeBase<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcListenerProcessorBase<CTX, T>
+        implements MgcNode<CTX, T> {
+    MgcParsedData<T> parsedData;
 
     {
-        addListenerLast(new MgcDefaultEdgeVariantsListener(this));
-        addListenerLast(new MgcDefaultNodeTextListener(this));
-        addListenerLast(new MgcDefaultNodeImgListener(this));
+        addListenerLast(new MgcDefaultEdgeVariantsListener<>(this));
+        addListenerLast(new MgcDefaultNodeTextListener<>(this));
         addListenerLast(MgcDefaultHistoryUpdaterListener.node(this));
     }
 

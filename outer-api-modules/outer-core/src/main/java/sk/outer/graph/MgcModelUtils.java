@@ -22,7 +22,9 @@ package sk.outer.graph;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.nodes.MgcGraph;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.services.free.IFree;
 import sk.utils.statics.Cc;
 
@@ -30,7 +32,8 @@ import java.util.List;
 
 
 public class MgcModelUtils {
-    public static String convertToGraphVizFormat(MgcGraph g, IFree client) {
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    String convertToGraphVizFormat(MgcGraph<CTX, T> g, IFree client) {
         GvModel gvm = new GvModel(g.getAllEdgesFrom().stream()
                 .map($ -> new GvEdge($.getId(), g.getEdgeSource($).getId(), g.getEdgeTarget($).getId()))
                 .collect(Cc.toL()));

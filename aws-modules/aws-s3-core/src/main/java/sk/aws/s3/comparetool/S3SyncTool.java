@@ -39,10 +39,7 @@ import sk.utils.async.AtomicNotifier;
 import sk.utils.files.PathWithBase;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Io;
-import sk.utils.statics.St;
-import sk.utils.statics.Ti;
+import sk.utils.statics.*;
 import sk.utils.tuples.X1;
 import sk.utils.tuples.X2;
 
@@ -81,7 +78,10 @@ public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             log.error("\nType 'exit' to exit");
 
             if (sv.get() == null) {
-                Io.endlessReadFromKeyboard("exit", command -> {
+                Io.endlessReadFromKeyboard(command -> {
+                    if (Fu.equalIgnoreCase("exit", command.trim())) {
+                        return false;
+                    }
                     try {
                         sv.setI1(SyncVariant.valueOf(command));
                         return false;

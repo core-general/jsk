@@ -22,14 +22,24 @@ package sk.outer.graph.edges;
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
+import sk.utils.functional.F1;
 import sk.utils.functional.O;
 
-public class MgcMetaEdge extends MgcEdgeBase {
-    public MgcMetaEdge(MgcParsedData parsedData) {
-        super(parsedData);
+public class MgcMetaEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcEdgeBase<CTX, T> {
+    private F1<CTX, O<String>> getPossibleNodeIdIfMetaBackWrapper;
+
+    public MgcMetaEdge(MgcParsedData<T> parsedData) {
+        this(parsedData, ctx -> O.empty());
     }
 
-    public O<String> getPossibleNodeIdIfMetaBack(MgcGraphExecutionContext context) {
-        return O.empty();
+    public MgcMetaEdge(MgcParsedData<T> parsedData, F1<CTX, O<String>> getPossibleNodeIdIfMetaBackWrapper) {
+        super(parsedData);
+        this.getPossibleNodeIdIfMetaBackWrapper = getPossibleNodeIdIfMetaBackWrapper;
+    }
+
+    public O<String> getPossibleNodeIdIfMetaBack(CTX context) {
+        return getPossibleNodeIdIfMetaBackWrapper.apply(context);
     }
 }

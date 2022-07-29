@@ -23,6 +23,7 @@ package sk.outer.graph.parser;
 import lombok.Data;
 import sk.outer.graph.edges.MgcMetaEdge;
 import sk.outer.graph.edges.MgcNormalEdge;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.nodes.MgcGraph;
 import sk.outer.graph.nodes.MgcGraphImpl;
 import sk.outer.graph.nodes.MgcNode;
@@ -31,6 +32,7 @@ import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
+import sk.utils.statics.Re;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
@@ -38,60 +40,52 @@ import sk.utils.tuples.X2;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static sk.utils.functional.O.empty;
+import static sk.utils.functional.O.of;
 import static sk.utils.statics.Cc.*;
 import static sk.utils.statics.Fu.equal;
 
-public class MgcParser {
-    public OneOf<MgcGraph, String> parse(String id, String version, String graphTxt, O<MgcGraph> parent,
-            MgcParseEnv graphSource) {
-        MgcParseContext parseContext = new MgcParseContext(id, version, graphSource, parent);
+public abstract /* - to force types otherwise type erasure*/
+class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+    Class<T> cls;
+
+    public OneOf<MgcGraph<CTX, T>, String> parse(
+            String id, String version,
+            String graphTxt,
+            MgcParseEnv<CTX, T> graphSource
+    ) {
+        MgcParseContext<CTX, T> parseContext = new MgcParseContext<>(id, version, graphSource);
         Cc.eachWithIndex(Cc.l(graphTxt.split("\n")), (line, i) -> processLine(line.trim(), parseContext));
         finishLastItemIfNeeded(parseContext);
         O<String> error = validateContext(parseContext);
-        return error.map(OneOf::<MgcGraph, String>right).orElseGet(() -> OneOf.left(prepareGraph(parseContext)));
+        return error.map(OneOf::<MgcGraph<CTX, T>, String>right).orElseGet(() -> OneOf.left(prepareGraph(parseContext)));
     }
 
-    protected MgcObjectGenerator getInnerGraphGenerator(MgcParseEnv graphSource) {
-        return (MgcNodeGenerator) parsedData -> {
-            String graphId = parsedData.getParams().get(0);
-            return graphSource.getOrCreateInnerGraph(graphId).map(innerGraph -> innerGraph);
-        };
-
-    }
-
-    private boolean processLine(String line, MgcParseContext parseContext) {
+    private void processLine(String line, MgcParseContext<CTX, T> parseContext) {
         try {
             if (line.startsWith("//")) {
-                return false;
+                return;
             }
             switch (parseContext.stage) {
-                case START_END_META:
-                    return parseStartEndMetaStage(line, parseContext);
-                case GRAPH:
-                    return parseGraphStage(line, parseContext);
-                case PROPERTIES_HEADER:
-                    return parsePropertiesHeaderStage(line, parseContext);
-                case PROPERTIES_BODY_WAIT:
-                    return parsePropertiesBodyWaitStage(line, parseContext);
-                case PROPERTIES_BODY_OK:
-                    return parsePropertiesBodyOkStage(line, parseContext);
-                case FINISHED:
-                    return false;
+                case START_END_META -> parseStartEndMetaStage(line, parseContext);
+                case GRAPH -> parseGraphStage(line, parseContext);
+                case PROPERTIES_HEADER -> parsePropertiesHeaderStage(line, parseContext);
+                case PROPERTIES_BODY_WAIT -> parsePropertiesBodyWaitStage(line, parseContext);
+                case PROPERTIES_BODY_OK -> parsePropertiesBodyOkStage(line, parseContext);
+                case FINISHED -> {}
             }
         } finally {
-            parseContext.curentLineNumber++;
+            parseContext.currentLineNumber++;
         }
-        throw new RuntimeException();
     }
 
-    private boolean parseStartEndMetaStage(String line, MgcParseContext context) {
+    private void parseStartEndMetaStage(String line, MgcParseContext<CTX, T> context) {
         if (St.isNullOrEmpty(line)) {
-            return true;
+            return;
         }
         if (line.startsWith("---")) {
             context.stage = MgcParseStage.GRAPH;
-            return true;
         }
 
         if (line.startsWith("START:")) {
@@ -100,19 +94,19 @@ public class MgcParser {
             String[] split = St.subLF(line, ":").trim().split("\\s+");
             context.cyclingMetaEdge = split[2];
         }
-        return true;
     }
 
-    private boolean parseGraphStage(String line, MgcParseContext context) {
+    private void parseGraphStage(String line, MgcParseContext<CTX, T> context) {
         if (St.isNullOrEmpty(line)) {
-            return true;
+            return;
         }
         if (line.startsWith("---")) {
             context.stage = MgcParseStage.PROPERTIES_HEADER;
         } else {
             String[] split = line.split("\\s+");
             if (split.length != 3 || equal(split[2], "?") || stream(split).filter($ -> equal($, "?")).count() > 1) {
-                return except(context.curentLineNumber, "(v1 v2 e1) OR (? v2 e1) OR (v1 ? e1) expected");
+                except(context.currentLineNumber, "(v1 v2 e1) OR (? v2 e1) OR (v1 ? e1) expected");
+                return;
             }
 
             if (equal(split[0], "?")) {
@@ -127,85 +121,77 @@ public class MgcParser {
                 computeAndApply(context.s1Edges, split[2], (v, l) -> l, Cc::l).add(new X2<>(split[0], split[1]));
             }
         }
-        return true;
     }
 
-    private boolean parsePropertiesHeaderStage(String line, MgcParseContext context) {
-        if (St.isNullOrEmpty(line)) {
-            return true;
+    private void parsePropertiesHeaderStage(String line, MgcParseContext<CTX, T> context) {
+        if (!St.isNullOrEmpty(line)) {
+            context.tempType = parseObjAndType(line, context.currentLineNumber);
+            context.stage = MgcParseStage.PROPERTIES_BODY_WAIT;
         }
-
-        context.tempType = parseObjAndType(line, context.curentLineNumber, true);
-        context.stage = MgcParseStage.PROPERTIES_BODY_WAIT;
-        return true;
     }
 
-    private boolean parsePropertiesBodyWaitStage(String line, MgcParseContext context) {
+    private void parsePropertiesBodyWaitStage(String line, MgcParseContext<CTX, T> context) {
         if (St.isNullOrEmpty(line)) {
-            return except(context.curentLineNumber, "Body must be right below header");
+            except(context.currentLineNumber, "Body must be right below header");
+        } else {
+            context.tempBody = line;
+            context.stage = MgcParseStage.PROPERTIES_BODY_OK;
         }
-        context.tempBody = line;
-        context.stage = MgcParseStage.PROPERTIES_BODY_OK;
-        return true;
     }
 
 
-    private boolean parsePropertiesBodyOkStage(String line, MgcParseContext context) {
+    private void parsePropertiesBodyOkStage(String line, MgcParseContext<CTX, T> context) {
         if (St.isNullOrEmpty(line)) {
             finishLastItemIfNeeded(context);
             context.stage = MgcParseStage.PROPERTIES_HEADER;
-            return true;
+        } else {
+            context.tempBody += "\n" + line;
         }
-
-        context.tempBody += "\n" + line;
-        return true;
     }
 
-    private O<String> validateContext(MgcParseContext context) {
+    private O<String> validateContext(MgcParseContext<CTX, T> context) {
         StringBuilder sb = new StringBuilder();
         List<String> badNodes =
                 context.s1Nodes.stream().filter($ -> !context.s2Objects.containsKey($)).collect(Collectors.toList());
         if (badNodes.size() > 0) {
-            sb.append("Bad nodes:" + Cc.join(badNodes));
+            sb.append("Bad nodes:").append(Cc.join(badNodes));
         }
         List<String> badEdges =
                 context.s1Edges.keySet().stream().filter($ -> !context.s2Objects.containsKey($)).collect(Collectors.toList());
         if (badEdges.size() > 0) {
-            sb.append("Bad edges:" + Cc.join(badEdges));
+            sb.append("Bad edges:").append(Cc.join(badEdges));
         }
 
         List<String> tooLongEdges = context.s1Edges.keySet().stream()
                 .filter($ -> {
                     try {
                         return context.s2Objects.get($).getText().length() > context.getParseEnv().maxSizeOfEdgeText()
-                                && !context.parseEnv.isEdgeSizeOk(context.s2Objects.get($));
+                                && !context.parseEnv.isLongEdgeSizeOk(context.s2Objects.get($));
                     } catch (Exception e) {
-                        throw new RuntimeException("Prolem with edge:" + $);
+                        throw new RuntimeException("Problem with edge:" + $);
                     }
                 })
                 .collect(Collectors.toList());
         if (tooLongEdges.size() > 0) {
-            sb.append("Too long edges:" + Cc.join(tooLongEdges));
+            sb.append("Too long edges:").append(Cc.join(tooLongEdges));
         }
 
         String s = sb.toString().trim();
         return St.isNullOrEmpty(s) ? empty() : O.of(s);
     }
 
-    private MgcGraph prepareGraph(MgcParseContext context) {
-        MgcGraph mgcGraph = new MgcGraphImpl(new MgcParsedData(context.id, "GRAPH", Cc.lEmpty(), ""),
-                context.version, context.parent);
-        F1<String, MgcParsedData> s2Object =
+    private MgcGraph<CTX, T> prepareGraph(MgcParseContext<CTX, T> context) {
+        MgcGraph<CTX, T> mgcGraph = new MgcGraphImpl<>(
+                context.getId(), context.version, getTypeSelector().getEnumConstants()[0].getFictiveType());
+        F1<String, MgcParsedData<T>> s2Object =
                 (f) -> O.ofNullable(context.getS2Objects().get(f))
                         .orElseGet(() -> except(-1, "Unknown id:" + f));
-        F1<String, MgcObjectGenerator> getGenerator = (String a) -> context.getParseEnv()
-                .getGenerator(O.ofNullable(s2Object.apply(a)).map($ -> $.getType()))
-                .orElseGet(() -> except(-1, "Unknown type:" + a));
-        Map<String, MgcNode> nodes = context.s1Nodes.stream()
+        F1<String, MgcObjectGenerator<CTX, T>> getGenerator = (String a) -> context.getParseEnv()
+                .getGenerator(O.ofNullable(s2Object.apply(a)).map($ -> $.getType()));
+        Map<String, MgcNode<CTX, T>> nodes = context.s1Nodes.stream()
                 .map($ -> {
-                    MgcNode node = getGenerator.apply($)
-                            .getNodeGenerator(s2Object.apply($))
-                            .orElseGet(() -> except(-1, "Node generator fail:" + s2Object.apply($)));
+                    MgcNode<CTX, T> node = requireNonNull(getGenerator.apply($)
+                            .getNodeGenerator(s2Object.apply($)), "Node generator fail:" + s2Object.apply($));
                     mgcGraph.addNode(node);
                     return X.x($, node);
                 })
@@ -213,25 +199,28 @@ public class MgcParser {
 
         context.s1Edges.forEach((k, v) -> v
                 .forEach($ -> mgcGraph.addNormalEdge(nodes.get($.i1), nodes.get($.i2),
-                        (MgcNormalEdge) getGenerator.apply(k).getEdgeGenerator(s2Object.apply(k), false)
-                                .orElseGet(() -> except(-1, "Edge generator fail:" + s2Object.apply(k)))
-                )));
+                        (MgcNormalEdge<CTX, T>) requireNonNull(
+                                getGenerator.apply(k).getEdgeGenerator(s2Object.apply(k).withMeta(of(false))),
+                                "Edge generator fail:" + s2Object.apply(k)))
+                ));
 
         context.s1MetaEdges.forEach((k, $) -> mgcGraph.addMetaEdge(nodes.get($.i1),
-                (MgcMetaEdge) getGenerator.apply($.i2).getEdgeGenerator(s2Object.apply($.i2), true)
-                        .orElseGet(() -> except(-1, "Edge generator fail:" + s2Object.apply($.i2)))));
+                (MgcMetaEdge<CTX, T>) requireNonNull(
+                        getGenerator.apply($.i2).getEdgeGenerator(s2Object.apply($.i2).withMeta(of(true))),
+                        "Edge generator fail:" + s2Object.apply($.i2))));
 
         context.s1MetaBackEdges.forEach((edgeId, nodeFromId) -> mgcGraph.addMetaEdgeBack(nodes.get(nodeFromId),
-                (MgcMetaEdge) getGenerator.apply(edgeId).getEdgeGenerator(s2Object.apply(edgeId), true)
-                        .orElseGet(() -> except(-1, "Edge generator fail:" + s2Object.apply(edgeId)))));
+                (MgcMetaEdge<CTX, T>) requireNonNull(
+                        getGenerator.apply(edgeId).getEdgeGenerator(s2Object.apply(edgeId).withMeta(of(true))),
+                        "Edge generator fail:" + s2Object.apply(edgeId))));
 
 
         Set<String> endings = mgcGraph.getAllNodes().stream()
-                .filter($ -> mgcGraph.getDirectEdgesFrom($).stream().count() == 0)
+                .filter($ -> mgcGraph.getDirectEdgesFrom($).size() == 0)
                 .map($ -> $.getId())
                 .collect(Collectors.toSet());
 
-        mgcGraph.setMetaInfo(context.getInitialState(), endings, O.of(mgcGraph.getMetaEdges().stream()
+        mgcGraph.setMetaInfo(context.getInitialState(), endings, O.of(mgcGraph.getAllMetaEdges().stream()
                 .filter($ -> context.getCyclingMetaEdge() != null && Fu.equal($.getId(), context.getCyclingMetaEdge()))
                 .findAny()));
 
@@ -241,17 +230,19 @@ public class MgcParser {
         return mgcGraph;
     }
 
-    private boolean finishLastItemIfNeeded(MgcParseContext context) {
-        MgcParsedData tempType = context.tempType;
+    private void finishLastItemIfNeeded(MgcParseContext<CTX, T> context) {
+        MgcParsedData<T> tempType = context.tempType;
         if (!context.s1Edges.containsKey(tempType.id)
                 && !context.s1MetaEdges.containsKey(tempType.id)
                 && !context.s1MetaBackEdges.containsKey(tempType.id)
                 && !context.s1Nodes.contains(tempType.id)) {
-            return except(context.curentLineNumber, "Wrong objectId:" + context.getTempType().getId());
+            except(context.currentLineNumber, "Wrong objectId:" + context.getTempType().getId());
+            return;
         }
         if (context.getTempBody() == null) {
-            return except(context.curentLineNumber,
+            except(context.currentLineNumber,
                     "Body must not be null objectId:" + context.getTempType().getId());
+            return;
         }
 
         tempType.setText(context.getTempBody());
@@ -259,29 +250,33 @@ public class MgcParser {
 
         context.tempBody = null;
         context.tempType = null;
-        return true;
     }
 
-    private <T> T except(long lineNumber, String text) {
+    private <XXX> XXX except(long lineNumber, String text) {
         throw new RuntimeException("On line " + (lineNumber + 1) + " : " + text);
     }
 
-    private MgcParsedData parseObjAndType(String line, long lineNumber, boolean allowSingle) {
+    private Class<T> getTypeSelector() {
+        //noinspection unchecked
+        return cls == null ? cls = (Class<T>) Re.getParentParameters(this.getClass()).get()[1] : cls;
+    }
+
+    private MgcParsedData<T> parseObjAndType(String line, long lineNumber) {
         String[] split = line.split("\\s+");
-        if (split.length < 2 && !allowSingle) {
-            return except(lineNumber, "Additional params must have type to create nodes and edges");
-        }
-        return new MgcParsedData(split[0], split.length > 1 ? split[1] : null, stream(split).skip(2).collect(toL()), null);
+
+        return new MgcParsedData<>(split[0],
+                split.length > 1 ? Re.findInEnum(getTypeSelector(), split[1])
+                        .orElseThrow(() -> new RuntimeException("Unknown type: " + split[1] + " on line: " + lineNumber)) : null,
+                stream(split).skip(2).collect(toL()), null, empty());
     }
 
     @Data
-    public static class MgcParseContext {
+    public static class MgcParseContext<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
         private final String id;
         private final String version;
-        private final MgcParseEnv parseEnv;
-        private O<MgcGraph> parent;
+        private final MgcParseEnv<CTX, T> parseEnv;
 
-        long curentLineNumber = 0;
+        long currentLineNumber = 0;
 
         MgcParseStage stage = MgcParseStage.START_END_META;
         Set<String> s1Nodes = new HashSet<>();
@@ -290,20 +285,17 @@ public class MgcParser {
         Map<String, String> s1MetaBackEdges = new LinkedHashMap<>();
         String cyclingMetaEdge;
 
-        Map<String, MgcParsedData> s2Objects = new LinkedHashMap<>();
+        Map<String, MgcParsedData<T>> s2Objects = new LinkedHashMap<>();
 
         String tempBody;
-        MgcParsedData tempType;
+        MgcParsedData<T> tempType;
         String initialState;
 
-        public MgcParseContext(String id, String version, MgcParseEnv parseEnv,
-                O<MgcGraph> parent) {
+        public MgcParseContext(String id, String version, MgcParseEnv<CTX, T> parseEnv) {
             this.id = id;
             this.version = version;
             this.parseEnv = parseEnv;
-            this.parent = parent;
         }
-
     }
 
     enum MgcParseStage {

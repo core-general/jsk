@@ -27,160 +27,147 @@ import sk.outer.graph.edges.MgcEdge;
 import sk.outer.graph.edges.MgcMetaEdge;
 import sk.outer.graph.edges.MgcNormalEdge;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
-import sk.outer.graph.execution.MgcGraphExecutionResult;
-import sk.outer.graph.execution.MgcGraphExecutionResultImpl;
-import sk.outer.graph.listeners.MgcListenerProcessorResultImpl;
-import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
 import java.util.*;
 
-public class MgcGraphImpl extends MgcNodeBase implements MgcGraph {
-    protected Graph<MgcNode, MgcEdge> graph;
-    @Getter protected String version;
-    @Getter protected O<MgcGraph> parent;
+public class MgcGraphImpl
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcGraph<CTX, T> {
+    protected final Graph<MgcNode<CTX, T>, MgcEdge<CTX, T>> graph;
+    @Getter protected final String id;
+    @Getter protected final String version;
     @Getter protected String startingStateId;
     @Getter protected Set<String> finishStateIds;
-    @Getter protected O<MgcMetaEdge> nullifyingMetaEdge;
+    @Getter
+    protected O<MgcMetaEdge<CTX, T>> nullifyingMetaEdge;
 
-    volatile Map<MgcEdge, Integer> sortMap;
-    List<MgcEdge> edges;
-    protected MgcNodeBase fictiveStart;
-    protected MgcNodeBase fictiveBack;
+    protected volatile Map<MgcEdge<CTX, T>, Integer> sortMap;
+    protected final List<MgcEdge<CTX, T>> edges;
+    protected MgcNodeBase<CTX, T> fictiveStart;
+    protected MgcNodeBase<CTX, T> fictiveBack;
 
-    {
-        graph = new DirectedPseudograph<>(MgcEdge.class);
-        graph.addVertex(fictiveStart = new MgcFictiveNode(true));
-        graph.addVertex(fictiveBack = new MgcFictiveNode(false));
+    public MgcGraphImpl(String id, String version, T fictiveNodeType) {
+        this.id = id;
+        this.version = version;
+
+        //noinspection MoveFieldAssignmentToInitializer,unchecked,rawtypes
+        graph = new DirectedPseudograph(MgcEdge.class);
+        graph.addVertex(fictiveStart = new MgcFictiveNode<>(true, fictiveNodeType));
+        graph.addVertex(fictiveBack = new MgcFictiveNode<>(false, fictiveNodeType));
         edges = Cc.l();
     }
 
-    public MgcGraphImpl(MgcParsedData pd, String version, O<MgcGraph> parent) {
-        super(pd);
-        this.version = version;
-        this.parent = parent;
-    }
-
     @Override
-    public boolean addNormalEdge(MgcNode from, MgcNode to, MgcNormalEdge edge) {
+    public void addNormalEdge(MgcNode<CTX, T> from, MgcNode<CTX, T> to, MgcNormalEdge<CTX, T> edge) {
         edges.add(edge);
-        return graph.addEdge(from, to, edge);
+        graph.addEdge(from, to, edge);
     }
 
     @Override
-    public boolean addMetaEdge(MgcNode to, MgcMetaEdge metaEdge) {
+    public void addMetaEdge(MgcNode<CTX, T> to, MgcMetaEdge<CTX, T> metaEdge) {
         edges.add(metaEdge);
-        return graph.addEdge(fictiveStart, to, metaEdge);
+        graph.addEdge(fictiveStart, to, metaEdge);
     }
 
     @Override
-    public boolean addMetaEdgeBack(MgcNode from, MgcMetaEdge metaEdge) {
+    public void addMetaEdgeBack(MgcNode<CTX, T> from, MgcMetaEdge<CTX, T> metaEdge) {
         edges.add(metaEdge);
-        return graph.addEdge(from, fictiveBack, metaEdge);
+        graph.addEdge(from, fictiveBack, metaEdge);
     }
 
     @Override
-    public boolean addNode(MgcNode node) {
-        return graph.addVertex(node);
+    public void addNode(MgcNode<CTX, T> node) {
+        graph.addVertex(node);
     }
 
     @Override
-    public List<MgcNode> getAllNodes() {
+    public List<MgcNode<CTX, T>> getAllNodes() {
         return graph.vertexSet().stream().filter($ -> !($ instanceof MgcFictiveNode)).collect(Cc.toL());
     }
 
     @Override
-    public O<MgcNode> getNodeById(String nodeId) {
+    public O<MgcNode<CTX, T>> getNodeById(String nodeId) {
         return O.of(graph.vertexSet().stream().filter($ -> Fu.equal($.getId(), nodeId)).findAny());
     }
 
     @Override
-    public O<MgcEdge> getEdgeById(String edgeId) {
+    public O<MgcEdge<CTX, T>> getEdgeById(String edgeId) {
         return O.of(graph.edgeSet().stream().filter($ -> Fu.equal($.getId(), edgeId)).findAny());
     }
 
     @Override
-    public MgcNode toNode(MgcEdge nextEdge, MgcGraphExecutionContext context) {
-        if (Fu.equal(graph.getEdgeTarget(nextEdge).getId(), fictiveBack.getId()) && nextEdge instanceof MgcMetaEdge) {
-            return ((MgcMetaEdge) nextEdge).getPossibleNodeIdIfMetaBack(context).flatMap($ -> getNodeById($))
-                    .orElse(graph.getEdgeTarget(nextEdge));
-        } else {
-            return graph.getEdgeTarget(nextEdge);
-        }
+    public boolean isFictiveBack(MgcNode<CTX, T> node) {
+        return Fu.equal(node.getId(), fictiveBack.getId());
     }
 
     @Override
-    public List<MgcNormalEdge> getDirectEdgesFrom(MgcNode node) {
+    public List<MgcNormalEdge<CTX, T>> getDirectEdgesFrom(MgcNode<CTX, T> node) {
         return graph.outgoingEdgesOf(node).stream()
                 .filter($ -> $ instanceof MgcNormalEdge)
-                .map($ -> (MgcNormalEdge) $)
+                .map($ -> (MgcNormalEdge<CTX, T>) $)
                 .sorted(compareEdges())
                 .collect(Cc.toL());
     }
 
     @Override
-    public List<MgcNormalEdge> getDirectEdgesTo(MgcNode node) {
+    public List<MgcNormalEdge<CTX, T>> getDirectEdgesTo(MgcNode<CTX, T> node) {
         return graph.incomingEdgesOf(node).stream()
                 .filter($ -> $ instanceof MgcNormalEdge)
-                .map($ -> (MgcNormalEdge) $)
+                .map($ -> (MgcNormalEdge<CTX, T>) $)
                 .sorted(compareEdges())
                 .collect(Cc.toL());
     }
 
     @Override
-    public List<MgcMetaEdge> getMetaEdges() {
+    public List<MgcMetaEdge<CTX, T>> getAllMetaEdges() {
         return graph.outgoingEdgesOf(fictiveStart).stream()
-                .filter($ -> $ instanceof MgcMetaEdge)
-                .map($ -> (MgcMetaEdge) $)
+                .filter($ -> $ instanceof MgcMetaEdge<CTX, T>)
+                .map($ -> (MgcMetaEdge<CTX, T>) $)
                 .sorted(compareEdges())
                 .collect(Cc.toL());
     }
 
     @Override
-    public List<MgcEdge> getMetaEdgesBack() {
+    public List<MgcMetaEdge<CTX, T>> getAllMetaEdgesBack() {
         return graph.incomingEdgesOf(fictiveBack).stream()
-                .filter($ -> $ instanceof MgcMetaEdge)
-                .map($ -> (MgcMetaEdge) $)
+                .filter($ -> $ instanceof MgcMetaEdge<CTX, T>)
+                .map($ -> (MgcMetaEdge<CTX, T>) $)
                 .sorted(compareEdges())
                 .collect(Cc.toL());
     }
 
     @Override
-    public List<MgcMetaEdge> getMetaEdgesBack(MgcNode node) {
+    public List<MgcMetaEdge<CTX, T>> getMetaEdgesBack(MgcNode<CTX, T> node) {
         return graph.outgoingEdgesOf(node).stream()
-                .filter($ -> $ instanceof MgcMetaEdge)
-                .map($ -> (MgcMetaEdge) $)
+                .filter($ -> $ instanceof MgcMetaEdge<CTX, T>)
+                .map($ -> (MgcMetaEdge<CTX, T>) $)
                 .sorted(compareEdges())
                 .collect(Cc.toL());
     }
 
-    @Override
-    public MgcGraphExecutionResult instantiateResult(MgcListenerProcessorResultImpl edgeResult,
-            MgcListenerProcessorResultImpl nodeResult,
-            MgcGraphExecutionContext context) {
-        return new MgcGraphExecutionResultImpl(context, false);
-    }
 
     @Override
-    public MgcNode getEdgeSource(MgcEdge $) {
+    public MgcNode<CTX, T> getEdgeSource(MgcEdge<CTX, T> $) {
         return graph.getEdgeSource($);
     }
 
     @Override
-    public MgcNode getEdgeTarget(MgcEdge $) {
+    public MgcNode<CTX, T> getEdgeTarget(MgcEdge<CTX, T> $) {
         return graph.getEdgeTarget($);
     }
 
     @Override
-    public void setMetaInfo(String startingStateId, Set<String> finishStateIds, O<MgcMetaEdge> nullifyingMetaEdge) {
+    public void setMetaInfo(String startingStateId, Set<String> finishStateIds, O<MgcMetaEdge<CTX, T>> nullifyingMetaEdge) {
         this.startingStateId = startingStateId;
         this.finishStateIds = finishStateIds;
         this.nullifyingMetaEdge = nullifyingMetaEdge;
     }
 
-    private Map<MgcEdge, Integer> getSortMap() {
+    private Map<MgcEdge<CTX, T>, Integer> getSortMap() {
         if (sortMap == null) {
             sortMap = new HashMap<>();
             Cc.eachWithIndex(edges, (e, i) -> sortMap.put(e, i));
@@ -188,7 +175,7 @@ public class MgcGraphImpl extends MgcNodeBase implements MgcGraph {
         return sortMap;
     }
 
-    private Comparator<MgcEdge> compareEdges() {
+    private Comparator<MgcEdge<CTX, T>> compareEdges() {
         return (a, b) -> Fu.compare(getSortMap().get(a), getSortMap().get(b));
     }
 }

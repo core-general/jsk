@@ -23,13 +23,15 @@ package sk.outer.graph.edges;
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.statics.Cc;
 
 import java.util.List;
 import java.util.function.BiPredicate;
 
-public class MgcAnyTextEdge extends MgcNormalEdge {
-    public MgcAnyTextEdge(MgcParsedData parsedData) {super(parsedData);}
+public class MgcAnyTextEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcNormalEdge<CTX, T> {
+    public MgcAnyTextEdge(MgcParsedData<T> parsedData) {super(parsedData);}
 
     @Override
     public BiPredicate<String, String> getAcceptPredicate() {
@@ -37,7 +39,7 @@ public class MgcAnyTextEdge extends MgcNormalEdge {
     }
 
     @Override
-    public List<String> getPossibleEdges(String template, MgcGraphExecutionContext context) {
+    public List<String> getPossibleEdges(String template, CTX context) {
         return Cc.l();
     }
 }

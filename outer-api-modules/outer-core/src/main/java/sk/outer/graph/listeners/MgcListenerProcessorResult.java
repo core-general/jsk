@@ -25,7 +25,7 @@ import sk.utils.statics.Cc;
 
 import java.util.Map;
 
-public class MgcListenerProcessorResultImpl {
+public class MgcListenerProcessorResult {
     Map<String, MgcListenerResult> results = Cc.m();
 
     public void addListenerResult(String listenerId, MgcListenerResult result) {

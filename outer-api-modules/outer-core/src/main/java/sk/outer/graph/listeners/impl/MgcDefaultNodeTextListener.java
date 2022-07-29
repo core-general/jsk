@@ -25,11 +25,14 @@ import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.listeners.MgcListener;
 import sk.outer.graph.listeners.MgcListenerResult;
 import sk.outer.graph.nodes.MgcNode;
+import sk.outer.graph.parser.MgcTypeUtil;
 
 @AllArgsConstructor
-public class MgcDefaultNodeTextListener implements MgcListener {
+public class MgcDefaultNodeTextListener
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcListener<CTX, T> {
     public static final String id = "node_text";
-    private MgcNode newNode;
+    private MgcNode<CTX, T> newNode;
 
     @Override
     public String getId() {
@@ -37,7 +40,7 @@ public class MgcDefaultNodeTextListener implements MgcListener {
     }
 
     @Override
-    public MgcListenerResult apply(MgcGraphExecutionContext context) {
+    public MgcListenerResult apply(CTX context) {
         return new MgcNodeTextListenerResult(newNode.getText(newNode.getParsedData().getText(), context));
     }
 }

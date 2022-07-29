@@ -22,6 +22,7 @@ package sk.outer.graph.edges;
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.ifaces.IdentifiableString;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Re;
@@ -29,10 +30,11 @@ import sk.utils.statics.Re;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MgcEnumEdge extends MgcNormalEdge {
+public class MgcEnumEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcNormalEdge<CTX, T> {
     final List<String> items;
 
-    public MgcEnumEdge(MgcParsedData parsedData) {
+    public MgcEnumEdge(MgcParsedData<T> parsedData) {
         super(parsedData);
 
         if (parsedData.getParams().size() < 1) {
@@ -57,7 +59,7 @@ public class MgcEnumEdge extends MgcNormalEdge {
     }
 
     @Override
-    public List<String> getPossibleEdges(String template, MgcGraphExecutionContext context) {
+    public List<String> getPossibleEdges(String template, CTX context) {
         return items;
     }
 }

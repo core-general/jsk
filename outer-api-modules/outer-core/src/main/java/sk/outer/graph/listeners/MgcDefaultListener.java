@@ -22,12 +22,15 @@ package sk.outer.graph.listeners;
 
 import lombok.AllArgsConstructor;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.functional.F1;
 
 @AllArgsConstructor
-public class MgcDefaultListener implements MgcListener {
+public class MgcDefaultListener
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcListener<CTX, T> {
     String id;
-    F1<MgcGraphExecutionContext, MgcListenerResult> processor;
+    F1<MgcGraphExecutionContext<CTX, T>, MgcListenerResult> processor;
 
     @Override
     public String getId() {
@@ -35,7 +38,7 @@ public class MgcDefaultListener implements MgcListener {
     }
 
     @Override
-    public MgcListenerResult apply(MgcGraphExecutionContext mgcGraphExecutionContext) {
+    public MgcListenerResult apply(CTX mgcGraphExecutionContext) {
         return processor.apply(mgcGraphExecutionContext);
     }
 }

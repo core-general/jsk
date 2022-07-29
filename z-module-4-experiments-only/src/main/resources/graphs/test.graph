@@ -1,0 +1,47 @@
+START: p1
+META: ? p1 cX
+---
+
+? p1 cX
+? p0 cp0
+
+p2 ? R
+
+p1 p2 c1
+p1 G1 c2
+G1 p1 c3
+p0 p1 c0
+
+---
+p0
+p0
+
+p1
+p1
+
+p2
+p2
+
+G1 N_GRAPH test1.graph
+G1
+
+c0
+c0
+
+cp0
+cp0
+
+c1
+c1
+
+c2
+c2
+
+R E_RANDOM_NODE
+R
+
+c3
+c3
+
+cX E_NULLIFIER
+-

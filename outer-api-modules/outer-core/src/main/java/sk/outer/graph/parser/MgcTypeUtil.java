@@ -20,12 +20,6 @@ package sk.outer.graph.parser;
  * #L%
  */
 
-import sk.outer.graph.execution.MgcGraphExecutionContext;
-import sk.outer.graph.nodes.MgcGraphExecutor;
-import sk.outer.graph.nodes.MgcNode;
-import sk.utils.functional.O;
-
-public interface MgcGraphExecutionContextGenerator<CTX extends MgcGraphExecutionContext<CTX, T>,
-        T extends Enum<T> & MgcTypeUtil<T>> {
-    CTX getCtx(MgcGraphExecutor<CTX, T> g, O<MgcNode<CTX, T>> fromNode, O<String> edge);
+public interface MgcTypeUtil<T extends Enum<T>> {
+    public T getFictiveType();
 }

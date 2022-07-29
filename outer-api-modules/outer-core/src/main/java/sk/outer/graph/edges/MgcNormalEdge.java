@@ -20,10 +20,13 @@ package sk.outer.graph.edges;
  * #L%
  */
 
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 
-public class MgcNormalEdge extends MgcEdgeBase {
-    public MgcNormalEdge(MgcParsedData parsedData) {
+public class MgcNormalEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcEdgeBase<CTX, T> {
+    public MgcNormalEdge(MgcParsedData<T> parsedData) {
         super(parsedData);
     }
 }

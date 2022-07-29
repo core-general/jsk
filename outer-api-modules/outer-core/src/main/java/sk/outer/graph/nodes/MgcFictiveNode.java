@@ -20,15 +20,21 @@ package sk.outer.graph.nodes;
  * #L%
  */
 
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-public class MgcFictiveNode extends MgcNodeBase {
+public class MgcFictiveNode<CTX extends MgcGraphExecutionContext<CTX, T>,
+        T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcNodeBase<CTX, T> {
 
     public static final String FICTIVE_START = "_fictive_start";
     public static final String FICTIVE_END = "_fictive_end";
 
-    public MgcFictiveNode(boolean start) {
-        super(new MgcParsedData(start ? FICTIVE_START : FICTIVE_END, "$FICTIVE", Cc.l(), ""));
+
+    public MgcFictiveNode(boolean start, T fictiveNode) {
+        super(new MgcParsedData<T>(start ? FICTIVE_START : FICTIVE_END, fictiveNode, Cc.l(), "", O.empty()));
     }
 }

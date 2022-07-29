@@ -42,27 +42,25 @@ import static sk.utils.functional.O.*;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class Io {
-
-
     public static void endlessReadFromKeyboard(String endSequence, C1<String> consumer) {
-        endlessReadFromKeyboard(endSequence, s -> {
-            consumer.accept(s);
+        final String finalSequence = endSequence.trim();
+        endlessReadFromKeyboard(s -> {
+            if (Fu.equal(s, finalSequence)) {
+                return false;
+            } else {
+                consumer.accept(s);
+            }
             return true;
         });
     }
 
-    public static void endlessReadFromKeyboard(String endSequence, F1<String, Boolean> consumer) {
-        endSequence = endSequence.trim();
+    public static void endlessReadFromKeyboard(F1<String, Boolean> consumer) {
         try (Scanner in = new Scanner(System.in)) {
             while (true) {
                 String s = in.nextLine().trim();
-                if (Fu.equal(s, endSequence)) {
+                final boolean continuE = consumer.apply(s);
+                if (!continuE) {
                     break;
-                } else {
-                    final Boolean continuE = consumer.apply(s);
-                    if (!continuE) {
-                        break;
-                    }
                 }
             }
         }

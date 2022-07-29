@@ -22,6 +22,7 @@ package sk.outer.graph.edges;
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.services.rand.IRand;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -30,15 +31,16 @@ import sk.utils.statics.Ma;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-public class MgcEnumEdgeWithAnyText extends MgcEnumEdge {
+public class MgcEnumEdgeWithAnyText<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcEnumEdge<CTX, T> {
     O<Integer> maxCount = O.empty();
     IRand rand;
 
-    public MgcEnumEdgeWithAnyText(MgcParsedData parsedData) {
+    public MgcEnumEdgeWithAnyText(MgcParsedData<T> parsedData) {
         super(parsedData);
     }
 
-    public MgcEnumEdgeWithAnyText(MgcParsedData parsedData, IRand rand) {
+    public MgcEnumEdgeWithAnyText(MgcParsedData<T> parsedData, IRand rand) {
         super(parsedData);
         this.rand = rand;
 
@@ -54,7 +56,7 @@ public class MgcEnumEdgeWithAnyText extends MgcEnumEdge {
 
 
     @Override
-    public List<String> getPossibleEdges(String template, MgcGraphExecutionContext context) {
+    public List<String> getPossibleEdges(String template, CTX context) {
         if (maxCount.isPresent()) {
             return Cc.shuffle(items, rand.getRandom()).stream().limit(maxCount.get()).collect(Cc.toL());
         } else {

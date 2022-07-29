@@ -23,15 +23,12 @@ package sk.outer.graph.nodes;
 import sk.outer.graph.MgcParsedDataHolder;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.listeners.MgcListenerProcessor;
-import sk.utils.functional.O;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.ifaces.IdentifiableString;
 
-public interface MgcNode extends MgcListenerProcessor, IdentifiableString, MgcParsedDataHolder {
-    default String getText(String template, MgcGraphExecutionContext context) {
+public interface MgcNode<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcListenerProcessor<CTX, T>, IdentifiableString, MgcParsedDataHolder<T> {
+    default String getText(String template, CTX context) {
         return template;
-    }
-
-    default O<String> getImage(String template, MgcGraphExecutionContext context) {
-        return O.empty();
     }
 }

@@ -26,24 +26,30 @@ import sk.outer.graph.execution.MgcGraphHistoryItem;
 import sk.outer.graph.listeners.MgcListener;
 import sk.outer.graph.listeners.MgcListenerResult;
 import sk.outer.graph.nodes.MgcNode;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 
 import static sk.outer.graph.listeners.impl.MgcDefaultNodeTextListener.id;
 
-public class MgcDefaultHistoryUpdaterListener implements MgcListener {
-    OneOf<MgcNode, MgcEdge> nodeOrEdge;
+public class MgcDefaultHistoryUpdaterListener
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcListener<CTX, T> {
+    OneOf<MgcNode<CTX, T>, MgcEdge<CTX, T>> nodeOrEdge;
 
-    private MgcDefaultHistoryUpdaterListener(OneOf<MgcNode, MgcEdge> nodeOrEdge) {
+    private MgcDefaultHistoryUpdaterListener(OneOf<MgcNode<CTX, T>, MgcEdge<CTX, T>> nodeOrEdge) {
         this.nodeOrEdge = nodeOrEdge;
     }
 
-    public static MgcDefaultHistoryUpdaterListener node(MgcNode nodeId) {
-        return new MgcDefaultHistoryUpdaterListener(OneOf.left(nodeId));
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    MgcDefaultHistoryUpdaterListener<CTX, T> node(
+            MgcNode<CTX, T> nodeId) {
+        return new MgcDefaultHistoryUpdaterListener<>(OneOf.left(nodeId));
     }
 
-    public static MgcDefaultHistoryUpdaterListener edge(MgcEdge edgeId) {
-        return new MgcDefaultHistoryUpdaterListener(OneOf.right(edgeId));
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    MgcDefaultHistoryUpdaterListener<CTX, T> edge(MgcEdge<CTX, T> edgeId) {
+        return new MgcDefaultHistoryUpdaterListener<>(OneOf.right(edgeId));
     }
 
     @Override
@@ -52,23 +58,23 @@ public class MgcDefaultHistoryUpdaterListener implements MgcListener {
     }
 
     @Override
-    public MgcListenerResult apply(MgcGraphExecutionContext context) {
-        MgcGraphHistoryItem item = new MgcGraphHistoryItem(context.getExecutedGraph().getId(),
-                context.getExecutedGraph().getVersion(), nodeOrEdge.isLeft(),
+    public MgcListenerResult apply(CTX context) {
+        final MgcEdgeVariantsListenerResult redgeResult = context.getResults().getNodeListeners()
+                .getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class);
+
+        MgcGraphHistoryItem item = new MgcGraphHistoryItem(context.getExecutedGraph().getGraph().getId(),
+                context.getExecutedGraph().getGraph().getVersion(), nodeOrEdge.isLeft(),
                 nodeOrEdge.collect($ -> $.getId(), $ -> $.getId()),
-                nodeOrEdge.collect($ -> context.getNodeProcessor().getResultOf(id, MgcNodeTextListenerResult.class).getNewNode(),
-                        $ -> context.getSelectedEdge()),
+                nodeOrEdge.collect($ -> context.getResults().getNodeListeners().getResultOf(id, MgcNodeTextListenerResult.class)
+                                .getNewNodeText(),
+                        $ -> context.getSelectedEdge().orElse("")),
                 nodeOrEdge.isLeft()
-                ? context.getNodeProcessor()
-                        .getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class)
-                        .getNormalEdges()
+                ? redgeResult.getNormalEdges()
                 : Cc.lEmpty(),
                 nodeOrEdge.isLeft()
-                ? context.getNodeProcessor()
-                        .getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class)
-                        .getMetaEdges()
+                ? redgeResult.getMetaEdges()
                 : Cc.lEmpty());
-        context.addGraphHistoryItem(item);
+        context.getHistory().addGraphHistoryItem(item);
         return new MgcHistUpdateListenerResult(item);
     }
 }

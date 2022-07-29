@@ -23,6 +23,8 @@ package sk.outer.graph.parser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.With;
+import sk.utils.functional.O;
 import sk.utils.statics.Fu;
 
 import java.util.List;
@@ -30,15 +32,21 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 @Data
-public class MgcParsedData {
+
+public class MgcParsedData<T extends Enum<T> & MgcTypeUtil<T>> {
     String id;
-    String type;
+    T type;
     List<String> params;
     String text;
+    @With O<Boolean> meta;
+
+    public boolean isEdgeMeta() {
+        return meta.orElse(false);
+    }
 
     public boolean typeOrParamsContains(String contain, boolean strict) {
         return strict
                ? Fu.equal(type, contain) || params.stream().anyMatch($ -> Fu.equal($, contain))
-               : type.contains(contain) || params.stream().anyMatch($ -> $.contains(contain));
+               : type.name().contains(contain) || params.stream().anyMatch($ -> $.contains(contain));
     }
 }

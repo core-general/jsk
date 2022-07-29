@@ -23,6 +23,7 @@ package sk.outer.graph.edges;
 import sk.outer.graph.MgcParsedDataHolder;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.listeners.MgcListenerProcessor;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.ifaces.IdentifiableString;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
@@ -30,9 +31,11 @@ import sk.utils.statics.Fu;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-public interface MgcEdge extends MgcListenerProcessor, IdentifiableString, MgcParsedDataHolder {
-    default boolean acceptEdge(String edgeId, MgcGraphExecutionContext context) {
+public interface MgcEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcListenerProcessor<CTX, T>, IdentifiableString, MgcParsedDataHolder<T> {
+    default boolean acceptEdge(String edgeId, CTX context) {
         return getPossibleEdges(getParsedData().getText(), context).stream().anyMatch($ -> getAcceptPredicate().test($, edgeId))
+                //case when we work with any text
                 || getAcceptPredicate().test("!any_string_which_will_never_be_met_in_production!", edgeId);
     }
 
@@ -40,7 +43,7 @@ public interface MgcEdge extends MgcListenerProcessor, IdentifiableString, MgcPa
         return Fu::equal;
     }
 
-    default List<String> getPossibleEdges(String template, MgcGraphExecutionContext context) {
+    default List<String> getPossibleEdges(String template, CTX context) {
         return Cc.l(template);
     }
 }

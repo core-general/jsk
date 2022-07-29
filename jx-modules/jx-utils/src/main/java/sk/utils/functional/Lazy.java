@@ -1,4 +1,4 @@
-package sk.outer.graph.parser;
+package sk.utils.functional;
 
 /*-
  * #%L
@@ -20,17 +20,16 @@ package sk.outer.graph.parser;
  * #L%
  */
 
-import sk.utils.functional.O;
 
+public class Lazy<T> implements Gett<T> {
+    private T val;
+    private final F0<T> init;
 
-public class MgcDefaultParseEnv implements MgcParseEnv {
-    @Override
-    public O<MgcObjectGenerator> getGenerator(O<String> type) {
-        return O.of(new MgcDefaultObjectGenerator());
+    public Lazy(F0<T> init) {
+        this.init = init;
     }
 
-    @Override
-    public boolean isEdgeSizeOk(MgcParsedData mgcParsedData) {
-        return false;
+    public T get() {
+        return val == null ? val = init.get() : val;
     }
 }

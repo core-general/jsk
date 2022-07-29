@@ -21,11 +21,23 @@ package sk.outer.graph.parser;
  */
 
 import sk.outer.graph.edges.MgcEdge;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.nodes.MgcNode;
-import sk.utils.functional.O;
+import sk.utils.functional.F1;
 
-public interface MgcObjectGenerator {
-    O<MgcEdge> getEdgeGenerator(MgcParsedData parsedData, boolean meta);
+public interface MgcObjectGenerator<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+    MgcEdge<CTX, T> getEdgeGenerator(MgcParsedData<T> parsedData);
 
-    O<MgcNode> getNodeGenerator(MgcParsedData parsedData);
+    MgcNode<CTX, T> getNodeGenerator(MgcParsedData<T> parsedData);
+
+
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    MgcObjectGenerator<CTX, T> node(F1<MgcParsedData<T>, MgcNode<CTX, T>> processor) {
+        return (MgcNodeGenerator<CTX, T>) (pd) -> processor.apply(pd);
+    }
+
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    MgcObjectGenerator<CTX, T> edge(F1<MgcParsedData<T>, MgcEdge<CTX, T>> processor) {
+        return (MgcEdgeGenerator<CTX, T>) (pd) -> processor.apply(pd);
+    }
 }

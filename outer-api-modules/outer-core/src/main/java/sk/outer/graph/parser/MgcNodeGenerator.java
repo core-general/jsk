@@ -21,10 +21,11 @@ package sk.outer.graph.parser;
  */
 
 import sk.outer.graph.edges.MgcEdge;
-import sk.utils.functional.O;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 
-public interface MgcNodeGenerator extends MgcObjectGenerator {
-    default O<MgcEdge> getEdgeGenerator(MgcParsedData parsedData, boolean meta) {
-        return O.empty();
+public interface MgcNodeGenerator<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcObjectGenerator<CTX, T> {
+    default MgcEdge<CTX, T> getEdgeGenerator(MgcParsedData<T> parsedData) {
+        throw new RuntimeException("It's not an edge generator! " + parsedData.getId());
     }
 }

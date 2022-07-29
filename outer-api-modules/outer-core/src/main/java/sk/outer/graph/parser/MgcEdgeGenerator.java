@@ -20,11 +20,14 @@ package sk.outer.graph.parser;
  * #L%
  */
 
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.nodes.MgcNode;
-import sk.utils.functional.O;
 
-public interface MgcEdgeGenerator extends MgcObjectGenerator {
-    default O<MgcNode> getNodeGenerator(MgcParsedData parsedData) {
-        return O.empty();
+public interface MgcEdgeGenerator
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        extends MgcObjectGenerator<CTX, T> {
+    default MgcNode<CTX, T> getNodeGenerator(MgcParsedData<T> parsedData) {
+        throw new RuntimeException("It's not a node generator! " + parsedData.getId());
     }
+
 }

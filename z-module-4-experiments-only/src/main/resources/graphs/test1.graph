@@ -1,0 +1,37 @@
+START: x1
+
+---
+
+x1 x2 c1
+x1 x3 c2
+x3 x4 c3
+x4 x1 c4
+x3 g2 c5
+
+---
+x1
+X1
+
+x2
+X2
+
+x3
+X4
+
+x4
+X4
+
+g2 GRAPH test2.graph
+-
+
+c1
+c1
+
+c2
+c2
+
+c3
+c3
+
+c4
+c4

@@ -21,24 +21,26 @@ package sk.outer.graph.listeners;
  */
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
+import sk.outer.graph.parser.MgcTypeUtil;
 
 import java.util.List;
 
-public interface MgcListenerProcessor {
-    void addListenerLast(MgcListener listener);
+public interface MgcListenerProcessor
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+    void addListenerLast(MgcListener<CTX, T> listener);
 
-    List<MgcListener> getListeners();
+    List<MgcListener<CTX, T>> getListeners();
 
-    void addAfter(MgcListener listener, Class<? extends MgcListener> cls);
+    void addAfter(MgcListener<CTX, T> listener, Class<? extends MgcListener<CTX, T>> cls);
 
-    void addListenerFirst(MgcListener listener);
+    void addListenerFirst(MgcListener<CTX, T> listener);
 
     MgcListenerResult getExceptionResult(Throwable e);
 
-    default MgcListenerProcessorResultImpl executeListeners(MgcGraphExecutionContext context,
-            MgcListenerProcessorResultImpl listenerProcessor) {
-        MgcListenerProcessorResultImpl toRet = listenerProcessor;
-        for (MgcListener listener : getListeners()) {
+    default MgcListenerProcessorResult executeListeners(CTX context,
+            MgcListenerProcessorResult listenerProcessor) {
+        MgcListenerProcessorResult toRet = listenerProcessor;
+        for (MgcListener<CTX, T> listener : getListeners()) {
             MgcListenerResult apply = null;
             try {
                 apply = listener.apply(context);

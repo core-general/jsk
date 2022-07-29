@@ -21,8 +21,34 @@ package sk.outer.graph;
  */
 
 import sk.outer.graph.execution.MgcGraphHistoryItem;
+import sk.outer.graph.execution.MgcObjectType;
 import sk.utils.functional.O;
+import sk.utils.paging.SimplePage;
+
+import java.util.List;
 
 public interface MgcHistoryProvider {
-    O<MgcGraphHistoryItem> currentGraphHistory(String user);
+    void addGraphHistoryItem(MgcGraphHistoryItem item);
+
+    SimplePage<MgcGraphHistoryItem, String> getGraphHistory(int count, O<String> npa,
+            boolean ascending, MgcObjectType type);
+
+    public boolean userHasHistory();
+
+    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX) {
+        return getGraphHistory(lastX, O.empty(), false, MgcObjectType.BOTH).getData();
+    }
+
+    default List<MgcGraphHistoryItem> getGraphHistoryDescending(int lastX, MgcObjectType type) {
+        return getGraphHistory(lastX, O.empty(), false, type).getData();
+    }
+
+    default O<MgcGraphHistoryItem> getLastNode() {
+        List<MgcGraphHistoryItem> data = getGraphHistory(1, O.empty(), false, MgcObjectType.NODE).getData();
+        if (data.size() == 0 || !data.get(0).isNode()) {
+            return O.empty();
+        } else {
+            return O.of(data.get(0));
+        }
+    }
 }

@@ -21,7 +21,8 @@ package sk.outer.graph;
  */
 
 import sk.outer.graph.parser.MgcParsedData;
+import sk.outer.graph.parser.MgcTypeUtil;
 
-public interface MgcParsedDataHolder {
-    MgcParsedData getParsedData();
+public interface MgcParsedDataHolder<T extends Enum<T> & MgcTypeUtil<T>> {
+    MgcParsedData<T> getParsedData();
 }

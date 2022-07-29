@@ -20,21 +20,25 @@ package sk.outer.graph.parser;
  * #L%
  */
 
-import sk.outer.graph.nodes.MgcGraph;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.utils.functional.O;
 
-public interface MgcParseEnv {
-    O<MgcObjectGenerator> getGenerator(O<String> type);
+public interface MgcParseEnv<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+    MgcObjectGenerator<CTX, T> generatorByType(T type);
 
-    default O<MgcGraph> getOrCreateInnerGraph(String graphId) {
-        return O.empty();
+    default MgcObjectGenerator<CTX, T> getGenerator(O<T> type) {
+        return type.map($ -> generatorByType($)).orElseGet(this::getDefaultGenerator);
     }
 
-    public default int maxSizeOfEdgeText() {
+    default MgcObjectGenerator<CTX, T> getDefaultGenerator() {
+        return new MgcDefaultObjectGenerator<>();
+    }
+
+    default int maxSizeOfEdgeText() {
         return 70;
     }
 
-    default boolean isEdgeSizeOk(MgcParsedData mgcParsedData) {
+    default boolean isLongEdgeSizeOk(MgcParsedData<T> mgcParsedData) {
         return false;
     }
 }

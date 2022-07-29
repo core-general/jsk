@@ -21,6 +21,8 @@ package sk.outer.graph.listeners;
  */
 
 import lombok.Data;
+import sk.outer.graph.execution.MgcGraphExecutionContext;
+import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
@@ -31,12 +33,15 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-public class MgcListenerProcessorBase implements MgcListenerProcessor {
-    List<MgcListener> listeners = new ArrayList<>();
+public class MgcListenerProcessorBase
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcListenerProcessor<CTX, T> {
+
+    List<MgcListener<CTX, T>> listeners = new ArrayList<>();
     Set<String> listenerSet = new HashSet<>();
 
     @Override
-    public void addListenerLast(MgcListener listener) {
+    public void addListenerLast(MgcListener<CTX, T> listener) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }
@@ -45,7 +50,7 @@ public class MgcListenerProcessorBase implements MgcListenerProcessor {
     }
 
     @Override
-    public void addAfter(MgcListener listener, Class<? extends MgcListener> cls) {
+    public void addAfter(MgcListener<CTX, T> listener, Class<? extends MgcListener<CTX, T>> cls) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }
@@ -61,7 +66,7 @@ public class MgcListenerProcessorBase implements MgcListenerProcessor {
     }
 
     @Override
-    public void addListenerFirst(MgcListener listener) {
+    public void addListenerFirst(MgcListener<CTX, T> listener) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }
