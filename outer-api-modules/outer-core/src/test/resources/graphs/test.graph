@@ -1,0 +1,59 @@
+VERSION: 1.0.0
+START: g1n1 
+META: ? g1n1  g1eX
+---
+
+? g1n1  g1eX
+? g1n0  g1eY
+
+g1n2 ? g1nR
+
+g1n1  g1n2  g1e1
+g1n1  g1G1  g1e2
+g1G1  g1n1  g1e3
+g1n0  g1n1  g1e0
+g1G1  g1G2 g1e4
+g1G2 g1G1  g1e5
+
+---
+g1n0 
+g1n0 
+
+g1n1 
+g1n1 
+
+g1n2 
+g1n2 
+
+g1G1  N_GRAPH test1.graph
+g1G1 
+
+g1G2 N_GRAPH test2.graph
+g1G2
+
+g1e0
+g1e0
+
+g1eY
+g1eY
+
+g1e1
+g1e1
+
+g1e2
+g1e2
+
+g1nR E_RANDOM_NODE
+g1nR
+
+g1e3
+g1e3
+
+g1e4
+g1e4
+
+g1e5
+g1e5
+
+g1eX E_NULLIFIER
+-

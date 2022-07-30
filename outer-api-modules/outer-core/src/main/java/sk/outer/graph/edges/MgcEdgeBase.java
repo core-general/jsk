@@ -38,6 +38,10 @@ public class MgcEdgeBase<CTX extends MgcGraphExecutionContext<CTX, T>, T extends
     MgcParsedData<T> parsedData;
 
     {
+        initDefaultListeners();
+    }
+
+    protected void initDefaultListeners() {
         addListenerLast(MgcDefaultHistoryUpdaterListener.edge(this));
     }
 

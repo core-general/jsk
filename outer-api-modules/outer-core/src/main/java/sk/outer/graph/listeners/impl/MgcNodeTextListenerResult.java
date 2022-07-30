@@ -25,5 +25,6 @@ import sk.outer.graph.listeners.MgcBaseOkListenerResult;
 
 @Data
 public class MgcNodeTextListenerResult extends MgcBaseOkListenerResult {
+    final String newNodeId;
     final String newNodeText;
 }

@@ -22,6 +22,7 @@ package sk.outer.graph.listeners;
 
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.tuples.X;
 
 import java.util.Map;
 
@@ -41,7 +42,20 @@ public class MgcListenerProcessorResult {
                 .flatMap($ -> $.getException().toOpt()));
     }
 
-    public <T extends MgcListenerResult> T getResultOf(String s, Class<T> cls) {
-        return (T) results.get(s);
+    public <T extends MgcListenerResult> void replaceResult(String listenerId, T result) {
+        results.put(listenerId, result);
+    }
+
+    public <T extends MgcListenerResult> O<T> getResultOf(String listenerId, Class<T> resultClass) {
+        return O.ofNull((T) results.get(listenerId));
+    }
+
+    public MgcListenerProcessorResult rewriteNoErrorsBy(MgcListenerProcessorResult other) {
+        results = results.entrySet().stream()
+                //fixing errors so that they are not deleted
+                .map($ -> X.x($.getValue().isError() ? $.getKey() + "__err" : $.getKey(), $.getValue()))
+                .collect(Cc.toMX2());
+        results.putAll(other.results);
+        return this;
     }
 }

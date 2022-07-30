@@ -40,9 +40,13 @@ public class MgcCtxProvider<CTX extends MgcGraphExecutionContext<CTX, T>, T exte
         return new MgcCtxProvider<>(OneOf.right(generator));
     }
 
-    public CTX getContext(MgcGraphExecutor<CTX, T> g, O<MgcNode<CTX, T>> fromNode, O<String> edge) {
-        final CTX collect = data.collect($ -> $, $ -> $.getCtx(g, fromNode, edge));
+    public CTX getContext(MgcGraphExecutor<CTX, T> g, O<MgcNode<CTX, T>> fromNode, O<String> edge, int nestingLevel) {
+        final CTX collect = data.collect($ -> $, $ -> $.getCtx(g, fromNode, edge, nestingLevel));
         data = OneOf.left(collect);
         return collect;
+    }
+
+    public CTX getContextMustExist() {
+        return data.left();
     }
 }

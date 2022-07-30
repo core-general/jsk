@@ -34,12 +34,17 @@ import sk.outer.graph.parser.MgcTypeUtil;
 @EqualsAndHashCode(of = {"parsedData"}, callSuper = false)
 @Data
 @AllArgsConstructor
-public class MgcNodeBase<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+public class MgcNodeBase
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
         extends MgcListenerProcessorBase<CTX, T>
         implements MgcNode<CTX, T> {
     MgcParsedData<T> parsedData;
 
     {
+        initDefaultListeners();
+    }
+
+    protected void initDefaultListeners() {
         addListenerLast(new MgcDefaultEdgeVariantsListener<>(this));
         addListenerLast(new MgcDefaultNodeTextListener<>(this));
         addListenerLast(MgcDefaultHistoryUpdaterListener.node(this));

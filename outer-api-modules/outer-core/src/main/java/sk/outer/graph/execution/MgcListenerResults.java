@@ -20,7 +20,9 @@ package sk.outer.graph.execution;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import sk.outer.graph.listeners.MgcListenerProcessorResult;
 import sk.outer.graph.listeners.impl.MgcDefaultEdgeVariantsListener;
 import sk.outer.graph.listeners.impl.MgcDefaultNodeTextListener;
@@ -28,16 +30,18 @@ import sk.outer.graph.listeners.impl.MgcEdgeVariantsListenerResult;
 import sk.outer.graph.listeners.impl.MgcNodeTextListenerResult;
 import sk.utils.functional.O;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class MgcListenerResults {
     @Getter MgcListenerProcessorResult nodeListeners = new MgcListenerProcessorResult();
     @Getter MgcListenerProcessorResult edgeListeners = new MgcListenerProcessorResult();
 
-    public MgcEdgeVariantsListenerResult getPossibleEdges() {
-        return nodeListeners.getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class);
+    public MgcEdgeVariantsListenerResult getPossibleEdgesMustExist() {
+        return nodeListeners.getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class).get();
     }
 
-    public MgcNodeTextListenerResult getNewNodeInfo() {
-        return nodeListeners.getResultOf(MgcDefaultNodeTextListener.id, MgcNodeTextListenerResult.class);
+    public MgcNodeTextListenerResult getNewNodeInfoMustExist() {
+        return nodeListeners.getResultOf(MgcDefaultNodeTextListener.id, MgcNodeTextListenerResult.class).get();
     }
 
     public boolean isError() {

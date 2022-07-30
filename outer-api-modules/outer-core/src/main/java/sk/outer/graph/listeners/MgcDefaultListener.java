@@ -27,10 +27,10 @@ import sk.utils.functional.F1;
 
 @AllArgsConstructor
 public class MgcDefaultListener
-        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        implements MgcListener<CTX, T> {
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>, RES extends MgcListenerResult>
+        implements MgcListener<CTX, T, RES> {
     String id;
-    F1<CTX, MgcListenerResult> processor;
+    F1<CTX, RES> processor;
 
     @Override
     public String getId() {
@@ -38,7 +38,7 @@ public class MgcDefaultListener
     }
 
     @Override
-    public MgcListenerResult apply(CTX mgcGraphExecutionContext) {
+    public RES apply(CTX mgcGraphExecutionContext) {
         return processor.apply(mgcGraphExecutionContext);
     }
 }

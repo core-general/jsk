@@ -51,9 +51,9 @@ public interface MgcGraph<CTX extends MgcGraphExecutionContext<CTX, T>, T extend
 
     O<MgcEdge<CTX, T>> getEdgeById(String edgeId);
 
-    List<MgcNormalEdge<CTX, T>> getDirectEdgesFrom(MgcNode<CTX, T> node);
+    List<MgcNormalEdge<CTX, T>> getNormalEdgesFrom(MgcNode<CTX, T> node);
 
-    List<MgcNormalEdge<CTX, T>> getDirectEdgesTo(MgcNode<CTX, T> node);
+    List<MgcNormalEdge<CTX, T>> getNormalEdgesTo(MgcNode<CTX, T> node);
 
     List<MgcMetaEdge<CTX, T>> getAllMetaEdges();
 
@@ -65,7 +65,7 @@ public interface MgcGraph<CTX extends MgcGraphExecutionContext<CTX, T>, T extend
 
     default List<MgcEdge<CTX, T>> getEdgesFrom(MgcNode<CTX, T> node) {
         List<MgcEdge<CTX, T>> edges = Cc.l();
-        edges.addAll(getDirectEdgesFrom(node));
+        edges.addAll(getNormalEdgesFrom(node));
         edges.addAll(getAllMetaEdges());
         edges.addAll(getMetaEdgesBack(node));
         return edges;
@@ -79,7 +79,7 @@ public interface MgcGraph<CTX extends MgcGraphExecutionContext<CTX, T>, T extend
     }
 
     default List<MgcEdge<CTX, T>> getAllDirectEdgesFrom() {
-        return getAllNodes().stream().flatMap($ -> getDirectEdgesFrom($).stream()).distinct().collect(Cc.toL());
+        return getAllNodes().stream().flatMap($ -> getNormalEdgesFrom($).stream()).distinct().collect(Cc.toL());
     }
 
 

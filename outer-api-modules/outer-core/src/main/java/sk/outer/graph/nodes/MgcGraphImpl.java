@@ -105,7 +105,7 @@ public class MgcGraphImpl
     }
 
     @Override
-    public List<MgcNormalEdge<CTX, T>> getDirectEdgesFrom(MgcNode<CTX, T> node) {
+    public List<MgcNormalEdge<CTX, T>> getNormalEdgesFrom(MgcNode<CTX, T> node) {
         return graph.outgoingEdgesOf(node).stream()
                 .filter($ -> $ instanceof MgcNormalEdge)
                 .map($ -> (MgcNormalEdge<CTX, T>) $)
@@ -114,7 +114,7 @@ public class MgcGraphImpl
     }
 
     @Override
-    public List<MgcNormalEdge<CTX, T>> getDirectEdgesTo(MgcNode<CTX, T> node) {
+    public List<MgcNormalEdge<CTX, T>> getNormalEdgesTo(MgcNode<CTX, T> node) {
         return graph.incomingEdgesOf(node).stream()
                 .filter($ -> $ instanceof MgcNormalEdge)
                 .map($ -> (MgcNormalEdge<CTX, T>) $)

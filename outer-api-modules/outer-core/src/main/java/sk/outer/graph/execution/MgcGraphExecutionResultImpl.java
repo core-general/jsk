@@ -22,13 +22,12 @@ package sk.outer.graph.execution;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import sk.outer.graph.parser.MgcTypeUtil;
 
 @Data
 @AllArgsConstructor
-public class MgcGraphExecutionResultImpl
-        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        implements MgcGraphExecutionResult<CTX, T> {
-    CTX context;
+public class MgcGraphExecutionResultImpl implements MgcGraphExecutionResult {
+    MgcListenerResults results;
     boolean cantFindEdge;
+    boolean initialStep;
+    boolean reachedFinalNode;
 }

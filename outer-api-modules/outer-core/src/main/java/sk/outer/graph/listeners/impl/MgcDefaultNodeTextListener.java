@@ -20,27 +20,19 @@ package sk.outer.graph.listeners.impl;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
-import sk.outer.graph.listeners.MgcListener;
-import sk.outer.graph.listeners.MgcListenerResult;
+import sk.outer.graph.listeners.MgcDefaultListener;
 import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
 
-@AllArgsConstructor
 public class MgcDefaultNodeTextListener
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        implements MgcListener<CTX, T> {
+        extends MgcDefaultListener<CTX, T, MgcNodeTextListenerResult> {
     public static final String id = "node_text";
-    private MgcNode<CTX, T> newNode;
 
-    @Override
-    public String getId() {
-        return id;
+    public MgcDefaultNodeTextListener(MgcNode<CTX, T> newNode) {
+        super(id, context -> new MgcNodeTextListenerResult(newNode.getId(),
+                newNode.getText(newNode.getParsedData().getText(), context)));
     }
 
-    @Override
-    public MgcListenerResult apply(CTX context) {
-        return new MgcNodeTextListenerResult(newNode.getText(newNode.getParsedData().getText(), context));
-    }
 }

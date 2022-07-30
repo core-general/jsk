@@ -20,29 +20,29 @@ package sk.outer.graph.execution;
  * #L%
  */
 
-import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.functional.O;
 
-public interface MgcGraphExecutionResult
-        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+public interface MgcGraphExecutionResult {
     default boolean isError() {
-        return isCantFindEdge() || getContext().getResults().isError();
+        return isCantFindEdge() || getResults().isError();
     }
 
     default O<Throwable> getError() {
         if (isCantFindEdge()) {
             return O.of(new RuntimeException("Can't find edge"));
-        } else if (getContext().getResults().isError()) {
-            return getContext().getResults().getError();
+        } else if (getResults().isError()) {
+            return getResults().getError();
         }
         return O.empty();
     }
 
-    default MgcListenerResults getResults() {
-        return getContext().getResults();
-    }
-
     boolean isCantFindEdge();
 
-    CTX getContext();
+    /** Initial step - is when the first node is entered */
+    boolean isInitialStep();
+
+    /** Final node - is the node which doesn't have any normal edges out */
+    boolean isReachedFinalNode();
+
+    MgcListenerResults getResults();
 }

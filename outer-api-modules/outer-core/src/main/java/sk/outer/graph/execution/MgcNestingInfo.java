@@ -1,4 +1,4 @@
-package sk.outer.graph;
+package sk.outer.graph.execution;
 
 /*-
  * #%L
@@ -20,6 +20,18 @@ package sk.outer.graph;
  * #L%
  */
 
-public interface MgcTextProcessor {
-    public String processText(String template);
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import sk.utils.functional.O;
+
+@Data
+@AllArgsConstructor
+public class MgcNestingInfo {
+    MgcGraphInfo graph;
+    O<String> previousLevelNestedGraphNodeId = O.empty();
+
+    @Override
+    public String toString() {
+        return graph + previousLevelNestedGraphNodeId.map($ -> "_⬆" + $).orElse("");
+    }
 }

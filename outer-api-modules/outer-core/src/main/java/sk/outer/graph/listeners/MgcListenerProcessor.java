@@ -27,20 +27,21 @@ import java.util.List;
 
 public interface MgcListenerProcessor
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
-    void addListenerLast(MgcListener<CTX, T> listener);
+    List<MgcListener<CTX, T, ?>> getListeners();
 
-    List<MgcListener<CTX, T>> getListeners();
+    <RES extends MgcListenerResult> void addListenerLast(MgcListener<CTX, T, RES> listener);
 
-    void addAfter(MgcListener<CTX, T> listener, Class<? extends MgcListener<CTX, T>> cls);
+    <RES extends MgcListenerResult> void addAfter(MgcListener<CTX, T, RES> listener,
+            Class<? extends MgcListener<CTX, T, RES>> cls);
 
-    void addListenerFirst(MgcListener<CTX, T> listener);
+    <RES extends MgcListenerResult> void addListenerFirst(MgcListener<CTX, T, RES> listener);
 
     MgcListenerResult getExceptionResult(Throwable e);
 
     default MgcListenerProcessorResult executeListeners(CTX context,
             MgcListenerProcessorResult listenerProcessor) {
         MgcListenerProcessorResult toRet = listenerProcessor;
-        for (MgcListener<CTX, T> listener : getListeners()) {
+        for (MgcListener<CTX, T, ?> listener : getListeners()) {
             MgcListenerResult apply = null;
             try {
                 apply = listener.apply(context);

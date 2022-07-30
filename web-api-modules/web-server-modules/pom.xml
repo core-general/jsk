@@ -5,12 +5,12 @@
     <parent>
         <artifactId>web-api-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.1.5</version>
+        <version>jsk.17.2.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-modules</artifactId>
-    <version>jsk.17.1.5</version>
+    <version>jsk.17.2.1</version>
     <packaging>pom</packaging>
 
     <modules>

@@ -1,4 +1,4 @@
-package sk.outer.graph.listeners.impl;
+package sk.outer.graph.execution;
 
 /*-
  * #%L
@@ -20,11 +20,17 @@ package sk.outer.graph.listeners.impl;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import sk.outer.graph.listeners.MgcBaseOkListenerResult;
-import sk.utils.functional.O;
 
 @Data
-public class MgcNodeImgListenerResult extends MgcBaseOkListenerResult {
-    final O<String> newNode;
+@AllArgsConstructor
+public class MgcGraphInfo {
+    String graphId;
+    String graphVersion;
+
+    @Override
+    public String toString() {
+        return graphId + "_" + graphVersion;
+    }
 }

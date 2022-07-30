@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @AllArgsConstructor
 public class AtomicNotifier {
     final private AtomicLong al = new AtomicLong();
-    final private int maxValue;
+    final private long maxValue;
     final private long divider;
     final private C1<String> notifier;
 

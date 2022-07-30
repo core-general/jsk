@@ -23,10 +23,13 @@ package sk.outer.graph;
 import sk.exceptions.NotImplementedException;
 import sk.outer.graph.execution.MgcGraphHistoryItem;
 import sk.outer.graph.execution.MgcObjectType;
+import sk.outer.graph.nodes.MgcNode;
 import sk.utils.functional.O;
 import sk.utils.paging.SimplePage;
+import sk.utils.statics.St;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface MgcHistoryProvider {
     void addGraphHistoryItem(MgcGraphHistoryItem item);
@@ -34,7 +37,16 @@ public interface MgcHistoryProvider {
     SimplePage<MgcGraphHistoryItem, String> getHistory(int count, O<String> npa,
             boolean ascending, MgcObjectType type);
 
-    boolean hasHistory();
+    boolean isFirstTimeOnThisNestingLevelWhenGoingDown(int currentNestingLvl);
+
+    void replaceLastItemWith(MgcGraphHistoryItem mgcGraphHistoryItem);
+
+    default void flush() {
+        /*
+         in case storage is immutable and since we want replaceLastItemWith to work it's possible to flush data to storage
+         only after all listeners have worked
+         */
+    }
 
     default void clearHistory() {
         throw new NotImplementedException();
@@ -53,11 +65,29 @@ public interface MgcHistoryProvider {
     }
 
     default O<MgcGraphHistoryItem> getLastNode() {
-        List<MgcGraphHistoryItem> data = getHistory(1, O.empty(), false, MgcObjectType.NODE).getData();
+        List<MgcGraphHistoryItem> data = getHistory(2, O.empty(), false, MgcObjectType.NODE).getData();
         if (data.size() == 0 || !data.get(0).isNode()) {
             return O.empty();
         } else {
             return O.of(data.get(0));
         }
+    }
+
+    default String getCurrentNodeIdWithNesting(int currentNestingLevel, MgcNode<?, ?> curNode) {
+        return getLastNode()
+                .map($ -> {
+                    final int lastNestingLevel = $.getNestingLevel();
+
+                    String addCurLevel =
+                            currentNestingLevel > lastNestingLevel ? $.getId() + "->" : "";
+
+                    final String toJoin = $.getNestedGraphInfo().stream()
+                            .limit(currentNestingLevel + 1)
+                            .filter($$ -> $$.getPreviousLevelNestedGraphNodeId().isPresent())
+                            .map($$ -> $$.getPreviousLevelNestedGraphNodeId().get())
+                            .collect(Collectors.joining("->"));
+                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : "->") + addCurLevel;
+                })
+                .orElse("") + curNode.getId();
     }
 }

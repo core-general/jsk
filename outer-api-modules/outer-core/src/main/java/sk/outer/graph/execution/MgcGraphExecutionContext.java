@@ -33,8 +33,9 @@ import sk.utils.tuples.X1;
 public abstract class MgcGraphExecutionContext<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
     final protected MgcGraphExecutor<CTX, T> executedGraph;
     private O<MgcNode<CTX, T>> fromNode;
-    private O<MgcNode<CTX, T>> fromNodeInitial;
+    final private O<MgcNode<CTX, T>> fromNodeInitial;
     final protected O<String> selectedEdge;
+    final protected int nestingLevel;
 
     final protected GSet<MgcNode<CTX, T>> toNodeHolder = new X1<>();
     final protected MgcListenerResults results = new MgcListenerResults();
@@ -42,17 +43,29 @@ public abstract class MgcGraphExecutionContext<CTX extends MgcGraphExecutionCont
 
     public abstract MgcHistoryProvider initHistoryProvider();
 
-    public MgcGraphExecutionContext(MgcGraphExecutor<CTX, T> executedGraph, O<MgcNode<CTX, T>> fromNode, O<String> selectedEdge) {
+    public MgcGraphExecutionContext(MgcGraphExecutor<CTX, T> executedGraph, O<MgcNode<CTX, T>> fromNode, O<String> selectedEdge,
+            int nestingLevel) {
         this.executedGraph = executedGraph;
         fromNodeInitial = fromNode;
         this.selectedEdge = selectedEdge;
+        this.nestingLevel = nestingLevel;
     }
 
     public O<MgcNode<CTX, T>> getFromNode() {
         if (fromNode == null) {
             if (fromNodeInitial.isEmpty() && selectedEdge.isPresent()) {
                 //find in history
-                this.fromNode = getHistory().getLastNode().map($ -> executedGraph.getGraph().getNodeById($.getId()).get());
+                this.fromNode = getHistory().getLastNode()
+                        .flatMap(lstNode -> {
+                            if (lstNode.getNestingLevel() == getNestingLevel()) {
+                                return executedGraph.getGraph().getNodeById(lstNode.getId());
+                            } else {
+                                return lstNode.getNestedGraphInfo().get(nestingLevel + 1)
+                                        .getPreviousLevelNestedGraphNodeId()
+                                        .flatMap($$ -> executedGraph.getGraph().getNodeById($$));
+                            }
+                        })
+                ;
             } else {
                 this.fromNode = fromNodeInitial;
             }

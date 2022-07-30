@@ -20,26 +20,35 @@ package sk.outer.graph.execution;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class MgcGraphHistoryItem {
     public static final String type = "sk.outer.graph.execution.MgcGraphHistoryItem";
 
-    String graphId;
-    String graphVersion;
+    final List<MgcNestingInfo> nestedGraphInfo;
 
-    boolean node;
-    String id;
-    String text;
-    List<String> possibleEdges;
-    List<String> possibleMetaEdges;
+    final boolean node;
+    final String id;
+    final String text;
+    final List<String> possibleEdges;
+    final List<String> possibleMetaEdges;
+
+    private MgcGraphHistoryItem(List<MgcNestingInfo> nestedGraphInfo, boolean node, String id, String text,
+            List<String> possibleEdges, List<String> possibleMetaEdges) {
+        this.nestedGraphInfo = nestedGraphInfo;
+        this.node = node;
+        this.id = id;
+        this.text = text;
+        this.possibleEdges = possibleEdges;
+        this.possibleMetaEdges = possibleMetaEdges;
+    }
 
     public boolean isId(String otherId) {
         return Fu.equal(id, otherId);
@@ -47,5 +56,41 @@ public class MgcGraphHistoryItem {
 
     public List<String> getAllEdges() {
         return Cc.addAll(Cc.l(), possibleEdges, possibleMetaEdges);
+    }
+
+    public int getNestingLevel() {
+        return nestedGraphInfo.size() - 1;
+    }
+
+    public MgcGraphHistoryItem withReplacedEdges(List<String> possibleEdges, List<String> possibleMetaEdges) {
+        return new MgcGraphHistoryItem(
+                nestedGraphInfo, node, id, text, possibleEdges, possibleMetaEdges
+        );
+    }
+
+    public static MgcGraphHistoryItem newItem(
+            int currentNestingLevel,
+            O<MgcGraphHistoryItem> olastNode,
+            MgcGraphInfo graphInfo, boolean node, String id,
+            String text, List<String> possibleEdges, List<String> possibleMetaEdges) {
+
+        List<MgcNestingInfo> newNesting;
+        if (olastNode.isEmpty()) {
+            newNesting = Cc.l(new MgcNestingInfo(graphInfo, O.empty()));
+        } else {
+            final MgcGraphHistoryItem lastNode = olastNode.get();
+            if (lastNode.getNestingLevel() < currentNestingLevel) {
+                //going into deep
+                newNesting = Cc.add(new ArrayList<>(lastNode.getNestedGraphInfo()),
+                        new MgcNestingInfo(graphInfo, O.of(lastNode.getId())));
+            } else if (lastNode.getNestingLevel() == currentNestingLevel) {
+                newNesting = lastNode.getNestedGraphInfo();
+            } else {
+                newNesting = lastNode.getNestedGraphInfo()
+                        .subList(0, lastNode.getNestedGraphInfo().size() - (lastNode.getNestingLevel() - currentNestingLevel));
+            }
+        }
+
+        return new MgcGraphHistoryItem(newNesting, node, id, text, possibleEdges, possibleMetaEdges);
     }
 }

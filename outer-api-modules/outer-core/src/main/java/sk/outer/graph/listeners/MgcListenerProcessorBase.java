@@ -37,11 +37,11 @@ public class MgcListenerProcessorBase
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
         implements MgcListenerProcessor<CTX, T> {
 
-    List<MgcListener<CTX, T>> listeners = new ArrayList<>();
+    List<MgcListener<CTX, T, ?>> listeners = new ArrayList<>();
     Set<String> listenerSet = new HashSet<>();
 
     @Override
-    public void addListenerLast(MgcListener<CTX, T> listener) {
+    public <RES extends MgcListenerResult> void addListenerLast(MgcListener<CTX, T, RES> listener) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }
@@ -50,7 +50,8 @@ public class MgcListenerProcessorBase
     }
 
     @Override
-    public void addAfter(MgcListener<CTX, T> listener, Class<? extends MgcListener<CTX, T>> cls) {
+    public <RES extends MgcListenerResult> void addAfter(MgcListener<CTX, T, RES> listener,
+            Class<? extends MgcListener<CTX, T, RES>> cls) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }
@@ -66,7 +67,7 @@ public class MgcListenerProcessorBase
     }
 
     @Override
-    public void addListenerFirst(MgcListener<CTX, T> listener) {
+    public <RES extends MgcListenerResult> void addListenerFirst(MgcListener<CTX, T, RES> listener) {
         if (listenerSet.contains(listener.getId())) {
             throw new RuntimeException("Listeners with same id:" + listener.getId());
         }

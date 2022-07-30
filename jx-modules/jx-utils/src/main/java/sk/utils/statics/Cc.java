@@ -903,6 +903,60 @@ public final class Cc {
         return ret;
     }
 
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10) {
+        LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9);
+        putToMapWithCheck(ret, k10, v10);
+        return ret;
+    }
+
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10, K k11, V v11) {
+        LinkedHashMap<K, V> ret = lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10);
+        putToMapWithCheck(ret, k11, v11);
+        return ret;
+    }
+
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10, K k11, V v11, K k12, V v12) {
+        LinkedHashMap<K, V> ret =
+                lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10, k11, v11);
+        putToMapWithCheck(ret, k12, v12);
+        return ret;
+    }
+
+
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10, K k11, V v11, K k12, V v12, K k13, V v13) {
+        LinkedHashMap<K, V> ret =
+                lhm(k, v, k1, v1, k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10, k11, v11, k12, v12);
+        putToMapWithCheck(ret, k13, v13);
+        return ret;
+    }
+
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10, K k11, V v11, K k12, V v12, K k13, V v13, K k14, V v14) {
+        LinkedHashMap<K, V> ret = lhm(k, v, k1, v1,
+                k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10, k11, v11, k12, v12, k13, v13);
+        putToMapWithCheck(ret, k14, v14);
+        return ret;
+    }
+
+
+    public static <K, V> LinkedHashMap<K, V> lhm(
+            K k, V v, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7, K k8, V v8,
+            K k9, V v9, K k10, V v10, K k11, V v11, K k12, V v12, K k13, V v13, K k14, V v14, K k15, V v15) {
+        LinkedHashMap<K, V> ret = lhm(k, v, k1, v1,
+                k2, v2, k3, v3, k4, v4, k5, v5, k6, v6, k7, v7, k8, v8, k9, v9, k10, v10, k11, v11, k12, v12, k13, v13, k14, v14);
+        putToMapWithCheck(ret, k15, v15);
+        return ret;
+    }
+
     //endregion
 
     //region Private

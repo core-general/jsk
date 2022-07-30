@@ -46,16 +46,19 @@ import static sk.utils.functional.O.of;
 import static sk.utils.statics.Cc.*;
 import static sk.utils.statics.Fu.equal;
 
-public abstract /* - to force types otherwise type erasure*/
-class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+public class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
     Class<T> cls;
 
+    public MgcParser(Class<T> cls) {
+        this.cls = cls;
+    }
+
     public OneOf<MgcGraph<CTX, T>, String> parse(
-            String id, String version,
+            String id,
             String graphTxt,
             MgcParseEnv<CTX, T> graphSource
     ) {
-        MgcParseContext<CTX, T> parseContext = new MgcParseContext<>(id, version, graphSource);
+        MgcParseContext<CTX, T> parseContext = new MgcParseContext<>(id, graphSource);
         Cc.eachWithIndex(Cc.l(graphTxt.split("\n")), (line, i) -> processLine(line.trim(), parseContext));
         finishLastItemIfNeeded(parseContext);
         O<String> error = validateContext(parseContext);
@@ -85,10 +88,15 @@ class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> 
             return;
         }
         if (line.startsWith("---")) {
+            if (context.initialState == null || context.version == null) {
+                throw new RuntimeException("Graph:'" + context.id + "' metainfo should have both VERSION and START sections");
+            }
             context.stage = MgcParseStage.GRAPH;
         }
 
-        if (line.startsWith("START:")) {
+        if (line.startsWith("VERSION:") || line.startsWith("VER:")) {
+            context.version = St.subLF(line, ":").trim();
+        } else if (line.startsWith("START:")) {
             context.initialState = St.subLF(line, ":").trim();
         } else if (line.startsWith("META:")) {
             String[] split = St.subLF(line, ":").trim().split("\\s+");
@@ -216,7 +224,7 @@ class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> 
 
 
         Set<String> endings = mgcGraph.getAllNodes().stream()
-                .filter($ -> mgcGraph.getDirectEdgesFrom($).size() == 0)
+                .filter($ -> mgcGraph.getNormalEdgesFrom($).size() == 0)
                 .map($ -> $.getId())
                 .collect(Collectors.toSet());
 
@@ -257,8 +265,7 @@ class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> 
     }
 
     private Class<T> getTypeSelector() {
-        //noinspection unchecked
-        return cls == null ? cls = (Class<T>) Re.getParentParameters(this.getClass()).get()[1] : cls;
+        return cls;
     }
 
     private MgcParsedData<T> parseObjAndType(String line, long lineNumber) {
@@ -273,7 +280,6 @@ class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> 
     @Data
     public static class MgcParseContext<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
         private final String id;
-        private final String version;
         private final MgcParseEnv<CTX, T> parseEnv;
 
         long currentLineNumber = 0;
@@ -290,10 +296,10 @@ class MgcParser<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> 
         String tempBody;
         MgcParsedData<T> tempType;
         String initialState;
+        String version;
 
-        public MgcParseContext(String id, String version, MgcParseEnv<CTX, T> parseEnv) {
+        public MgcParseContext(String id, MgcParseEnv<CTX, T> parseEnv) {
             this.id = id;
-            this.version = version;
             this.parseEnv = parseEnv;
         }
     }

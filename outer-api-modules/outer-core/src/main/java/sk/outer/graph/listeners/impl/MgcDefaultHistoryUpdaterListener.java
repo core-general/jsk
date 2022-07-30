@@ -23,10 +23,11 @@ package sk.outer.graph.listeners.impl;
 import sk.outer.graph.edges.MgcEdge;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.execution.MgcGraphHistoryItem;
-import sk.outer.graph.listeners.MgcListener;
-import sk.outer.graph.listeners.MgcListenerResult;
+import sk.outer.graph.execution.MgcGraphInfo;
+import sk.outer.graph.listeners.MgcDefaultListener;
 import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
+import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 
@@ -34,10 +35,38 @@ import static sk.outer.graph.listeners.impl.MgcDefaultNodeTextListener.id;
 
 public class MgcDefaultHistoryUpdaterListener
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        implements MgcListener<CTX, T> {
+        extends MgcDefaultListener<CTX, T, MgcHistUpdateListenerResult> {
     OneOf<MgcNode<CTX, T>, MgcEdge<CTX, T>> nodeOrEdge;
 
     private MgcDefaultHistoryUpdaterListener(OneOf<MgcNode<CTX, T>, MgcEdge<CTX, T>> nodeOrEdge) {
+        super("history_updater", context -> {
+            final O<MgcEdgeVariantsListenerResult> edgeResult = context.getResults().getNodeListeners()
+                    .getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class);
+
+            O<MgcGraphHistoryItem> lastNode = context.getHistory().getLastNode();
+
+            MgcGraphHistoryItem item = MgcGraphHistoryItem.newItem(
+                    context.getNestingLevel(),
+                    lastNode,
+                    new MgcGraphInfo(
+                            context.getExecutedGraph().getGraph().getId(),
+                            context.getExecutedGraph().getGraph().getVersion()),
+                    nodeOrEdge.collect(__ -> true, __ -> false),
+                    nodeOrEdge.collect($ -> $.getId(), $ -> $.getId()),
+                    nodeOrEdge.collect(
+                            __ -> context.getResults().getNodeListeners()
+                                    .getResultOf(id, MgcNodeTextListenerResult.class).map($ -> $.getNewNodeText()).orElse(""),
+                            __ -> context.getSelectedEdge().orElse("")),
+                    nodeOrEdge.collect(
+                            __ -> edgeResult.map($ -> $.getNormalEdges()).orElse(Cc.lEmpty()),
+                            __ -> Cc.lEmpty()),
+                    nodeOrEdge.collect(
+                            __ -> edgeResult.map($ -> $.getMetaEdges()).orElse(Cc.lEmpty()),
+                            __ -> Cc.lEmpty())
+            );
+            context.getHistory().addGraphHistoryItem(item);
+            return new MgcHistUpdateListenerResult(item);
+        });
         this.nodeOrEdge = nodeOrEdge;
     }
 
@@ -50,31 +79,5 @@ public class MgcDefaultHistoryUpdaterListener
     public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
     MgcDefaultHistoryUpdaterListener<CTX, T> edge(MgcEdge<CTX, T> edgeId) {
         return new MgcDefaultHistoryUpdaterListener<>(OneOf.right(edgeId));
-    }
-
-    @Override
-    public String getId() {
-        return "history_updater";
-    }
-
-    @Override
-    public MgcListenerResult apply(CTX context) {
-        final MgcEdgeVariantsListenerResult redgeResult = context.getResults().getNodeListeners()
-                .getResultOf(MgcDefaultEdgeVariantsListener.id, MgcEdgeVariantsListenerResult.class);
-
-        MgcGraphHistoryItem item = new MgcGraphHistoryItem(context.getExecutedGraph().getGraph().getId(),
-                context.getExecutedGraph().getGraph().getVersion(), nodeOrEdge.isLeft(),
-                nodeOrEdge.collect($ -> $.getId(), $ -> $.getId()),
-                nodeOrEdge.collect($ -> context.getResults().getNodeListeners().getResultOf(id, MgcNodeTextListenerResult.class)
-                                .getNewNodeText(),
-                        $ -> context.getSelectedEdge().orElse("")),
-                nodeOrEdge.isLeft()
-                ? redgeResult.getNormalEdges()
-                : Cc.lEmpty(),
-                nodeOrEdge.isLeft()
-                ? redgeResult.getMetaEdges()
-                : Cc.lEmpty());
-        context.getHistory().addGraphHistoryItem(item);
-        return new MgcHistUpdateListenerResult(item);
     }
 }

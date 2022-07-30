@@ -1,0 +1,23 @@
+VERSION: 3.2.1
+START: g3n1
+
+---
+
+g3n1 g3n2 g3e1
+g3n1 g3n3 g3e2
+
+---
+g3n1
+g3n1
+
+g3n2
+g3n2
+
+g3n3
+g3n4
+
+g3e1
+g3e1
+
+g3e2
+g3e2

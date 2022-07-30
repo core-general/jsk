@@ -40,27 +40,92 @@ import static sk.utils.functional.O.*;
 @AllArgsConstructor
 public class MgcGraphExecutor
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>> {
+    public static final int STARTING_NESTING_LEVEL = 0;
     @Getter protected MgcGraph<CTX, T> graph;
 
-    public MgcGraphExecutionResult<CTX, T> executeByHistory(O<String> selectedEdge,
+    public final MgcGraphExecutionResult executeByHistory(O<String> selectedEdge,
             MgcCtxProvider<CTX, T> contextProvider) {
-        final CTX ctx = contextProvider.getContext(this, empty(), selectedEdge);
-        return !ctx.getHistory().hasHistory()
-               ? executeFirst(contextProvider)
-               : executeAnyNode(ctx.getFromNode().get(), selectedEdge.get(), contextProvider);
+        return executeByHistoryNested(selectedEdge, contextProvider, STARTING_NESTING_LEVEL);
     }
 
-    public MgcGraphExecutionResult<CTX, T> executeAnyNode(MgcNode<CTX, T> currentNode, String selectedEdge,
-            MgcCtxProvider<CTX, T> contextProvider) {
-        final CTX context = contextProvider.getContext(this, of(currentNode), of(selectedEdge));
-        return searchNextEdge(currentNode, selectedEdge, context)
-                .map($ -> privateExecute($, context))
-                .orElseGet(() -> new MgcGraphExecutionResultImpl<>(context, true));
+    public final MgcGraphExecutionResult executeByHistoryNested(O<String> selectedEdge,
+            MgcCtxProvider<CTX, T> contextProvider, int nestingLevel) {
+        final CTX ctx = contextProvider.getContext(this, empty(), selectedEdge, nestingLevel);
+        return ctx.getHistory().isFirstTimeOnThisNestingLevelWhenGoingDown(nestingLevel)
+               ? executeFirst(contextProvider, nestingLevel)
+               : executeAnyNodeNested(ctx.getFromNode().get(), selectedEdge.get(), nestingLevel, contextProvider);
     }
 
-    protected MgcGraphExecutionResult<CTX, T> executeFirst(MgcCtxProvider<CTX, T> contextProvider) {
+    public final MgcGraphExecutionResult executeAnyNode(MgcNode<CTX, T> currentNode, String selectedEdge,
+            MgcCtxProvider<CTX, T> contextProvider) {
+        return executeAnyNodeNested(currentNode, selectedEdge, STARTING_NESTING_LEVEL, contextProvider);
+    }
+
+    public final MgcGraphExecutionResult executeAnyNodeNested(MgcNode<CTX, T> currentNode, String selectedEdge, int nestingLevel,
+            MgcCtxProvider<CTX, T> contextProvider) {
+        final CTX context = contextProvider.getContext(this, of(currentNode), of(selectedEdge), nestingLevel);
+
+        O<MgcGraphExecutionResult> nestedGraphExecution =
+                (currentNode instanceof MgcNestedGraphNode<CTX, T, ?, ?> nestedGraph)
+                ? executeNestedGraph(context, nestedGraph, selectedEdge)
+                : empty();
+
+        return nestedGraphExecution.orElseGet(() -> {
+            return searchNextEdge(currentNode, selectedEdge, context)
+                    .map(edge -> {
+                        final MgcNode<CTX, T> nextNode = findNextNode(edge, context);
+                        if (nextNode instanceof MgcNestedGraphNode<CTX, T, ?, ?> nested) {
+                            return executedNestedFirst(edge, nested, context);
+                        } else {
+                            return privateExecute(edge, context, of(nextNode));
+                        }
+                    })
+                    .orElseGet(() -> new MgcGraphExecutionResultImpl(context.getResults(), true,
+                            false, isReachedFinalNode(context, currentNode)));
+        });
+    }
+
+
+    protected MgcGraphExecutionResult executeFirst(MgcCtxProvider<CTX, T> contextProvider, int nestingLevel) {
         final MgcNode<CTX, T> initial = graph.getNodeById(graph.getStartingStateId()).get();
-        return privateFirstExecute(initial, contextProvider.getContext(this, of(initial), empty()));
+        return privateFirstExecute(initial, contextProvider.getContext(this, of(initial), empty(), nestingLevel));
+    }
+
+
+    protected MgcGraphExecutionResult privateExecute(MgcEdge<CTX, T> nextEdge, CTX context, O<MgcNode<CTX, T>> alreadyFoundNode) {
+        MgcNode<CTX, T> to = alreadyFoundNode.orElseGet(() -> findNextNode(nextEdge, context));
+        context.getToNodeHolder().set(to);
+        nextEdge.executeListeners(context, context.getResults().getEdgeListeners());
+        to.executeListeners(context, context.getResults().getNodeListeners());
+
+        flushHistoryIfNeeded(context);
+
+        return new MgcGraphExecutionResultImpl(context.getResults(), false, false, isReachedFinalNode(context, to));
+    }
+
+    protected MgcGraphExecutionResult privateFirstExecute(MgcNode<CTX, T> initial, CTX context) {
+        context.getToNodeHolder().set(initial);
+        initial.executeListeners(context, context.getResults().getNodeListeners());
+
+        flushHistoryIfNeeded(context);
+
+        return new MgcGraphExecutionResultImpl(context.getResults(), false, true, isReachedFinalNode(context, initial));
+    }
+
+    private O<MgcGraphExecutionResult> executeNestedGraph(CTX ctx, MgcNestedGraphNode<CTX, T, ?, ?> ngn, String selectedEdge) {
+        return ngn.executeNestedGraph(ctx, selectedEdge);
+    }
+
+    private MgcGraphExecutionResult executedNestedFirst(MgcEdge<CTX, T> edge, MgcNestedGraphNode<CTX, T, ?, ?> ngn, CTX ctx) {
+        return ngn.executedNestedFirst(edge, ctx);
+    }
+
+    private boolean isReachedFinalNode(CTX context, MgcNode<CTX, T> to) {
+        return context.getExecutedGraph().getGraph().getNormalEdgesFrom(to).size() == 0;
+    }
+
+    private void flushHistoryIfNeeded(CTX context) {
+        if (context.getNestingLevel() == STARTING_NESTING_LEVEL) {context.getHistory().flush();}
     }
 
     protected O<MgcEdge<CTX, T>> searchNextEdge(MgcNode<CTX, T> currentNode, String selectedEdge, CTX context) {
@@ -72,27 +137,13 @@ public class MgcGraphExecutor
 
         MgcEdge<CTX, T> edge = processor.apply(getGraph().getAllMetaEdges(),
                 () -> processor.apply(getGraph().getMetaEdgesBack(currentNode),
-                        () -> processor.apply(getGraph().getDirectEdgesFrom(currentNode), () -> null)));
+                        () -> processor.apply(getGraph().getNormalEdgesFrom(currentNode), () -> null)));
 
 
         return ofNullable(edge);
     }
 
-    protected MgcGraphExecutionResult<CTX, T> privateExecute(MgcEdge<CTX, T> nextEdge, CTX context) {
-        MgcNode<CTX, T> to = toNode(nextEdge, context);
-        context.getToNodeHolder().set(to);
-        nextEdge.executeListeners(context, context.getResults().getEdgeListeners());
-        to.executeListeners(context, context.getResults().getNodeListeners());
-        return new MgcGraphExecutionResultImpl<>(context, false);
-    }
-
-    protected MgcGraphExecutionResult<CTX, T> privateFirstExecute(MgcNode<CTX, T> initial, CTX context) {
-        context.getToNodeHolder().set(initial);
-        initial.executeListeners(context, context.getResults().getNodeListeners());
-        return new MgcGraphExecutionResultImpl<>(context, false);
-    }
-
-    protected MgcNode<CTX, T> toNode(MgcEdge<CTX, T> nextEdge, CTX context) {
+    protected MgcNode<CTX, T> findNextNode(MgcEdge<CTX, T> nextEdge, CTX context) {
         if (graph.isFictiveBack(graph.getEdgeTarget(nextEdge)) && nextEdge instanceof MgcMetaEdge) {
             return ((MgcMetaEdge<CTX, T>) nextEdge)
                     .getPossibleNodeIdIfMetaBack(context).flatMap($ -> getGraph().getNodeById($))

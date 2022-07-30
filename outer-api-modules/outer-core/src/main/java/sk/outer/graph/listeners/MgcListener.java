@@ -25,8 +25,8 @@ import sk.outer.graph.parser.MgcTypeUtil;
 import sk.utils.ifaces.IdentifiableString;
 
 public interface MgcListener
-        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>, RES extends MgcListenerResult>
         extends IdentifiableString {
 
-    MgcListenerResult apply(CTX mgcGraphExecutionContext);
+    RES apply(CTX mgcGraphExecutionContext);
 }

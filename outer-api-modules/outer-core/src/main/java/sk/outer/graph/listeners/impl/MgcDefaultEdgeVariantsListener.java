@@ -20,39 +20,31 @@ package sk.outer.graph.listeners.impl;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import sk.outer.graph.edges.MgcMetaEdge;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
-import sk.outer.graph.listeners.MgcListener;
-import sk.outer.graph.listeners.MgcListenerResult;
+import sk.outer.graph.listeners.MgcDefaultListener;
 import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class MgcDefaultEdgeVariantsListener
         <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        implements MgcListener<CTX, T> {
+        extends MgcDefaultListener<CTX, T, MgcEdgeVariantsListenerResult> {
     public static final String id = "edge_possibilities";
-    private MgcNode<CTX, T> newNode;
 
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public MgcListenerResult apply(CTX context) {
-        List<String> allPossibleEdges = context.getExecutedGraph().getGraph().getEdgesFrom(newNode).stream()
-                .filter($ -> !($ instanceof MgcMetaEdge))
-                .flatMap($ -> $.getPossibleEdges($.getParsedData().getText(), context).stream())
-                .collect(Collectors.toList());
-        List<String> metaEdges = context.getExecutedGraph().getGraph().getEdgesFrom(newNode).stream()
-                .filter($ -> $ instanceof MgcMetaEdge)
-                .flatMap($ -> $.getPossibleEdges($.getParsedData().getText(), context).stream())
-                .collect(Collectors.toList());
-        return new MgcEdgeVariantsListenerResult(allPossibleEdges, metaEdges);
+    public MgcDefaultEdgeVariantsListener(MgcNode<CTX, T> newNode) {
+        super(id, context -> {
+            List<String> allPossibleEdges = context.getExecutedGraph().getGraph().getEdgesFrom(newNode).stream()
+                    .filter($ -> !($ instanceof MgcMetaEdge))
+                    .flatMap($ -> $.getPossibleEdges($.getParsedData().getText(), context).stream())
+                    .collect(Collectors.toList());
+            List<String> metaEdges = context.getExecutedGraph().getGraph().getEdgesFrom(newNode).stream()
+                    .filter($ -> $ instanceof MgcMetaEdge)
+                    .flatMap($ -> $.getPossibleEdges($.getParsedData().getText(), context).stream())
+                    .collect(Collectors.toList());
+            return new MgcEdgeVariantsListenerResult(allPossibleEdges, metaEdges);
+        });
     }
 }

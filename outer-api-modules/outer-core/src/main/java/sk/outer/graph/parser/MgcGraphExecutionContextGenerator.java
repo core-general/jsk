@@ -27,5 +27,5 @@ import sk.utils.functional.O;
 
 public interface MgcGraphExecutionContextGenerator<CTX extends MgcGraphExecutionContext<CTX, T>,
         T extends Enum<T> & MgcTypeUtil<T>> {
-    CTX getCtx(MgcGraphExecutor<CTX, T> g, O<MgcNode<CTX, T>> fromNode, O<String> edge);
+    CTX getCtx(MgcGraphExecutor<CTX, T> g, O<MgcNode<CTX, T>> fromNode, O<String> edge, int nestingLevel);
 }
