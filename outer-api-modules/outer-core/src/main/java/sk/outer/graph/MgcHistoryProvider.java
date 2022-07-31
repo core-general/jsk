@@ -37,9 +37,20 @@ public interface MgcHistoryProvider {
     SimplePage<MgcGraphHistoryItem, String> getHistory(int count, O<String> npa,
             boolean ascending, MgcObjectType type);
 
-    boolean isFirstTimeOnThisNestingLevelWhenGoingDown(int currentNestingLvl);
-
     void replaceLastItemWith(MgcGraphHistoryItem mgcGraphHistoryItem);
+
+    default boolean isFirstTimeOnThisNestingLevelWhenGoingDown(int currentNestingLvl) {
+        return getLastNode().map($ -> {
+            final int lastNestingLevel = $.getNestingLevel();
+            if (lastNestingLevel < currentNestingLvl) {
+                //going deep
+                return true;
+            } else {
+                //same level or going up
+                return false;
+            }
+        }).orElse(true);
+    }
 
     default void flush() {
         /*

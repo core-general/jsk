@@ -194,22 +194,6 @@ public class MgcGraphTest {
         }
 
         @Override
-        public boolean isFirstTimeOnThisNestingLevelWhenGoingDown(int currentNestingLvl) {
-            if (hist.size() == 0) {
-                return true;
-            } else {
-                final int lastNestingLevel = hist.getFirst().getNestingLevel();
-                if (lastNestingLevel < currentNestingLvl) {
-                    //going deep
-                    return true;
-                } else {
-                    //same level or going up
-                    return false;
-                }
-            }
-        }
-
-        @Override
         public void replaceLastItemWith(MgcGraphHistoryItem mgcGraphHistoryItem) {
             hist.removeFirst();
             hist.addFirst(mgcGraphHistoryItem);
