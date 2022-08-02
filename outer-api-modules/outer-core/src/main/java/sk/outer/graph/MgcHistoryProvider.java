@@ -76,8 +76,17 @@ public interface MgcHistoryProvider {
     }
 
     default O<MgcGraphHistoryItem> getLastNode() {
-        List<MgcGraphHistoryItem> data = getHistory(2, O.empty(), false, MgcObjectType.NODE).getData();
+        List<MgcGraphHistoryItem> data = getHistory(1, O.empty(), false, MgcObjectType.NODE).getData();
         if (data.size() == 0 || !data.get(0).isNode()) {
+            return O.empty();
+        } else {
+            return O.of(data.get(0));
+        }
+    }
+
+    default O<MgcGraphHistoryItem> getLastEdge() {
+        List<MgcGraphHistoryItem> data = getHistory(1, O.empty(), false, MgcObjectType.EDGE).getData();
+        if (data.size() == 0 || data.get(0).isNode()) {
             return O.empty();
         } else {
             return O.of(data.get(0));

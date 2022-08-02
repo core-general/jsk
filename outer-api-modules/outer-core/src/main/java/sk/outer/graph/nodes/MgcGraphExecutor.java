@@ -75,7 +75,7 @@ public class MgcGraphExecutor
                     .map(edge -> {
                         final MgcNode<CTX, T> nextNode = findNextNode(edge, context);
                         if (nextNode instanceof MgcNestedGraphNode<CTX, T, ?, ?> nested) {
-                            return executedNestedFirst(edge, nested, context);
+                            return executedNestedFirst(of(edge), nested, context);
                         } else {
                             return privateExecute(edge, context, of(nextNode));
                         }
@@ -88,7 +88,13 @@ public class MgcGraphExecutor
 
     protected MgcGraphExecutionResult executeFirst(MgcCtxProvider<CTX, T> contextProvider, int nestingLevel) {
         final MgcNode<CTX, T> initial = graph.getNodeById(graph.getStartingStateId()).get();
-        return privateFirstExecute(initial, contextProvider.getContext(this, of(initial), empty(), nestingLevel));
+        final CTX context = contextProvider.getContext(this, of(initial), empty(), nestingLevel);
+
+        if (initial instanceof MgcNestedGraphNode<CTX, T, ?, ?> nested) {
+            return executedNestedFirst(empty(), nested, context);
+        } else {
+            return privateFirstExecute(initial, context);
+        }
     }
 
 
@@ -116,7 +122,7 @@ public class MgcGraphExecutor
         return ngn.executeNestedGraph(ctx, selectedEdge);
     }
 
-    private MgcGraphExecutionResult executedNestedFirst(MgcEdge<CTX, T> edge, MgcNestedGraphNode<CTX, T, ?, ?> ngn, CTX ctx) {
+    private MgcGraphExecutionResult executedNestedFirst(O<MgcEdge<CTX, T>> edge, MgcNestedGraphNode<CTX, T, ?, ?> ngn, CTX ctx) {
         return ngn.executedNestedFirst(edge, ctx);
     }
 

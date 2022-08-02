@@ -37,8 +37,13 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
 import sk.utils.statics.Ma;
+import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -74,22 +79,29 @@ public class MgcGraphTest {
         //Io.endlessReadFromKeyboard("XXX", s -> onUserInput(ge, s));
 
         onUserInput(ge, "?");//init graph execution
-        LinkedHashMap<String, String> inAndOut = Cc.lhm(
-                "g1e1", "g1n2",
-                "g1eY", "g1n0",
-                "g1e0", "g1n1",
+        List<X2<String, String>> inAndOut = Cc.l(
+                X.x("g1e1", "g1n2"),
+                X.x("g1eY", "g1n0"),
+                X.x("g1e0", "g1n1"),
 
-                "g1e2", "g1G1->g2n1",
-                "g2e2", "g1G1->g2n3",
-                "g2e5", "g1G1->g2G1->g3n1",
-                "g3e1", "g1G1->g2G1->g3n2",
-                "g1e4", "g1G2->g3n1",
-                "g3e2", "g1G2->g3n3",
-                "g1e5", "g1G1->g2n1",
-                "g2e1", "g1G1->g2n2",
-                "g1e3", "g1n1"
+                X.x("g1e2", "g1G1->g2n1"),
+
+                X.x("g2e6", "g1G1->g2G2->g3n1"),
+                X.x("g3e1", "g1G1->g2G2->g3n2"),
+                X.x("g2e7", "g1G1->g2n1"),
+
+                X.x("g2e2", "g1G1->g2n3"),
+                X.x("g2e5", "g1G1->g2G1->g3n1"),
+                X.x("g3e1", "g1G1->g2G1->g3n2"),
+                X.x("g1e4", "g1G2->g3n1"),
+                X.x("g3e2", "g1G2->g3n3"),
+                X.x("g1e5", "g1G1->g2n1"),
+                X.x("g2e1", "g1G1->g2n2"),
+                X.x("g1e3", "g1n1")
         );
-        inAndOut.forEach((in, out) -> {
+        inAndOut.stream().forEach((kk) -> {
+            String in = kk.i1();
+            String out = kk.i2();
             final MgcListenerResults result = onUserInput(ge, in);
             Assert.assertEquals("Problem on input: " + in, out,
                     O.ofNull(result).map($ -> $.getNewNodeInfoMustExist().getNewNodeText()).orElse(""));

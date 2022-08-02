@@ -25,6 +25,7 @@ import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.execution.MgcGraphExecutionResult;
 import sk.outer.graph.execution.MgcGraphExecutionResultImpl;
 import sk.outer.graph.execution.MgcListenerResults;
+import sk.outer.graph.listeners.MgcListenerProcessorResult;
 import sk.outer.graph.listeners.impl.MgcDefaultEdgeVariantsListener;
 import sk.outer.graph.listeners.impl.MgcDefaultHistoryUpdaterListener;
 import sk.outer.graph.listeners.impl.MgcEdgeVariantsListenerResult;
@@ -79,6 +80,9 @@ public class MgcNestedGraphNode<CTX extends MgcGraphExecutionContext<CTX, T>, T 
             //B.B--bbbc->B.C first time we need to replace it's edge variants with the variants of top graph in both:
             //history and listener
             final MgcEdgeVariantsListenerResult edges = new MgcDefaultEdgeVariantsListener<>(this).apply(context);
+            if (edges.getNormalEdges().size() > 0) {
+                result.unreachFinalNode();
+            }
             ctx.getContextMustExist().getHistory().replaceLastItemWith(
                     ctx.getContextMustExist().getHistory().getLastNode().get()
                             .withReplacedEdges(edges.getNormalEdges(), edges.getMetaEdges())
@@ -96,8 +100,9 @@ public class MgcNestedGraphNode<CTX extends MgcGraphExecutionContext<CTX, T>, T 
        A --ab-> | B.A --babb-> B.B --bbbc-> B.C |
                 |_______________________________| --bd-> D
      */
-    public MgcGraphExecutionResult executedNestedFirst(MgcEdge<CTX, T> inputEdge, CTX context) {
-        var edgeListeners = inputEdge.executeListeners(context, context.getResults().getEdgeListeners());
+    public MgcGraphExecutionResult executedNestedFirst(O<MgcEdge<CTX, T>> inputEdge, CTX context) {
+        var edgeListeners = inputEdge.map($ -> $.executeListeners(context, context.getResults().getEdgeListeners()))
+                .orElse(new MgcListenerProcessorResult());
         var nodeListeners = executeListeners(context, context.getResults().getNodeListeners());
 
         var result = executor.executeByHistoryNested(O.empty(), generator(contextGenerator), context.getNestingLevel() + 1);
@@ -111,7 +116,8 @@ public class MgcNestedGraphNode<CTX extends MgcGraphExecutionContext<CTX, T>, T 
                     result.isInitialStep(), result.isReachedFinalNode());
         } else {
             //should never occur
-            throw new RuntimeException("Can't executedNestedFirst on: --" + inputEdge.getId() + "-> " + this.getId());
+            throw new RuntimeException(
+                    "Can't executedNestedFirst on: --" + inputEdge.map($ -> $.getId()).orElse("NONE") + "-> " + this.getId());
         }
     }
 }

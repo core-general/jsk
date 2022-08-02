@@ -30,4 +30,9 @@ public class MgcGraphExecutionResultImpl implements MgcGraphExecutionResult {
     boolean cantFindEdge;
     boolean initialStep;
     boolean reachedFinalNode;
+
+    @Override
+    public void unreachFinalNode() {
+        reachedFinalNode = false;
+    }
 }

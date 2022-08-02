@@ -44,5 +44,8 @@ public interface MgcGraphExecutionResult {
     /** Final node - is the node which doesn't have any normal edges out */
     boolean isReachedFinalNode();
 
+    /**/
+    void unreachFinalNode();
+
     MgcListenerResults getResults();
 }

@@ -8,6 +8,8 @@ g2n1 g2n3 g2e2
 g2n3 g2n4 g2e3
 g2n4 g2n1 g2e4
 g2n3 g2G1 g2e5
+g2n1 g2G2 g2e6
+g2G2 g2n1 g2e7
 
 ---
 g2n1
@@ -25,6 +27,9 @@ g2n4
 g2G1 N_GRAPH test2.graph
 g2G1
 
+g2G2 N_GRAPH test2.graph
+g2G2
+
 g2e1
 g2e1
 
@@ -39,3 +44,9 @@ g2e4
 
 g2e5
 g2e5
+
+g2e6
+g2e6
+
+g2e7
+g2e7

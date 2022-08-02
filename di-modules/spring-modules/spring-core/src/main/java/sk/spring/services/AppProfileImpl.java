@@ -46,12 +46,12 @@ public class AppProfileImpl<T extends IAppProfileType> implements IAppProfile<T>
                 .or(() -> Cc.stream(cls.getEnumConstants())
                         .filter(IAppProfileType::isForDefaultTesting)
                         .map(IAppProfileType::name)
-                        .findAny())
+                        .findFirst())
                 .orElseThrow(() -> new RuntimeException("Unknown profile"));
 
         value = Cc.stream(cls.getEnumConstants())
                 .filter($ -> Fu.equal(profile.toLowerCase(), $.toLowerCase()))
-                .findAny()
+                .findFirst()
                 .orElseGet(() -> Ex.thRow(profile + " is unknown"));
     }
 
