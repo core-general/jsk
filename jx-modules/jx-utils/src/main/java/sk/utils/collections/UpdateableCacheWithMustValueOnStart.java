@@ -52,7 +52,7 @@ public class UpdateableCacheWithMustValueOnStart<V> implements Gett<V> {
                 repeatDescription.toMillis(), repeatDescription.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    protected synchronized void forceUpdateValue() {
+    public final synchronized void forceUpdateValue() {
         try {
             value = cacheUpdater.apply();
         } catch (Exception e) {

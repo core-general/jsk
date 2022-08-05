@@ -21,7 +21,10 @@ package sk.outer.graph.listeners;
  */
 
 import sk.outer.graph.execution.MgcGraphExecutionContext;
+import sk.outer.graph.listeners.impl.MgcObjectListenerResult;
 import sk.outer.graph.parser.MgcTypeUtil;
+import sk.utils.functional.C1;
+import sk.utils.functional.F1;
 
 import java.util.List;
 
@@ -35,6 +38,19 @@ public interface MgcListenerProcessor
             Class<? extends MgcListener<CTX, T, RES>> cls);
 
     <RES extends MgcListenerResult> void addListenerFirst(MgcListener<CTX, T, RES> listener);
+
+    default <R> void addObjectListenerFirst(String id, F1<CTX, R> listener) {
+        addListenerFirst(new MgcDefaultListener<>(id,
+                ctx -> new MgcObjectListenerResult<>(listener.apply(ctx))));
+    }
+
+    default <R> void addOkListenerFirst(C1<CTX> listener) {
+        addListenerFirst(new MgcDefaultListener<>(System.identityHashCode(listener) + "_" + System.identityHashCode(this),
+                ctx -> {
+                    listener.accept(ctx);
+                    return new MgcBaseOkListenerResult();
+                }));
+    }
 
     MgcListenerResult getExceptionResult(Throwable e);
 

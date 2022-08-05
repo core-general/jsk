@@ -20,7 +20,9 @@ package sk.math.data.func;
  * #L%
  */
 
-public abstract class MFuncProto {
+import sk.services.json.JsonPolymorph;
+
+public abstract class MFuncProto extends JsonPolymorph {
     public abstract double value(double[] x, double[] p);
 
     /*
@@ -35,4 +37,31 @@ public abstract class MFuncProto {
     public abstract double[] jacobian(double[] x, double[] p);
 
     public abstract int paramCount();
+
+    @Override
+    public boolean equals(Object o) {
+        return System.identityHashCode(this) == System.identityHashCode(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+    //
+    //public static void main(String[] args) {
+    //    ICoreServices core = new ICore4Test();
+    //
+    //    final MFuncImpl<MX1Linear3> mx1Linear3MFunc = new MFuncImpl<>(new MX1Linear3(), new double[]{1, 2, 3, 4});
+    //    final List<Double> l1 = IntStream.range(0, 10).mapToObj($ -> mx1Linear3MFunc.value($)).toList();
+    //
+    //    final String json = core.json().to(mx1Linear3MFunc, true);
+    //
+    //    final MFuncImpl<MX1Linear3> from =
+    //            (MFuncImpl<MX1Linear3>) core.json().from(json, TypeWrap.getCustom(MFuncImpl.class, MX1Linear3.class));
+    //    final List<Double> l2 = IntStream.range(0, 10).mapToObj($ -> from.value($)).toList();
+    //
+    //    int i = 0;
+    //}
 }
+
+

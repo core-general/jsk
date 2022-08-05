@@ -75,6 +75,7 @@ public class MgcListenerProcessorBase
         listenerSet.add(listener.getId());
     }
 
+
     @Override
     public MgcListenerResult getExceptionResult(Throwable e) {
         return new MgcBaseListenerResult(true, true, O.of(e));

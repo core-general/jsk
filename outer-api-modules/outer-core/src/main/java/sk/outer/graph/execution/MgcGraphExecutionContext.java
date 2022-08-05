@@ -22,6 +22,7 @@ package sk.outer.graph.execution;
 
 import lombok.Getter;
 import sk.outer.graph.MgcHistoryProvider;
+import sk.outer.graph.listeners.impl.MgcObjectListenerResult;
 import sk.outer.graph.nodes.MgcGraphExecutor;
 import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
@@ -71,6 +72,14 @@ public abstract class MgcGraphExecutionContext<CTX extends MgcGraphExecutionCont
             }
         }
         return fromNode;
+    }
+
+    public <T> T getObjectResultOf(String listenerId, Class<T> cls) {
+        final MgcObjectListenerResult result =
+                results.getNodeListeners().getResultOf(listenerId, MgcObjectListenerResult.class)
+                        .or(() -> results.getEdgeListeners().getResultOf(listenerId, MgcObjectListenerResult.class)).get();
+
+        return (T) result.getValue();
     }
 
     public MgcHistoryProvider getHistory() {

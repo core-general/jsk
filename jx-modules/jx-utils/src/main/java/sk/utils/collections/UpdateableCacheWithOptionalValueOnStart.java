@@ -56,7 +56,7 @@ public class UpdateableCacheWithOptionalValueOnStart<V> implements Gett<O<V>> {
                 repeatDescription.toMillis(), repeatDescription.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    protected synchronized void forceUpdate() {
+    public final synchronized void forceUpdate() {
         try {
             final V val = cacheUpdater.apply();
             if (val != null) {

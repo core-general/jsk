@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.17.2.6</version>
+    <version>jsk.17.2.10</version>
 
     <modules>
         <module>jx-modules</module>
