@@ -75,6 +75,7 @@ public class MGlobalRandomParamsOptimization<T extends MFuncProto> implements MG
             stream = stream.parallel();
         }
         var result = stream
+                .limit(maxCount)
                 .mapToObj($ -> initialParamsToOptimizedInfo.apply(
                         IntStream.range(0, paramCount).mapToDouble((i) -> rand.rndDouble(mins[i], maxes[i])).limit(paramCount)
                                 .toArray()
@@ -82,7 +83,6 @@ public class MGlobalRandomParamsOptimization<T extends MFuncProto> implements MG
                 .filter($ -> $.isPresent())
                 .filter($ -> DoubleStream.of($.get().getOptimizedFunction().getParams()).allMatch(Double::isFinite))
                 .map($ -> $.get())
-                .limit(maxCount)
                 .sorted(Comparator.comparing(MOptimizeInfo::getSquareRootError))
                 .collect(Cc.toL());
         return Cc.first(result);

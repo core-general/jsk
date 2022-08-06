@@ -22,11 +22,12 @@ package sk.math.data.estimate;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.math3.analysis.DifferentiableMultivariateVectorFunction;
 import org.apache.commons.math3.analysis.MultivariateMatrixFunction;
 import org.apache.commons.math3.optimization.PointVectorValuePair;
-import org.apache.commons.math3.optimization.general.AbstractLeastSquaresOptimizer;
 import org.apache.commons.math3.optimization.general.LevenbergMarquardtOptimizer;
+import org.jetbrains.annotations.NotNull;
 import sk.math.data.MDataSet;
 import sk.math.data.estimate.global.MGlobalOptimizer;
 import sk.math.data.estimate.global.MGlobalRandomParamsOptimization;
@@ -35,42 +36,71 @@ import sk.math.data.func.MFuncProto;
 import sk.utils.functional.O;
 import sk.utils.statics.Ar;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.DoubleStream;
 
 
+@Log4j2
 public class MLeastSquareFuncEstimator {
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
     funcParallelRandomSearch(MDataSet data, Class<T> funcCls) {
         final T protoFunc = funcCls.getConstructor().newInstance();
-        return func(data, funcCls, 100_000, new MGlobalRandomParamsOptimization<T>(10000, -5, 5, protoFunc.paramCount(), true));
+        return func(data, funcCls, 100_000, Duration.of(10, ChronoUnit.SECONDS),
+                new MGlobalRandomParamsOptimization<T>(10000, -5, 5, protoFunc.paramCount(), true));
     }
 
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
-    func(MDataSet data, Class<T> funcCls, int iterations, MGlobalOptimizer<T> globalOptimizer) {
-        return func(data, funcCls.getConstructor().newInstance(), iterations, globalOptimizer);
+    func(MDataSet data, Class<T> funcCls, int iterations, Duration maxTimePerLocalLocalization,
+            MGlobalOptimizer<T> globalOptimizer) {
+        return func(data, funcCls.getConstructor().newInstance(), iterations, maxTimePerLocalLocalization, globalOptimizer);
     }
 
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
-    func(MDataSet data, T funcImpl, int iterations, MGlobalOptimizer<T> globalOptimizer) {
+    func(MDataSet data, T funcImpl, int iterations, Duration maxTimePerLocalLocalization, MGlobalOptimizer<T> globalOptimizer) {
         if (data.getX().length == 0) {
             throw new RuntimeException("NO DATA");
         }
 
         final T protoFunc = funcImpl;
         MFF mff = new MFF(data.getX(), protoFunc);
-        AbstractLeastSquaresOptimizer optimizer = new LevenbergMarquardtOptimizer();
+
+        ThreadLocal<Instant> currentPasStarted = new ThreadLocal<>();
+        ThreadLocal<MOptimizeInfo<T>> bestPoint = new ThreadLocal<>();
+        LevenbergMarquardtOptimizer optimizer = new LevenbergMarquardtOptimizer(
+                (iteration, previous, current) -> {
+                    final Instant started = currentPasStarted.get();
+                    final Instant now = Instant.now();
+                    final Duration curDif = Duration.between(started, now);
+
+                    final MOptimizeInfo<T> bestOptimizePass = bestPoint.get();
+                    final MOptimizeInfo<T> newOptimizePass =
+                            getOptimizeInfoO(data, protoFunc, current.getPoint(), current.getValueRef()).get();
+
+                    if (bestOptimizePass == null ||
+                            bestOptimizePass.getSquareRootError() > newOptimizePass.getSquareRootError()) {
+                        bestPoint.set(newOptimizePass);
+                    }
+
+                    return iteration >= iterations - 1 || curDif.compareTo(maxTimePerLocalLocalization) > 0;
+                });
         final O<MOptimizeInfo<T>> optimum = globalOptimizer
-                .optimize(data, (initial) -> localOptimizationPass(initial, data, optimizer, mff, protoFunc, iterations));
+                .optimize(data, (initial) -> {
+                    currentPasStarted.set(Instant.now());
+                    bestPoint.remove();
+                    return localOptimizationPass(initial, data, optimizer, mff, protoFunc, iterations);
+                }).or(() -> O.ofNull(bestPoint.get()));
         return optimum;
     }
 
     private static <T extends MFuncProto> O<MOptimizeInfo<T>>
     localOptimizationPass(double[] startingPoint,
             MDataSet data,
-            AbstractLeastSquaresOptimizer optimizer,
+            LevenbergMarquardtOptimizer optimizer,
             MFF mff, T protoFunc, int iterations
     ) {
         try {
@@ -80,18 +110,28 @@ public class MLeastSquareFuncEstimator {
                     data.getY(),
                     Ar.fill(data.getX().length, 1d),
                     startingPoint
+
             );
 
-            double[] doubles = new double[data.getY().length];
-            for (int i = 0; i < data.getY().length; i++) {
-                doubles[i] = Math.pow((data.getY()[i] - optimum.getValueRef()[i]), 2);
-            }
-            final double sum = DoubleStream.of(doubles).sum();
-            return O.of(new MOptimizeInfo<>
-                    (new MFuncImpl<>(protoFunc, optimum.getKey()), Math.sqrt(sum) / data.getY().length));
+            return getOptimizeInfoO(data, protoFunc, optimum.getKey(), optimum.getValueRef());
         } catch (Exception e) {
+            log.error("", e);
             return O.empty();
         }
+    }
+
+    @NotNull
+    private static <T extends MFuncProto> O<MOptimizeInfo<T>> getOptimizeInfoO(MDataSet data, T protoFunc, double[] point,
+            double[] valueRef) {
+        double[] doubles = new double[data.getY().length];
+        final MFuncImpl<T> func = new MFuncImpl<>(protoFunc, point);
+
+        for (int i = 0; i < data.getY().length; i++) {
+            doubles[i] = Math.pow((data.getY()[i] - (valueRef != null ? valueRef[i] : func.value(data.getX()[i]))), 2);
+        }
+        final double sum = DoubleStream.of(doubles).sum();
+        return O.of(new MOptimizeInfo<>
+                (func, Math.sqrt(sum) / data.getY().length));
     }
 
     @AllArgsConstructor
