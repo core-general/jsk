@@ -38,7 +38,7 @@ public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl 
 
 <#list model.entites as entity>
     // ------------------------------------------------
-    // ${entity.interfce}
+    // region ${entity.interfce}
     // ------------------------------------------------
     @Override
     public O<${entity.interfce}> get${entity.simple?cap_first}ById(${entity.getIdField().mainType} ${entity.simple}Id){
@@ -53,7 +53,7 @@ public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl 
     ){
     return new ${entity.cls}(<#list entity.fields as field><#if field.category == "VERSION" ||  field.fieldName == "createdAt" || field.fieldName == "updatedAt">null<#elseif field.category == "RELATION_IN" || field.category == "RELATION_OUT"><#if field.nullable>${field.fieldName}.orElse(null)<#else>${field.fieldName}</#if>, null<#else><#if field.nullable>${field.fieldName}.orElse(null)<#else>${field.fieldName}</#if></#if><#sep>, </#sep></#list>);
     }
-
+    // endregion
 
 </#list>
 

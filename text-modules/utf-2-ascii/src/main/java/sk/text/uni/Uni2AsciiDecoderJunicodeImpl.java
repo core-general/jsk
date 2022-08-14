@@ -21,10 +21,16 @@ package sk.text.uni;
  */
 
 import net.gcardone.junidecode.JunidecodeFixed;
+import sk.utils.javafixes.BadCharReplacer;
 import sk.utils.statics.St;
 
 public class Uni2AsciiDecoderJunicodeImpl implements Uni2AsciiDecoder {
-    private final static char[] CHAR_TABLE = calculateTable();
+//    private final static char[] CHAR_TABLE = calculateTable();
+
+    public static final String BAD_CHAR = "-";
+    public static final String DOUBLE_BAD_CHAR = "--";
+    public static final String TRIPLE_BAD_CHAR = "---";
+    private final static BadCharReplacer bcr = BadCharReplacer.bitSetReplacer(St.engENGDig + BAD_CHAR);
 
     @Override
     public String decodeSimple(String input) {
@@ -34,59 +40,8 @@ public class Uni2AsciiDecoderJunicodeImpl implements Uni2AsciiDecoder {
     @Override
     public String decodeUrlLower(String input) {
         input = decodeSimple(input);
-        char[] chars = new char[input.length()];
-
-        boolean started = false;
-        boolean lastWasMinus = false;
-
-        for (int i = 0, j = 0; i < input.length(); i++) {
-            final char c = input.charAt(i);
-
-            char possibleChar = c < 128 ? CHAR_TABLE[c] : '-';
-            if (possibleChar == '\'') {
-
-            } else if (possibleChar == '-') {
-                if (started && !lastWasMinus) {
-                    chars[j++] = possibleChar;
-                    lastWasMinus = true;
-                }
-            } else {
-                started = true;
-                lastWasMinus = false;
-                chars[j++] = possibleChar;
-            }
-        }
-
-        for (int i = chars.length - 1; i > 0; i--) {
-            if (chars[i] == '-' || chars[i] == 0) {
-                chars[i] = ' ';
-            } else {
-                break;
-            }
-        }
-
-        return new String(chars).trim().toLowerCase();
-    }
-
-
-    private static char[] calculateTable() {
-        final String possibleChars = St.engENGDig + "-'";
-        final int count = 128;
-        char[] toret = new char[count];
-        for (int i = 0; i < count; i++) {
-            if (possibleChars.contains(((char) i) + "")) {
-                toret[i] = (char) i;
-            } else {
-                toret[i] = '-';
-            }
-        }
-        return toret;
-    }
-
-    public static void main(String[] args) {
-        final String phrase =
-                "コロナウイルスフルクラップ";
-        System.out.println(new Uni2AsciiDecoderJunicodeImpl().decodeUrlLower(phrase));
-        System.out.println(new Uni2AsciiDecoderJunicodeImpl().decodeSimple(phrase));
+        return bcr.replaceChars(input, BAD_CHAR)
+                .replace(TRIPLE_BAD_CHAR, BAD_CHAR)
+                .replace(DOUBLE_BAD_CHAR, BAD_CHAR);
     }
 }

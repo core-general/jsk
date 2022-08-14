@@ -5,28 +5,28 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.2.19</version>
+        <version>jsk.17.2.22</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-spark-spring-melody</artifactId>
-    <version>jsk.17.2.19</version>
+    <version>jsk.17.2.22</version>
     <packaging>jar</packaging>
 
     <properties>
-        <jetty.version>9.4.46.v20220331</jetty.version>
+        <!--     todo probably could be bumped if Spark becomes too old   <jetty.version>9.4.46.v20220331</jetty.version>-->
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spring-core</artifactId>
-            <version>jsk.17.2.19</version>
+            <version>jsk.17.2.22</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-melody-patch</artifactId>
-            <version>jsk.17.2.19</version>
+            <version>jsk.17.2.22</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -36,54 +36,54 @@
         <dependency>
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
-            <version>2.9.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-webapp</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>websocket-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>websocket-servlet</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>2.9.4</version>
+            <!--            <exclusions>-->
+            <!--                <exclusion>-->
+            <!--                    <groupId>org.eclipse.jetty</groupId>-->
+            <!--                    <artifactId>jetty-server</artifactId>-->
+            <!--                </exclusion>-->
+            <!--                <exclusion>-->
+            <!--                    <groupId>org.eclipse.jetty</groupId>-->
+            <!--                    <artifactId>jetty-webapp</artifactId>-->
+            <!--                </exclusion>-->
+            <!--                <exclusion>-->
+            <!--                    <groupId>org.eclipse.jetty.websocket</groupId>-->
+            <!--                    <artifactId>websocket-server</artifactId>-->
+            <!--                </exclusion>-->
+            <!--                <exclusion>-->
+            <!--                    <groupId>org.eclipse.jetty.websocket</groupId>-->
+            <!--                    <artifactId>websocket-servlet</artifactId>-->
+            <!--                </exclusion>-->
+            <!--            </exclusions>-->
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.eclipse.jetty</groupId>-->
+        <!--            <artifactId>jetty-server</artifactId>-->
+        <!--            <version>${jetty.version}</version>-->
+        <!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.eclipse.jetty</groupId>-->
+        <!--            <artifactId>jetty-webapp</artifactId>-->
+        <!--            <version>${jetty.version}</version>-->
+        <!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-servlet</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.eclipse.jetty.websocket</groupId>-->
+        <!--            <artifactId>websocket-server</artifactId>-->
+        <!--            <version>${jetty.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.eclipse.jetty.websocket</groupId>-->
+        <!--            <artifactId>websocket-servlet</artifactId>-->
+        <!--            <version>${jetty.version}</version>-->
+        <!--        </dependency>-->
 
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.17.2.19</version>
+            <version>jsk.17.2.22</version>
         </dependency>
     </dependencies>
     <build>
@@ -95,7 +95,7 @@
             <!--            <plugin>-->
             <!--                <groupId>jsk</groupId>-->
             <!--                <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
-            <!--                <version>jsk.17.2.19</version>-->
+            <!--                <version>jsk.17.2.22</version>-->
             <!--                <configuration>-->
             <!--                    <apiClasses>-->
             <!--                        <param>sk.web.server.spark.TestApi1</param>-->

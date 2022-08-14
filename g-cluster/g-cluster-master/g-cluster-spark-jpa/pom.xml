@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>g-cluster-master</artifactId>
+        <groupId>jsk</groupId>
+        <version>jsk.17.2.22</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>g-cluster-spark-jpa</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>g-cluster-master-core</artifactId>
+            <version>jsk.17.2.22</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>web-server-spark-spring-melody</artifactId>
+            <version>jsk.17.2.22</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>web-server-spring-jpa-core</artifactId>
+            <version>jsk.17.2.22</version>
+        </dependency>
+    </dependencies>
+</project>

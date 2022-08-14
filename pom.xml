@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.17.2.19</version>
+    <version>jsk.17.2.22</version>
 
     <modules>
         <module>jx-modules</module>
@@ -20,6 +20,7 @@
         <module>outer-api-modules</module>
         <module>mvn-plugins</module>
         <module>maths</module>
+        <module>g-cluster</module>
     </modules>
 
     <properties>

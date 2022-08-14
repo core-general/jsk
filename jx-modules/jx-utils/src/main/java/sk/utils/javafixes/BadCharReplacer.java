@@ -84,7 +84,6 @@ public abstract class BadCharReplacer {
 
     public BadCharReplacer(String allGoodChars) {
         this.allGoodChars = allGoodChars;
-
         bitManager = initManipulator(
                 150_000/*todo update sometimes. Last tuned for Unicode 14.0 https://en.wikipedia.org/wiki/Unicode#Versions*/);
         St.forEachCodePoint(allGoodChars, bitManager::setBitTrue);

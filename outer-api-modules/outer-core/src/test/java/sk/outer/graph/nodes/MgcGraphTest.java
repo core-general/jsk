@@ -54,29 +54,39 @@ public class MgcGraphTest {
 
     private Deque<MgcGraphHistoryItem> hist = new ArrayDeque<>();
     private Map<String, MgcGraphExecutor<?, ?>> executors = new ConcurrentHashMap<>();
+    final String rootId = "test.graph";
+    MgcGraphExecutor<Ctx, GType> ge;
 
     @Before
     public void init() {
-        final String rootId = "test.graph";
-        var ge = new MgcGraphExecutor<>(
+        ge = new MgcGraphExecutor<>(
                 new MgcParser<Ctx, GType>(GType.class).parse(rootId, Io.getResource("graphs/" + rootId).get(),
                         new MultiGraphParseEnv()).collect($ -> $, $ -> Ex.thRow($)));
 
         executors.put(rootId, ge);
     }
 
+    //public static void main(String[] args) {
+    //    MgcGraphTest test = new MgcGraphTest();
+    //    test.init();
+    //    Io.endlessReadFromKeyboard("XXX", s -> {
+    //        final MgcListenerResults results = test.onUserInput(test.ge, s);
+    //        var text = results.getNewNodeInfoMustExist().getNewNodeText();
+    //        var edges = results.getPossibleEdgesMustExist();
+    //
+    //        System.out.println("""
+    //                Text: %s
+    //                Possible Edges: %s""".formatted(text, Cc.join(", ", edges.getAllEdges())));
+    //    });
+    //}
+
     @Test
     public void fullTestWithInnerGraphs() {
-        final String rootId = "test.graph";
-        var ge = new MgcGraphExecutor<>(
-                new MgcParser<Ctx, GType>(GType.class).parse(rootId, Io.getResource("graphs/" + rootId).get(),
-                        new MultiGraphParseEnv()).collect($ -> $, $ -> Ex.thRow($)));
-
-        executors.put(rootId, ge);
 
         System.out.println(rootId + "\n" + MgcModelUtils.convertToGraphVizFormat(ge.getGraph(), new Freemarker()));
+        Io.reWrite("./graphs/" + rootId + ".dot",
+                w -> w.append(MgcModelUtils.convertToGraphVizFormat(ge.getGraph(), new Freemarker())));
 
-        //Io.endlessReadFromKeyboard("XXX", s -> onUserInput(ge, s));
 
         onUserInput(ge, "?");//init graph execution
         List<X2<String, String>> inAndOut = Cc.l(
@@ -117,12 +127,6 @@ public class MgcGraphTest {
             ge.executeByHistory(O.of(input), MgcCtxProvider.generator(Ctx::new));
             return null;
         } else {
-            var text = execution.getResults().getNewNodeInfoMustExist().getNewNodeText();
-            var edges = execution.getResults().getPossibleEdgesMustExist();
-
-            //System.out.println("""
-            //        Text: %s
-            //        Possible Edges: %s""".formatted(text, Cc.join(", ", edges.getAllEdges())));
             return execution.getResults();
         }
     }
@@ -138,6 +142,9 @@ public class MgcGraphTest {
                                 .collect($ -> $, $ -> Ex.thRow($))));
                 System.out.println(
                         resourceName + "\n" + MgcModelUtils.convertToGraphVizFormat(graph.getGraph(), new Freemarker()));
+
+                Io.reWrite("./graphs/" + resourceName + ".dot",
+                        w -> w.append(MgcModelUtils.convertToGraphVizFormat(graph.getGraph(), new Freemarker())));
 
                 return new MgcNestedGraphNode<Ctx, GType, Ctx, GType>(parsedData, graph, Ctx::new);
             });

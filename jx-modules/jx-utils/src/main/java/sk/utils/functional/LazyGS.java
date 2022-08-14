@@ -37,4 +37,8 @@ public class LazyGS<T> implements GSet<T> {
     public void accept(T t) {
         this.val = t;
     }
+
+    public boolean isSet() {
+        return val != null;
+    }
 }

@@ -32,4 +32,8 @@ public class Lazy<T> implements Gett<T> {
     public T get() {
         return val == null ? val = init.get() : val;
     }
+
+    public boolean isSet() {
+        return val != null;
+    }
 }
