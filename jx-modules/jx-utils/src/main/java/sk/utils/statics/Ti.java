@@ -22,10 +22,7 @@ package sk.utils.statics;
 
 import sk.utils.functional.R;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 @SuppressWarnings({"unused", "WeakerAccess", "SpellCheckingInspection"})
@@ -48,6 +45,28 @@ public final class Ti {
     public static final Instant maxInstant = Instant.ofEpochMilli(Long.MAX_VALUE);
     public static final ZonedDateTime minZonedDateTime = minInstant.atZone(ZoneOffset.UTC);
     public static final ZonedDateTime maxZonedDateTime = maxInstant.atZone(ZoneOffset.UTC);
+
+    //region Betweens
+    public static Duration between(LocalDate startDate, LocalDate endDate) {
+        return Ti.between(startDate.atStartOfDay(), endDate.atStartOfDay());
+    }
+
+    public static Duration between(LocalDateTime startDate, LocalDateTime endDate) {
+        return Duration.between(startDate, endDate);
+    }
+
+    public static Duration between(ZonedDateTime startDate, ZonedDateTime endDate) {
+        return Duration.between(startDate, endDate);
+    }
+
+    public static Duration between(Instant startDate, Instant endDate) {
+        return Duration.between(startDate, endDate);
+    }
+
+    public static Duration between(long startDate, long endDate) {
+        return Duration.between(Instant.ofEpochMilli(startDate), Instant.ofEpochMilli(endDate));
+    }
+    //endregion
 
     public static boolean isSequence(ZonedDateTime... dates) {
         if (dates.length == 0 || dates.length == 1) {

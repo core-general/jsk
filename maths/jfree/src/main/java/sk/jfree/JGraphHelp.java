@@ -181,6 +181,7 @@ public class JGraphHelp {
 
     public static <T extends MFuncProto> JFreeChart functionAndDataSet(MDataSet dataset,
             double functionDrawStep,
+            double percentToShowMore,
             MOptimizeInfo<T>... functions) {
         final X2<MinMaxAvg[], MinMaxAvg> limits = dataset.getLimits();
         final List<MDataSet> datasets = Arrays.stream(functions)
@@ -188,7 +189,7 @@ public class JGraphHelp {
                     final MinMaxAvg minMaxX = limits.i1()[0];
                     List<Double> xx = Cc.l();
                     List<Double> yy = Cc.l();
-                    var zvals = (minMaxX.getMax() - minMaxX.getMin()) * 0.1;
+                    var zvals = (minMaxX.getMax() - minMaxX.getMin()) * percentToShowMore;
                     for (double x = minMaxX.getMin() - zvals; x < minMaxX.getMax() + zvals; x = x + functionDrawStep) {
                         final double y = $.getOptimizedFunction().value(new double[]{x});
                         yy.add(y);
@@ -220,8 +221,9 @@ public class JGraphHelp {
     public static <T extends MFuncProto> JFreeChart functionAndDataSets(MDataSet dataset,
             List<Class<? extends MFuncProto>> functions,
             double functionDrawStep,
+            double percentToShowMore,
             F2<MDataSet, Class<T>, O<MOptimizeInfo<T>>> functionProducer) {
-        return functionAndDataSet(dataset, functionDrawStep,
+        return functionAndDataSet(dataset, functionDrawStep, percentToShowMore,
                 functions.stream().map($ -> functionProducer.apply(dataset, (Class<T>) $).get()).toArray(MOptimizeInfo[]::new));
     }
 
