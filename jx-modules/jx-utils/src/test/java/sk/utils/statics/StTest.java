@@ -24,8 +24,37 @@ import org.junit.Test;
 import sk.utils.functional.O;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 public class StTest {
+    @Test
+    public void shortNumberFormTest() {
+        assertEquals(St.shortNumberForm(0), "0");
+        assertEquals(St.shortNumberForm(1), "1");
+        assertEquals(St.shortNumberForm(10), "10");
+        assertEquals(St.shortNumberForm(100), "100");
+        assertEquals(St.shortNumberForm(999), "999");
+        assertEquals(St.shortNumberForm(1000), "1k");
+        assertEquals(St.shortNumberForm(1001), "1k");
+        assertEquals(St.shortNumberForm(1011), "1k");
+        assertEquals(St.shortNumberForm(1111), "1.1k");
+        assertEquals(St.shortNumberForm(2111), "2.1k");
+        assertEquals(St.shortNumberForm(12111), "12.1k");
+        assertEquals(St.shortNumberForm(99999), "99.9k");
+        assertEquals(St.shortNumberForm(112111), "112k");
+        assertEquals(St.shortNumberForm(1_000_000), "1m");
+        assertEquals(St.shortNumberForm(1112111), "1.1m");
+        assertEquals(St.shortNumberForm(11112111), "11.1m");
+        assertEquals(St.shortNumberForm(111112111), "111m");
+        assertEquals(St.shortNumberForm(1111112111), "1.1b");
+        assertEquals(St.shortNumberForm(1111111112111L), "1.1t");
+        assertEquals(St.shortNumberForm(1111111111112111L), "1.1q");
+        assertEquals(St.shortNumberForm(11111111111112111L), "11.1q");
+        assertEquals(St.shortNumberForm(111111111111112111L), "111q");
+        assertEquals(St.shortNumberForm(999999999999999999L), "999q");
+        assertThrows(RuntimeException.class, () -> St.shortNumberForm(1000000000000000000L));
+        assertThrows(RuntimeException.class, () -> St.shortNumberForm(-1L));
+    }
 
     @Test
     public void count() {

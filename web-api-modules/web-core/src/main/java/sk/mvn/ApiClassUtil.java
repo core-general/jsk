@@ -20,9 +20,9 @@ package sk.mvn;
  * #L%
  */
 
-import sk.mvn.model.ApiBuildInfo;
 import sk.mvn.model.ApiClassModel;
 import sk.services.json.IJson;
+import sk.services.nodeinfo.model.ApiBuildInfo;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;

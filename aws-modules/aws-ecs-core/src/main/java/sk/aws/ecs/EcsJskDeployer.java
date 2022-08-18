@@ -25,18 +25,33 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerHost;
 import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryAuth;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import sk.services.bytes.IBytes;
+import sk.services.json.IJson;
+import sk.services.nodeinfo.model.ApiBuildInfo;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
+import sk.utils.statics.Io;
 import sk.utils.statics.St;
+import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class EcsJskDeployer {
     @Inject EcsJskDeployerProperties conf;
     @Inject EcsEcrJskClient client;
+    @Inject IBytes bytes;
+    @Inject IJson json;
 
     public void deploy() {
         prepareContainer();
@@ -44,7 +59,7 @@ public class EcsJskDeployer {
     }
 
     private void prepareContainer() {
-        final String imageName = conf.getEcrRepoName() + ":latest";
+        final String imageName = conf.getEcrRepoName() + ":" + prepareTag(".");
         String remoteImageName = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageName;
 
         final X2<String, String> dockerPas = client.getDockerLoginAndPass().collect(w -> w, e -> {
@@ -69,6 +84,31 @@ public class EcsJskDeployer {
         } catch (Exception e) {
             Ex.thRow(e);
         }
+    }
+
+    private String prepareTag(String folderPath) {
+        final File file1 = new File(folderPath);
+        System.out.println("TRY TO PREPARE TAG FOLDER: " + file1.getAbsolutePath());
+        final List<X2<String, ApiBuildInfo>> buildInfos = Arrays.stream(file1.listFiles())
+                .filter($ -> $.getName().endsWith(".jar"))
+                .map($ -> {
+                    O<byte[]> oJar = Io.bRead($.getAbsolutePath()).oBytes();
+                    final O<Map<String, byte[]>> mapO = oJar.flatMap(jar -> bytes.unZipArchive(jar));
+                    oJar = null;
+                    final O<byte[]> buildInfo = mapO.flatMap(files -> O.ofNull(files.get("__jsk_util/web_api/__buildInfo.json")));
+                    final O<ApiBuildInfo> from = buildInfo.map(file -> json.from(new String(file), ApiBuildInfo.class));
+                    return X.x($.getName(), from);
+                })
+                .filter($ -> $.i2().isPresent())
+                .map($ -> X.x($.i1(), $.i2().get()))
+                .toList();
+        if (buildInfos.size() == 0) {
+            throw new RuntimeException("No valid jars with valid __jsk_util/web_api/__buildInfo.json inside found!");
+        }
+        if (buildInfos.size() > 1) {
+            throw new RuntimeException("More than one jar found with __jsk_util/web_api/__buildInfo.json inside: !");
+        }
+        return "prefix4policy-" + buildInfos.get(0).i2().toString();
     }
 
     private void deployContainerToEcs() {

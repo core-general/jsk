@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import static java.lang.Character.isLetter;
 import static java.lang.Character.isSpaceChar;
@@ -47,6 +48,57 @@ public final class St {
     public static final String engENGDig = ENG + eng + dig;
 
     //region Common
+    private static final long[] orders = LongStream.iterate(1, curVal -> curVal * 10).limit(19).toArray();
+
+    public static String shortNumberForm(long number) {
+        if (number < 0 || number > 999_999_999_999_999_999L) {
+            throw new RuntimeException("Unsupported number:" + number);
+        }
+        if (number == 0) {
+            return "0";
+        }
+        //find curent order
+        int order = 0;
+        ORDER_SEARCH:
+        for (; order < orders.length; order += 3) {
+            if ((number) / orders[order] == 0) {
+                order = order - 6;
+                break ORDER_SEARCH;
+            }
+        }
+
+        if (order < 0) {
+            return String.valueOf(number);
+        }
+
+        String suffix = switch (order) {
+            case 0 -> "k";
+            case 3 -> "m";
+            case 6 -> "b";
+            case 9 -> "t";
+            case 12 -> "q";
+            case 15 -> "i";
+            default -> throw new IllegalStateException("Unexpected value: " + order);
+        };
+
+        final long high = number / orders[order + 3];
+
+        if (number < orders[order + 3]) {
+            return high + suffix;
+        } else if (number < orders[Math.min(order + 5, orders.length)]) {
+            final long low = (number % orders[order + 3]) / orders[order + 2];
+            StringBuilder toRet = new StringBuilder(5);
+            toRet.append(high);
+            if (low > 0) {
+                toRet.append(".").append(low);
+            }
+            toRet.append(suffix);
+            return toRet.toString();
+        } else {
+            return high + suffix;
+        }
+    }
+
     public static String removeLastIf(String str, char toRemoveIfLast) {
         if (str.charAt(str.length() - 1) == toRemoveIfLast) {
             return ss(str, 0, str.length() - 1);

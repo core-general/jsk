@@ -22,7 +22,6 @@ package sk.utils.files;
 
 import sk.utils.collections.MultiBiMap;
 import sk.utils.statics.Cc;
-import sk.utils.statics.Io;
 import sk.utils.statics.St;
 import sk.utils.tuples.X1;
 
@@ -30,13 +29,6 @@ import java.io.InputStream;
 import java.util.*;
 
 public class CsvReader {
-
-    public static void main(String[] args) {
-        final String s = "/home/kivan/home_tmp/sb/LS_ADDS_JAN_JUN22.csv";
-        final InputStream inputStream = Io.bRead(s).oIs().get();
-        final List<Map<String, String>> fromCsv = getFromCsv(inputStream);
-        int i = 0;
-    }
 
     public static final String COMMA = ",";
 

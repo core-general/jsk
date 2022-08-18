@@ -1,4 +1,4 @@
-package sk.mvn.model;
+package sk.services.nodeinfo.model;
 
 /*-
  * #%L
