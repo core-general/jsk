@@ -5,13 +5,13 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.2.29</version>
+        <version>jsk.17.2.32</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-utils</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.17.2.29</version>
+    <version>jsk.17.2.32</version>
 
     <dependencies>
         <dependency>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.17.2.29</version>
+            <version>jsk.17.2.32</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

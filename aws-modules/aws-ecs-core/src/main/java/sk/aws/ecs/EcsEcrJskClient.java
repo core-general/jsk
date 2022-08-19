@@ -22,6 +22,7 @@ package sk.aws.ecs;
 
 import sk.aws.AwsUtilityHelper;
 import sk.services.bytes.IBytes;
+import sk.services.json.IJson;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
@@ -45,6 +46,7 @@ import java.util.List;
 public class EcsEcrJskClient {
     @Inject AwsUtilityHelper helper;
     @Inject IBytes bytes;
+    @Inject IJson json;
     @Inject EcsJskDeployerProperties conf;
 
     EcsClient ecs;
@@ -90,7 +92,7 @@ public class EcsEcrJskClient {
                         .build()));
     }
 
-    public void reRegisterTask(String lastTask) {
+    public void reRegisterTask(String lastTask, String fullRemoteImageName) {
         DescribeTaskDefinitionRequest describeTaskDefinitionRequest = DescribeTaskDefinitionRequest.builder()
                 .taskDefinition(lastTask)
                 .build();
@@ -100,10 +102,17 @@ public class EcsEcrJskClient {
 
         TaskDefinition revisionedTask = described.taskDefinition();
 
+        List<ContainerDefinition> collection = revisionedTask.containerDefinitions();
+        collection = collection.stream().map($ -> $.toBuilder()
+                .image(fullRemoteImageName)
+                .build()).toList();
+
+        System.out.println("CONTAINER DEFINITIONS: \n" + json.to(collection, true));
+
         RegisterTaskDefinitionRequest registerTaskDefinitionRequest = RegisterTaskDefinitionRequest.builder()
                 .family(revisionedTask.family())
                 .volumes(revisionedTask.volumes())
-                .containerDefinitions(revisionedTask.containerDefinitions())
+                .containerDefinitions(collection)
                 .build();
 
         ecs.registerTaskDefinition(registerTaskDefinitionRequest);

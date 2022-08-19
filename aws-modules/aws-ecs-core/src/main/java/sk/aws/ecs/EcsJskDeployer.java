@@ -54,13 +54,15 @@ public class EcsJskDeployer {
     @Inject IJson json;
 
     public void deploy() {
-        prepareContainer();
-        deployContainerToEcs();
+        String fullRemoteImageName = prepareContainer();
+        deployContainerToEcs(fullRemoteImageName);
     }
 
-    private void prepareContainer() {
-        final String imageName = conf.getEcrRepoName() + ":" + prepareTag(".");
-        String remoteImageName = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageName;
+    private String prepareContainer() {
+        final String tag = prepareTag(".");
+        final String imageNameLocal = conf.getEcrRepoName() + ":latest";
+        final String imageNameRemote = conf.getEcrRepoName() + ":" + tag;
+        String fullRemoteImageName = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageNameRemote;
 
         final X2<String, String> dockerPas = client.getDockerLoginAndPass().collect(w -> w, e -> {
             e.printStackTrace();
@@ -79,11 +81,13 @@ public class EcsJskDeployer {
 
         try {
             docker.build(Paths.get("."), conf.getEcrRepoName());
-            docker.tag(imageName, remoteImageName, true);
-            docker.push(remoteImageName);
+            docker.tag(imageNameLocal, fullRemoteImageName, true);
+            docker.push(fullRemoteImageName);
         } catch (Exception e) {
             Ex.thRow(e);
         }
+
+        return fullRemoteImageName;
     }
 
     private String prepareTag(String folderPath) {
@@ -111,7 +115,7 @@ public class EcsJskDeployer {
         return "prefix4policy-" + buildInfos.get(0).i2().toString();
     }
 
-    private void deployContainerToEcs() {
+    private void deployContainerToEcs(String fullRemoteImageName) {
         List<String> existingTaskDefinitions = client.getExistingTaskDefinitionsSortedAscByNumber(conf.getEcsTaskName());
         if (existingTaskDefinitions.size() == 0) {
             throw new RuntimeException("No task definitions found in container! Please create first task definition manually!");
@@ -121,7 +125,7 @@ public class EcsJskDeployer {
         if (howManyToDelete > 0) {
             client.deregisterTasks(existingTaskDefinitions.subList(0, howManyToDelete));
         }
-        client.reRegisterTask(Cc.last(existingTaskDefinitions).get());
+        client.reRegisterTask(Cc.last(existingTaskDefinitions).get(), fullRemoteImageName);
         client.updateService(conf.getEcsClusterName(), conf.getEcsServiceName(), conf.getEcsTaskName());
         client.deleteOldImages(conf.getEcrRepoName());
     }
