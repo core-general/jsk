@@ -30,6 +30,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bytes.IBytes;
 import sk.services.json.marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
+import sk.services.json.typeadapterfactories.GsonOptionalTypeAdapterFactory;
+import sk.services.json.typeadapterfactories.GsonPostProcessTypeAdapterFactory;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
@@ -78,6 +80,15 @@ public class JGsonImpl implements IJson {
             gsonBuilderPolymorphicPretty.registerTypeAdapter($.getCls(), $);
         });
 
+        //region PostProcess
+        {
+            final GsonPostProcessTypeAdapterFactory postProcessTypeAdapterFactory = new GsonPostProcessTypeAdapterFactory();
+            gsonBuilderConcrete.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
+        }
+        //endregion
+
         //region Records
         {
             final RecordTypeAdapterFactory recordTypeAdapterFactory = RecordTypeAdapterFactory.builder()
@@ -87,6 +98,15 @@ public class JGsonImpl implements IJson {
             gsonBuilderConcrete.registerTypeAdapterFactory(recordTypeAdapterFactory);
             gsonBuilderPolymorphic.registerTypeAdapterFactory(recordTypeAdapterFactory);
             gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(recordTypeAdapterFactory);
+        }
+        //endregion
+
+        //region Optionals
+        {
+            final GsonOptionalTypeAdapterFactory optionalTypeAdapterFactory = new GsonOptionalTypeAdapterFactory();
+            gsonBuilderConcrete.registerTypeAdapterFactory(optionalTypeAdapterFactory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(optionalTypeAdapterFactory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(optionalTypeAdapterFactory);
         }
         //endregion
 

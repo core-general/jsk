@@ -1,4 +1,4 @@
-package sk.outer.graph.execution;
+package sk.services.json;
 
 /*-
  * #%L
@@ -20,24 +20,6 @@ package sk.outer.graph.execution;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import sk.utils.functional.O;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class MgcNestingInfo {
-    MgcGraphInfo graph;
-    O<String> previousLevelNestedGraphNodeId = O.empty();
-
-    public O<String> getPreviousLevelNestedGraphNodeId() {
-        return O.ofNull(previousLevelNestedGraphNodeId).flatMap($ -> $);
-    }
-
-    @Override
-    public String toString() {
-        return graph + getPreviousLevelNestedGraphNodeId().map($ -> "_⬆" + $).orElse("");
-    }
+public interface IJsonInitialized {
+    public void initAfterJsonDeserialize();
 }

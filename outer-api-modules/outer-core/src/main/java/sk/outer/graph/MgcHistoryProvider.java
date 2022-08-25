@@ -23,8 +23,8 @@ package sk.outer.graph;
 import sk.exceptions.NotImplementedException;
 import sk.outer.graph.execution.MgcGraphHistoryItem;
 import sk.outer.graph.execution.MgcObjectType;
-import sk.outer.graph.nodes.MgcNode;
 import sk.utils.functional.O;
+import sk.utils.ifaces.IdentifiableString;
 import sk.utils.paging.SimplePage;
 import sk.utils.statics.St;
 
@@ -93,7 +93,7 @@ public interface MgcHistoryProvider {
         }
     }
 
-    default String getCurrentNodeIdWithNesting(int currentNestingLevel, MgcNode<?, ?> curNode) {
+    default String getCurrentNodeIdWithNesting(int currentNestingLevel, IdentifiableString currentNode) {
         return getLastNode()
                 .map($ -> {
                     final int lastNestingLevel = $.getNestingLevel();
@@ -108,6 +108,20 @@ public interface MgcHistoryProvider {
                             .collect(Collectors.joining("->"));
                     return toJoin + (St.isNullOrEmpty(toJoin) ? "" : "->") + addCurLevel;
                 })
-                .orElse("") + curNode.getId();
+                .orElse("") + currentNode.getId();
+    }
+
+    default String getLastNodeIdWithNesting() {
+        return getLastNode()
+                .map($ -> {
+                    final int lastNestingLevel = $.getNestingLevel();
+                    final String toJoin = $.getNestedGraphInfo().stream()
+                            .limit(lastNestingLevel + 1)
+                            .filter($$ -> $$.getPreviousLevelNestedGraphNodeId().isPresent())
+                            .map($$ -> $$.getPreviousLevelNestedGraphNodeId().get())
+                            .collect(Collectors.joining("->"));
+                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : "->") + $.getId();
+                })
+                .orElse("");
     }
 }
