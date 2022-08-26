@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.Test;
+import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
 import java.util.Optional;
@@ -52,12 +53,13 @@ public class JGsonImplTest {
     @NoArgsConstructor
     @Data
     public static class InitTester implements IJsonInitialized {
-        int a = 5;
-        int b = 6;
+        private int a = 5;
+        private int b = 6;
         Optional<String> str;
 
         @Override
-        public void initAfterJsonDeserialize() {
+        public void initAfterJsonDeserialize(O<IServiceLocator> serviceProvider) {
+            assertEquals(serviceProvider, O.empty());
             a = 1;
             b = 2;
         }
@@ -67,6 +69,6 @@ public class JGsonImplTest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OptionalTester {
-        O<String> str;
+        private O<String> str;
     }
 }

@@ -22,13 +22,13 @@ package sk.spring.services;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.support.AbstractApplicationContext;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
 import javax.inject.Inject;
 
 @Log4j2
-public class ServiceProvider4SpringImpl implements IServiceProvider {
+public class ServiceLocator4SpringImpl implements IServiceLocator {
     @Inject AbstractApplicationContext context;
 
     @Override

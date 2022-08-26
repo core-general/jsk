@@ -28,10 +28,7 @@ import sk.utils.statics.Ti;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -134,6 +131,19 @@ public class GsonDefaultSerDes extends GsonSerDesList {
             @Override
             public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
                 return context.serialize(Ti.yyyyMMddHHmmssSSS.format(src));
+            }
+        });
+        add(new GsonSerDes<Duration>(Duration.class) {
+            @Override
+            public Duration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                long val = json.getAsLong();
+                return Duration.ofMillis(val);
+            }
+
+            @Override
+            public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.toMillis());
             }
         });
         add(new GsonSerDes<byte[]>(byte[].class) {

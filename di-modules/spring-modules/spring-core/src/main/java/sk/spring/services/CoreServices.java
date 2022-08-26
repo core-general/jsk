@@ -30,7 +30,7 @@ import org.springframework.core.annotation.Order;
 import sk.services.ICoreServices;
 import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.services.free.IFree;
@@ -52,7 +52,7 @@ import javax.inject.Inject;
 @Accessors(chain = true, fluent = true)
 @Order(5)
 public final class CoreServices implements ApplicationListener<ContextRefreshedEvent>, ICoreServices {
-    private @Inject IServiceProvider serviceProvider;
+    private @Inject IServiceLocator serviceProvider;
 
     private @Inject IAsync async;
     private @Inject IBytes bytes;

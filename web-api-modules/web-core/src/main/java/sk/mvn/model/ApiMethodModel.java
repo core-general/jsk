@@ -30,6 +30,7 @@ import java.util.List;
 
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ApiMethodModel {
 

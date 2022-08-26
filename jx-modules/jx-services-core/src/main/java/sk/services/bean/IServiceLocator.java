@@ -1,10 +1,10 @@
-package sk.services.json;
+package sk.services.bean;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2022 Core General
+ * Copyright (C) 2019 - 2020 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ package sk.services.json;
  * #L%
  */
 
-import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
-public interface IJsonInitialized {
-    public void initAfterJsonDeserialize(O<IServiceLocator> serviceProvider);
+public interface IServiceLocator {
+    <K> O<K> getService(Class<K> cls);
+
+    <K> O<K> injectServicesInto(K someObject);
 }

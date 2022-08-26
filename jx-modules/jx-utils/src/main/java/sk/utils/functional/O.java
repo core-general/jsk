@@ -59,7 +59,7 @@ public final class O<T> {
     }
 
     public static <T> O<T> of(Optional<T> value) {
-        return value.map(O::of).orElseGet(O::empty);
+        return value.map(O::of).orElse(empty());
     }
 
     /**

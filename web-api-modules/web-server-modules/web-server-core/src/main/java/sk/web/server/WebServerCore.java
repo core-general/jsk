@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import sk.exceptions.JskProblem;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.services.except.IExcept;
 import sk.services.ids.IIds;
 import sk.services.ipgeo.IIpGeoExtractor;
@@ -99,7 +99,7 @@ public class WebServerCore<API>
     @Inject protected WebClassInfoProvider infoProvider;
 
     @Inject protected WebExceptionParams exceptConf;
-    @Inject protected IServiceProvider beanProvider;
+    @Inject protected IServiceLocator beanProvider;
     @Inject protected IWebExcept webExcept;
     @Inject protected IExcept except;
     @Inject protected IJson json;

@@ -20,7 +20,7 @@ package sk.web.renders;
  * #L%
  */
 
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
 /**
@@ -28,7 +28,7 @@ import sk.utils.functional.O;
  */
 public class WebRenderEmptyProvider implements WebRenderProvider {
     @Override
-    public O<? extends WebRender> getRender(IServiceProvider context) {
+    public O<? extends WebRender> getRender(IServiceLocator context) {
         return O.empty();
     }
 }

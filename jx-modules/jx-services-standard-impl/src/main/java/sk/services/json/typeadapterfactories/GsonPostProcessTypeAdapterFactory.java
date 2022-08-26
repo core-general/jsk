@@ -26,11 +26,18 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import lombok.AllArgsConstructor;
+import sk.services.bean.IServiceLocator;
 import sk.services.json.IJsonInitialized;
+import sk.utils.functional.O;
 
 import java.io.IOException;
+import java.util.Optional;
 
+@AllArgsConstructor
 public class GsonPostProcessTypeAdapterFactory implements TypeAdapterFactory {
+    Optional<IServiceLocator> locator;
+
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
         final TypeAdapter<T> delegateAdapter = gson.getDelegateAdapter(this, type);
@@ -44,7 +51,7 @@ public class GsonPostProcessTypeAdapterFactory implements TypeAdapterFactory {
             public T read(JsonReader in) throws IOException {
                 var obj = delegateAdapter.read(in);
                 if (obj instanceof IJsonInitialized init) {
-                    init.initAfterJsonDeserialize();
+                    init.initAfterJsonDeserialize(O.of(locator));
                 }
                 return obj;
             }

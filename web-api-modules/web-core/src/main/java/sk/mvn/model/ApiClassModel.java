@@ -23,6 +23,7 @@ package sk.mvn.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
@@ -31,6 +32,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class ApiClassModel {
     String apiClass;
     O<String> comment = O.empty();

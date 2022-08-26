@@ -28,6 +28,7 @@ import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import sk.services.bean.IServiceLocator;
 import sk.services.bytes.IBytes;
 import sk.services.json.marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.GsonOptionalTypeAdapterFactory;
@@ -57,6 +58,7 @@ public class JGsonImpl implements IJson {
     @Inject Optional<List<GsonSerDesList>> converters = Optional.empty();
     @Inject ITime times;
     @Inject IBytes bytes;
+    @Inject Optional<IServiceLocator> serviceLocator = Optional.empty();
 
     private Gson jsonPolymorphic;
     private Gson jsonPrettyPolymorphic;
@@ -82,7 +84,8 @@ public class JGsonImpl implements IJson {
 
         //region PostProcess
         {
-            final GsonPostProcessTypeAdapterFactory postProcessTypeAdapterFactory = new GsonPostProcessTypeAdapterFactory();
+            final GsonPostProcessTypeAdapterFactory postProcessTypeAdapterFactory =
+                    new GsonPostProcessTypeAdapterFactory(serviceLocator);
             gsonBuilderConcrete.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
             gsonBuilderPolymorphic.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
             gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(postProcessTypeAdapterFactory);

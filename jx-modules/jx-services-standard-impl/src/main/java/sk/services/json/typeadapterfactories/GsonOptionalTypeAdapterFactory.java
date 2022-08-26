@@ -30,6 +30,7 @@ import lombok.extern.log4j.Log4j2;
 import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Fu;
 import sk.utils.statics.Re;
 
@@ -67,16 +68,12 @@ public class GsonOptionalTypeAdapterFactory implements TypeAdapterFactory {
                                         return null;
                                     }
 
-                                    final O<F1<Object, Object>> getter = Re.getter(fld);
+                                    final F1<Object, Object> getter = Re.getter(fld);
                                     final O<C2<Object, Object>> setter = Re.setter(fld);
-                                    return Fu.bothPresent(getter, setter).map(gs -> {
-                                        return new OFieldGetterSetter(fld, optionalOrO, gs.i1(), gs.i2());
-                                    }).orElseGet(() -> {
-                                        log.error("",
-                                                new RuntimeException("Class:" + cls + " field:" + fld.getName() +
-                                                        " does not have getter or setter!"));
-                                        return null;
-                                    });
+                                    return setter.map(gs -> {
+                                        return new OFieldGetterSetter(fld, optionalOrO, getter, gs);
+                                    }).orElseGet(() -> Ex.thRow("Field %s of %s should not be final!".formatted(fld.getName(),
+                                            fld.getDeclaringClass())));
 
                                 })
                                 .filter(Fu.notNull())

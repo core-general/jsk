@@ -60,9 +60,10 @@ public class EcsJskDeployer {
 
     private String prepareContainer() {
         final String tag = prepareTag(".");
-        final String imageNameLocal = conf.getEcrRepoName() + ":latest";
-        final String imageNameRemote = conf.getEcrRepoName() + ":" + tag;
-        String fullRemoteImageName = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageNameRemote;
+        final String imageNameLatestTag = conf.getEcrRepoName() + ":latest";
+        final String imageNameRemoteWithTag = conf.getEcrRepoName() + ":" + tag;
+        String fullRemoteImageNameLatest = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageNameLatestTag;
+        String fullRemoteImageNameWithTag = St.endWith(conf.getEcrUrl().split("://")[1], "/") + imageNameRemoteWithTag;
 
         final X2<String, String> dockerPas = client.getDockerLoginAndPass().collect(w -> w, e -> {
             e.printStackTrace();
@@ -81,13 +82,15 @@ public class EcsJskDeployer {
 
         try {
             docker.build(Paths.get("."), conf.getEcrRepoName());
-            docker.tag(imageNameLocal, fullRemoteImageName, true);
-            docker.push(fullRemoteImageName);
+            docker.tag(imageNameLatestTag, fullRemoteImageNameWithTag, true);
+            docker.push(fullRemoteImageNameWithTag);
+            docker.tag(imageNameLatestTag, fullRemoteImageNameLatest, true);
+            docker.push(fullRemoteImageNameLatest);
         } catch (Exception e) {
             Ex.thRow(e);
         }
 
-        return fullRemoteImageName;
+        return fullRemoteImageNameLatest;
     }
 
     private String prepareTag(String folderPath) {

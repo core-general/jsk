@@ -20,9 +20,9 @@ package sk.web.renders;
  * #L%
  */
 
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
 public interface WebRenderProvider {
-    public O<? extends WebRender> getRender(IServiceProvider context);
+    public O<? extends WebRender> getRender(IServiceLocator context);
 }

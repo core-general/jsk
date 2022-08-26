@@ -22,7 +22,7 @@ package sk.web.client;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.services.except.IExcept;
 import sk.services.http.IHttp;
 import sk.services.http.IHttp.HttpBuilder;
@@ -70,7 +70,7 @@ public class WebClientFactory {
     @Inject IIds ids;
     @Inject IRepeat repeat;
     @Inject IExcept except;
-    @Inject IServiceProvider beanProvider;
+    @Inject IServiceLocator beanProvider;
 
     public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
             WebClientInputHandler inputHandler, WebClientResultHandler<E> resultHandler) {
@@ -179,7 +179,6 @@ public class WebClientFactory {
             IHttp.HttpGetBuilder builder = http.get(encodedURL);
 
             builder.headers().putAll(request.getHeaders());
-
             if (request.getRaw().size() > 0) {
                 return O.empty();
             }

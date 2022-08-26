@@ -23,11 +23,13 @@ package sk.mvn.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sk.utils.functional.O;
 import sk.utils.statics.St;
 
 @AllArgsConstructor
 @Getter
+@Setter
 @NoArgsConstructor
 public class ApiFieldOrParameterModel {
     String name;

@@ -38,7 +38,7 @@ public class ReTest {
     @SneakyThrows
     public void getter() {
         {
-            F1<Object, Object> getter = Re.getter(A.class.getDeclaredField("myField")).get();
+            F1<Object, Object> getter = Re.getter(A.class.getDeclaredField("myField"));
             C2<Object, Object> setter = Re.setter(A.class.getDeclaredField("myField")).get();
 
             A a = new A();
@@ -48,7 +48,7 @@ public class ReTest {
         }
 
         {
-            F1<Object, Object> getter = Re.getter(B.class.getDeclaredField("myField")).get();
+            F1<Object, Object> getter = Re.getter(B.class.getDeclaredField("myField"));
             assertEquals(Re.setter(B.class.getDeclaredField("myField")), O.empty());
 
             B b = new B("123");

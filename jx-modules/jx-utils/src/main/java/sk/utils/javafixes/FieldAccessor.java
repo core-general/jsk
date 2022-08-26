@@ -1,10 +1,10 @@
-package sk.services.bean;
+package sk.utils.javafixes;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ package sk.services.bean;
  * #L%
  */
 
+import sk.utils.functional.C2;
+import sk.utils.functional.F1;
 import sk.utils.functional.O;
 
-public interface IServiceProvider {
-    <K> O<K> getService(Class<K> cls);
-
-    <K> O<K> injectServicesInto(K someObject);
-}
+/***
+ * @param getter
+ * @param setter optional in case of final variables
+ */
+public record FieldAccessor(F1<Object, Object> getter, O<C2<Object, Object>> setter) {}

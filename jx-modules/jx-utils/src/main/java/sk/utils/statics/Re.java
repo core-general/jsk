@@ -25,11 +25,14 @@ import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.ifaces.IdentifiableString;
+import sk.utils.javafixes.FieldAccessor;
 
 import java.lang.reflect.*;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -101,50 +104,33 @@ public final class Re {
         return Modifier.isStatic(f.getModifiers());
     }
 
-    public static O<F1<Object, Object>> getter(Field f) {
-        final Class<?> declaringClass = f.getDeclaringClass();
-        final Class<?> fieldType = f.getType();
-        final String name = f.getName();
-        String getterName = declaringClass.isRecord()
-                            ? name
-                            : fieldType == boolean.class
-                              ? "is" + St.capFirst(name)
-                              : "get" + St.capFirst(name);
-        try {
-            final Method method = declaringClass.getMethod(getterName);
+    private final static Map<Field, FieldAccessor> fieldAccessors = new ConcurrentHashMap<>();
 
-            F1<Object, Object> getter = obj -> {
-                try {
-                    return method.invoke(obj);
-                } catch (Exception e) {
-                    return Ex.thRow(e);
-                }
-            };
-            return O.of(getter);
-        } catch (NoSuchMethodException e) {
-            return O.empty();
-        }
+    public static FieldAccessor accessor(Field f) {
+        return fieldAccessors.computeIfAbsent(f, (field) -> {
+            try {
+                field.setAccessible(true);
+            } catch (Exception exception) {
+                throw new RuntimeException("Failed making field '" + field.getDeclaringClass().getName() + "#"
+                        + field.getName() + "' accessible; either change its visibility or write a custom "
+                        + "TypeAdapter for its declaring type", exception);
+            }
+
+            boolean isFinal = Modifier.isFinal(field.getModifiers());
+
+            return new FieldAccessor(
+                    (object) -> Ex.toRuntime(() -> field.get(object)),
+                    isFinal ? O.empty()
+                            : O.of((object, value) -> Ex.toRuntime(() -> field.set(object, value))));
+        });
+    }
+
+    public static F1<Object, Object> getter(Field f) {
+        return accessor(f).getter();
     }
 
     public static O<C2<Object, Object>> setter(Field f) {
-        final Class<?> declaringClass = f.getDeclaringClass();
-        final Class<?> fieldType = f.getType();
-        final String name = f.getName();
-        String setterName = "set" + St.capFirst(name);
-        try {
-            final Method method = declaringClass.getMethod(setterName, fieldType);
-
-            C2<Object, Object> setter = (object, setValue) -> {
-                try {
-                    method.invoke(object, setValue);
-                } catch (Exception e) {
-                    Ex.thRow(e);
-                }
-            };
-            return O.of(setter);
-        } catch (NoSuchMethodException e) {
-            return O.empty();
-        }
+        return accessor(f).setter();
     }
     //endregion
 

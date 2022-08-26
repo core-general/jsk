@@ -21,7 +21,7 @@ package sk.web.renders;
  */
 
 import lombok.AllArgsConstructor;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 import sk.web.renders.inst.*;
 
@@ -37,7 +37,7 @@ public enum WebRenderType implements WebRenderProvider {
     Class<? extends WebRender> render;
 
     @Override
-    public O<? extends WebRender> getRender(IServiceProvider context) {
+    public O<? extends WebRender> getRender(IServiceLocator context) {
         return context.getService(render);
     }
 }

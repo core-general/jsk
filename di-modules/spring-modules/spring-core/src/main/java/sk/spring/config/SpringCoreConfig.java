@@ -28,7 +28,7 @@ import sk.services.async.AsyncImpl;
 import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
 import sk.services.async.ISizedSemaphoreImpl;
-import sk.services.bean.IServiceProvider;
+import sk.services.bean.IServiceLocator;
 import sk.services.bytes.BytesImpl;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
@@ -55,7 +55,7 @@ import sk.services.time.ITime;
 import sk.services.time.TimeUtcImpl;
 import sk.spring.services.BootServiceImpl;
 import sk.spring.services.CoreServices;
-import sk.spring.services.ServiceProvider4SpringImpl;
+import sk.spring.services.ServiceLocator4SpringImpl;
 
 @Configuration
 @Log4j2
@@ -104,8 +104,8 @@ public class SpringCoreConfig implements ICoreServices {
     public IJson json() {return new JGsonImpl();}
 
     @Bean
-    public IServiceProvider IServiceProvider() {
-        return new ServiceProvider4SpringImpl();
+    public IServiceLocator IServiceProvider() {
+        return new ServiceLocator4SpringImpl();
     }
 
     @Bean
