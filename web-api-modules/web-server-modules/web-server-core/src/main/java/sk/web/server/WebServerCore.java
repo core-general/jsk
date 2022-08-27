@@ -28,7 +28,6 @@ import sk.exceptions.JskProblem;
 import sk.services.bean.IServiceLocator;
 import sk.services.except.IExcept;
 import sk.services.ids.IIds;
-import sk.services.ipgeo.IIpGeoExtractor;
 import sk.services.json.IJson;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.nodeinfo.model.IBeanInfo;
@@ -54,7 +53,10 @@ import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebFilterOutput;
 import sk.web.renders.WebRenderEmptyProvider;
 import sk.web.renders.WebRenderResult;
-import sk.web.server.context.*;
+import sk.web.server.context.WebRequestInnerContext;
+import sk.web.server.context.WebRequestInnerContextImpl;
+import sk.web.server.context.WebRequestOuterFullContext;
+import sk.web.server.context.WebRequestReadableOuterContext;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.WebServerFilterNext;
@@ -105,8 +107,6 @@ public class WebServerCore<API>
     @Inject protected IJson json;
     @Inject protected ITime time;
     @Inject protected IIds ids;
-
-    @Inject protected Optional<IIpGeoExtractor> geoService = Optional.empty();
 
     @Getter
     @Setter
@@ -329,7 +329,7 @@ public class WebServerCore<API>
                 ids.shortIdS(),
                 time.nowZ(),
                 time.nowNano4Dif(),
-                getIpInfo(outerContext),
+                outerContext.getFullIpInfo(),
                 apiMethod,
                 webMethodType,
                 exceptions,
@@ -338,24 +338,6 @@ public class WebServerCore<API>
                 foundRender,
                 outerContext
         );
-    }
-
-    protected WebRequestIp getIpInfo(WebRequestOuterFullContext outerContext) {
-        final String ip = outerContext.getIp();
-        final O<String> proxy1 = outerContext.getRequestHeader("X-Forwarded-For");
-        final O<String> proxy2 = outerContext.getRequestHeader("X-Forwarded-For-1");
-
-        List<String> proxies = Cc.l();
-        proxy2.ifPresentOrElse(w -> {
-            proxy1.ifPresent(proxies::add);
-            proxies.add(ip);
-        }, () -> {
-            proxy1.ifPresent((x) -> proxies.add(ip));
-        });
-
-        final String realIp = proxy2.or(() -> proxy1).orElse(ip);
-        return new WebRequestIp(realIp, proxies,
-                O.of(geoService).flatMap($ -> $.ipToGeoData(realIp)));
     }
 
     private boolean mustMultipart(WebMethodInfo methodInfo, WebApiMethod<API> apiMethod) {

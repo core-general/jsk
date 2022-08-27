@@ -22,6 +22,7 @@ package sk.web.server.context;
 
 import lombok.AllArgsConstructor;
 import sk.utils.functional.O;
+import sk.utils.tuples.X2;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRenderResult;
 
@@ -42,7 +43,18 @@ public abstract class WebRequestOuterFullContextAdapter extends WebRequestOuterF
     public String getUrlPathPart() {return delegate.getUrlPathPart();}
 
     @Override
-    public String getIp() {return delegate.getIp();}
+    public WebRequestIp getFullIpInfo() {return delegate.getFullIpInfo();}
+
+    @Override
+    public O<String> getRequestToken() {return delegate.getRequestToken();}
+
+    @Override
+    public boolean setResponseToken(String token) {return delegate.setResponseToken(token);}
+
+    @Override
+    public X2<String, String> getClientIdAndTokenCookie(String saltPassword) {
+        return delegate.getClientIdAndTokenCookie(saltPassword);
+    }
 
     @Override
     public SortedSet<String> getRequestHeaderNames() {return delegate.getRequestHeaderNames();}

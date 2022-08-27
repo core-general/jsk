@@ -28,6 +28,7 @@ import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.tuples.X2;
 import sk.web.WebMethodType;
 import sk.web.annotations.WebAuth;
 import sk.web.annotations.WebIdempotence;
@@ -194,5 +195,10 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     @Override
     public String getRequestHash() {
         return outerFull.getRequestHash();
+    }
+
+    @Override
+    public X2<String, String> getClientIdAndTokenCookie(String saltPassword) {
+        return outerFull.getClientIdAndTokenCookie(saltPassword);
     }
 }

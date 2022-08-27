@@ -20,6 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
+import org.junit.Assert;
 import org.junit.Test;
 import sk.utils.functional.O;
 
@@ -27,6 +28,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 public class StTest {
+    @Test
+    public void hexToBytesAndBack() {
+        final byte[] initial = new byte[]{0, 0, 5, 1, 10, 0, 0};
+
+        final String hexed = St.bytesToHex(initial);
+        final byte[] back = St.hexToBytes(hexed);
+        Assert.assertArrayEquals(initial, back);
+    }
+
     @Test
     public void shortNumberFormTest() {
         assertEquals(St.shortNumberForm(0), "0");

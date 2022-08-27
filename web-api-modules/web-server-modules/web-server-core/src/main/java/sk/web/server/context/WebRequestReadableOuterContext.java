@@ -21,6 +21,7 @@ package sk.web.server.context;
  */
 
 import sk.utils.functional.O;
+import sk.utils.tuples.X2;
 
 import javax.servlet.http.Part;
 import java.util.List;
@@ -33,7 +34,7 @@ public interface WebRequestReadableOuterContext {
 
     String getUrlPathPart();
 
-    String getIp();
+    WebRequestIp getFullIpInfo();
 
     SortedSet<String> getRequestHeaderNames();
 
@@ -62,4 +63,7 @@ public interface WebRequestReadableOuterContext {
     O<String> getRequestToken();
 
     boolean setResponseToken(String token);
+
+    public X2<String, String> getClientIdAndTokenCookie(String saltPassword);
+
 }

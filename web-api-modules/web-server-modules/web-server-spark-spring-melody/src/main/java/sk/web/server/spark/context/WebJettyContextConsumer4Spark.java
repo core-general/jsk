@@ -28,6 +28,8 @@ import org.springframework.core.annotation.Order;
 import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
+import sk.services.ids.IIds;
+import sk.services.ipgeo.IIpGeoExtractor;
 import sk.services.json.IJson;
 import sk.services.profile.IAppProfile;
 import sk.utils.functional.C1;
@@ -40,6 +42,7 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebContentTypeMeta;
@@ -47,6 +50,7 @@ import sk.web.renders.WebRenderResult;
 import sk.web.renders.WebReplyMeta;
 import sk.web.server.WebServerContext;
 import sk.web.server.WebServerCore;
+import sk.web.server.context.WebRequestIp;
 import sk.web.server.context.WebRequestOuterFullContext;
 import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebAdditionalParams;
@@ -67,6 +71,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,9 +90,12 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     @Inject IExcept except;
     @Inject IBytes bytes;
     @Inject IJson json;
+    @Inject IIds ids;
     @Inject IWebExcept webExcept;
     @Inject IAppProfile<?> profile;
     @Inject List<WebServerCore> serverDefinitions = Cc.l();
+
+    @Inject protected Optional<IIpGeoExtractor> geoService = Optional.empty();
 
     @Override
     public void accept(ServletContextHandler context) {
@@ -172,7 +180,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         @Override
         public Object handle(Request request, Response response) throws Exception {
             final SparkWebRequestOuterFullContext fullCtx =
-                    new SparkWebRequestOuterFullContext(type, path, request, multipartSure, response);
+                    new SparkWebRequestOuterFullContext(type, path, request, multipartSure, response, geoService, bytes, ids);
             //fullCtx.getParamAsBytes("__no_param_exist__");//to activate mulipart
             webRequestProcessor.accept(fullCtx);
             return response.body();
@@ -180,24 +188,29 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     }
 
     private class SparkWebRequestOuterFullContext extends WebRequestOuterFullContext {
-        public static final String JSK_USR_TOKEN = "_JSK_USR_TOKEN";
+        public static final String JSK_USR_TOKEN = "_JSK_UT";
+        public static final String JSK_CLIENT_TOKEN = "_JSK_CT";
+        public static final String JSK_CLIENT_ID = "_JSK_CID";
         private final String type;
         private final String path;
         private final Request request;
         private final boolean multipartSure;
         private final Response response;
+        private final Optional<IIpGeoExtractor> geoService;
+        private final IBytes bytes;
         private final ConcurrentHashMap<String, byte[]> multipartCache;
         private final ConcurrentHashMap<String, String> paramCache;
         private final AtomicReference<String> requestHash = new AtomicReference<>();
 
-
         public SparkWebRequestOuterFullContext(String type, String path, Request request, boolean multipartSure,
-                Response response) {
+                Response response, Optional<IIpGeoExtractor> geoService, IBytes bytes, IIds ids) {
             this.type = type;
             this.path = path;
             this.request = request;
             this.multipartSure = multipartSure;
             this.response = response;
+            this.geoService = geoService;
+            this.bytes = bytes;
             multipartCache = new ConcurrentHashMap<>();
             paramCache = new ConcurrentHashMap<>();
         }
@@ -213,8 +226,22 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
-        public String getIp() {
-            return request.ip();
+        public WebRequestIp getFullIpInfo() {
+            final String ip = request.ip();
+            final O<String> proxy1 = getRequestHeader("X-Forwarded-For");
+            final O<String> proxy2 = getRequestHeader("X-Forwarded-For-1");
+
+            List<String> proxies = Cc.l();
+            proxy2.ifPresentOrElse(w -> {
+                proxy1.ifPresent(proxies::add);
+                proxies.add(ip);
+            }, () -> {
+                proxy1.ifPresent((x) -> proxies.add(ip));
+            });
+
+            final String realIp = proxy2.or(() -> proxy1).orElse(ip);
+            return new WebRequestIp(realIp, proxies,
+                    O.of(geoService).flatMap($ -> $.ipToGeoData(realIp)));
         }
 
         @Override
@@ -378,6 +405,33 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public X2<String, String> getClientIdAndTokenCookie(String saltPassword) {
+            final O<X2<String, String>> val = O.allNotNull(
+                    ofNull(request.cookie(JSK_CLIENT_ID)), ofNull(request.cookie(JSK_CLIENT_TOKEN)),
+                    (a, b) -> O.of(X.x(a, b)));
+
+            return val.orElseGet(() -> {
+                final WebRequestIp fullIpInfo = getFullIpInfo();
+                final String clientIp = fullIpInfo.getClientIp();
+
+                final String id = ids.customId(32);
+                response.cookie("/", JSK_CLIENT_ID,
+                        id,
+                        conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
+                        profile.getProfile().isForProductionUsage(), true);
+
+                final String token = St.bytesToHex(bytes.md5((clientIp + saltPassword).getBytes(StandardCharsets.UTF_8)));
+                response.cookie("/", JSK_CLIENT_TOKEN,
+                        token,
+                        conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
+                        profile.getProfile().isForProductionUsage(), true);
+
+
+                return X.x(id, token);
+            });
         }
 
         @Override

@@ -27,6 +27,7 @@ import sk.utils.functional.*;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -393,14 +394,19 @@ public final class St {
     }
 
     public static String bytesToHex(byte[] bytes) {
-        char[] hexes = new char[bytes.length * 2];
-        int bound = bytes.length;
-        for (int j = 0; j < bound; j++) {
-            int v = bytes[j] & 0xFF;
-            hexes[j * 2] = hexArray[v >>> 4];
-            hexes[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexes);
+        //char[] hexes = new char[bytes.length * 2];
+        //int bound = bytes.length;
+        //for (int j = 0; j < bound; j++) {
+        //    int v = bytes[j] & 0xFF;
+        //    hexes[j * 2] = hexArray[v >>> 4];
+        //    hexes[j * 2 + 1] = hexArray[v & 0x0F];
+        //}
+        //return new String(hexes);
+        return HexFormat.of().formatHex(bytes);
+    }
+
+    public static byte[] hexToBytes(String hexString) {
+        return HexFormat.of().parseHex(hexString);
     }
 
     public static String streamToS(InputStream is) {

@@ -24,6 +24,7 @@ import sk.services.translate.LangType;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
+import sk.utils.tuples.X2;
 import sk.web.WebMethodType;
 import sk.web.renders.WebFilterOutput;
 import sk.web.renders.WebRender;
@@ -103,4 +104,6 @@ public interface WebRequestInnerContext {
     Map<String, String> getAllParamValues();
 
     String getRequestHash();
+
+    X2<String, String> getClientIdAndTokenCookie(String saltPassword);
 }

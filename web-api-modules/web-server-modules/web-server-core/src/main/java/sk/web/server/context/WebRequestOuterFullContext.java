@@ -22,4 +22,5 @@ package sk.web.server.context;
 
 public abstract class WebRequestOuterFullContext
         extends WebRequestWritableOuterContext
-        implements WebRequestReadableOuterContext {}
+        implements WebRequestReadableOuterContext {
+}

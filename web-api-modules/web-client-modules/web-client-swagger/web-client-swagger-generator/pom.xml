@@ -5,7 +5,7 @@
     <parent>
         <artifactId>web-client-swagger</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.2.44</version>
+        <version>jsk.17.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-core</artifactId>
-            <version>jsk.17.2.44</version>
+            <version>jsk.17.3.3</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.2.44</version>
+            <version>jsk.17.3.3</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

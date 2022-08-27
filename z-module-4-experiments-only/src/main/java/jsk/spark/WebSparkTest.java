@@ -46,9 +46,11 @@ import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
+import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
 import sk.web.server.WebServerCore;
 import sk.web.server.WebServerCoreWithPings;
+import sk.web.server.context.WebContextHolder;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.additional.WebRequestFullInfo;
@@ -102,6 +104,7 @@ public class WebSparkTest {
         @Inject IJson json;
         @Inject IRand rnd;
         @Inject WebUserHistoryProvider historyProvider;
+        @Inject WebContextHolder ctx;
 
         @Override
         public String a(String abc) {
@@ -114,6 +117,8 @@ public class WebSparkTest {
             //        x -> St.addTabsLeft(O.ofNull(x.i3())
             //                .map($ -> Ti.yyyyMMddHHmmssSSS.format($) + "\n").orElse("") + json.to(x.i1(), false) + x.i2(), 2));
             //System.out.println(join);
+
+            final X2<String, String> abcd = ctx.get().getClientIdAndTokenCookie("ABCD");
 
             final List<WebRequestFullInfo> fullUserHistory = historyProvider.getFullUserHistory(abc,
                     of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
