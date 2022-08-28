@@ -22,6 +22,7 @@ package sk.services.rand;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
@@ -43,8 +44,9 @@ public class RandNameGenerator extends RandTextGenerator {
     }
 
     @Getter
+    @Accessors(fluent = true)
     @AllArgsConstructor
-    private enum Vocals implements RandTextGenerator.VocabItem {
+    private enum Vocals implements RandTextGenerator.VocabItemByList {
         vocals('v', Cc.l("a", "e", "i", "o", "u", "ei", "ai", "ou", "j",
                 "ji", "y", "oi", "au", "oo")),
         startConnosant('c', Cc.l("b", "c", "d", "f", "g", "h", "k",

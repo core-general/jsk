@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 import org.junit.Test;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
+import sk.utils.statics.Ex;
 
 import java.util.Optional;
 
@@ -47,6 +48,26 @@ public class JGsonImplTest {
         assertEquals(tester.str, O.empty());
         tester = json.from(json.to(new OptionalTester(O.of("123"))), OptionalTester.class);
         assertEquals(tester.str, O.of("123"));
+    }
+
+
+    @Test
+    public void testJsonPath() {
+        record X(int a, String b) {}
+
+        var xExceptionOneOf = json.jsonPath("""
+                {
+                "e": {
+                        "a":5,
+                        "b":"b",
+                        "c":true
+                    }
+                }
+                """, ctx -> {
+            final X read = ctx.read("$.e", X.class);
+            return read;
+        });
+        assertEquals(xExceptionOneOf.collect($ -> $, $ -> Ex.thRow($)), new X(5, "b"));
     }
 
 

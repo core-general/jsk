@@ -22,6 +22,7 @@ package sk.services.rand;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import sk.utils.functional.F1;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
@@ -36,7 +37,7 @@ public class RandTextGenerator {
 
     public RandTextGenerator(List<VocabItem> items, List<String> possibleSequences, IRand rnd) {
         this.rnd = rnd;
-        this.items = items.stream().collect(Cc.toM($ -> $.getSymbol(), $ -> $));
+        this.items = items.stream().collect(Cc.toM($ -> $.symbol(), $ -> $));
         this.possibleSequences = possibleSequences;
     }
 
@@ -48,15 +49,32 @@ public class RandTextGenerator {
             if (item == null) {
                 sb.append(ch);
             } else {
-                sb.append(rnd.rndFromList(items.get(ch).getVariations()).get());
+                sb.append(items.get(ch).variant(rnd));
             }
         });
         return sb.toString();
     }
 
     public static interface VocabItem {
-        char getSymbol();
+        char symbol();
 
-        List<String> getVariations();
+        String variant(IRand rand);
     }
+
+    public static interface VocabItemByList extends VocabItem {
+        List<String> variations();
+
+        default String variant(IRand rand) {
+            return rand.rndFromList(variations()).get();
+        }
+    }
+
+    public static record VocabItemImpl(char symbol, F1<IRand, String> variant) implements VocabItem {
+        @Override
+        public String variant(IRand rand) {
+            return variant.apply(rand);
+        }
+    }
+
+    public static record VocabItemByListImpl(char symbol, List<String> variations) implements VocabItemByList {}
 }

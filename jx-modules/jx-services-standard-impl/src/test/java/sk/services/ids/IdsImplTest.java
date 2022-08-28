@@ -21,33 +21,26 @@ package sk.services.ids;
  */
 
 import sk.services.ICore4Test;
-import sk.utils.async.AtomicNotifier;
-import sk.utils.statics.Cc;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
 
 public class IdsImplTest {
     static ICore4Test ic4t = new ICore4Test();
     static IIds ids = ic4t.ids();
 
-    public static void main(String[] args) {
-        Map<String, Void> alreadyHave = new ConcurrentHashMap<>();
-        AtomicLong haveCounter = new AtomicLong(0l);
-        AtomicNotifier an = new AtomicNotifier(Integer.MAX_VALUE - 1, 100_000_000, s -> {
-            System.out.println(s);
-            System.out.println("have: " + haveCounter.get());
-        });
-
-        IntStream.range(0, Integer.MAX_VALUE - 1).parallel().forEach(i -> {
-            final String val = ids.unique(i + "", 1);
-            Cc.compute(alreadyHave, val, (k, v) -> {
-                haveCounter.incrementAndGet();
-                return null;
-            }, () -> null);
-            an.incrementAndNotify();
-        });
-    }
+    //public static void main(String[] args) {
+    //    Map<String, Void> alreadyHave = new ConcurrentHashMap<>();
+    //    AtomicLong haveCounter = new AtomicLong(0l);
+    //    AtomicNotifier an = new AtomicNotifier(Integer.MAX_VALUE - 1, 100_000_000, s -> {
+    //        System.out.println(s);
+    //        System.out.println("have: " + haveCounter.get());
+    //    });
+    //
+    //    IntStream.range(0, Integer.MAX_VALUE - 1).parallel().forEach(i -> {
+    //        final String val = ids.unique(i + "", 1);
+    //        Cc.compute(alreadyHave, val, (k, v) -> {
+    //            haveCounter.incrementAndGet();
+    //            return null;
+    //        }, () -> null);
+    //        an.incrementAndNotify();
+    //    });
+    //}
 }

@@ -44,4 +44,10 @@ public interface IIds {
     }
 
     String unique(byte[] val, int iterations, boolean valIsCloned);
+
+    /** ~10^16 combinations */
+    String longHaiku();
+
+    /** ~10^9 combinations */
+    String shortHaiku();
 }

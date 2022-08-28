@@ -25,7 +25,8 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.TypeRef;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import sk.services.bean.IServiceLocator;
@@ -229,9 +230,12 @@ public class JGsonImpl implements IJson {
     }
 
     private DocumentContext jsonPathParse(String jsonFull) {
-        return JsonPath.parse(jsonFull, Configuration.builder().mappingProvider(new JacksonMappingProvider()).build());
+        final Configuration build = Configuration.builder()
+                .jsonProvider(new GsonJsonProvider(jsonPolymorphic))
+                .mappingProvider(new GsonMappingProvider(jsonPolymorphic))
+                .build();
+        return JsonPath.parse(jsonFull, build);
     }
-
 
     private static class TypeRefFromIJsonTypeWrap<T> extends TypeRef<T> {
         TypeWrap<T> tw;

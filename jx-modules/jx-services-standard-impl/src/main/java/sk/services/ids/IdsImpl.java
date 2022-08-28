@@ -21,13 +21,13 @@ package sk.services.ids;
  */
 
 import com.fasterxml.uuid.Generators;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
 import sk.services.rand.IRand;
 import sk.utils.statics.St;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -36,11 +36,22 @@ import java.util.Random;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
-@AllArgsConstructor
 @NoArgsConstructor
 public class IdsImpl implements IIds {
     @Inject IRand random;
     @Inject IBytes bytes;
+    JskHaikunator.LongAndShortHaikunator haikunator;
+
+    public IdsImpl(IRand random, IBytes bytes) {
+        this.random = random;
+        this.bytes = bytes;
+    }
+
+    @PostConstruct
+    public IdsImpl init() {
+        haikunator = JskHaikunator.defaultHaikunators(random);
+        return this;
+    }
 
     @Override
     public UUID shortId() {
@@ -82,6 +93,17 @@ public class IdsImpl implements IIds {
         }
 
         return enc64LeaveLettersAndNumbers(bb.array());
+    }
+
+    @Override
+    public String longHaiku() {
+        return haikunator.lng().haikunate();
+    }
+
+
+    @Override
+    public String shortHaiku() {
+        return haikunator.shrt().haikunate();
     }
 
     @NotNull

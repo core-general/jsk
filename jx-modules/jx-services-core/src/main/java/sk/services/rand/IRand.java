@@ -68,6 +68,10 @@ public interface IRand {
         return min + val * (max - min);
     }
 
+    default <T> O<T> rndFromArr(T[] arr) {
+        return ofNullable(arr.length == 0 ? null : arr[rndInt(arr.length)]);
+    }
+
     default <T> O<T> rndFromList(List<T> list) {
         return ofNullable(list.size() == 0 ? null : list.get(rndInt(list.size())));
     }
