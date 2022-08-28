@@ -31,8 +31,8 @@ public class RandNameGeneratorTest {
     public void randNames() {
         final Random random = new Random(0);
         final IRand iRand = () -> random;
-        assertEquals(new RandNameGenerator(iRand, 1).generateNext(), "Shoith");
-        assertEquals(new RandNameGenerator(iRand, 2).generateNext(), "Gljiz Tess");
-        assertEquals(new RandNameGenerator(iRand, 3).generateNext(), "Floibyst Adytt Divaur");
+        assertEquals(new RandNameGenerator(iRand, 1).generateNext(), "Shyth");
+        assertEquals(new RandNameGenerator(iRand, 2).generateNext(), "Glouz Toss");
+        assertEquals(new RandNameGenerator(iRand, 3).generateNext(), "Flubeist Oiditt Daivoir");
     }
 }

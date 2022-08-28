@@ -34,7 +34,7 @@ public class RandNameGenerator extends RandTextGenerator {
     private int nameParts;
 
     public RandNameGenerator(IRand rnd, int nameParts) {
-        super(Cc.l(Vocals.values()), Cc.l("vd", "cvdvd", "cvd", "vdvd"), rnd);
+        super(Cc.l(Vocals.values()), Cc.l("vdv", "cvdvd", "cvd", "vdvd"), rnd);
         this.nameParts = nameParts;
     }
 
@@ -48,7 +48,7 @@ public class RandNameGenerator extends RandTextGenerator {
     @AllArgsConstructor
     private enum Vocals implements RandTextGenerator.VocabItemByList {
         vocals('v', Cc.l("a", "e", "i", "o", "u", "ei", "ai", "ou", "j",
-                "ji", "y", "oi", "au", "oo")),
+                "ji", "y", "oi", "au")),
         startConnosant('c', Cc.l("b", "c", "d", "f", "g", "h", "k",
                 "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x", "z",
                 "ch", "bl", "br", "fl", "gl", "gr", "kl", "pr", "st", "sh",

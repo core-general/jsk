@@ -339,19 +339,24 @@ public class S3JskClient {
             HeadObjectResponse head = null;
             final String pathFromRoot = fullPath.getPathNoSlash();
 
+            try {
+                head = headObject(fullPath);
+            } catch (NoSuchKeyException e) {
+                return empty();
+            }
             if (mustBePublic) {
+                head = null;
                 String url = getUrl(fullPath);
                 rsp = http.headResp(url);
                 if (rsp.code() == 403) {
                     makeFilePublic(fullPath);
                     rsp = http.headResp(url);
                 }
-            } else {
-                head = headObject(fullPath);
             }
 
             HeadObjectResponse finalHead = head;
             return O.ofNull(rsp)
+                    .filter($ -> $.getHeader("Content-Length").isPresent() && $.getHeader("ETag").isPresent())
                     .map($ -> new S3ItemMeta(pathFromRoot,
                             $.getHeader("Content-Length").map(Ma::pl).get(), $.getHeader("ETag").get(), false))
                     .or(() -> O.ofNull(finalHead)
