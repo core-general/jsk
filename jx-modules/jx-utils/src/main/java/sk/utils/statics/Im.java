@@ -126,6 +126,18 @@ public final class Im {
         f.getParentFile().mkdirs();
         ImageIO.write(image, "png", f);
     }
+
+
+    public static byte[] savePngToBytes(BufferedImage bi) {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
+             ImageOutputStream imo = new MemoryCacheImageOutputStream(stream)) {
+            ImageIO.write(bi, "png", imo);
+            stream.close();
+            return stream.toByteArray();
+        } catch (Exception e) {
+            return Ex.thRow(e);
+        }
+    }
     //endregion
 
 }

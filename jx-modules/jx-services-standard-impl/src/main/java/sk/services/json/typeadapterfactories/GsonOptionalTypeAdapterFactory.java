@@ -56,6 +56,11 @@ public class GsonOptionalTypeAdapterFactory implements TypeAdapterFactory {
             @Override
             public T read(JsonReader in) throws IOException {
                 var obj = delegateAdapter.read(in);
+
+                if (obj == null) {
+                    return null;
+                }
+
                 final List<OFieldGetterSetter> gettersAndSettersForEmpties = optionalFieldsChecker.computeIfAbsent(obj.getClass(),
                         (cls) -> Re.getAllNonStaticFields(cls).stream()
                                 .map(fld -> {

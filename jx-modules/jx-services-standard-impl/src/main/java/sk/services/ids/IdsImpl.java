@@ -25,15 +25,20 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
 import sk.services.rand.IRand;
+import sk.utils.statics.Im;
 import sk.utils.statics.St;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
+
+import static java.lang.Integer.parseInt;
 
 @SuppressWarnings("unused")
 @NoArgsConstructor
@@ -76,6 +81,17 @@ public class IdsImpl implements IIds {
     }
 
     @Override
+    public byte[] genUniquePngImageById(String id, int blockCount, int blockSize, Color bgColor) {
+        final String hash = St.bytesToHex(this.bytes.md5(id.getBytes(StandardCharsets.UTF_8)));
+        return createRandomPngImage(hash, blockCount, blockSize, bgColor);
+    }
+
+    @Override
+    public byte[] genUniquePngImage(int blockCount, int blockSize, Color bgColor) {
+        return createRandomPngImage(random.rndString(6, St.hex), blockCount, blockSize, bgColor);
+    }
+
+    @Override
     public String unique(byte[] val, int iterations, boolean valIsCloned) {
         if (iterations > 255) {
             throw new RuntimeException("Must be less than 255 bytes");
@@ -110,5 +126,47 @@ public class IdsImpl implements IIds {
     private String enc64LeaveLettersAndNumbers(byte[] array) {
         final String s = bytes.enc64(array);
         return St.ss(s, 0, s.indexOf('=')).replaceAll("[+/=]", "0");
+    }
+
+
+    /**
+     * 2^((blockCount÷2+1)×blockCount) × (256^3) combinations.
+     * For default value 7 = 2^(7/3+1)*7*256^3 = 2^28 * 256^3=2^28*2^8*3=2^(28+24)=2^54 combinations
+     */
+    private byte[] createRandomPngImage(String hash, int blockCount, int blockSize, Color bgColor) {
+        Random rnd = new Random(bytes.crc32(hash));
+        hash = hash.substring(hash.length() - 6);
+        Color clr = new Color(color(hash, 0), color(hash, 2), color(hash, 4));
+
+
+        blockCount = blockCount / 2 + 1;
+        int imgSize = blockSize * (blockCount * 2 - 1);
+
+        BufferedImage bi = new BufferedImage(imgSize, imgSize, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = null;
+        try {
+            g2 = (Graphics2D) bi.getGraphics();
+            g2.setColor(bgColor);
+            g2.fillRect(0, 0, imgSize, imgSize);
+
+            g2.setColor(clr);
+            int mult = imgSize / ((blockCount * 2) - 1);
+            for (int x = 0; x < blockCount; x++) {
+                for (int y = 0; y < 2 * blockCount; y++) {
+                    if (rnd.nextBoolean()) {
+                        g2.fillRect(x * mult, y * mult, mult, mult);
+                        g2.fillRect(imgSize - (x + 1) * mult, y * mult, mult, mult);
+                    }
+                }
+            }
+
+            return Im.savePngToBytes(bi);
+        } finally {
+            g2.dispose();
+        }
+    }
+
+    private static int color(String hash, int i) {
+        return parseInt(hash.substring(i, i + 2), 16);
     }
 }

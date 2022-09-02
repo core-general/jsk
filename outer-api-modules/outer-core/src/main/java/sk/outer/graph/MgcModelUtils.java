@@ -24,18 +24,30 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.nodes.MgcGraph;
+import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
 import sk.services.free.IFree;
 import sk.utils.statics.Cc;
+import sk.utils.statics.St;
 
 import java.util.List;
 
 
 public class MgcModelUtils {
+
+    public static final int LIMIT = 20;
+
     public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
     String convertToGraphVizFormat(MgcGraph<CTX, T> g, IFree client) {
         GvModel gvm = new GvModel(g.getAllEdgesFrom().stream()
-                .map($ -> new GvEdge($.getId(), g.getEdgeSource($).getId(), g.getEdgeTarget($).getId()))
+                .map($ -> {
+                    final MgcNode<CTX, T> edgeSource = g.getEdgeSource($);
+                    final MgcNode<CTX, T> targetNode = g.getEdgeTarget($);
+                    String edgeTxt = edgeSource.getId() + "\\n" + St.raze3dots(edgeSource.getParsedData().getText(), LIMIT);
+                    String nodeTxt = targetNode.getId() + "\\n" + St.raze3dots(targetNode.getParsedData().getText(), LIMIT);
+                    String curText = $.getId() + "\\n" + St.raze3dots($.getParsedData().getText(), LIMIT);
+                    return new GvEdge(curText, edgeTxt, nodeTxt);
+                })
                 .collect(Cc.toL()));
 
         return client.process("mgc_graph/graphviz_templates/digraph.ftl", Cc.m("model", gvm));

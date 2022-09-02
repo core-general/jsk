@@ -50,6 +50,9 @@ public class GsonPostProcessTypeAdapterFactory implements TypeAdapterFactory {
             @Override
             public T read(JsonReader in) throws IOException {
                 var obj = delegateAdapter.read(in);
+                if (obj == null) {
+                    return null;
+                }
                 if (obj instanceof IJsonInitialized init) {
                     init.initAfterJsonDeserialize(O.of(locator));
                 }

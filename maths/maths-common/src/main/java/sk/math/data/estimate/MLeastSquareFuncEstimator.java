@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.math3.analysis.DifferentiableMultivariateVectorFunction;
 import org.apache.commons.math3.analysis.MultivariateMatrixFunction;
+import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.optimization.PointVectorValuePair;
 import org.apache.commons.math3.optimization.general.LevenbergMarquardtOptimizer;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,7 @@ import sk.math.data.estimate.global.MGlobalOptimizer;
 import sk.math.data.estimate.global.MGlobalRandomParamsOptimization;
 import sk.math.data.func.MFuncImpl;
 import sk.math.data.func.MFuncProto;
+import sk.utils.functional.F2;
 import sk.utils.functional.O;
 import sk.utils.statics.Ar;
 
@@ -62,6 +64,19 @@ public class MLeastSquareFuncEstimator {
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
     func(MDataSet data, T funcImpl, int iterations, Duration maxTimePerLocalLocalization, MGlobalOptimizer<T> globalOptimizer) {
+        return func(data, funcImpl, iterations, maxTimePerLocalLocalization, globalOptimizer, (functionVal, target) -> {
+            final double[] residuals = new double[target.length];
+            for (int i = 0; i < target.length; i++) {
+                residuals[i] = target[i] - functionVal[i];
+            }
+            return residuals;
+        });
+    }
+
+    @SneakyThrows
+    public static <T extends MFuncProto> O<MOptimizeInfo<T>>
+    func(MDataSet data, T funcImpl, int iterations, Duration maxTimePerLocalLocalization, MGlobalOptimizer<T> globalOptimizer,
+            F2<double[], double[], double[]> residualsComputations) {
         if (data.getX().length == 0) {
             throw new RuntimeException("NO DATA");
         }
@@ -87,7 +102,18 @@ public class MLeastSquareFuncEstimator {
                     }
 
                     return iteration >= iterations - 1 || curDif.compareTo(maxTimePerLocalLocalization) > 0;
-                });
+                }) {
+            @Override
+            protected double[] computeResiduals(double[] functionVal) {
+                final double[] target = getTarget();
+                if (functionVal.length != target.length) {
+                    throw new DimensionMismatchException(target.length,
+                            functionVal.length);
+                }
+
+                return residualsComputations.apply(functionVal, target);
+            }
+        };
         final O<MOptimizeInfo<T>> optimum = globalOptimizer
                 .optimize(data, (initial) -> {
                     currentPasStarted.set(Instant.now());

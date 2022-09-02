@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 import org.junit.Test;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
+import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
 import java.util.Optional;
@@ -36,10 +37,28 @@ public class JGsonImplTest {
     IJson json = new JGsonImpl().init();
 
     @Test
+    public void testNullDeserialization() {
+        final InitTester from = json.from("""
+                {"a":5,"b":6,"str":null}
+                """, InitTester.class);
+        assertEquals(from, new InitTester(1, 2, Optional.empty()));
+    }
+
+    @Test
     public void testJsonInit() {
         InitTester it = new InitTester();
         final InitTester from = json.from(json.to(it), InitTester.class);
         assertEquals(from.toString(), "JGsonImplTest.InitTester(a=1, b=2, str=Optional.empty)");
+    }
+
+    @Test
+    public void testJsonSetJson() {
+        final String to = json.to(Cc.m("tester", new InitTester()));
+        final InitTesterExtended from = json.from(to, InitTesterExtended.class);
+        assertEquals("{\"a\":5,\"b\":6}", from.getTester().getRawJson());
+        assertEquals(from.toString(), """
+                JGsonImplTest.InitTesterExtended(tester=ObjectAndItsJson(object=JGsonImplTest.InitTester(a=1, b=2, str=Optional.empty), rawJson={"a":5,"b":6}))\
+                """);
     }
 
     @Test
@@ -72,6 +91,7 @@ public class JGsonImplTest {
 
 
     @NoArgsConstructor
+    @AllArgsConstructor
     @Data
     public static class InitTester implements IJsonInitialized {
         private int a = 5;
@@ -84,6 +104,11 @@ public class JGsonImplTest {
             a = 1;
             b = 2;
         }
+    }
+
+    @Data
+    public static class InitTesterExtended {
+        ObjectAndItsJson<InitTester> tester;
     }
 
     @Data

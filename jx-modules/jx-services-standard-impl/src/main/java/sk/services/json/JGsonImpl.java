@@ -85,32 +85,31 @@ public class JGsonImpl implements IJson {
 
         //region PostProcess
         {
-            final GsonPostProcessTypeAdapterFactory postProcessTypeAdapterFactory =
-                    new GsonPostProcessTypeAdapterFactory(serviceLocator);
-            gsonBuilderConcrete.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(postProcessTypeAdapterFactory);
+            final GsonPostProcessTypeAdapterFactory factory = new GsonPostProcessTypeAdapterFactory(serviceLocator);
+            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
         }
         //endregion
 
         //region Records
         {
-            final RecordTypeAdapterFactory recordTypeAdapterFactory = RecordTypeAdapterFactory.builder()
+            final RecordTypeAdapterFactory factory = RecordTypeAdapterFactory.builder()
                     .allowMissingComponentValues()
                     .allowDuplicateComponentValues()
                     .create();
-            gsonBuilderConcrete.registerTypeAdapterFactory(recordTypeAdapterFactory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(recordTypeAdapterFactory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(recordTypeAdapterFactory);
+            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
         }
         //endregion
 
         //region Optionals
         {
-            final GsonOptionalTypeAdapterFactory optionalTypeAdapterFactory = new GsonOptionalTypeAdapterFactory();
-            gsonBuilderConcrete.registerTypeAdapterFactory(optionalTypeAdapterFactory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(optionalTypeAdapterFactory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(optionalTypeAdapterFactory);
+            final GsonOptionalTypeAdapterFactory factory = new GsonOptionalTypeAdapterFactory();
+            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
         }
         //endregion
 

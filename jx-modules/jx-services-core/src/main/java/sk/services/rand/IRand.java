@@ -42,10 +42,13 @@ public interface IRand {
         return MapRandom.rnd(this::rndDouble, Cc.m(true, trueProbability, false, 1 - trueProbability));
     }
 
+    default boolean rndBool50x50() {
+        return getRandom().nextBoolean();
+    }
+
     default long rndLong() {
         return getRandom().nextLong();
     }
-
 
     default int rndInt(int bound) {
         return getRandom().nextInt(bound);

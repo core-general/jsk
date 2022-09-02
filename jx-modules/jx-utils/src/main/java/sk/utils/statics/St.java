@@ -40,7 +40,7 @@ import static java.lang.Character.isSpaceChar;
 @SuppressWarnings({"unused", "SpellCheckingInspection", "WeakerAccess"})
 public final class St {
     private static final String UTF_8 = "UTF-8";
-    final private static char[] hexArray = "0123456789abcdef".toCharArray();
+    public static final String hex = "0123456789abcdef";
     public static final String eng = "abcdefghijklmnopqrstuvwxyz";
     public static final String ENG = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String dig = "0123456789";
@@ -394,14 +394,6 @@ public final class St {
     }
 
     public static String bytesToHex(byte[] bytes) {
-        //char[] hexes = new char[bytes.length * 2];
-        //int bound = bytes.length;
-        //for (int j = 0; j < bound; j++) {
-        //    int v = bytes[j] & 0xFF;
-        //    hexes[j * 2] = hexArray[v >>> 4];
-        //    hexes[j * 2 + 1] = hexArray[v & 0x0F];
-        //}
-        //return new String(hexes);
         return HexFormat.of().formatHex(bytes);
     }
 

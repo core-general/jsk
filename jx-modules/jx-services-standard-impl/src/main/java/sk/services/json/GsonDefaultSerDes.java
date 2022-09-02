@@ -36,6 +36,19 @@ import static java.time.temporal.ChronoField.*;
 
 public class GsonDefaultSerDes extends GsonSerDesList {
     public GsonDefaultSerDes(ITime times, IBytes bytes) {
+        add(new GsonSerDes<ObjectAndItsJson>(ObjectAndItsJson.class) {
+            @Override
+            public ObjectAndItsJson deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                final Object deserialize = context.deserialize(json, ((ParameterizedType) typeOfT).getActualTypeArguments()[0]);
+                return new ObjectAndItsJson(deserialize, json.toString());
+            }
+
+            @Override
+            public JsonElement serialize(ObjectAndItsJson src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.getObject());
+            }
+        });
         add(new GsonSerDes<Optional>(Optional.class) {
             @Override
             public Optional deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)

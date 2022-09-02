@@ -17,4 +17,4 @@
  limitations under the License.
  #L%
 -->
-${edge.left}->${edge.right} [ label = "${edge.id}" ];
+"${edge.left}"->"${edge.right}" [ label = "${edge.id}" ];

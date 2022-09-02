@@ -20,6 +20,7 @@ package sk.services.ids;
  * #L%
  */
 
+import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -33,6 +34,22 @@ public interface IIds {
 
     String customId(int length);
 
+    //region Image Id
+    byte[] genUniquePngImageById(String id, int blockCount, int blockSize, Color bgColor);
+
+    byte[] genUniquePngImage(int blockCount, int blockSize, Color bgColor);
+
+    /** Default impl has: (7÷2+1)×7 */
+    default byte[] genUniquePngImage(String id) {
+        return genUniquePngImageById(id, 7, 30, Color.WHITE);
+    }
+
+    default byte[] genUniquePngImage() {
+        return genUniquePngImage(7, 30, Color.WHITE);
+    }
+    //endregion
+
+    //region Unique id by text generator
     UUID text2Uuid(String val);
 
     default String unique(String val) {
@@ -44,10 +61,14 @@ public interface IIds {
     }
 
     String unique(byte[] val, int iterations, boolean valIsCloned);
+    //endregion
+
+    //region Haiku
 
     /** ~10^16 combinations */
     String longHaiku();
 
     /** ~10^9 combinations */
     String shortHaiku();
+    //endregion
 }

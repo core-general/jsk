@@ -53,10 +53,7 @@ import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebFilterOutput;
 import sk.web.renders.WebRenderEmptyProvider;
 import sk.web.renders.WebRenderResult;
-import sk.web.server.context.WebRequestInnerContext;
-import sk.web.server.context.WebRequestInnerContextImpl;
-import sk.web.server.context.WebRequestOuterFullContext;
-import sk.web.server.context.WebRequestReadableOuterContext;
+import sk.web.server.context.*;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.WebServerFilterNext;
@@ -329,7 +326,7 @@ public class WebServerCore<API>
                 ids.shortIdS(),
                 time.nowZ(),
                 time.nowNano4Dif(),
-                outerContext.getFullIpInfo(),
+                getIpInfo(outerContext),
                 apiMethod,
                 webMethodType,
                 exceptions,
@@ -338,6 +335,10 @@ public class WebServerCore<API>
                 foundRender,
                 outerContext
         );
+    }
+
+    protected WebRequestIp getIpInfo(WebRequestOuterFullContext outerContext) {
+        return outerContext.getFullIpInfo();
     }
 
     private boolean mustMultipart(WebMethodInfo methodInfo, WebApiMethod<API> apiMethod) {

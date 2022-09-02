@@ -43,4 +43,10 @@ public class IdsImplTest {
     //        an.incrementAndNotify();
     //    });
     //}
+
+    //public static void main(String[] args) {
+    //    for (int i = 0; i < 1000; i++) {
+    //        Io.reWriteBin("/tmp/img" + i + ".png", w -> w.append(ids.genUniquePngImage()));
+    //    }
+    //}
 }
