@@ -32,7 +32,11 @@ import sk.web.utils.WebApiMethod;
 public abstract class WebRequestWritableOuterContext {
     public abstract void redirect(String url);
 
-    public abstract void setCookie(String key, String value, int seconds);
+    public abstract void setCookie(String path, String key, String value, int seconds, boolean httpOnly);
+
+    public abstract O<String> getCookie(String key);
+
+    public abstract void deleteCookie(String key);
 
     public abstract void setResponseHeader(String key, String value);
 

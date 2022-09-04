@@ -146,9 +146,20 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
-    public void setResponseCookie(String key, String value, int secondsDuration) {
-        outerFull.setCookie(key, value, secondsDuration);
+    public void setResponseCookie(String path, String key, String value, int secondsDuration, boolean httpOnly) {
+        outerFull.setCookie(path, key, value, secondsDuration, httpOnly);
     }
+
+    @Override
+    public O<String> getCookie(String key) {
+        return outerFull.getCookie(key);
+    }
+
+    @Override
+    public void deleteCookie(String key) {
+        outerFull.deleteCookie(key);
+    }
+
 
     @Override
     public void setResponseHeader(String key, String value) {

@@ -96,7 +96,15 @@ public abstract class WebRequestOuterFullContextAdapter extends WebRequestOuterF
     public void redirect(String url) {delegate.redirect(url);}
 
     @Override
-    public void setCookie(String key, String value, int seconds) {delegate.setCookie(key, value, seconds);}
+    public void setCookie(String path, String key, String value, int seconds, boolean httpOnly) {
+        delegate.setCookie(path, key, value, seconds, httpOnly);
+    }
+
+    @Override
+    public O<String> getCookie(String key) {return delegate.getCookie(key);}
+
+    @Override
+    public void deleteCookie(String key) {delegate.deleteCookie(key);}
 
     @Override
     public void setResponseHeader(String key, String value) {delegate.setResponseHeader(key, value);}

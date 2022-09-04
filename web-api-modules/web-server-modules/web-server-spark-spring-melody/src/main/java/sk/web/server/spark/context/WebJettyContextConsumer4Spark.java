@@ -440,8 +440,18 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         }
 
         @Override
-        public void setCookie(String key, String value, int seconds) {
-            response.cookie(key, value, seconds);
+        public void setCookie(String path, String key, String value, int seconds, boolean httpOnly) {
+            response.cookie(path, key, value, seconds, profile.getProfile().isForProductionUsage(), httpOnly);
+        }
+
+        @Override
+        public O<String> getCookie(String key) {
+            return ofNull(request.cookie(key));
+        }
+
+        @Override
+        public void deleteCookie(String key) {
+            response.removeCookie(key);
         }
 
         @Override

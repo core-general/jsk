@@ -5,11 +5,11 @@
     <parent>
         <artifactId>mvn-plugins</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.20</version>
+        <version>jsk.17.3.23</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>jsk.17.3.20</version>
+    <version>jsk.17.3.23</version>
     <artifactId>web-api-info-generator-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
@@ -17,12 +17,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-core</artifactId>
-            <version>jsk.17.3.20</version>
+            <version>jsk.17.3.23</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.3.20</version>
+            <version>jsk.17.3.23</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
