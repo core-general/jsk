@@ -5,18 +5,18 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.17</version>
+        <version>jsk.17.3.20</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-melody-patch</artifactId>
-    <version>jsk.17.3.17</version>
+    <version>jsk.17.3.20</version>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.3.17</version>
+            <version>jsk.17.3.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

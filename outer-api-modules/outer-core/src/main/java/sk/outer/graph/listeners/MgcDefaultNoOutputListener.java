@@ -1,4 +1,4 @@
-package sk.outer.graph.edges;
+package sk.outer.graph.listeners;
 
 /*-
  * #%L
@@ -20,27 +20,26 @@ package sk.outer.graph.edges;
  * #L%
  */
 
-
+import lombok.AllArgsConstructor;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
-import sk.outer.graph.parser.MgcParsedData;
 import sk.outer.graph.parser.MgcTypeUtil;
-import sk.utils.statics.Cc;
+import sk.utils.functional.C1;
 
-import java.util.List;
-import java.util.function.BiPredicate;
-
-public class MgcAnyTextEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
-        extends MgcNormalEdge<CTX, T> {
-    public MgcAnyTextEdge(MgcParsedData<T> parsedData) {super(parsedData);}
+@AllArgsConstructor
+public class MgcDefaultNoOutputListener
+        <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+        implements MgcListener<CTX, T, MgcBaseOkListenerResult> {
+    String id;
+    C1<CTX> processor;
 
     @Override
-    public BiPredicate<String, String> getAcceptPredicate(CTX ctx) {
-        return (_1, _2) -> true;
+    public String getId() {
+        return id;
     }
 
     @Override
-    public List<String> getPossibleEdges(String template, CTX context) {
-        return Cc.l();
+    public MgcBaseOkListenerResult apply(CTX mgcGraphExecutionContext) {
+        processor.accept(mgcGraphExecutionContext);
+        return new MgcBaseOkListenerResult();
     }
 }
-

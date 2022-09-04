@@ -33,13 +33,14 @@ import java.util.function.BiPredicate;
 
 public interface MgcEdge<CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
         extends MgcListenerProcessor<CTX, T>, IdentifiableString, MgcParsedDataHolder<T> {
-    default boolean acceptEdge(String edgeId, CTX context) {
-        return getPossibleEdges(getParsedData().getText(), context).stream().anyMatch($ -> getAcceptPredicate().test($, edgeId))
+    default boolean acceptEdge(String userText, CTX context) {
+        return getPossibleEdges(getParsedData().getText(), context).stream()
+                .anyMatch($ -> getAcceptPredicate(context).test($, userText))
                 //case when we work with any text
-                || getAcceptPredicate().test("!any_string_which_will_never_be_met_in_production!", edgeId);
+                || getAcceptPredicate(context).test("!any_string_which_will_never_be_met_in_production!", userText);
     }
 
-    default BiPredicate<String, String> getAcceptPredicate() {
+    default BiPredicate<String, String> getAcceptPredicate(CTX context) {
         return Fu::equal;
     }
 

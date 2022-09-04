@@ -50,7 +50,7 @@ public class MgcEnumEdgeWithAnyText<CTX extends MgcGraphExecutionContext<CTX, T>
     }
 
     @Override
-    public BiPredicate<String, String> getAcceptPredicate() {
+    public BiPredicate<String, String> getAcceptPredicate(CTX context) {
         return (_1, _2) -> true;
     }
 
