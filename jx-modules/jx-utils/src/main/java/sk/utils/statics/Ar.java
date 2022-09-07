@@ -80,4 +80,15 @@ public class Ar {
         }
         return ints;
     }
+
+    public static double avg(double[] coreLoad) {
+        return Arrays.stream(coreLoad).average().orElse(0);
+    }
+
+    public static double[] sortCopy(double[] coreLoad) {
+        final double[] copy = Arrays.copyOf(coreLoad, coreLoad.length);
+        Arrays.sort(copy);
+
+        return copy;
+    }
 }

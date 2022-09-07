@@ -26,6 +26,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.utils.functional.O;
 
+import java.awt.image.BufferedImage;
+
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.of;
 
@@ -35,20 +37,26 @@ public class MgcTelegramSpecial {
     O<SendInvoice> payments;
     O<String> sticker;
     O<String> video;
+    O<BufferedImage> rawImage;
 
-    public static MgcTelegramSpecial select(O<SendInvoice> payments, O<String> sticker, O<String> video) {
-        return new MgcTelegramSpecial(payments, sticker, video);
+    public static MgcTelegramSpecial select(O<SendInvoice> payments, O<String> sticker, O<String> video,
+            O<BufferedImage> rawImage) {
+        return new MgcTelegramSpecial(payments, sticker, video, rawImage);
     }
 
     public static MgcTelegramSpecial payments(SendInvoice payments) {
-        return new MgcTelegramSpecial(of(payments), empty(), empty());
+        return new MgcTelegramSpecial(of(payments), empty(), empty(), empty());
     }
 
     public static MgcTelegramSpecial sticker(String sticker) {
-        return new MgcTelegramSpecial(empty(), of(sticker), empty());
+        return new MgcTelegramSpecial(empty(), of(sticker), empty(), empty());
     }
 
     public static MgcTelegramSpecial video(String video) {
-        return new MgcTelegramSpecial(empty(), empty(), of(video));
+        return new MgcTelegramSpecial(empty(), empty(), of(video), empty());
+    }
+
+    public static MgcTelegramSpecial rawImage(BufferedImage image) {
+        return new MgcTelegramSpecial(empty(), empty(), empty(), of(image));
     }
 }

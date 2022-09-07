@@ -62,6 +62,8 @@ public class StTest {
         assertEquals(St.shortNumberForm(11111111111112111L), "11.1q");
         assertEquals(St.shortNumberForm(111111111111112111L), "111q");
         assertEquals(St.shortNumberForm(999999999999999999L), "999q");
+        assertEquals(St.shortNumberForm(999999999999999999L, new String[]{"X", "XX"}), "999?");
+        assertEquals(St.shortNumberForm(999999999999999999L, new String[]{"_1", "_2", "_3", "_4", "_5"}), "999_5");
         assertThrows(RuntimeException.class, () -> St.shortNumberForm(1000000000000000000L));
         assertThrows(RuntimeException.class, () -> St.shortNumberForm(-1L));
     }

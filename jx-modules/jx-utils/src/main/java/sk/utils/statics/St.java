@@ -27,6 +27,7 @@ import sk.utils.functional.*;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -52,6 +53,16 @@ public final class St {
     private static final long[] orders = LongStream.iterate(1, curVal -> curVal * 10).limit(19).toArray();
 
     public static String shortNumberForm(long number) {
+        return shortNumberForm(number, new String[]{"k", "m", "b", "t", "q", "i"});
+    }
+
+    public static String shortNumberForm(long number, String[] measurements) {
+        if (measurements.length < 6) {
+            final String[] arr = new String[6];
+            Arrays.fill(arr, "?");
+            System.arraycopy(measurements, 0, arr, 0, measurements.length);
+            measurements = arr;
+        }
         if (number < 0 || number > 999_999_999_999_999_999L) {
             throw new RuntimeException("Unsupported number:" + number);
         }
@@ -73,12 +84,12 @@ public final class St {
         }
 
         String suffix = switch (order) {
-            case 0 -> "k";
-            case 3 -> "m";
-            case 6 -> "b";
-            case 9 -> "t";
-            case 12 -> "q";
-            case 15 -> "i";
+            case 0 -> measurements[0];
+            case 3 -> measurements[1];
+            case 6 -> measurements[2];
+            case 9 -> measurements[3];
+            case 12 -> measurements[4];
+            case 15 -> measurements[5];
             default -> throw new IllegalStateException("Unexpected value: " + order);
         };
 

@@ -446,8 +446,11 @@ public final class Cc {
         return map.compute(key, (a, b) -> b == null ? remap.apply(a, startingValueThenRemap.get()) : remap.apply(a, b));
     }
 
-    public static <T, X, A extends Map<T, X>, B extends Map<T, X>> A putAll(A collector, B map) {
-        collector.putAll(map);
+    @SafeVarargs
+    public static <T, X, A extends Map<T, X>, B extends Map<T, X>> A putAll(A collector, B... map) {
+        for (B b : map) {
+            collector.putAll(b);
+        }
         return collector;
     }
 

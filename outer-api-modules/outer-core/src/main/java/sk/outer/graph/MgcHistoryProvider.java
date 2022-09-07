@@ -99,14 +99,14 @@ public interface MgcHistoryProvider {
                     final int lastNestingLevel = $.getNestingLevel();
 
                     String addCurLevel =
-                            currentNestingLevel > lastNestingLevel ? $.getId() + "->" : "";
+                            currentNestingLevel > lastNestingLevel ? $.getId() + " -> " : "";
 
                     final String toJoin = $.getNestedGraphInfo().stream()
                             .limit(currentNestingLevel + 1)
                             .filter($$ -> $$.getPreviousLevelNestedGraphNodeId().isPresent())
                             .map($$ -> $$.getPreviousLevelNestedGraphNodeId().get())
-                            .collect(Collectors.joining("->"));
-                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : "->") + addCurLevel;
+                            .collect(Collectors.joining(" -> "));
+                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : " -> ") + addCurLevel;
                 })
                 .orElse("") + currentNode.getId();
     }
@@ -119,8 +119,8 @@ public interface MgcHistoryProvider {
                             .limit(lastNestingLevel + 1)
                             .filter($$ -> $$.getPreviousLevelNestedGraphNodeId().isPresent())
                             .map($$ -> $$.getPreviousLevelNestedGraphNodeId().get())
-                            .collect(Collectors.joining("->"));
-                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : "->") + $.getId();
+                            .collect(Collectors.joining(" -> "));
+                    return toJoin + (St.isNullOrEmpty(toJoin) ? "" : " -> ") + $.getId();
                 })
                 .orElse("");
     }

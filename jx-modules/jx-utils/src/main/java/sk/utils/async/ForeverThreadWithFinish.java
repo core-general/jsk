@@ -20,7 +20,8 @@ package sk.utils.async;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+import sk.utils.async.cancel.CancelGetter;
+import sk.utils.functional.C1;
 import sk.utils.functional.R;
 import sk.utils.statics.Fu;
 
@@ -35,28 +36,36 @@ public class ForeverThreadWithFinish extends Thread {
     private final AtomicBoolean completed = new AtomicBoolean(false);
     private final Semaphore finishSemaphore = new Semaphore(1, true);
 
+    final C1<CancelGetter> foreverTarget;
+
     public ForeverThreadWithFinish(R target, boolean daemon) {
-        super(target);
-        setDaemon(daemon);
+        this(ct -> target.run(), daemon);
     }
-
-    public ForeverThreadWithFinish(@NotNull String name, boolean daemon) {
-        super(name);
-        setDaemon(daemon);
-    }
-
 
     public ForeverThreadWithFinish(R target, String name, boolean daemon) {
-        super(target, name);
+        this(ct -> target.run(), name, daemon);
+    }
+
+    public ForeverThreadWithFinish(C1<CancelGetter> target, boolean daemon) {
+        super((Runnable) null);
         setDaemon(daemon);
+        foreverTarget = target;
+    }
+
+    public ForeverThreadWithFinish(C1<CancelGetter> target, String name, boolean daemon) {
+        super((Runnable) null, name);
+        setDaemon(daemon);
+        foreverTarget = target;
     }
 
     @Override
-    public void run() {
+    public final void run() {
+        final CancelGetter isFinished = this::isFinished;
+
         Fu.run4ever(() -> {
             try {
                 finishSemaphore.acquire();
-                super.run();
+                foreverTarget.accept(isFinished);
             } catch (Exception e) {
                 e.printStackTrace();
                 finishThread();
@@ -82,7 +91,7 @@ public class ForeverThreadWithFinish extends Thread {
             } catch (Exception e) {
                 return false;
             } finally {
-                if (locked) { finishSemaphore.release(); }
+                if (locked) {finishSemaphore.release();}
             }
         }, target -> new Thread(target).start());
     }

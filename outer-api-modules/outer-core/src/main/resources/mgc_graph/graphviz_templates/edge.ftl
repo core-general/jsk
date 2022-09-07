@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="edge" type="sk.outer.graph.MgcModelUtils.GvEdge" -->
 <#--
  #%L
  Swiss Knife
@@ -18,3 +19,5 @@
  #L%
 -->
 "${edge.left}"->"${edge.right}" [ label = "${edge.id}" ];
+<#if edge.markedLeft>"${edge.left}" [ color = red ]</#if>
+<#if edge.markedRight>"${edge.right}" [ color = red ]</#if>

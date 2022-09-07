@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Im;
 import sk.utils.tuples.X2;
 
 import java.util.List;
@@ -47,6 +48,8 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> requests.add(new SendSticker(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
         mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> requests.add(new SendVideo(userId, s)));
+        mgcTelegramSpecial.flatMap($ -> $.getRawImage())
+                .ifPresent(s -> requests.add(new SendPhoto(userId, Im.savePngToBytes(s))));
         text.ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
         document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 

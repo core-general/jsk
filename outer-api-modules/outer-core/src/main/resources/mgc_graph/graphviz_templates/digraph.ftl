@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="model" type="sk.outer.graph.MgcModelUtils.GvModel" -->
 <#--
  #%L
  Swiss Knife
@@ -17,9 +18,12 @@
  limitations under the License.
  #L%
 -->
+<#--@formatter:off-->
 digraph G {
+<#if model.lr>
 rankdir=LR;
+</#if>
 <#list model.edges as edge>
-    <#include "*/edge.ftl">
+<#include "*/edge.ftl">
 </#list>
 }

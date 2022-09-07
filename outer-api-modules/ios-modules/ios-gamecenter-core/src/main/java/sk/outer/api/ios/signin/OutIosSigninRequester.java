@@ -28,6 +28,7 @@ import sk.utils.statics.Cc;
 
 import javax.inject.Inject;
 
+//https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple
 public class OutIosSigninRequester extends OutGeneralIosRequester<OutIosSignInTokenResponse> {
     @Inject IHttp http;
 
@@ -35,16 +36,16 @@ public class OutIosSigninRequester extends OutGeneralIosRequester<OutIosSignInTo
             String authCode,
 
             String clientId,
+            String sub,
 
             byte[] pkcs8PemFile,
-            String issuerId,
             String keyID,
             boolean sandbox) {
         var result = executeRequest(
                 pkcs8PemFile,
-                issuerId,
-                keyID,
                 "https://appleid.apple.com",
+                keyID,
+                clientId,
                 sandbox,
                 token -> http.postForm("https://appleid.apple.com/auth/token")
                         .parameters(Cc.m(
@@ -54,7 +55,7 @@ public class OutIosSigninRequester extends OutGeneralIosRequester<OutIosSignInTo
                                 "code", authCode
                         )),
                 OutIosSignInTokenResponse.class,
-                builder -> builder.withSubject(clientId)
+                builder -> builder.withSubject(sub)
         );
 
         return result.collect(

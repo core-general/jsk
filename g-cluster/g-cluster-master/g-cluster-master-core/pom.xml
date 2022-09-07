@@ -5,16 +5,11 @@
     <parent>
         <artifactId>g-cluster-master</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.23</version>
+        <version>jsk.17.3.29</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>g-cluster-master-core</artifactId>
-
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -24,12 +19,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>g-cluster-client</artifactId>
-            <version>jsk.17.3.23</version>
+            <version>jsk.17.3.29</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-core</artifactId>
-            <version>jsk.17.3.23</version>
+            <version>jsk.17.3.29</version>
         </dependency>
     </dependencies>
 </project>

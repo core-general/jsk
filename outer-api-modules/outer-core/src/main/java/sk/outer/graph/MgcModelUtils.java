@@ -27,7 +27,9 @@ import sk.outer.graph.nodes.MgcGraph;
 import sk.outer.graph.nodes.MgcNode;
 import sk.outer.graph.parser.MgcTypeUtil;
 import sk.services.free.IFree;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.statics.St;
 
 import java.util.List;
@@ -39,18 +41,28 @@ public class MgcModelUtils {
 
     public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
     String convertToGraphVizFormat(MgcGraph<CTX, T> g, IFree client) {
+        return convertToGraphVizFormat(g, client, true, O.empty());
+    }
+
+    public static <CTX extends MgcGraphExecutionContext<CTX, T>, T extends Enum<T> & MgcTypeUtil<T>>
+    String convertToGraphVizFormat(MgcGraph<CTX, T> g, IFree client, boolean lr, O<String> selectedId) {
         GvModel gvm = new GvModel(g.getAllEdgesFrom().stream()
                 .map($ -> {
-                    final MgcNode<CTX, T> edgeSource = g.getEdgeSource($);
-                    final MgcNode<CTX, T> targetNode = g.getEdgeTarget($);
-                    String edgeTxt = edgeSource.getId() + "\\n" + St.raze3dots(edgeSource.getParsedData().getText(), LIMIT);
-                    String nodeTxt = targetNode.getId() + "\\n" + St.raze3dots(targetNode.getParsedData().getText(), LIMIT);
+                    final MgcNode<CTX, T> from = g.getEdgeSource($);
+                    final MgcNode<CTX, T> to = g.getEdgeTarget($);
+                    String edgeTxt = from.getId() + "\\n" + St.raze3dots(from.getParsedData().getText(), LIMIT);
+                    String nodeTxt = to.getId() + "\\n" + St.raze3dots(to.getParsedData().getText(), LIMIT);
                     String curText = $.getId() + "\\n" + St.raze3dots($.getParsedData().getText(), LIMIT);
-                    return new GvEdge(curText, edgeTxt, nodeTxt);
+                    return new GvEdge(curText, edgeTxt, nodeTxt,
+                            selectedId.map($$ -> Fu.equal(from.getId(), $$)).orElse(false),
+                            selectedId.map($$ -> Fu.equal(to.getId(), $$)).orElse(false)
+                    );
                 })
-                .collect(Cc.toL()));
+                .collect(Cc.toL()), lr);
 
-        return client.process("mgc_graph/graphviz_templates/digraph.ftl", Cc.m("model", gvm));
+        return client.process("mgc_graph/graphviz_templates/digraph.ftl", Cc.m(
+                "model", gvm
+        ));
     }
 
 
@@ -58,6 +70,7 @@ public class MgcModelUtils {
     @AllArgsConstructor
     public static class GvModel {
         List<GvEdge> edges;
+        boolean lr;
     }
 
     @Data
@@ -66,5 +79,7 @@ public class MgcModelUtils {
         String id;
         String left;
         String right;
+        boolean markedLeft;
+        boolean markedRight;
     }
 }

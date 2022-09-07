@@ -20,6 +20,7 @@ package sk.outer.graph.nodes;
  * #L%
  */
 
+import lombok.Getter;
 import sk.outer.graph.edges.MgcEdge;
 import sk.outer.graph.execution.MgcGraphExecutionContext;
 import sk.outer.graph.execution.MgcGraphExecutionResult;
@@ -41,8 +42,8 @@ public class MgcNestedGraphNode<CTX extends MgcGraphExecutionContext<CTX, T>, T 
         CTX1 extends MgcGraphExecutionContext<CTX1, T1>, T1 extends Enum<T1> & MgcTypeUtil<T1>>
         extends MgcNodeBase<CTX, T> {
 
-    private MgcGraphExecutor<CTX1, T1> executor;
-    private MgcGraphExecutionContextGenerator<CTX1, T1> contextGenerator;
+    @Getter private MgcGraphExecutor<CTX1, T1> executor;
+    @Getter private MgcGraphExecutionContextGenerator<CTX1, T1> contextGenerator;
 
     public MgcNestedGraphNode(MgcParsedData<T> parsedData,
             MgcGraphExecutor<CTX1, T1> executor,

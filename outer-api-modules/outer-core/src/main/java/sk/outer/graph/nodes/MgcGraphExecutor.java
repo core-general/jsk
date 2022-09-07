@@ -44,6 +44,13 @@ public sealed class MgcGraphExecutor
     public static final int STARTING_NESTING_LEVEL = 0;
     @Getter protected MgcGraph<CTX, T> graph;
 
+    public O<MgcGraphExecutionResult> executeNullifyingMetaEdge(MgcCtxProvider<CTX, T> contextProvider) {
+        return graph.getNullifyingMetaEdge().map(nullifyMetaedge -> {
+            final MgcNode<CTX, T> target = graph.getEdgeTarget(nullifyMetaedge);
+            return privateExecute(nullifyMetaedge, contextProvider.getContext(this, empty(), empty(), 0), of(target));
+        });
+    }
+
     public MgcGraphExecutionResult executeByHistory(O<String> selectedEdge,
             MgcCtxProvider<CTX, T> contextProvider) {
         return executeByHistoryNested(selectedEdge, contextProvider, STARTING_NESTING_LEVEL);

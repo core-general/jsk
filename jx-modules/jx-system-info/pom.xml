@@ -3,24 +3,30 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>aws-modules</artifactId>
+        <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
         <version>jsk.17.3.29</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>aws-dynamodb-spring-core</artifactId>
-
+    <artifactId>jx-system-info</artifactId>
+    <packaging>jar</packaging>
+    <version>jsk.17.3.29</version>
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>aws-dynamodb-core</artifactId>
+            <artifactId>jx-utils</artifactId>
             <version>jsk.17.3.29</version>
         </dependency>
         <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>jsk.17.3.29</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>6.2.2</version>
         </dependency>
     </dependencies>
 
