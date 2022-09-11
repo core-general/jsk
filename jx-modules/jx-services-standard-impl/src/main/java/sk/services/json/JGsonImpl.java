@@ -29,27 +29,31 @@ import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
 import sk.services.bean.IServiceLocator;
 import sk.services.bytes.IBytes;
 import sk.services.json.marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.GsonOptionalTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.GsonPostProcessTypeAdapterFactory;
 import sk.services.time.ITime;
-import sk.utils.functional.F0;
-import sk.utils.functional.F1;
-import sk.utils.functional.O;
-import sk.utils.functional.OneOf;
+import sk.utils.functional.*;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
+import sk.utils.statics.Re;
 import sk.utils.statics.St;
+import sk.utils.tuples.X;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Log4j2
 @NoArgsConstructor
@@ -270,6 +274,80 @@ public class JGsonImpl implements IJson {
         }
     }
 
+    private ConcurrentHashMap<String, Reflections> typesToReflections = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Class<?>> classNamesToActualClasses = new ConcurrentHashMap<>();
+
+    @Override
+    public Class<?> getClassByClassName(F0<String> jsonOfType, String className, Type parentType) {
+        try {
+            return IJson.super.getClassByClassName(jsonOfType, className, parentType);
+        } catch (ClassNotFoundException e) {
+            final Class<?> aClass = classNamesToActualClasses.computeIfAbsent(className, (___) -> {
+                final String typeName = parentType.getTypeName();
+                final String targetPackage = St.subRF(typeName, ".");
+                final Reflections searcher =
+                        typesToReflections.computeIfAbsent(targetPackage,
+                                (__) -> new Reflections(targetPackage, Scanners.SubTypes));
+
+                final Class parentClass = (Class) parentType;
+                Set<Class<?>> subTypesOf = searcher.getSubTypesOf(parentClass);
+                if (!Modifier.isAbstract(parentClass.getModifiers())) {
+                    subTypesOf = Cc.add(new HashSet<>(subTypesOf), parentClass);
+                }
+                O<Class<?>> sureClass = testClassByName100Percent(className, subTypesOf);
+                if (sureClass.isPresent()) {
+                    return sureClass.get();
+                }
+
+                sureClass = testClassByParameters100Percent(subTypesOf, jsonOfType);
+                if (sureClass.isPresent()) {
+                    return sureClass.get();
+                }
+
+                sureClass = testClassByNameAndParametersHeuristics(parentClass, jsonOfType);
+                if (sureClass.isPresent()) {
+                    return sureClass.get();
+                }
+                throw new RuntimeException("\nClass not found:\n%s\n%s\n%s".formatted(className, parentType, jsonOfType.get()));
+            });
+            return aClass;
+        }
+    }
+
+    private O<Class<?>> testClassByNameAndParametersHeuristics(Class parentType, F0<String> jsonOfType) {
+        return O.empty();//todo might be a good idea to implement
+    }
+
+    private O<Class<?>> testClassByParameters100Percent(Set<Class<?>> parentType, F0<String> jsonOfType) {
+        final Map<String, ?> map = jsonConcrete.fromJson(jsonOfType.get(), Map.class);
+        final Set<String> parameterNames = map.keySet();
+
+        var x2s = parentType.stream().map($ -> {
+                    final Set<String> classParameterNames = Re.getAllNonStaticFields($).stream()
+                            .map($$ -> $$.getName())
+                            .collect(Collectors.toSet());
+                    return X.x($, Fu.equal(parameterNames, classParameterNames));
+                }).filter($ -> $.i2())
+                .toList();
+        if (x2s.size() == 1) {
+            return O.of(x2s.get(0).i1());
+        } else {
+            return O.empty();
+        }
+    }
+
+    private O<Class<?>> testClassByName100Percent(String className, Set<Class<?>> subTypesOf) {
+        final List<Class<?>> classes = subTypesOf.stream()
+                .filter($ -> Fu.equal(St.subLL($.getSimpleName(), "$")/*for inner classes*/,
+                        St.subLL(St.subLL(className, "."/*package*/), "$"/*for inner classes*/)))
+                .toList();
+        if (classes.size() == 1) {
+            return O.of(classes.get(0));
+        } else {
+            return O.empty();
+        }
+    }
+
     private static class PolySerDes extends GsonSerDes<IJsonPolymorph> {
         F0<Gson> nonPolymorphicGson;
         IJsonPolymorphReader ijpr;
@@ -289,17 +367,17 @@ public class JGsonImpl implements IJson {
         }
 
         @Override
-        public IJsonPolymorph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        public IJsonPolymorph deserialize(JsonElement json, Type parentType, JsonDeserializationContext context)
                 throws JsonParseException {
             try {
                 final JsonObject obj = json.getAsJsonObject();
                 final String clsName = obj.get(ijpr.getClassFieldName()).getAsString();
-                final Class<?> classByClassName = ijpr.getClassByClassName(clsName);
+                final Class<?> classByClassName = ijpr.getClassByClassName(new Lazy<>(() -> obj.toString()), clsName, parentType);
                 final IJsonPolymorph iJsonPolymorph = (IJsonPolymorph) nonPolymorphicGson.get().fromJson(json, classByClassName);
                 iJsonPolymorph.clearMyType();
                 return iJsonPolymorph;
             } catch (Exception e) {
-                throw new RuntimeException("Can't process json element: " + json.toString() + " for type " + typeOfT, e);
+                throw new RuntimeException("Can't process json element: " + json.toString() + " for type " + parentType, e);
             }
         }
     }

@@ -20,15 +20,17 @@ package sk.services.json;
  * #L%
  */
 
-import lombok.SneakyThrows;
+import sk.utils.functional.F0;
+
+import java.lang.reflect.Type;
 
 public interface IJsonPolymorphReader {
     public default String getClassFieldName() {
         return JsonPolymorph.fieldName;
     }
 
-    @SneakyThrows
-    public default Class<?> getClassByClassName(String className) {
+    public default Class<?> getClassByClassName(F0<String> jsonOfType, String className, Type parentType)
+            throws ClassNotFoundException {
         return Class.forName(className);
     }
 }

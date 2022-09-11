@@ -23,6 +23,8 @@ package sk.outer.api.ios;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import sk.services.http.IHttp;
 import sk.services.http.model.CoreHttpResponse;
 import sk.services.json.IJson;
@@ -45,10 +47,12 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public abstract class OutGeneralIosRequester<T> {
 
-    @Inject IJson json;
-    @Inject ITime times;
+    protected @Inject IJson json;
+    protected @Inject ITime times;
 
     protected OneOf<T, Exception> executeRequest(
             byte[] pkcs8PemFile,

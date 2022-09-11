@@ -105,6 +105,8 @@ public class StTest {
     @Test
     public void levenshteinDistance() {
         assertEquals(St.levenshteinDistance("Kivan", "ivakuator"), 7);
+        assertEquals(St.levenshteinDistance("Kivan", "Kivan"), 0);
+        assertEquals(St.levenshteinDistance("Kivan", "kivan"), 1);
     }
 
     @Test

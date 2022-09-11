@@ -69,7 +69,7 @@ public class MgcGraphTest {
     //public static void main(String[] args) {
     //    MgcGraphTest test = new MgcGraphTest();
     //    test.init();
-    //    Io.endlessReadFromKeyboard("XXX", s -> {
+    //    Io.endlessReadFromKeyboard("XXX", s  ->  {
     //        final MgcListenerResults results = test.onUserInput(test.ge, s);
     //        var text = results.getNewNodeInfoMustExist().getNewNodeText();
     //        var edges = results.getPossibleEdgesMustExist();
@@ -94,19 +94,19 @@ public class MgcGraphTest {
                 X.x("g1eY", "g1n0"),
                 X.x("g1e0", "g1n1"),
 
-                X.x("g1e2", "g1G1->g2n1"),
+                X.x("g1e2", "g1G1 -> g2n1"),
 
-                X.x("g2e6", "g1G1->g2G2->g3n1"),
-                X.x("g3e1", "g1G1->g2G2->g3n2"),
-                X.x("g2e7", "g1G1->g2n1"),
+                X.x("g2e6", "g1G1 -> g2G2 -> g3n1"),
+                X.x("g3e1", "g1G1 -> g2G2 -> g3n2"),
+                X.x("g2e7", "g1G1 -> g2n1"),
 
-                X.x("g2e2", "g1G1->g2n3"),
-                X.x("g2e5", "g1G1->g2G1->g3n1"),
-                X.x("g3e1", "g1G1->g2G1->g3n2"),
-                X.x("g1e4", "g1G2->g3n1"),
-                X.x("g3e2", "g1G2->g3n3"),
-                X.x("g1e5", "g1G1->g2n1"),
-                X.x("g2e1", "g1G1->g2n2"),
+                X.x("g2e2", "g1G1 -> g2n3"),
+                X.x("g2e5", "g1G1 -> g2G1 -> g3n1"),
+                X.x("g3e1", "g1G1 -> g2G1 -> g3n2"),
+                X.x("g1e4", "g1G2 -> g3n1"),
+                X.x("g3e2", "g1G2 -> g3n3"),
+                X.x("g1e5", "g1G1 -> g2n1"),
+                X.x("g2e1", "g1G1 -> g2n2"),
                 X.x("g1e3", "g1n1")
         );
         inAndOut.stream().forEach((kk) -> {

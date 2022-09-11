@@ -22,6 +22,7 @@ package sk.services.json;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.junit.Test;
 import sk.services.bean.IServiceLocator;
@@ -29,6 +30,7 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -89,6 +91,41 @@ public class JGsonImplTest {
         assertEquals(xExceptionOneOf.collect($ -> $, $ -> Ex.thRow($)), new X(5, "b"));
     }
 
+    @Test
+    public void testBadPolymorphism() {
+        var initial = new BadPolymorphismTest.B(1, 2);
+
+        List<String> badPolyMorphs = Cc.l(
+                /*Package change*/
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.services.json.JGsonImplTest$B"}
+                        """.trim(),
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.services.json.B"}
+                        """.trim(),
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.cool.B"}
+                        """.trim(),
+                /*Name and package change*/
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.services.json.JGsonImplTest$X"}
+                        """.trim(),
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.services.json.X"}
+                        """.trim(),
+                """
+                        {"b":2,"a":1,"_jcl_":"sk.cool.X"}
+                        """.trim()
+        );
+
+        for (String badPolyMorph : badPolyMorphs) {
+            final BadPolymorphismTest.A from = json.from(badPolyMorph, BadPolymorphismTest.A.class);
+            final BadPolymorphismTest.B from2 = json.from(badPolyMorph, BadPolymorphismTest.B.class);
+            assertEquals(initial, from);
+            assertEquals(initial, from2);
+        }
+    }
+
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -116,5 +153,33 @@ public class JGsonImplTest {
     @AllArgsConstructor
     public static class OptionalTester {
         private O<String> str;
+    }
+
+    public static class BadPolymorphismTest {
+        @AllArgsConstructor
+        @EqualsAndHashCode(callSuper = false)
+        public static class A extends JsonPolymorph {
+            private int a;
+        }
+
+        @EqualsAndHashCode(callSuper = true)
+        public static class B extends A {
+            private int b;
+
+            public B(int a, int b) {
+                super(a);
+                this.b = b;
+            }
+        }
+
+        @EqualsAndHashCode(callSuper = true)
+        public static class C extends A {
+            private int c;
+
+            public C(int a, int c) {
+                super(a);
+                this.c = c;
+            }
+        }
     }
 }

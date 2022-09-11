@@ -75,11 +75,16 @@ public abstract class MgcGraphExecutionContext<CTX extends MgcGraphExecutionCont
     }
 
     public <T> T getObjectResultOf(String listenerId, Class<T> cls) {
-        final MgcObjectListenerResult result =
-                results.getNodeListeners().getResultOf(listenerId, MgcObjectListenerResult.class)
-                        .or(() -> results.getEdgeListeners().getResultOf(listenerId, MgcObjectListenerResult.class)).get();
+        return ogetObjectResultOf(listenerId, cls).get();
+    }
 
-        return (T) result.getValue();
+    public <T> O<T> ogetObjectResultOf(String listenerId, Class<T> cls) {
+
+        final O<MgcObjectListenerResult> oResult =
+                results.getNodeListeners().getResultOf(listenerId, MgcObjectListenerResult.class)
+                        .or(() -> results.getEdgeListeners().getResultOf(listenerId, MgcObjectListenerResult.class));
+
+        return oResult.map($ -> (T) $.getValue());
     }
 
     public MgcHistoryProvider getHistory() {
