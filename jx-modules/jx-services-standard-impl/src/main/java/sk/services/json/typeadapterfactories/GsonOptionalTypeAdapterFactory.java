@@ -75,11 +75,14 @@ public class GsonOptionalTypeAdapterFactory implements TypeAdapterFactory {
 
                                     final F1<Object, Object> getter = Re.getter(fld);
                                     final O<C2<Object, Object>> setter = Re.setter(fld);
-                                    return setter.map(gs -> {
-                                        return new OFieldGetterSetter(fld, optionalOrO, getter, gs);
-                                    }).orElseGet(() -> Ex.thRow("Field %s of %s should not be final!".formatted(fld.getName(),
-                                            fld.getDeclaringClass())));
-
+                                    if (cls.isRecord()) {
+                                        return new OFieldGetterSetter(fld, optionalOrO, getter, O.empty());
+                                    } else {
+                                        return setter.map(gs -> new OFieldGetterSetter(fld, optionalOrO, getter, O.of(gs)))
+                                                .orElseGet(() -> Ex.thRow(
+                                                        "Field %s of %s should not be final!".formatted(fld.getName(),
+                                                                fld.getDeclaringClass())));
+                                    }
                                 })
                                 .filter(Fu.notNull())
                                 .toList());
@@ -90,11 +93,16 @@ public class GsonOptionalTypeAdapterFactory implements TypeAdapterFactory {
         };
     }
 
-    private record OFieldGetterSetter(Field fld, boolean optionalOrO, F1<Object, Object> getter, C2<Object, Object> setter) {
+    private record OFieldGetterSetter(Field fld, boolean optionalOrO, F1<Object, Object> getter, O<C2<Object, Object>> setter) {
         public Object makeNonNull(Object in) {
             final Object apply = getter.apply(in);
             if (apply == null) {
-                setter.accept(in, optionalOrO ? Optional.empty() : O.empty());
+                if (setter.isPresent()) {
+                    setter.get().accept(in, optionalOrO ? Optional.empty() : O.empty());
+                } else {
+                    return Ex.thRow("Field %s of %s should not be final because it is not a record!".formatted(fld.getName(),
+                            fld.getDeclaringClass()));
+                }
             }
             return in;
         }
