@@ -21,6 +21,7 @@ package sk.services.ids;
  */
 
 import org.junit.Test;
+import sk.utils.statics.St;
 
 import java.util.Random;
 
@@ -36,5 +37,7 @@ public class JskHaikunatorTest {
 
         assertEquals(haiku.lng().haikunate(), "fragrant-raspy-unit-HBFHuR");
         assertEquals(haiku.shrt().haikunate(), "damp-shadow-iI1");
+
+        assertEquals("polished-black-falling-720-brook", new JskHaikunator(() -> rnd, "A-A-A-R-N", 3, St.dig).haikunate());
     }
 }

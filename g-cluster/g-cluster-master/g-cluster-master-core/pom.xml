@@ -5,7 +5,7 @@
     <parent>
         <artifactId>g-cluster-master</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.34</version>
+        <version>jsk.17.3.35</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,12 +19,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>g-cluster-client</artifactId>
-            <version>jsk.17.3.34</version>
+            <version>jsk.17.3.35</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-core</artifactId>
-            <version>jsk.17.3.34</version>
+            <version>jsk.17.3.35</version>
         </dependency>
     </dependencies>
 </project>

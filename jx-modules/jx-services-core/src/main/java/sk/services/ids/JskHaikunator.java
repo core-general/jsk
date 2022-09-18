@@ -30,7 +30,7 @@ import java.util.List;
 public class JskHaikunator {
     final RandTextGenerator rng;
 
-    private final static List<String> adjs = Cc.l(
+    public final static List<String> adjs = Cc.l(
             "aged", "adorable", "adventurous", "ancient", "autumn", "billowing",
             "bitter", "black", "blue", "bold",
             "broad", "broken", "calm", "cold", "cool", "crimson", "curly", "damp",
@@ -45,7 +45,7 @@ public class JskHaikunator {
             "square", "steep", "still", "summer", "super", "sweet", "throbbing", "tight",
             "tiny", "twilight", "wandering", "weathered", "white", "wild", "winter", "wispy",
             "withered", "yellow", "young");
-    private final static List<String> nouns = Cc.l(
+    public final static List<String> nouns = Cc.l(
             "art", "band", "bar", "base", "bird", "block", "boat", "bonus",
             "bread", "breeze", "brook", "bush", "butterfly", "cake", "cell", "cherry",
             "cloud", "credit", "darkness", "dawn", "dew", "disk", "dream", "dust",
@@ -70,14 +70,27 @@ public class JskHaikunator {
         );
     }
 
-    public JskHaikunator(IRand rand, boolean twoAdj, int tokenLength, String tokenChars, List<String> adjs, List<String> nouns) {
+    public JskHaikunator(IRand rand, String pattern, int tokenLength, String tokenChars, List<String> adjs, List<String> nouns) {
         rng = new RandTextGenerator(
                 Cc.l(
                         new RandTextGenerator.VocabItemByListImpl('A', adjs),
                         new RandTextGenerator.VocabItemByListImpl('N', nouns),
                         new RandTextGenerator.VocabItemImpl('R', iRand -> iRand.rndString(tokenLength, tokenChars)))
-                , twoAdj ? Cc.l("A-A-N-R") : Cc.l("A-N-R")
+                , Cc.l(pattern)
                 , rand);
+    }
+
+    public JskHaikunator(IRand rand, boolean twoAdj, int tokenLength, String tokenChars, List<String> adjs, List<String> nouns) {
+        this(rand, twoAdj ? "A-A-N-R" : "A-N-R", tokenLength, tokenChars, adjs, nouns);
+    }
+
+    public JskHaikunator(IRand rand, boolean twoAdj, int tokenLength, String tokenChars) {
+        this(rand, twoAdj, tokenLength, tokenChars, adjs, nouns);
+    }
+
+
+    public JskHaikunator(IRand rand, String pattern, int tokenLength, String tokenChars) {
+        this(rand, pattern, tokenLength, tokenChars, adjs, nouns);
     }
 
     public String haikunate() {
