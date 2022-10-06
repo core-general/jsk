@@ -24,6 +24,7 @@ import lombok.extern.log4j.Log4j2;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
+import sk.utils.functional.RE;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -73,17 +74,17 @@ public final class Fu {
         }
     }
 
-    public static R run4ever(R toRun) {
+    public static R run4ever(RE toRun) {
         return run4ever(toRun, emptyC(), null);
     }
 
-    public static R run4ever(R toRun, C1<Exception> onException, Supplier<Boolean> shouldFinish) {
+    public static R run4ever(RE toRun, C1<Throwable> onThrowable, Supplier<Boolean> shouldFinish) {
         return () -> {
             while (shouldFinish == null || !shouldFinish.get()) {
                 try {
                     toRun.run();
-                } catch (Exception e) {
-                    onException.accept(e);
+                } catch (Throwable e) {
+                    onThrowable.accept(e);
                 }
             }
         };

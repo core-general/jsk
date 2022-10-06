@@ -23,20 +23,20 @@ package sk.web.server.spark.spring;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import sk.mvn.ApiClassUtil;
+import sk.services.ids.IIds;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.nodeinfo.IIpProvider;
 import sk.services.nodeinfo.INodeInfo;
 import sk.services.nodeinfo.model.ApiBuildInfo;
 import sk.services.nodeinfo.model.IServerInfo;
-import sk.services.rand.IRand;
 import sk.services.shutdown.AppStopListener;
 import sk.services.shutdown.AppStopService;
+import sk.services.shutdown.INodeRestartStorage;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
-import sk.utils.statics.St;
 import sk.utils.tuples.X;
 
 import javax.annotation.PostConstruct;
@@ -47,15 +47,17 @@ import java.util.stream.Collectors;
 
 @Log4j2
 public class WebServerNodeInfo implements INodeInfo, AppStopListener {
-    @Inject IRand rnd;
+    @Inject IIds ids;
     @Inject ITime times;
     @Inject ApiClassUtil clsUtil;
+    @Inject INodeRestartStorage nodeRestartStorage;
     @Inject AppStopService appStop;
     @Inject Optional<IIpProvider> ipProvider = Optional.empty();
 
     @Getter String nodeId;
     @Getter String nodeVersion;
     @Getter ZonedDateTime buildTime;
+    @Getter ZonedDateTime startTime;
 
     @Inject List<IBeanInfoSubscriber<?>> beanInfos = Cc.l();
     Map<String, F0<?>> beanInfosProcessed;
@@ -63,7 +65,13 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
 
     @PostConstruct
     void init() {
-        nodeId = rnd.rndString(3, St.engENGDig) + "-" + (System.currentTimeMillis());
+        startTime = times.nowZ();
+
+        nodeId = nodeRestartStorage.getStringAfterRestart("node_id").orElseGet(() -> {
+            final String nodeId = "%d-%s".formatted(times.toMilli(startTime), ids.tinyHaiku());
+            nodeRestartStorage.setDataForRestart("node_id", nodeId);
+            return nodeId;
+        });
         final O<ApiBuildInfo> bi = clsUtil.getVersionAndBuildTimeFromResources();
         buildTime = bi.map($ -> times.toZDT($.getBuildTime())).orElseGet(() -> times.toZDT(0));
         nodeVersion = bi.map($ -> $.getVersion()).orElse("?") + "-" + times.toMilli(buildTime);
@@ -78,10 +86,8 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
                             .filter($ -> $.i2() != null)
                             .collect(Collectors.toMap($ -> $.i1(), $ -> $.i2(),
                                     (a, b) -> Ex.thRow(String.format("keys equals: %s==%s", a, b)), TreeMap::new));
-
                 }
         );
-
     }
 
     @Override
@@ -98,33 +104,6 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     public IServerInfo getCurrentServerInfo() {
         return serverInfo;
     }
-
-/*    @Override
-    public SortedMap<String, Object> getCurrentServerInfo(O<List<String>> filter) {
-        final Map<String, Object> collect = beanInfos.stream()
-                .map($ -> {
-                    try {
-                        return (X2<String, Object>) $.gatherDiagnosticInfo();
-                    } catch (Exception e) {
-                        log.error(e);
-                        return null;
-                    }
-                })
-                .filter(Fu.notNull())
-                .collect(Collectors.groupingBy($ -> $.i1(), Collectors.mapping($ -> $.i2(), Cc.toL())))
-                .entrySet().stream()
-                .map($ -> X.<String, Object>x($.getKey(), $.getValue().size() == 0
-                                                          ? ""
-                                                          : $.getValue().size() == 1
-                                                            ? $.getValue().get(0)
-                                                            : $.getValue()))
-                .collect(Cc.toMX2());
-        collect.put("_nodeId", Cc.l(nodeId));
-        collect.put("_nodeVersion", Cc.l(nodeVersion));
-        collect.put("_buildTime", Cc.l(Ti.yyyyMMddHHmmss.format(buildTime)));
-
-        return new TreeMap<>(collect);
-    }*/
 
     @Override
     public boolean isShuttingDown() {

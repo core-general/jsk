@@ -23,7 +23,6 @@ package sk.spring.config;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.services.ICoreServices;
 import sk.services.async.AsyncImpl;
 import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
@@ -42,8 +41,6 @@ import sk.services.json.IJson;
 import sk.services.json.JGsonImpl;
 import sk.services.log.ILog;
 import sk.services.log.ILogConsoleImpl;
-import sk.services.mapping.IMapper;
-import sk.services.mapping.ModelMapperImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
 import sk.services.rescache.IResCache;
@@ -51,15 +48,18 @@ import sk.services.rescache.ResCacheImpl;
 import sk.services.retry.IRepeat;
 import sk.services.retry.RepeatImpl;
 import sk.services.shutdown.AppStopService;
+import sk.services.shutdown.NodeRestartStorageImpl;
 import sk.services.time.ITime;
 import sk.services.time.TimeUtcImpl;
 import sk.spring.services.BootServiceImpl;
 import sk.spring.services.CoreServices;
+import sk.spring.services.DefaultThrowableHandlerServiceImpl;
 import sk.spring.services.ServiceLocator4SpringImpl;
+import sk.spring.utils.DefaultThrowableHandler;
 
 @Configuration
 @Log4j2
-public class SpringCoreConfig implements ICoreServices {
+public class SpringCoreConfig {
     @Bean
     public ITime times() {return new TimeUtcImpl();}
 
@@ -84,11 +84,6 @@ public class SpringCoreConfig implements ICoreServices {
     }
 
     @Bean
-    public IMapper iMapper() {
-        return new ModelMapperImpl();
-    }
-
-    @Bean
     public IResCache resCache() {return new ResCacheImpl();}
 
     @Bean
@@ -96,6 +91,9 @@ public class SpringCoreConfig implements ICoreServices {
 
     @Bean
     public AppStopService AppStopService() {return new AppStopService();}
+
+    @Bean
+    public NodeRestartStorageImpl NodeRestartStorageImpl() {return new NodeRestartStorageImpl();}
 
     @Bean
     public BootServiceImpl BootServiceImpl() {return new BootServiceImpl();}
@@ -128,4 +126,24 @@ public class SpringCoreConfig implements ICoreServices {
         return new CoreServices();
     }
 
+
+    @Bean
+    public DefaultThrowableHandlerServiceImpl DefaultExceptionHandlerServiceImpl() {
+        return new DefaultThrowableHandlerServiceImpl();
+    }
+
+    @Bean
+    public DefaultThrowableHandler<Throwable> RootDefaultThrowableHandler() {
+        return new DefaultThrowableHandler<>() {
+            @Override
+            public Class<Throwable> getThrowableClass() {
+                return Throwable.class;
+            }
+
+            @Override
+            public void process(Throwable throwable, Thread t) {
+                log.error("\nUnhandled problem in thread: " + t, throwable);
+            }
+        };
+    }
 }

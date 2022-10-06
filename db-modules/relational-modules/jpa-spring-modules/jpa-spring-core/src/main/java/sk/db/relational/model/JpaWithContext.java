@@ -36,5 +36,5 @@ import javax.persistence.Transient;
 @NoArgsConstructor
 @Tuplizer(impl = CtxAwarePojoTuplizer.class)
 public abstract class JpaWithContext {
-    protected @Transient CoreServices ctx;
+    protected transient @Transient CoreServices ctx;
 }

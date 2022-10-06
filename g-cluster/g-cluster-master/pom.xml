@@ -5,12 +5,12 @@
     <parent>
         <artifactId>g-cluster</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.35</version>
+        <version>jsk.17.5.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <version>jsk.17.3.35</version>
+    <version>jsk.17.5.0</version>
     <modules>
         <module>g-cluster-master-core</module>
         <module>g-cluster-spark-jpa</module>

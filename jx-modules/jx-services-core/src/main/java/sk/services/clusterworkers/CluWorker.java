@@ -23,6 +23,7 @@ package sk.services.clusterworkers;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import sk.services.async.IAsync;
+import sk.services.async.ScheduledExecutorServiceWrapperWithThrowable;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluMessage;
 import sk.services.clusterworkers.model.CluState;
@@ -32,7 +33,6 @@ import sk.utils.functional.*;
 import sk.utils.statics.Cc;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -125,8 +125,8 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
         CluScheduler<STATE, MM> scheduler =
                 new CluScheduler<>(name + "_" + schedulerName,
                         dedicatedThread
-                        ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName)
-                        : () -> new ScheduledExecutorServiceNoShutdownDecorator(async.scheduledExec()),
+                        ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName).getUnderlying()
+                        : () -> new ScheduledExecutorServiceNoShutdownDecorator(async.scheduledExec().getUnderlying()),
                         periodDelay, allowedStates,
                         () -> getState(), processor, messageQue::add);
         schedulers.add(scheduler);
@@ -152,58 +152,13 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
     }
 
     @SuppressWarnings("NullableProblems")
-    private static class ScheduledExecutorServiceNoShutdownDecorator implements ScheduledExecutorService {
-        private ScheduledExecutorService scheduledExec;
-
+    private static class ScheduledExecutorServiceNoShutdownDecorator extends ScheduledExecutorServiceWrapperWithThrowable {
         public ScheduledExecutorServiceNoShutdownDecorator(ScheduledExecutorService scheduledExec) {
-            this.scheduledExec = scheduledExec;
+            super(scheduledExec);
         }
-
-        public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-            return this.scheduledExec.schedule(command, delay, unit);
-        }
-
-        public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-            return this.scheduledExec.schedule(callable, delay, unit);
-        }
-
-        public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period,
-                TimeUnit unit) {return this.scheduledExec.scheduleAtFixedRate(command, initialDelay, period, unit);}
-
-        public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay,
-                TimeUnit unit) {return this.scheduledExec.scheduleWithFixedDelay(command, initialDelay, delay, unit);}
 
         public void shutdown() {}
 
         public List<Runnable> shutdownNow() {return Cc.lEmpty();}
-
-        public boolean isShutdown() {return this.scheduledExec.isShutdown();}
-
-        public boolean isTerminated() {return this.scheduledExec.isTerminated();}
-
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            return this.scheduledExec.awaitTermination(timeout, unit);
-        }
-
-        public <T> Future<T> submit(Callable<T> task) {return this.scheduledExec.submit(task);}
-
-        public <T> Future<T> submit(Runnable task, T result) {return this.scheduledExec.submit(task, result);}
-
-        public Future<?> submit(Runnable task) {return this.scheduledExec.submit(task);}
-
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-                throws InterruptedException {return this.scheduledExec.invokeAll(tasks);}
-
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-                throws InterruptedException {return this.scheduledExec.invokeAll(tasks, timeout, unit);}
-
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-                throws InterruptedException, ExecutionException {return this.scheduledExec.invokeAny(tasks);}
-
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-                throws InterruptedException, ExecutionException,
-                TimeoutException {return this.scheduledExec.invokeAny(tasks, timeout, unit);}
-
-        public void execute(Runnable command) {this.scheduledExec.execute(command);}
     }
 }

@@ -78,7 +78,7 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
         final GuaranteedOneTimeTask<String> oneTimeTask = new GuaranteedOneTimeTask<>(
                 () -> moniColParam.isMelodyCollectorOn()
                       ? http.get(url).login(moniColParam.getLogin()).password(moniColParam.getPass()).go().left()
-                      : "", async.scheduledExec(), delay, 0);
+                      : "", async.scheduledExec().getUnderlying(), delay, 0);
         oneTimeTask.getFuture().thenApply(res -> {
             if (continueOnSuccess) {
                 invokeCollectorTask(url, delay, continueOnSuccess);

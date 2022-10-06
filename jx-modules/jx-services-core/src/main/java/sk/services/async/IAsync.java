@@ -44,11 +44,11 @@ public interface IAsync extends ISleep {
 
     IExecutorService singleExec();
 
-    ScheduledExecutorService scheduledExec();
+    IScheduledExecutorService scheduledExec();
 
     IExecutorService coldTaskFJP();
 
-    ScheduledExecutorService newDedicatedScheduledExecutor(String name);
+    IScheduledExecutorService newDedicatedScheduledExecutor(String name);
 
     default void coldTaskFJPRun(int threads, R toRun) {
         coldTaskFJPGet(threads, () -> {

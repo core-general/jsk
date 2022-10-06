@@ -58,6 +58,12 @@ public class TreePath<X> {
         return new TreePath<>(path);
     }
 
+    @SuppressWarnings("unchecked")
+    public TreePath<X> merge(X... toAdd) {
+        ArrayList<X> path = addAll(new ArrayList<>(pathS), Arrays.asList(toAdd));
+        return new TreePath<>(path);
+    }
+
     public TreePath<X> getParent() {
         return pathS.size() > 1 ? new TreePath<>(pathS.subList(0, pathS.size() - 1)) : emptyPath();
     }

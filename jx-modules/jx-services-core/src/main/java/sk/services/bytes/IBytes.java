@@ -20,6 +20,8 @@ package sk.services.bytes;
  * #L%
  */
 
+import sk.services.http.CrcAndSize;
+import sk.services.http.EtagAndSize;
 import sk.utils.functional.O;
 import sk.utils.statics.*;
 
@@ -70,6 +72,15 @@ public interface IBytes {
 
     default long crc32(String utf) {
         return crc32(utf.getBytes(UTF_8));
+    }
+
+
+    default EtagAndSize calcEtagAndSize(byte[] data) {
+        return new EtagAndSize(St.bytesToHex(md5(data)), data.length);
+    }
+
+    default CrcAndSize calcCrcAndSize(byte[] data) {
+        return new CrcAndSize(crc32(data), data.length);
     }
 
     default O<String> decodeCrcEncodedValue(String encodedValue) {

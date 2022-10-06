@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
 import sk.services.rand.IRand;
+import sk.services.time.ITime;
 import sk.utils.statics.Im;
 import sk.utils.statics.St;
 
@@ -39,13 +40,15 @@ import java.util.Random;
 import java.util.UUID;
 
 import static java.lang.Integer.parseInt;
+import static sk.services.ids.JskHaikunator.LongAndShortHaikunator;
 
 @SuppressWarnings("unused")
 @NoArgsConstructor
 public class IdsImpl implements IIds {
     @Inject IRand random;
     @Inject IBytes bytes;
-    JskHaikunator.LongAndShortHaikunator haikunator;
+    @Inject ITime times;
+    LongAndShortHaikunator haikunator;
 
     public IdsImpl(IRand random, IBytes bytes) {
         this.random = random;
@@ -54,7 +57,7 @@ public class IdsImpl implements IIds {
 
     @PostConstruct
     public IdsImpl init() {
-        haikunator = JskHaikunator.defaultHaikunators(random);
+        haikunator = JskHaikunator.defaultHaikunators(random, times);
         return this;
     }
 
@@ -112,14 +115,27 @@ public class IdsImpl implements IIds {
     }
 
     @Override
+    public LongAndShortHaikunator defaultHaikunators() {
+        return haikunator;
+    }
+
+    public String tinyHaiku() {
+        return haikunator.tiny().haikunate();
+    }
+
+    @Override
     public String longHaiku() {
         return haikunator.lng().haikunate();
     }
 
-
     @Override
     public String shortHaiku() {
         return haikunator.shrt().haikunate();
+    }
+
+    @Override
+    public String timedHaiku() {
+        return haikunator.timed().haikunate();
     }
 
     @NotNull

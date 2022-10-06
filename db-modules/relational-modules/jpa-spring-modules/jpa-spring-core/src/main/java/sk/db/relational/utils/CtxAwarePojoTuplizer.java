@@ -41,21 +41,31 @@ public class CtxAwarePojoTuplizer extends PojoEntityTuplizer {
         final CoreServices ctx = (CoreServices) entityMetamodel.getSessionFactory().getProperties().get(RdbBaseDbConfig._CTX);
 
         final Instantiator instantiator = super.buildInstantiator(entityMetamodel, persistentClass);
-        return new Instantiator() {
-            @Override
-            public Object instantiate(Serializable id) {
-                return inject(ctx, instantiator.instantiate(id));
-            }
+        return new PrivateInstantiator(ctx, instantiator);
+    }
 
-            @Override
-            public Object instantiate() {
-                return inject(ctx, instantiator.instantiate());
-            }
+    private static class PrivateInstantiator implements Instantiator {
+        private final CoreServices ctx;
+        private final Instantiator instantiator;
 
-            @Override
-            public boolean isInstance(Object object) {
-                return instantiator.isInstance(object);
-            }
-        };
+        public PrivateInstantiator(CoreServices ctx, Instantiator instantiator) {
+            this.ctx = ctx;
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public Object instantiate(Serializable id) {
+            return inject(ctx, instantiator.instantiate(id));
+        }
+
+        @Override
+        public Object instantiate() {
+            return inject(ctx, instantiator.instantiate());
+        }
+
+        @Override
+        public boolean isInstance(Object object) {
+            return instantiator.isInstance(object);
+        }
     }
 }

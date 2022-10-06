@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>g-cluster</artifactId>
+        <groupId>jsk</groupId>
+        <version>jsk.17.5.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>g-cluster-deployer</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>g-cluster-agent</artifactId>
+            <version>jsk.17.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>aws-s3-core</artifactId>
+            <version>jsk.17.5.0</version>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <!-- Deploy build is activated using -Pdeploy -->
+            <id>deploy</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.2.4</version>
+                        <configuration>
+                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <transformers>
+                                        <transformer
+                                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>jsk.gcl.deployer.GcdDeployerMain</mainClass>
+                                            <manifestEntries>
+                                                <Multi-Release>true</Multi-Release>
+                                            </manifestEntries>
+                                        </transformer>
+                                    </transformers>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- Deploy build is activated using -PdeployChecker -->
+            <id>deployChecker</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.2.4</version>
+                        <configuration>
+                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <transformers>
+                                        <transformer
+                                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>jsk.gcl.deployer.GcdDeployCheckerMain</mainClass>
+                                            <manifestEntries>
+                                                <Multi-Release>true</Multi-Release>
+                                            </manifestEntries>
+                                        </transformer>
+                                    </transformers>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

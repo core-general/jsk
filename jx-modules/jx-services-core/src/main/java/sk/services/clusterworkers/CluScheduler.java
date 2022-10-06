@@ -89,7 +89,7 @@ public class CluScheduler<STATE extends Enum<STATE> & CluState<STATE>, MESSAGE e
                     //log.debug(() -> schedulerName + " - Reschedule executor for:" + left);
                     synchronized (auxiliaryLock) {
                         try {
-                            currentTask = currentExecutor.scheduleWithFixedDelay(toRun::apply, left, left,
+                            currentTask = currentExecutor.scheduleWithFixedDelay(() -> toRun.apply(), left, left,
                                     TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
                             //log.error("", e);
@@ -154,8 +154,13 @@ public class CluScheduler<STATE extends Enum<STATE> & CluState<STATE>, MESSAGE e
         synchronized (auxiliaryLock) {
             if (!started) {
                 //log.debug(() -> schedulerName + " - Started current task");
-                started = true;
-                taskRestarter.run();
+                try {
+                    started = true;
+                    taskRestarter.run();
+                } catch (OutOfMemoryError e) {
+                    log.error("", e);
+                    restart();
+                }
             }
         }
     }

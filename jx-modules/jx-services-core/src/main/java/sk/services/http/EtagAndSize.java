@@ -22,11 +22,13 @@ package sk.services.http;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import sk.utils.javafixes.BadCharReplacer;
 import sk.utils.statics.St;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class EtagAndSize {
     final static BadCharReplacer replacer = BadCharReplacer.hashSetReplacer(St.engENGDig);
 

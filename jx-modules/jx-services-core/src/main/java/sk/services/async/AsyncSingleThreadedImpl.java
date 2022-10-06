@@ -26,7 +26,6 @@ import sk.utils.statics.Cc;
 
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class AsyncSingleThreadedImpl implements IAsync {
@@ -53,7 +52,7 @@ public class AsyncSingleThreadedImpl implements IAsync {
     }
 
     @Override
-    public ScheduledExecutorService scheduledExec() {
+    public IScheduledExecutorService scheduledExec() {
         throw new NotImplementedException();
     }
 
@@ -63,7 +62,7 @@ public class AsyncSingleThreadedImpl implements IAsync {
     }
 
     @Override
-    public ScheduledExecutorService newDedicatedScheduledExecutor(String name) {
+    public IScheduledExecutorService newDedicatedScheduledExecutor(String name) {
         throw new NotImplementedException();
     }
 

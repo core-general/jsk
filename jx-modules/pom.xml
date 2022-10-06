@@ -5,12 +5,12 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.3.35</version>
+        <version>jsk.17.5.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-modules</artifactId>
-    <version>jsk.17.3.35</version>
+    <version>jsk.17.5.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -21,5 +21,7 @@
         <module>jx-test-with-services</module>
         <module>jx-ip-geo-maxmind</module>
         <module>jx-system-info</module>
+        <module>jx-probability-algs</module>
+        <module>jx-model-mapper</module>
     </modules>
 </project>

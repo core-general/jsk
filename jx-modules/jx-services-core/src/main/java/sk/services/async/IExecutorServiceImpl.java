@@ -20,13 +20,14 @@ package sk.services.async;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.concurrent.ExecutorService;
 
-@Getter
-@AllArgsConstructor
 public class IExecutorServiceImpl implements IExecutorService {
-    ExecutorService underlying;
+    @Getter ExecutorService underlying;
+
+    public IExecutorServiceImpl(ExecutorService toBeWraped) {
+        this.underlying = new ExecutorServiceWrapperWithThrowable(toBeWraped);
+    }
 }

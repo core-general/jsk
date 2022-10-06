@@ -26,6 +26,8 @@ import sk.utils.functional.*;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
@@ -49,11 +51,15 @@ public final class St {
     public static final String ENGDig = ENG + dig;
     public static final String engENGDig = ENG + eng + dig;
 
+    public static final Charset UTF8 = StandardCharsets.UTF_8;
+
     //region Common
     private static final long[] orders = LongStream.iterate(1, curVal -> curVal * 10).limit(19).toArray();
+    public static final String[] STANDARD_MEASUREMENTS = {"k", "m", "b", "t", "q", "i"};
+    public static final String[] MEMORY_MEASUREMENTS = {"Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
 
     public static String shortNumberForm(long number) {
-        return shortNumberForm(number, new String[]{"k", "m", "b", "t", "q", "i"});
+        return shortNumberForm(number, STANDARD_MEASUREMENTS);
     }
 
     public static String shortNumberForm(long number, String[] measurements) {

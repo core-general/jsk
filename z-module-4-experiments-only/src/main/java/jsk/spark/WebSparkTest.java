@@ -23,17 +23,20 @@ package jsk.spark;
 import jsk.spark.testmodel.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import sk.aws.dynamo.DynBeanConfigWithKvStore;
 import sk.aws.dynamo.DynProperties;
 import sk.aws.spring.AwsBeanConfig;
+import sk.services.async.IAsync;
 import sk.services.except.IExcept;
 import sk.services.idempotence.IIdempParameters;
 import sk.services.idempotence.IIdempProviderUnlimitedKV;
 import sk.services.json.IJson;
 import sk.services.mapping.IMapper;
+import sk.services.mapping.ModelMapperImpl;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
 import sk.services.rand.IRand;
@@ -42,6 +45,7 @@ import sk.spring.SpringAppEntryPoint;
 import sk.spring.config.SpringCoreConfig;
 import sk.spring.config.SpringCoreConfigWithProperties;
 import sk.spring.services.AppProfileImpl;
+import sk.spring.utils.DefaultThrowableHandler;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
@@ -76,11 +80,14 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static sk.utils.functional.O.of;
 import static sk.utils.functional.O.ofNull;
 
+@Log4j2
 public class WebSparkTest {
     public static void main(String[] args) {
         final SpringApp<SpringAppEntryPoint> rSpringApp = SpringApp.createWithWelcomeAndLogAndInit(
@@ -161,6 +168,15 @@ public class WebSparkTest {
             return abc;
         }
 
+        @Inject IAsync async;
+
+        @Override
+        public String exceptTest() {
+            final ScheduledFuture<?> scheduledFuture = async.scheduledExec().getUnderlying().scheduleWithFixedDelay(() -> {
+                final byte[] bytes = new byte[Integer.MAX_VALUE];
+            }, 1000, 3000, TimeUnit.MILLISECONDS);
+            return "";
+        }
     }
 
     public static class Api3Impl implements TestApiSwaggerTest3 {
@@ -214,6 +230,26 @@ public class WebSparkTest {
             SpringCoreConfigWithProperties.class
     })
     public static class Config {
+        @Bean
+        DefaultThrowableHandler<OutOfMemoryError> DefaultThrowableHandler1() {
+            return new DefaultThrowableHandler<>() {
+                @Override
+                public Class<OutOfMemoryError> getThrowableClass() {
+                    return OutOfMemoryError.class;
+                }
+
+                @Override
+                public void process(OutOfMemoryError throwable, Thread t) {
+                    log.error("OUT OF MEMORY WUUUUT!", throwable);
+                }
+            };
+        }
+
+        @Bean
+        ModelMapperImpl ModelMapperImpl() {
+            return new ModelMapperImpl();
+        }
+
         @Bean
         public WebServerCore<TestApi1> WebServerCore(TestApiImpl impl, WebUserActionLoggingFilter actionLogger) {
             return new WebServerCoreWithPings<TestApi1>(TestApi1.class, impl) {

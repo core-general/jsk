@@ -30,6 +30,8 @@ public interface INodeInfo extends INodeId {
 
     public ZonedDateTime getBuildTime();
 
+    public ZonedDateTime getStartTime();
+
     public O<String> getPublicIp();
 
     public O<String> getPrivateIp();

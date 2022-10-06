@@ -70,6 +70,13 @@ public class TreeNode<V, N> {
         this.name = name;
     }
 
+    private TreeNode(N name, F0<Map<N, TreeNode<V, N>>> childCreator, V value) {
+        this.childCreator = childCreator;
+        this.childMap = childCreator.get();
+        this.name = name;
+        this.value = value;
+    }
+
     static <V, N> P1<TreeNode<V, N>> notRoot() {
         return input -> !(input.getName() == null);
     }
@@ -78,6 +85,11 @@ public class TreeNode<V, N> {
     //region Get/Set
     public TreeNode<V, N> setRelativeValue(TreePath<N> p, V value) {
         setRelativeValue(p, value, 0);
+        return this;
+    }
+
+    public TreeNode<V, N> setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value) {
+        setValBetween(parent, child, newNodeId, value, 0);
         return this;
     }
 
@@ -140,6 +152,10 @@ public class TreeNode<V, N> {
 
     @SuppressWarnings("unchecked")
     public <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Y> nodeProcessor) {
+        return processAll((nTreePath, vnTreeNode) -> new Continuator<>(nodeProcessor.apply(nTreePath, vnTreeNode), true), path());
+    }
+
+    public <Y> List<Y> processAllByContinue(F2<TreePath<N>, TreeNode<V, N>, Continuator<Y>> nodeProcessor) {
         return processAll(nodeProcessor, path());
     }
 
@@ -159,16 +175,18 @@ public class TreeNode<V, N> {
      * @return null values are filtered
      */
     @SuppressWarnings("unchecked")
-    protected <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Y> processor, TreePath<N> path) {
+    protected <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Continuator<Y>> processor, TreePath<N> path) {
         List<Y> xes = Cc.l();
-        Y val = processor.apply(path, this);
-        if (val != null) {
-            xes.add(val);
+        Continuator<Y> val = processor.apply(path, this);
+        if (val.value() != null) {
+            xes.add(val.value());
         }
-        childMap.entrySet().stream()
-                .map($ -> $.getValue().processAll(processor, path.merge(path($.getKey()))))
-                .filter($ -> $.size() > 0)
-                .forEach(xes::addAll);
+        if (val.processChildren()) {
+            childMap.entrySet().stream()
+                    .map($ -> $.getValue().processAll(processor, path.merge(path($.getKey()))))
+                    .filter($ -> $.size() > 0)
+                    .forEach(xes::addAll);
+        }
         return xes;
     }
 
@@ -208,8 +226,8 @@ public class TreeNode<V, N> {
         }
 
         return path.getSize() > index
-                ? ofNullable(childMap.get(path.getAt(index))).flatMap($ -> $.getValue(path, index + 1))
-                : getValue();
+               ? ofNullable(childMap.get(path.getAt(index))).flatMap($ -> $.getValue(path, index + 1))
+               : getValue();
     }
 
     protected void setRelativeValue(TreePath<N> path, V value, int index) {
@@ -226,6 +244,24 @@ public class TreeNode<V, N> {
         }
     }
 
+
+    public void setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value, int index) {
+        if (!parent.isParentOf(child)) {
+            throw new RuntimeException(parent + " is not parent for " + child);
+        }
+        if (parent.getSize() > index) {
+            N pathPart = parent.getAt(index);
+            childMap.get(pathPart).setValBetween(parent, child, newNodeId, value, index + 1);
+        }
+        if (parent.getSize() == index) {
+            final N oldChild = child.getLeaf();
+            final TreeNode<V, N> oldChildNode = childMap.remove(oldChild);
+            final TreeNode<V, N> newNode = new TreeNode<>(newNodeId, childCreator, value);
+            childMap.put(newNodeId, newNode);
+            newNode.getChildMap().put(oldChild, oldChildNode);
+        }
+    }
+
     @SuppressWarnings("SameParameterValue")
     protected O<V> getValueOfLastExistingParent(TreePath<N> path, int counter) {
         return getNodeOfLastExistingParent(path, this, counter).map($ -> $.value);
@@ -237,15 +273,15 @@ public class TreeNode<V, N> {
         }
 
         return path.getSize() > index
-                ? ofNull(childMap.get(path.getAt(index)))
-                .map($ -> $.getNodeOfLastExistingParent(path, this, index + 1))
-                .orElseGet(() -> this.value == null ? of(parent) : of(this))
-                : of(this);
+               ? ofNull(childMap.get(path.getAt(index)))
+                       .map($ -> $.getNodeOfLastExistingParent(path, this, index + 1))
+                       .orElseGet(() -> this.value == null ? of(parent) : of(this))
+               : of(this);
     }
 
     @Override
     public String toString() {
-        return toString(0);
+        return toString(0).trim();
     }
 
     protected String toString(int level) {

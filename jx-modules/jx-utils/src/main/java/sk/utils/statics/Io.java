@@ -33,6 +33,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.nio.file.Files.*;
@@ -419,6 +420,7 @@ public final class Io {
     }
     //endregion
 
+    //region Execute script + services
     public static ExecuteInfo execute(String command) {
         ProcessBuilder ps = command.contains("|")
                             ? new ProcessBuilder("/bin/sh", "-c", command)
@@ -441,6 +443,39 @@ public final class Io {
         }
     }
 
+
+    public static boolean serviceStop(String service) {
+        execute("sudo service %s stop".formatted(service));
+        return Io.serviceStatus(service) == ServiceStatus.INACTIVE;
+    }
+
+    public static boolean serviceStart(String service) {
+        execute("sudo service %s start".formatted(service));
+        return Io.serviceStatus(service) == ServiceStatus.ACTIVE;
+    }
+
+    public static boolean serviceRestart(String service) {
+        execute("sudo service %s restart".formatted(service));
+        return Io.serviceStatus(service) == ServiceStatus.ACTIVE;
+    }
+
+    private static final Pattern SERVICE_ACTIVITY_PATTERN = Pattern.compile("Active: (.*?) ");//Active: active (...) ....
+
+    public static ServiceStatus serviceStatus(String service) {
+        service = service.trim();
+        if (service.contains(" ")) {
+            throw new RuntimeException("Can't invoke service: '%s'" + service);
+        }
+        final ExecuteInfo result = execute("sudo service %s status".formatted(service));
+        final List<String> rr = St.matchAllFirst(result.getOutput(), SERVICE_ACTIVITY_PATTERN);
+        if (rr.size() == 0) {
+            return ServiceStatus.NO_STATUS;
+        } else {
+            final String s = Cc.first(rr).get().trim();
+            return Re.findInEnum(ServiceStatus.class, s.toUpperCase()).orElse(ServiceStatus.OTHER);
+        }
+    }
+
     @Data
     @AllArgsConstructor
     public static class ExecuteInfo {
@@ -448,6 +483,9 @@ public final class Io {
         int code;
         String output;
     }
+
+    public enum ServiceStatus {ACTIVE, INACTIVE, OTHER, NO_STATUS}
+    //endregion
 
     private static void withCreatedPath(String path, C1<Path> r) {
         File file = new File(path);

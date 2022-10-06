@@ -20,8 +20,10 @@ package sk.utils.async;
  * #L%
  */
 
+import lombok.extern.log4j.Log4j2;
 import sk.utils.async.cancel.CancelGetter;
 import sk.utils.functional.C1;
+import sk.utils.functional.C2;
 import sk.utils.functional.R;
 import sk.utils.statics.Fu;
 
@@ -31,12 +33,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
+@Log4j2
 public class ForeverThreadWithFinish extends Thread {
     private final AtomicBoolean finished = new AtomicBoolean(false);
     private final AtomicBoolean completed = new AtomicBoolean(false);
     private final Semaphore finishSemaphore = new Semaphore(1, true);
 
     final C1<CancelGetter> foreverTarget;
+    final C2<Throwable, ForeverThreadWithFinish> onError;
 
     public ForeverThreadWithFinish(R target, boolean daemon) {
         this(ct -> target.run(), daemon);
@@ -47,15 +51,35 @@ public class ForeverThreadWithFinish extends Thread {
     }
 
     public ForeverThreadWithFinish(C1<CancelGetter> target, boolean daemon) {
-        super((Runnable) null);
-        setDaemon(daemon);
-        foreverTarget = target;
+        this(target, daemon, (throwable, foreverThreadWithFinish) -> IAsyncUtil.processErrorOnDefaultHandler(false, throwable));
     }
 
     public ForeverThreadWithFinish(C1<CancelGetter> target, String name, boolean daemon) {
+        this(target, name, daemon,
+                (throwable, foreverThreadWithFinish) -> IAsyncUtil.processErrorOnDefaultHandler(false, throwable));
+    }
+
+    public ForeverThreadWithFinish(R target, boolean daemon, C2<Throwable, ForeverThreadWithFinish> onError) {
+        this(ct -> target.run(), daemon, onError);
+    }
+
+    public ForeverThreadWithFinish(R target, String name, boolean daemon, C2<Throwable, ForeverThreadWithFinish> onError) {
+        this(ct -> target.run(), name, daemon, onError);
+    }
+
+    public ForeverThreadWithFinish(C1<CancelGetter> target, boolean daemon, C2<Throwable, ForeverThreadWithFinish> onError) {
+        super((Runnable) null);
+        setDaemon(daemon);
+        foreverTarget = target;
+        this.onError = onError;
+    }
+
+    public ForeverThreadWithFinish(C1<CancelGetter> target, String name, boolean daemon,
+            C2<Throwable, ForeverThreadWithFinish> onError) {
         super((Runnable) null, name);
         setDaemon(daemon);
         foreverTarget = target;
+        this.onError = onError;
     }
 
     @Override
@@ -66,13 +90,10 @@ public class ForeverThreadWithFinish extends Thread {
             try {
                 finishSemaphore.acquire();
                 foreverTarget.accept(isFinished);
-            } catch (Exception e) {
-                e.printStackTrace();
-                finishThread();
             } finally {
                 finishSemaphore.release();
             }
-        }, Fu.emptyC(), finished::get).run();
+        }, throwable -> onError.accept(throwable, this), finished::get).run();
     }
 
     @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})

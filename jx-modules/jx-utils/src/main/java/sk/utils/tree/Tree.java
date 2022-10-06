@@ -61,6 +61,11 @@ public class Tree<V, N> {
         return this;
     }
 
+    public Tree<V, N> setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value) {
+        getRoot().setValBetween(parent, child, newNodeId, value);
+        return this;
+    }
+
     public V getVal(TreePath<N> p) {
         return getRoot().getValue(p).orElse(nullValue);
     }
@@ -77,8 +82,17 @@ public class Tree<V, N> {
         return getRoot().getNodeOfLastExistingParent(p);
     }
 
+    public void setNewParent(TreePath<N> newParent, TreePath<N> oldPath) {
+        final TreeNode<V, N> newParentNode = getNode(newParent).get();
+        final TreeNode<V, N> oldParent = getNode(oldPath.getParent()).get();
+
+        final TreeNode<V, N> nodeToRelink = oldParent.getChildMap().remove(oldPath.getLeaf());
+        newParentNode.getChildMap().put(nodeToRelink.getName(), nodeToRelink);
+    }
+
     @Override
     public String toString() {
-        return getRoot().toString();
+        return getRoot().toString().trim();
     }
+
 }

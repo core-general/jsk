@@ -28,7 +28,9 @@ import sk.utils.statics.Cc;
 
 import javax.annotation.PreDestroy;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ForkJoinPool;
 
 import static java.lang.Runtime.getRuntime;
 import static java.util.concurrent.Executors.*;
@@ -43,11 +45,11 @@ public class AsyncImpl implements IAsync {
     private final IExecutorService b = new IExecutorServiceImpl(newCachedThreadPool(r -> getDaemon(r::run, "CachedExecutor")));
     private final IExecutorService s =
             new IExecutorServiceImpl(newSingleThreadExecutor(r -> getDaemon(r::run, "SingleThreadExecutor")));
-    private final ScheduledExecutorService sc = newScheduledThreadPool(
+    private final IScheduledExecutorService sc = new IScheduledExecutorServiceImpl(newScheduledThreadPool(
             O.ofNullable(System.getProperty("AsyncImpl.scheduledPoolSize")).map(Integer::parseInt).orElse(5),
-            r -> getDaemon(r::run, "ScheduledExecutor"));
+            r -> getDaemon(r::run, "ScheduledExecutor")));
     private final Map<Integer, IExecutorService> fixPerCore = new ConcurrentHashMap<>();
-    private final Map<String, ScheduledExecutorService> dedicatedSchedulerExecutors = new ConcurrentHashMap<>();
+    private final Map<String, IScheduledExecutorService> dedicatedSchedulerExecutors = new ConcurrentHashMap<>();
     private final IExecutorService coldTaskFJP = new IExecutorServiceImpl(
             new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(200)));
 
@@ -75,7 +77,7 @@ public class AsyncImpl implements IAsync {
     }
 
     @Override
-    public ScheduledExecutorService scheduledExec() {
+    public IScheduledExecutorService scheduledExec() {
         return sc;
     }
 
@@ -85,17 +87,18 @@ public class AsyncImpl implements IAsync {
     }
 
     @Override
-    public ScheduledExecutorService newDedicatedScheduledExecutor(String name) {
+    public IScheduledExecutorService newDedicatedScheduledExecutor(String name) {
         return Cc.compute(dedicatedSchedulerExecutors, name, (k, old) -> {
             log.debug("Replacing scheduled executor: " + name);
-            old.shutdownNow();
+            old.getUnderlying().shutdownNow();
             return createScheduledExecutorService(name);
         }, () -> createScheduledExecutorService(name));
     }
 
     @NotNull
-    private ScheduledExecutorService createScheduledExecutorService(String name) {
-        return newScheduledThreadPool(1, r -> getDaemon(r::run, "ScheduledDedicatedExecutor-" + name));
+    private IScheduledExecutorService createScheduledExecutorService(String name) {
+        return new IScheduledExecutorServiceImpl(
+                newScheduledThreadPool(1, r -> getDaemon(r::run, "ScheduledDedicatedExecutor-" + name)));
     }
 
     private Thread getDaemon(R r, String name) {
@@ -111,8 +114,8 @@ public class AsyncImpl implements IAsync {
         f.getUnderlying().shutdownNow();
         b.getUnderlying().shutdownNow();
         s.getUnderlying().shutdownNow();
-        sc.shutdownNow();
+        sc.getUnderlying().shutdownNow();
         fixPerCore.values().forEach($ -> $.getUnderlying().shutdown());
-        dedicatedSchedulerExecutors.values().forEach(ExecutorService::shutdownNow);
+        dedicatedSchedulerExecutors.values().forEach($ -> $.getUnderlying().shutdown());
     }
 }

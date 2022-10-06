@@ -22,12 +22,8 @@ package sk.services.http.model;
 
 import sk.services.http.EtagAndSize;
 import sk.utils.functional.O;
-import sk.utils.statics.Ex;
 import sk.utils.statics.Ma;
-import sk.utils.statics.St;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Set;
 
@@ -56,25 +52,6 @@ public interface CoreHttpResponse {
                 (etag, length) -> O.of(new EtagAndSize(etag, Ma.pl(length))));
     }
 
-    public default O<EtagAndSize> calcEtagAndSize() {
-        return getEtagAndSize().or(
-                () -> {
-                    final byte[] data = getAsBytes();
-                    try {
-                        return O.of(calcEtagAndSize(data));
-                    } catch (Exception e) {
-                        return O.empty();
-                    }
-                }
-        );
-    }
+    public O<EtagAndSize> calcEtagAndSize();
 
-    public static EtagAndSize calcEtagAndSize(byte[] data) {
-        try {
-            return new EtagAndSize(St.bytesToHex(MessageDigest.getInstance("MD5").digest(data)), data.length);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return Ex.thRow(e);
-        }
-    }
 }

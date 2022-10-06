@@ -54,7 +54,7 @@ public class TreeTest extends MockitoTest {
                         "   |- c\n" +
                         "|- b\n" +
                         "   |- b\n" +
-                        "   |- c\n");
+                        "   |- c");
     }
 
     @Test

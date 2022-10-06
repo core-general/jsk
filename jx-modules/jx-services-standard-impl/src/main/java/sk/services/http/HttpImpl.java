@@ -67,16 +67,16 @@ public class HttpImpl implements IHttp {
     protected @Inject ITime times;
     protected @Inject IAsync async;
     protected @Inject IIds ids;
-    protected @Inject IBytes bytes;
+    protected @Inject IBytes ibytes;
 
     protected HttpClient httpClient;
 
-    public HttpImpl(IRepeat retry, ITime times, IAsync async, IIds ids, IBytes bytes) {
+    public HttpImpl(IRepeat retry, ITime times, IAsync async, IIds ids, IBytes ibytes) {
         this.retry = retry;
         this.times = times;
         this.async = async;
         this.ids = ids;
-        this.bytes = bytes;
+        this.ibytes = ibytes;
         init();
     }
 
@@ -209,7 +209,7 @@ public class HttpImpl implements IHttp {
             throws IOException {
         long start = times.now();
         if (xBuilder.login() != null && xBuilder.password() != null) {
-            builder.header("Authorization", Credentials.basic(xBuilder.login(), xBuilder.password(), bytes));
+            builder.header("Authorization", Credentials.basic(xBuilder.login(), xBuilder.password(), ibytes));
         }
         builder.timeout(xBuilder.timeout().orElseGet(() -> getConfig().getReadTimeout()));
 
@@ -240,7 +240,7 @@ public class HttpImpl implements IHttp {
             int code = response.statusCode();
             final Map<String, List<String>> headers = response.headers().map();
             long finish = times.now();
-            return new CoreHttpResponseDefaultImpl(finish - start, code, bytes, headers);
+            return new CoreHttpResponseDefaultImpl(ibytes, finish - start, code, bytes, headers);
         } catch (InterruptedException e) {
             throw new IOException(e);
         }
@@ -268,12 +268,15 @@ public class HttpImpl implements IHttp {
         private final byte[] bytes;
         private final Set<String> headerKeysOriginal;
         private final Map<String, List<String>> headers;
+        private final IBytes ibytes;
         private volatile String cachedString;
 
-        public CoreHttpResponseDefaultImpl(long durationMs, int code, byte[] bytes, Map<String, List<String>> headers) {
+        public CoreHttpResponseDefaultImpl(IBytes ibytes, long durationMs, int code, byte[] bytes,
+                Map<String, List<String>> headers) {
             this.durationMs = durationMs;
             this.code = code;
             this.bytes = bytes;
+            this.ibytes = ibytes;
             this.headerKeysOriginal = Collections.unmodifiableSet(new HashSet<>(headers.keySet()));
             this.headers = headers.entrySet().stream().map($ -> X.x($.getKey().toLowerCase(), $.getValue())).collect(Cc.toMX2());
             cachedString = null;
@@ -329,6 +332,20 @@ public class HttpImpl implements IHttp {
         @Override
         public Set<String> getHeaders() {
             return headerKeysOriginal;
+        }
+
+        @Override
+        public O<EtagAndSize> calcEtagAndSize() {
+            return getEtagAndSize().or(
+                    () -> {
+                        final byte[] data = getAsBytes();
+                        try {
+                            return O.of(ibytes.calcEtagAndSize(data));
+                        } catch (Exception e) {
+                            return O.empty();
+                        }
+                    }
+            );
         }
     }
 

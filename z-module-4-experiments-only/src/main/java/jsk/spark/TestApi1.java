@@ -96,4 +96,7 @@ public interface TestApi1 {
 
     @WebGET
     List<String> getStrings(List<String> abc);
+
+    @WebGET
+    String exceptTest();
 }

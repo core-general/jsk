@@ -65,10 +65,17 @@ public interface IIds {
 
     //region Haiku
 
-    /** ~10^16 combinations */
+    /** ~1.7*10^19 combinations */
     String longHaiku();
 
-    /** ~10^9 combinations */
+    /** ~1.4*10^11 combinations */
     String shortHaiku();
+
+    JskHaikunator.LongAndShortHaikunator defaultHaikunators();
+
+    /** ~6*10^5 combinations */
+    String tinyHaiku();
+
+    String timedHaiku();
     //endregion
 }

@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 public class DequeWithLimit<T> {
     int maxSize;
-    ArrayDeque<T> deque = new ArrayDeque<>();
+    ArrayDeque<T> deque;
 
     public DequeWithLimit(int maxSize) {
         this.maxSize = maxSize;
@@ -41,14 +41,14 @@ public class DequeWithLimit<T> {
 
     public void addFirst(@NotNull T t) {
         deque.addFirst(t);
-        if (deque.size() > maxSize) {
+        while (deque.size() > maxSize) {
             deque.removeLast();
         }
     }
 
     public void addLast(@NotNull T t) {
         deque.addLast(t);
-        if (deque.size() > maxSize) {
+        while (deque.size() > maxSize) {
             deque.removeFirst();
         }
     }
