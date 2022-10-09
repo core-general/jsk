@@ -26,18 +26,32 @@ import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.Version;
 import lombok.extern.log4j.Log4j2;
+import sk.services.ids.IIds;
+import sk.utils.functional.F0E;
 import sk.utils.javafixes.BuilderStringWriter;
 import sk.utils.statics.Ex;
 
+import javax.inject.Inject;
 import java.io.StringReader;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings("unused")
 @Log4j2
 public class Freemarker implements IFree {
+    @Inject IIds ids;
+
     private final Configuration resourceFreemarker;
     private final Configuration textFreemarker;
     private final Configuration resourceFreemarkerHtml;
     private final Configuration textFreemarkerHtml;
+
+    final ConcurrentMap<String, Template> templateCache = new ConcurrentHashMap<>();
+
+    public Freemarker(IIds ids) {
+        this();
+        this.ids = ids;
+    }
 
     public Freemarker() {
         resourceFreemarker = new Configuration(new Version("2.3.23"));
@@ -59,25 +73,25 @@ public class Freemarker implements IFree {
 
     @Override
     public String process(String templatePath, Object model) {
-        return process(templatePath, model, false);
+        return processInner(templatePath, model, false);
     }
 
     @Override
-    public String processByText(String templateText, Object model) {
-        return processByText(templateText, model, false);
+    public String processByText(String templateText, Object model, boolean templateTextIsCacheable) {
+        return processByTextInner(templateText, model, false, templateTextIsCacheable);
     }
 
     @Override
     public String processHtml(String templatePath, Object model) {
-        return process(templatePath, model, true);
+        return processInner(templatePath, model, true);
     }
 
     @Override
-    public String processByTextHtml(String templateText, Object model) {
-        return processByText(templateText, model, true);
+    public String processByTextHtml(String templateText, Object model, boolean templateTextIsCacheable) {
+        return processByTextInner(templateText, model, true, templateTextIsCacheable);
     }
 
-    private String process(String templatePath, Object model, boolean html) {
+    private String processInner(String templatePath, Object model, boolean html) {
         BuilderStringWriter sw = new BuilderStringWriter();
         try {
             (html ? resourceFreemarkerHtml : resourceFreemarker).getTemplate(templatePath).process(model, sw);
@@ -87,10 +101,25 @@ public class Freemarker implements IFree {
         return sw.toString();
     }
 
-    private String processByText(String templateText, Object model, boolean html) {
+
+    private String processByTextInner(String templateText, Object model, boolean html, boolean templateIsCacheable) {
         BuilderStringWriter sw = new BuilderStringWriter();
         try {
-            new Template("_", new StringReader(templateText), (html ? textFreemarkerHtml : textFreemarker)).process(model, sw);
+            F0E<Template> templater =
+                    () -> new Template("_", new StringReader(templateText), (html ? textFreemarkerHtml : textFreemarker));
+            Template template;
+            if (templateIsCacheable) {
+                template = templateCache.computeIfAbsent(ids.text2Uuid(templateText).toString(), (k) -> {
+                    try {
+                        return templater.apply();
+                    } catch (Exception e) {
+                        return Ex.thRow(e);
+                    }
+                });
+            } else {
+                template = templater.apply();
+            }
+            template.process(model, sw);
         } catch (Exception e) {
             return Ex.thRow(e);
         }

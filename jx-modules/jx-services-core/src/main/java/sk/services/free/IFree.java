@@ -23,9 +23,11 @@ package sk.services.free;
 public interface IFree {
     public String process(String templatePath, Object model);
 
-    public String processByText(String templateText, Object model);
+    /** @param templateTextIsCacheable - if template text does not change (or this change is limited) */
+    public String processByText(String templateText, Object model, boolean templateTextIsCacheable);
 
     String processHtml(String templatePath, Object model);
 
-    String processByTextHtml(String templateText, Object model);
+    /** @param templateTextIsCacheable - if template text does not change (or this change is limited) */
+    String processByTextHtml(String templateText, Object model, boolean templateTextIsCacheable);
 }
