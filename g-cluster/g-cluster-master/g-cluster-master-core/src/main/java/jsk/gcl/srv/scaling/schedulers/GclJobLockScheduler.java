@@ -20,20 +20,93 @@ package jsk.gcl.srv.scaling.schedulers;
  * #L%
  */
 
+import jsk.gcl.srv.jpa.GclJob;
+import jsk.gcl.srv.jpa.GclJobGroup;
+import jsk.gcl.srv.jpa.GclJobId;
+import jsk.gcl.srv.scaling.storage.GclJobStorage;
+import jsk.gcl.srv.scaling.storage.GclNodeStorage;
+import jsk.gcl.srv.scaling.workers.GclScalingLocalWorkerManager;
+import lombok.extern.log4j.Log4j2;
 import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonoff.CluKvBasedOnOffWorker;
+import sk.services.clusterworkers.model.CluDelay;
+import sk.utils.async.cancel.CancelGetter;
+import sk.utils.functional.O;
+import sk.utils.statics.Ma;
+
+import javax.inject.Inject;
+import java.util.List;
+
+import static sk.utils.statics.Ti.second;
 
 /**
- * 1. Takes jobs from DB (locks them) and adds them to local queue
- * 2. Checks all the current jobs and updates their lifeness
+ * 1. Takes jobs from DB (one by one for job groups) (locks them with state and life ping) and adds them to local queue
+ * (according to the count of nodes in cluster and size of
+ * local working pool)
+ * 2. Checks all the current local jobs and updates their lifePing
+ *
+ * ------------------------------
+ * ------------BUFFER:
+ * 2 limits: lower limit activates request to DB, higher limit limits how much work we take from DB
  */
+@Log4j2
 public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWorker.IConf> implements IBoot {
+
+    public static final int MIN_BUFFER_SIZE = 100;
+    public static final int MAX_BUFFER_SIZE = 100;
+
     public GclJobLockScheduler() {
         super("GclJobLockScheduler");
     }
 
+    @Inject GclScalingLocalWorkerManager workManager;
+    @Inject GclJobStorage jobs;
+    @Inject GclNodeStorage nodes;
+
     @Override
     public void run() {
-        //todo
+        start(new CluKvBasedOnOffWorker.Conf(
+                30 * second, CluDelay.fixed(3 * second),
+                this::doTask,
+                e -> log.error("", e)
+        ));
+    }
+
+    private void doTask(CancelGetter cancelGetter) {
+        try {
+            updateLifePings(); // todo separate schedulers
+        } catch (Exception e) {
+            log.error("", e);
+        }
+        try {
+            tryLockNewTasks();
+        } catch (Exception e) {
+            log.error("", e);
+        }
+    }
+
+    private void updateLifePings() {
+        List<GclJobId> jobs = workManager.getAllInProgressJobIds();
+        jobs.updateLigePings(jobs);
+    }
+
+    private void tryLockNewTasks() {
+        int bufferedJobCount = workManager.getBufferJobCount();
+        long activeNodeCount = nodes.getActiveNodeCount();
+        do {
+            O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();
+            if (oJobGroup.isEmpty()) {
+                break;
+            }
+
+            final GclJobGroup jobGroup = oJobGroup.get();
+            final int numOfJobsLeft =
+                    -jobGroup.getJgInnerState().getNumOfJobsFinished();
+
+            long numOfJobsToLock = Ma.clamp(jobGroup.getJgInnerState().getNumOfJobs() / activeNodeCount, 3, MAX_BUFFER_SIZE);
+            List<GclJob> lockedJobs =
+
+                    bufferedJobCount = workManager.getBufferJobCount();
+        } while (bufferedJobCount < MIN_BUFFER_SIZE);
     }
 }

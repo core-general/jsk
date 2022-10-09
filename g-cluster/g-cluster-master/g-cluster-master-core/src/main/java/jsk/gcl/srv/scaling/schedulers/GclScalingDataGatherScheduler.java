@@ -31,6 +31,7 @@ import jsk.gcl.srv.scaling.model.GclNodeInfo;
 import jsk.gcl.srv.scaling.storage.GclNodeStorage;
 import jsk.gcl.srv.scaling.workers.GclScalingLocalWorkerManager;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
 import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonoff.CluKvBasedOnOffWorker;
 import sk.services.clusterworkers.model.CluDelay;
@@ -64,6 +65,7 @@ import java.time.temporal.ChronoUnit;
 public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWorker.IConf>
         implements IBoot, GclOOMManager {
     public static final String CURRENT_MAX_WORKERS_FILE = "max_workers";
+    public static final long NODE_PING_PERIOD_MS = 9_000L;
     @Inject JxSystemInfoService systemInfo;
     @Inject INodeInfo nodeInfo;
     @Inject INodeRestartStorage nodeRestartStorage;
@@ -81,7 +83,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
     @Override
     public void run() {
         GclNodeInfo curInfo =
-                nodeStorage.ensureNodeIsCreatedAndReturnConfig(new GclNodeId(nodeInfo.getNodeId()), () -> new GclNodeInfo(
+                nodeStorage.ensureNodeIsCreatedAndReturnConfig(getNodeId(), () -> new GclNodeInfo(
                         times.nowZ(),
                         appProps.getMinWorkers(),
                         nodeRestartStorage.getStringAfterRestart(CURRENT_MAX_WORKERS_FILE)
@@ -101,7 +103,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
                 (int) Ma.clamp(curInfo.getCurMaxWorkers() / 2, curInfo.getMinWorkers(), curInfo.getCurMaxWorkers()));
 
         start(new CluKvBasedOnOffWorker.Conf(
-                30_000L, CluDelay.fixed(9_000L),
+                30_000L, CluDelay.fixed(NODE_PING_PERIOD_MS),
                 cancel -> {
                     final GclNode oNodeInfo = gatherData(cancel);
                     scaleIfNeeded(oNodeInfo.getNInnerState());
@@ -112,7 +114,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
 
     @PreDestroy
     private void preDestroy() {
-        archiveManager.archiveNode(nodeInfo.getNodeId());
+        archiveManager.archiveNode(getNodeId());
     }
 
     @Override
@@ -124,7 +126,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
             nodeRestartStorage.setDataForRestart(CURRENT_MAX_WORKERS_FILE, newWorkerCount + "");
 
             nodeStorage.transactionWithSaveX1(() -> {
-                GclNode node = nodeStorage.getNodeCurrentInfo(new GclNodeId(nodeInfo.getNodeId()));
+                GclNode node = nodeStorage.getNodeCurrentInfo(getNodeId());
                 final GclNodeInfo old = node.getNInnerState();
                 final GclNodeInfo.OOMInfo oom = old.getOom();
                 final ZonedDateTime now = times.nowZ();
@@ -136,8 +138,8 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
         } catch (Throwable e) {
             //do nothing on error, since we don't need more OOMs
         }
-
-        System.exit(1);
+        log.error("Exiting on OOM with error code 0");
+        System.exit(0);
     }
 
     private final static Duration oneMin = Duration.ofMinutes(1);
@@ -161,7 +163,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
         final long end = times.now();
 
         final X1<GclNode> nn = nodeStorage.transactionWithSaveX1(() -> {
-            final GclNode nodeCurrentInfo = nodeStorage.getNodeCurrentInfo(new GclNodeId(nodeInfo.getNodeId()));
+            final GclNode nodeCurrentInfo = nodeStorage.getNodeCurrentInfo(getNodeId());
             final GclNodeInfo old = nodeCurrentInfo.getNInnerState();
 
             old.getHistory().addFirst(new GclNodeHistoryItem(
@@ -184,6 +186,8 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
                 old.setFullHistNodeAvgStat(avgWorkerStat);
                 old.setFullHistPerWorkerAvgStat(avgWorkerStat.divideBy(avgLocalWorkers));
             }
+
+            nodeCurrentInfo.setNLifePing(times.nowZ());
 
             return X.x(nodeCurrentInfo);
         });
@@ -218,7 +222,7 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
             final ZonedDateTime lastChange = oomInfo.getLastMaxChange().get();
             if (Ti.between(lastChange, now).toMillis() > appProps.getDurationToScaleWorkersUp()) {
                 final X1<GclNode> collect = nodeStorage.transactionWithSaveX1(() -> {
-                    final GclNode nodeCurrentInfo = nodeStorage.getNodeCurrentInfo(new GclNodeId(nodeInfo.getNodeId()));
+                    final GclNode nodeCurrentInfo = nodeStorage.getNodeCurrentInfo(getNodeId());
                     final GclNodeInfo old = nodeCurrentInfo.getNInnerState();
                     old.setCurMaxWorkers(old.getCurMaxWorkers() + (old.getOverallMaxWorkers() - old.getCurMaxWorkers()) / 2);
                     return X.x(nodeCurrentInfo);
@@ -229,6 +233,10 @@ public class GclScalingDataGatherScheduler extends CluKvBasedOnOffWorker<CluKvBa
         return data;
     }
 
+    @NotNull
+    private GclNodeId getNodeId() {
+        return new GclNodeId(nodeInfo.getNodeId());
+    }
 
     private GclAvgStats calcAverageStats(DequeWithLimit<GclNodeHistoryItem> history, ZonedDateTime now, Duration timeBack) {
         final ZonedDateTime start = now.minus(timeBack);

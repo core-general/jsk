@@ -20,7 +20,14 @@ package jsk.gcl.srv.scaling.storage;
  * #L%
  */
 
+import jsk.gcl.srv.jpa.GclNodeArchive;
+import jsk.gcl.srv.jpa.GclNodeArchiveId;
+import jsk.gcl.srv.jpa.GclNodeId;
 import sk.db.relational.spring.services.RdbTransactionManager;
+import sk.utils.functional.O;
 
 public interface GclNodeArchiveStorage extends RdbTransactionManager {
+    O<GclNodeArchive> getNodeArchiveById(GclNodeArchiveId nodeArchiveId);
+
+    void archiveNode(GclNodeId nodeId);
 }

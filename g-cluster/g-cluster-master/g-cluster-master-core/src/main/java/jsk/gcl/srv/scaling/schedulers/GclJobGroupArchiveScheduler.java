@@ -25,7 +25,7 @@ import sk.services.clusterworkers.kvonofflocker.CluKvBasedOnOffWithLockWorker;
 
 /**
  * 1. Checks job groups which are finished
- * 2. One by one selects all jobs of a particular group and puts them into archive
+ * 2. Archive them
  */
 public class GclJobGroupArchiveScheduler extends CluKvBasedOnOffWithLockWorker<CluKvBasedOnOffWithLockWorker.IConf>
         implements IBoot {

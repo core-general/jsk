@@ -55,7 +55,7 @@ CREATE TABLE gcl_job
 -- @relationHere gcl_job j_jg_id gcl_job_group
 -- @jsonb gcl_job j_inner_state jsk.gcl.srv.scaling.model.GclJobInnerState
 CREATE INDEX ON gcl_job USING BTREE (j_tag);
-CREATE INDEX ON gcl_job USING BTREE (j_jg_id);
+CREATE INDEX ON gcl_job USING BTREE (j_jg_id, j_status);
 CREATE INDEX ON gcl_job USING BTREE (j_life_ping);
 
 

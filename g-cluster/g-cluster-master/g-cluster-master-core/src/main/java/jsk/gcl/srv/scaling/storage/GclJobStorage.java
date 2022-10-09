@@ -20,8 +20,25 @@ package jsk.gcl.srv.scaling.storage;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobDto;
+import jsk.gcl.cli.model.GclJobGroupDto;
+import jsk.gcl.srv.jpa.GclJob;
+import jsk.gcl.srv.jpa.GclJobGroup;
+import jsk.gcl.srv.jpa.GclJobGroupId;
+import jsk.gcl.srv.jpa.GclJobId;
 import sk.db.relational.spring.services.RdbTransactionManager;
+import sk.utils.functional.O;
+
+import java.util.List;
 
 public interface GclJobStorage extends RdbTransactionManager {
+    O<GclJobGroup> getJobGroupById(GclJobGroupId jobGroupId);
 
+    GclJobGroup newGclJobGroup(GclJobGroupDto dto);
+
+    O<GclJob> getJobById(GclJobId jobId);
+
+    List<GclJob> getJobsRelatedTo(GclJobGroupId jobGroupId);
+
+    GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?> job);
 }

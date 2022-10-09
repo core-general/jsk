@@ -27,6 +27,7 @@ import jsk.gcl.srv.scaling.model.GclJobGroupInnerState;
 import jsk.gcl.srv.scaling.model.GclJobInnerState;
 import jsk.gcl.srv.scaling.model.GclJobStatus;
 import jsk.gcl.srv.scaling.model.GclNodeInfo;
+import jsk.gcl.srv.scaling.schedulers.GclScalingDataGatherScheduler;
 import lombok.extern.log4j.Log4j2;
 import net.bull.javamelody.MonitoredWithSpring;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -35,6 +36,7 @@ import sk.services.bytes.IBytes;
 import sk.services.ids.IIds;
 import sk.services.json.IJson;
 import sk.services.nodeinfo.INodeInfo;
+import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -44,6 +46,8 @@ import sk.utils.statics.Ti;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @MonitoredWithSpring
@@ -53,6 +57,7 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     private @Inject IIds ids;
     private @Inject IJson json;
     private @Inject IBytes bytes;
+    private @Inject ITime times;
 
     private @Inject NamedParameterJdbcOperations jdbcQuery;
 
@@ -151,10 +156,25 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     }
 
     @Override
+    public List<GclNode> getInactiveNodes() {
+        return Cc.list(nodeRepo.findAll(qnode.nLifePing.lt(getNodeInactiveTimeLimit())));
+    }
+
+    @Override
+    public long getActiveNodeCount() {
+        return nodeRepo.count(qnode.nLifePing.goe(getNodeInactiveTimeLimit()));
+    }
+
+    @Override
     public GclNode ensureNodeIsCreatedAndReturnConfig(GclNodeId nodeId, F0<GclNodeInfo> infoInitializer) {
-        final GclNodeJpa toSave = new GclNodeJpa(nodeId, infoInitializer.apply(), Ti.minZonedDateTime, null, null, null);
+        final GclNodeJpa toSave = new GclNodeJpa(nodeId, infoInitializer.apply(), times.nowZ(), null, null, null);
         saveSingleItem(toSave);
         return toSave;
+    }
+
+
+    private ZonedDateTime getNodeInactiveTimeLimit() {
+        return times.nowZ().minus(4 * GclScalingDataGatherScheduler.NODE_PING_PERIOD_MS, ChronoUnit.MILLIS);
     }
 
     // endregion
@@ -169,13 +189,14 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
 
     @Override
     @Transactional
-    public void archiveNode(GclNode archiveNode) {
+    public void archiveNode(GclNodeId archiveNodeId) {
+        final GclNode toArchiveNode = getNodeById(archiveNodeId).get();
         final GclNodeArchiveJpa toSave =
-                new GclNodeArchiveJpa(new GclNodeArchiveId(archiveNode.getNId().getId()), archiveNode.getNInnerState(),
-                        archiveNode.getCreatedAt(), archiveNode.getUpdatedAt(), archiveNode.getVersion());
+                new GclNodeArchiveJpa(new GclNodeArchiveId(toArchiveNode.getNId().getId()), toArchiveNode.getNInnerState(),
+                        toArchiveNode.getCreatedAt(), toArchiveNode.getUpdatedAt(), toArchiveNode.getVersion());
 
         saveSingleItem(toSave);
-        nodeRepo.delete((GclNodeJpa) archiveNode);
+        nodeRepo.delete((GclNodeJpa) toArchiveNode);
     }
     // endregion
 

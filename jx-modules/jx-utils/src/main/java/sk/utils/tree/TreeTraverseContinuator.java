@@ -1,4 +1,4 @@
-package jsk.gcl.srv.scaling.model;
+package sk.utils.tree;
 
 /*-
  * #%L
@@ -20,6 +20,4 @@ package jsk.gcl.srv.scaling.model;
  * #L%
  */
 
-public interface GclNode {
-    public GclNodeInfo getInnerState();
-}
+public record TreeTraverseContinuator<Y>(Y value, boolean processChildren) {}

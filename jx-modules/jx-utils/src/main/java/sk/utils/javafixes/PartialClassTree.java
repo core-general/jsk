@@ -22,9 +22,9 @@ package sk.utils.javafixes;
 
 import sk.utils.functional.O;
 import sk.utils.statics.St;
-import sk.utils.tree.Continuator;
 import sk.utils.tree.Tree;
 import sk.utils.tree.TreePath;
+import sk.utils.tree.TreeTraverseContinuator;
 
 import java.util.Comparator;
 import java.util.List;
@@ -50,12 +50,12 @@ public class PartialClassTree {
             if (node.getValue().isPresent()) {
                 final Class<?> val = node.getValue().get();
                 if (val.isAssignableFrom(clsToCheck)) {
-                    return new Continuator<>(new TreeCheck(val, path, ClsCompare.FIRST_IS_PARENT), true);
+                    return new TreeTraverseContinuator<>(new TreeCheck(val, path, ClsCompare.FIRST_IS_PARENT), true);
                 } else {
-                    return new Continuator<>(null, false);
+                    return new TreeTraverseContinuator<>(null, false);
                 }
             } else {
-                return new Continuator<>(null, true);
+                return new TreeTraverseContinuator<>(null, true);
             }
         });
 
@@ -71,18 +71,18 @@ public class PartialClassTree {
 
         final List<TreeCheck> treeChecks = tree.getRoot().processAllByContinue((path, node) -> {
             if (St.isNullOrEmpty(path.getPath())) {
-                return new Continuator<>(null, true);
+                return new TreeTraverseContinuator<>(null, true);
             }
             if (node.getValue().isPresent()) {
                 final ClsCompare compare = compareClasses(node.getValue().get(), newCls);
                 return switch (compare) {
-                    case SAME -> new Continuator<>(null, true);
-                    case FIRST_IS_PARENT -> new Continuator<>(new TreeCheck(newCls, path, compare), true);
-                    case FIRST_IS_CHILD -> new Continuator<>(new TreeCheck(newCls, path, compare), false);
-                    case DIFFERENT_BRANCHES -> new Continuator<>(null, false);
+                    case SAME -> new TreeTraverseContinuator<>(null, true);
+                    case FIRST_IS_PARENT -> new TreeTraverseContinuator<>(new TreeCheck(newCls, path, compare), true);
+                    case FIRST_IS_CHILD -> new TreeTraverseContinuator<>(new TreeCheck(newCls, path, compare), false);
+                    case DIFFERENT_BRANCHES -> new TreeTraverseContinuator<>(null, false);
                 };
             } else {
-                return new Continuator<>(null, false);
+                return new TreeTraverseContinuator<>(null, false);
             }
         });
 

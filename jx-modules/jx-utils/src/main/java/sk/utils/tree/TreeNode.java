@@ -152,10 +152,12 @@ public class TreeNode<V, N> {
 
     @SuppressWarnings("unchecked")
     public <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Y> nodeProcessor) {
-        return processAll((nTreePath, vnTreeNode) -> new Continuator<>(nodeProcessor.apply(nTreePath, vnTreeNode), true), path());
+        return processAll(
+                (nTreePath, vnTreeNode) -> new TreeTraverseContinuator<>(nodeProcessor.apply(nTreePath, vnTreeNode), true),
+                path());
     }
 
-    public <Y> List<Y> processAllByContinue(F2<TreePath<N>, TreeNode<V, N>, Continuator<Y>> nodeProcessor) {
+    public <Y> List<Y> processAllByContinue(F2<TreePath<N>, TreeNode<V, N>, TreeTraverseContinuator<Y>> nodeProcessor) {
         return processAll(nodeProcessor, path());
     }
 
@@ -175,9 +177,9 @@ public class TreeNode<V, N> {
      * @return null values are filtered
      */
     @SuppressWarnings("unchecked")
-    protected <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Continuator<Y>> processor, TreePath<N> path) {
+    protected <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, TreeTraverseContinuator<Y>> processor, TreePath<N> path) {
         List<Y> xes = Cc.l();
-        Continuator<Y> val = processor.apply(path, this);
+        TreeTraverseContinuator<Y> val = processor.apply(path, this);
         if (val.value() != null) {
             xes.add(val.value());
         }

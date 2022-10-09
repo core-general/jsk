@@ -20,6 +20,8 @@ package jsk.gcl.srv.scaling;
  * #L%
  */
 
+import jsk.gcl.srv.jpa.GclNodeId;
+
 public interface GclNodeArchiveManager {
-    public void archiveNode(String nodeId);
+    public void archiveNode(GclNodeId nodeId);
 }

@@ -20,8 +20,14 @@ package jsk.gcl.srv.scaling.storage;
  * #L%
  */
 
+import jsk.gcl.srv.jpa.GclJobGroup;
+import jsk.gcl.srv.jpa.GclJobGroupArchive;
+import jsk.gcl.srv.jpa.GclJobGroupArchiveId;
 import sk.db.relational.spring.services.RdbTransactionManager;
+import sk.utils.functional.O;
 
 public interface GclJobArchiveStorage extends RdbTransactionManager {
+    O<GclJobGroupArchive> getJobGroupArchiveById(GclJobGroupArchiveId jobGroupArchiveId);
 
+    void moveJobGroupToArchive(GclJobGroup group);
 }

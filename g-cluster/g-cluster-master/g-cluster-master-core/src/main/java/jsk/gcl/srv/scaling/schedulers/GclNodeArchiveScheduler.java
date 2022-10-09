@@ -20,28 +20,62 @@ package jsk.gcl.srv.scaling.schedulers;
  * #L%
  */
 
+import jsk.gcl.srv.jpa.GclNode;
+import jsk.gcl.srv.jpa.GclNodeId;
 import jsk.gcl.srv.scaling.GclNodeArchiveManager;
+import jsk.gcl.srv.scaling.storage.GclNodeArchiveStorage;
+import jsk.gcl.srv.scaling.storage.GclNodeStorage;
+import lombok.extern.log4j.Log4j2;
 import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonofflocker.CluKvBasedOnOffWithLockWorker;
+import sk.services.clusterworkers.model.CluDelay;
+import sk.utils.async.cancel.CancelGetter;
+
+import javax.inject.Inject;
+import java.util.List;
+
+import static sk.utils.statics.Ti.minute;
+import static sk.utils.statics.Ti.second;
 
 
 /**
  * 1. Checks all nodes in a active node table
  * 2. If node does not update it's data for a long time, moves node to archive
  */
+@Log4j2
 public class GclNodeArchiveScheduler extends CluKvBasedOnOffWithLockWorker<CluKvBasedOnOffWithLockWorker.IConf>
         implements IBoot, GclNodeArchiveManager {
+
+    @Inject GclNodeStorage nodeStorage;
+    @Inject GclNodeArchiveStorage archive;
+
     public GclNodeArchiveScheduler() {
         super("GclNodeArchiveScheduler");
     }
 
     @Override
     public void run() {
-        //todo
+        start(new CluKvBasedOnOffWithLockWorker.ConfAlwaysOn(
+                30 * second, 2 * minute, false,
+                CluDelay.fixed(10 * second),
+                this::mainTask,
+                e -> log.error("", e)
+        ));
+    }
+
+    private void mainTask(CancelGetter cancel) {
+        List<GclNode> allBadNodes = nodeStorage.getInactiveNodes();
+        allBadNodes.forEach($ -> {
+            try {
+                archive.archiveNode($.getNId());
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        });
     }
 
     @Override
-    public void archiveNode(String nodeId) {
-        //todo
+    public void archiveNode(GclNodeId nodeId) {
+        archive.archiveNode(nodeId);
     }
 }

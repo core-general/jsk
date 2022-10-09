@@ -25,9 +25,18 @@ import jsk.gcl.srv.jpa.GclNodeId;
 import jsk.gcl.srv.scaling.model.GclNodeInfo;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.utils.functional.F0;
+import sk.utils.functional.O;
+
+import java.util.List;
 
 public interface GclNodeStorage extends RdbTransactionManager {
+    O<GclNode> getNodeById(GclNodeId nodeId);
+
     GclNode ensureNodeIsCreatedAndReturnConfig(GclNodeId nodeId, F0<GclNodeInfo> infoInitializer);
 
     GclNode getNodeCurrentInfo(GclNodeId nodeId);
+
+    List<GclNode> getInactiveNodes();
+
+    long getActiveNodeCount();
 }

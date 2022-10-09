@@ -21,40 +21,15 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
-import jsk.gcl.cli.model.GclJobDto;
-import jsk.gcl.cli.model.GclJobGroupDto;
 import jsk.gcl.srv.scaling.storage.GclJobArchiveStorage;
 import jsk.gcl.srv.scaling.storage.GclJobStorage;
 import jsk.gcl.srv.scaling.storage.GclNodeArchiveStorage;
 import jsk.gcl.srv.scaling.storage.GclNodeStorage;
 import sk.db.relational.spring.services.RdbTransactionManager;
-import sk.utils.functional.O;
 
-import javax.transaction.Transactional;
-import java.util.List;
-
-public interface GclStorageFacade extends RdbTransactionManager,
-                                          GclNodeStorage, GclJobArchiveStorage,
-                                          GclJobStorage,
-                                          GclNodeArchiveStorage {
-    O<GclJobGroup> getJobGroupById(GclJobGroupId jobGroupId);
-
-    GclJobGroup newGclJobGroup(GclJobGroupDto dto);
-
-    O<GclJob> getJobById(GclJobId jobId);
-
-    List<GclJob> getJobsRelatedTo(GclJobGroupId jobGroupId);
-
-    GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?> job);
-
-    O<GclJobGroupArchive> getJobGroupArchiveById(GclJobGroupArchiveId jobGroupArchiveId);
-
-    void moveJobGroupToArchive(GclJobGroup group);
-
-    O<GclNode> getNodeById(GclNodeId nodeId);
-
-    O<GclNodeArchive> getNodeArchiveById(GclNodeArchiveId nodeArchiveId);
-
-    @Transactional
-    void archiveNode(GclNode archiveNode);
-}
+public interface GclStorageFacade
+        extends RdbTransactionManager,
+                GclNodeStorage,
+                GclJobArchiveStorage,
+                GclJobStorage,
+                GclNodeArchiveStorage {}
