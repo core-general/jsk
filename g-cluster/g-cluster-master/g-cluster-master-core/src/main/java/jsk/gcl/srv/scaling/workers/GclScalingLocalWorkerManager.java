@@ -43,5 +43,6 @@ public class GclScalingLocalWorkerManager {
 
     public int getBufferJobCount() {
         //todo
+        return -1;
     }
 }

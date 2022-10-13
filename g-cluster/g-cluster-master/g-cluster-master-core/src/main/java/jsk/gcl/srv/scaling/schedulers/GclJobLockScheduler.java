@@ -20,9 +20,6 @@ package jsk.gcl.srv.scaling.schedulers;
  * #L%
  */
 
-import jsk.gcl.srv.jpa.GclJob;
-import jsk.gcl.srv.jpa.GclJobGroup;
-import jsk.gcl.srv.jpa.GclJobId;
 import jsk.gcl.srv.scaling.storage.GclJobStorage;
 import jsk.gcl.srv.scaling.storage.GclNodeStorage;
 import jsk.gcl.srv.scaling.workers.GclScalingLocalWorkerManager;
@@ -31,11 +28,8 @@ import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonoff.CluKvBasedOnOffWorker;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.O;
-import sk.utils.statics.Ma;
 
 import javax.inject.Inject;
-import java.util.List;
 
 import static sk.utils.statics.Ti.second;
 
@@ -86,27 +80,29 @@ public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWo
     }
 
     private void updateLifePings() {
-        List<GclJobId> jobs = workManager.getAllInProgressJobIds();
-        jobs.updateLigePings(jobs);
+        //todo
+        //List<GclJobId> jobs = workManager.getAllInProgressJobIds();
+        //jobs.updateLigePings(jobs);
     }
 
     private void tryLockNewTasks() {
-        int bufferedJobCount = workManager.getBufferJobCount();
-        long activeNodeCount = nodes.getActiveNodeCount();
-        do {
-            O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();
-            if (oJobGroup.isEmpty()) {
-                break;
-            }
-
-            final GclJobGroup jobGroup = oJobGroup.get();
-            final int numOfJobsLeft =
-                    -jobGroup.getJgInnerState().getNumOfJobsFinished();
-
-            long numOfJobsToLock = Ma.clamp(jobGroup.getJgInnerState().getNumOfJobs() / activeNodeCount, 3, MAX_BUFFER_SIZE);
-            List<GclJob> lockedJobs =
-
-                    bufferedJobCount = workManager.getBufferJobCount();
-        } while (bufferedJobCount < MIN_BUFFER_SIZE);
+        //todo
+        //int bufferedJobCount = workManager.getBufferJobCount();
+        //long activeNodeCount = nodes.getActiveNodeCount();
+        //do {
+        //    O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();
+        //    if (oJobGroup.isEmpty()) {
+        //        break;
+        //    }
+        //
+        //    final GclJobGroup jobGroup = oJobGroup.get();
+        //    final int numOfJobsLeft =
+        //            -jobGroup.getJgInnerState().getNumOfJobsFinished();
+        //
+        //    long numOfJobsToLock = Ma.clamp(jobGroup.getJgInnerState().getNumOfJobs() / activeNodeCount, 3, MAX_BUFFER_SIZE);
+        //    List<GclJob> lockedJobs =
+        //
+        //            bufferedJobCount = workManager.getBufferJobCount();
+        //} while (bufferedJobCount < MIN_BUFFER_SIZE);
     }
 }

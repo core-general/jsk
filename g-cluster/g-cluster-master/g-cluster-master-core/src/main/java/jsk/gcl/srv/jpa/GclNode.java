@@ -42,5 +42,5 @@ public interface GclNode {
 
     void setUpdatedAt(java.time.ZonedDateTime updatedAt);
 
-    long getVersion();
+    Long getVersion();
 }

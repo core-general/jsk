@@ -53,6 +53,7 @@ public class IdsImpl implements IIds {
     public IdsImpl(IRand random, IBytes bytes) {
         this.random = random;
         this.bytes = bytes;
+        init();
     }
 
     @PostConstruct

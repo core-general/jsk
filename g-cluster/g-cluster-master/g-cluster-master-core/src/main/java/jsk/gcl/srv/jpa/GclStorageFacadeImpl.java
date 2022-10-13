@@ -28,6 +28,7 @@ import jsk.gcl.srv.scaling.model.GclJobInnerState;
 import jsk.gcl.srv.scaling.model.GclJobStatus;
 import jsk.gcl.srv.scaling.model.GclNodeInfo;
 import jsk.gcl.srv.scaling.schedulers.GclScalingDataGatherScheduler;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.bull.javamelody.MonitoredWithSpring;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -50,6 +51,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+@NoArgsConstructor
 @MonitoredWithSpring
 @Log4j2
 public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements GclStorageFacade {
@@ -71,6 +73,10 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     private QGclNodeJpa qnode = QGclNodeJpa.gclNodeJpa;
     private @Inject GclNodeArchiveJpaRepo nodeArchiveRepo;
     private QGclNodeArchiveJpa qnodeArchive = QGclNodeArchiveJpa.gclNodeArchiveJpa;
+
+    public GclStorageFacadeImpl(IIds ids) {
+        this.ids = ids;
+    }
 
     // ------------------------------------------------
     // region GclJobGroup
@@ -230,9 +236,13 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     String prepareTagFromId(String id) {
         return switch (St.count(id, "-")) {
             case 0 -> ids.tinyHaiku();
-            case 1 -> St.subRF(id, "-");
-            default -> St.subRF(St.subLF(id, "-"), "-");
-
+            case 1 -> id;
+            case 2 -> St.subRL(id, "-");
+            default -> {
+                final int firstIndex = id.indexOf("-");
+                final int secondIndex = id.indexOf("-", firstIndex + 1);
+                yield St.ss(id, 0, secondIndex);
+            }
         };
     }
 }
