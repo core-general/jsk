@@ -32,10 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -61,6 +58,13 @@ public interface IBytes {
 
     default long crc32(byte[] bytes) {
         Checksum checksum = new CRC32();
+        checksum.update(bytes, 0, bytes.length);
+        return checksum.getValue();
+    }
+
+
+    default long crc32c(byte[] bytes) {
+        Checksum checksum = new CRC32C();
         checksum.update(bytes, 0, bytes.length);
         return checksum.getValue();
     }

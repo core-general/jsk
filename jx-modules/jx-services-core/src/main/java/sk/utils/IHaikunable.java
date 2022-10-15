@@ -1,10 +1,10 @@
-package sk.utils.ifaces;
+package sk.utils;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 Core General
+ * Copyright (C) 2019 - 2022 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ package sk.utils.ifaces;
  * #L%
  */
 
-import java.util.Objects;
+import sk.services.ids.JskHaikunator;
+import sk.utils.ifaces.Identifiable;
 
-public interface Identifiable<T> {
-    T getId();
-
-    default String toStringer() {
-        return Objects.toString(getId());
+public interface IHaikunable<T> extends Identifiable<T> {
+    default String toShortHaiku() {
+        return JskHaikunator.toShortHaiku(toStringer());
     }
 }

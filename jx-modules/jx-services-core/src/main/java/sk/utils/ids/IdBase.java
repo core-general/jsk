@@ -23,27 +23,25 @@ package sk.utils.ids;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import sk.utils.ifaces.Identifiable;
+import sk.utils.IHaikunable;
 import sk.utils.statics.Fu;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
 @Data
 @EqualsAndHashCode(of = {"id"})
 @NoArgsConstructor(onConstructor_ = @Deprecated)
-public class IdBase<T extends Comparable<T>> implements Serializable, Comparable<IdBase<T>>, Identifiable<T> {
+public class IdBase<T extends Comparable<T>> implements Serializable, Comparable<IdBase<T>>, IHaikunable<T> {
     protected T id;
 
     public IdBase(T id) {
         this.id = id;
     }
 
-
     @Override
-    public String toString() {
-        return Objects.toString(id);
+    public final String toString() {
+        return toStringer();
     }
 
     public int compareTo(IdBase<T> o) {

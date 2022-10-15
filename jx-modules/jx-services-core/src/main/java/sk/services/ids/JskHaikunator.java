@@ -26,11 +26,14 @@ import sk.services.time.ITime;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.zip.CRC32C;
+import java.util.zip.Checksum;
 
 public class JskHaikunator {
     final RandTextGenerator rng;
@@ -38,13 +41,13 @@ public class JskHaikunator {
 
     /**
      * Long: ~10^19
-     * Short: ~10^11
+     * Short: ~3*10^10
      * Tiny: ~6*10^5
      */
     public static LongAndShortHaikunator defaultHaikunators(IRand rand, ITime times) {
         return new LongAndShortHaikunator(
                 new JskHaikunator(rand, times, true, 6, St.engENGDig, adjs, nouns),// ~ 1.7*10^19
-                new JskHaikunator(rand, times, false, 3, St.engENGDig, adjs, nouns),// ~ 1.4*10^11 ~140B
+                new JskHaikunator(rand, times, false, 3, St.engDig, adjs, nouns),// ~ 3*10^10 ~30B
                 new JskHaikunator(rand, times, "A-N", 0, St.engENGDig, adjs, nouns), // ~ 6*10^5
                 new JskHaikunator(rand, times, "A-N-T", 0, St.engENGDig, adjs, nouns) // ~  6*10^5 * based on current time
         );
@@ -94,6 +97,40 @@ public class JskHaikunator {
                                                 JskHaikunator shrt,
                                                 JskHaikunator tiny,
                                                 JskHaikunator timed) {}
+
+    public static String toShortHaiku(String val) {
+        final byte[] bytes = val.getBytes();
+
+        Checksum checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val1 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 1);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val2 = checksum.getValue();
+
+        // short 16 adjs
+        // short 16 nouns
+        // byte  8 engDig
+        // byte  8 engDig
+        // byte  8 engDig
+
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putInt((int) val1).putInt((int) val2);
+
+        final int adjsIndex = ByteBuffer.allocate(Integer.BYTES).putShort(2, buffer.getShort(1)).getInt();
+        final int nounsIndex = ByteBuffer.allocate(Integer.BYTES).putShort(2, buffer.getShort(3)).getInt();
+        final short engDig1 = ByteBuffer.allocate(Short.BYTES).put(1, buffer.get(5)).getShort();
+        final short engDig2 = ByteBuffer.allocate(Short.BYTES).put(1, buffer.get(6)).getShort();
+        final short engDig3 = ByteBuffer.allocate(Short.BYTES).put(1, buffer.get(7)).getShort();
+
+        return adjs.get(adjsIndex % adjs.size()) + "-" + nouns.get(nounsIndex % nouns.size())
+                + "-"
+                + St.engDig.charAt(engDig1 % St.engDig.length())
+                + St.engDig.charAt(engDig2 % St.engDig.length())
+                + St.engDig.charAt(engDig3 % St.engDig.length());
+    }
 
     //region ADJS + NOUNS
     public final static List<String> adjs = /*~500*/Collections.unmodifiableList(

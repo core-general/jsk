@@ -21,13 +21,13 @@ package sk.services.clusterworkers.taskworker.kvworker;
  */
 
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.Getter;
 import sk.utils.async.cancel.CancelGetter;
 import sk.utils.functional.F1;
 import sk.utils.ids.IdBase;
 
 @EqualsAndHashCode(callSuper = true)
-@Value
+@Getter
 public class CluWorkChunk<RESULT> extends IdBase<String> {
     int badRetryCount;
     F1<CancelGetter, CluWorkChunkResult<RESULT>> executor;

@@ -35,6 +35,12 @@ import static sk.services.ids.JskHaikunator.defaultHaikunators;
 
 public class JskHaikunatorTest {
     @Test
+    public void toShortHaiku() {
+        assertEquals("novel-escape-nxn", JskHaikunator.toShortHaiku("123"));
+        assertEquals("gentle-science-voz", JskHaikunator.toShortHaiku("456"));
+    }
+
+    @Test
     public void haikunate() {
         final Random rnd = new Random(0);
         final ITime times = new ITime() {
@@ -51,7 +57,7 @@ public class JskHaikunatorTest {
         LongAndShortHaikunator haiku = defaultHaikunators(() -> rnd, times);
 
         assertEquals(haiku.lng().haikunate(), "horror-lower-other-HBFHuR");
-        assertEquals(haiku.shrt().haikunate(), "proper-share-iI1");
+        assertEquals(haiku.shrt().haikunate(), "proper-share-6ep");
         assertEquals(haiku.tiny().haikunate(), "united-major");
 
         assertEquals("plane-inside-civil-322-throat", new JskHaikunator(() -> rnd, times, "A-A-A-R-N", 3, St.dig).haikunate());
