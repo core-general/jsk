@@ -129,6 +129,19 @@ public interface IBytes {
         return URLDecoder.decode(value, UTF_8);
     }
 
+
+    default String bcryptHash(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    /**
+     * @return true - ok, false - not ok
+     */
+    default boolean bcryptCheck(String password, String hash) {
+        return BCrypt.checkpw(password, hash);
+    }
+
+
     //endregion
 
     //region compression
