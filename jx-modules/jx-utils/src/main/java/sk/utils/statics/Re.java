@@ -24,6 +24,7 @@ import lombok.SneakyThrows;
 import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.ifaces.Identifiable;
 import sk.utils.ifaces.IdentifiableString;
 import sk.utils.javafixes.FieldAccessor;
 
@@ -63,6 +64,12 @@ public final class Re {
     public static <T extends Enum<T> & IdentifiableString> O<T> findInEnumById(String text, Class<T> cls) {
         return O.of(Cc.stream(cls.getEnumConstants())
                 .filter($ -> Fu.equal(text.trim().toLowerCase(), $.getId().toLowerCase()))
+                .findAny());
+    }
+
+    public static <T extends Enum<T> & Identifiable<Integer>> O<T> findInEnumById(int integer, Class<T> cls) {
+        return O.of(Cc.stream(cls.getEnumConstants())
+                .filter($ -> Fu.equal(integer, $.getId()))
                 .findAny());
     }
 
