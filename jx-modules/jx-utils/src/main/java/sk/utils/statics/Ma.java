@@ -30,7 +30,7 @@ import static java.lang.Math.*;
  * #L%
  */
 @SuppressWarnings({"unused"})
-public final class Ma {
+public final class Ma/*ths*/ {
     public static O<Long> median(List<Long> longs) {
         return medianN(longs, Long::compareTo, (a, b) -> (a + b) / 2);
     }

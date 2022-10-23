@@ -20,8 +20,9 @@ package jsk.gcl.srv.config;
  * #L%
  */
 
-import jsk.gcl.srv.scaling.GclOOMManager;
-import jsk.gcl.srv.scaling.workers.GclScalingLocalWorkerManager;
+import jsk.gcl.srv.logic.jobs.services.GclJobManager;
+import jsk.gcl.srv.logic.scaling.GclOOMManager;
+import jsk.gcl.srv.logic.scaling.workers.GclScalingLocalWorkerManager;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +41,11 @@ public class GclConfig {
     @Bean
     GclScalingLocalWorkerManager GclScalingLocalWorkerManager() {
         return new GclScalingLocalWorkerManager();
+    }
+
+    @Bean
+    GclJobManager GclJobManager() {
+        return new GclJobManager();
     }
 
     @Bean

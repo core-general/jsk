@@ -37,7 +37,7 @@ import static java.util.Comparator.*;
 
 @Log4j2
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class Fu {
+public final class Fu/*nctions*/ {
 
     public static R emptyR() {
         return () -> {

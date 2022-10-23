@@ -30,6 +30,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GclJobGroupDto {
-    String jobGroupId;//uuid or timed haiku is prefered
+    GclJobGroupId jobGroupId;//uuid or timed haiku is prefered
     List<GclJobDto<?, ?>> jobs;
 }

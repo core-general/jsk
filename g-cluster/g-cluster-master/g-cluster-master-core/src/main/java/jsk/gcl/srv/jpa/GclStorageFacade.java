@@ -21,10 +21,10 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
-import jsk.gcl.srv.scaling.storage.GclJobArchiveStorage;
-import jsk.gcl.srv.scaling.storage.GclJobStorage;
-import jsk.gcl.srv.scaling.storage.GclNodeArchiveStorage;
-import jsk.gcl.srv.scaling.storage.GclNodeStorage;
+import jsk.gcl.srv.logic.jobs.storage.GclJobArchiveStorage;
+import jsk.gcl.srv.logic.jobs.storage.GclJobStorage;
+import jsk.gcl.srv.logic.scaling.storage.GclNodeArchiveStorage;
+import jsk.gcl.srv.logic.scaling.storage.GclNodeStorage;
 import sk.db.relational.spring.services.RdbTransactionManager;
 
 public interface GclStorageFacade

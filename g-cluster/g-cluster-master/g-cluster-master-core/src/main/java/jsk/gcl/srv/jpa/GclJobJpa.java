@@ -21,6 +21,9 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobId;
+import jsk.gcl.srv.logic.jobs.model.GclJobInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,14 +59,14 @@ public class GclJobJpa extends JpaWithContextAndCreatedUpdated implements GclJob
 
     @Column(name = "j_status")
     @Type(type = UTEnumToString.type, parameters = {
-            @Parameter(name = UTEnumToString.param, value = jsk.gcl.srv.scaling.model.GclJobStatus.type)})
-    jsk.gcl.srv.scaling.model.GclJobStatus jStatus;
+            @Parameter(name = UTEnumToString.param, value = GclJobStatus.type)})
+    GclJobStatus jStatus;
 
     @Column(name = "j_inner_state")
     @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value =
-                    jsk.gcl.srv.scaling.model.GclJobInnerState.type)})
-    jsk.gcl.srv.scaling.model.GclJobInnerState jInnerState;
+                    GclJobInnerState.type)})
+    GclJobInnerState jInnerState;
 
     @Column(name = "j_life_ping")
     @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)

@@ -26,7 +26,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 @SuppressWarnings({"unused", "WeakerAccess", "SpellCheckingInspection"})
-public final class Ti {
+public final class Ti/*mes*/ {
     public static final long second = 1_000L;
     public static final long minute = 60 * second;
     public static final long hour = 60 * minute;

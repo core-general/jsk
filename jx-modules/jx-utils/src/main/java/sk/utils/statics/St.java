@@ -41,7 +41,7 @@ import static java.lang.Character.isLetter;
 import static java.lang.Character.isSpaceChar;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection", "WeakerAccess"})
-public final class St {
+public final class St/*rings*/ {
     private static final String UTF_8 = "UTF-8";
     public static final String hex = "0123456789abcdef";
     public static final String eng = "abcdefghijklmnopqrstuvwxyz";

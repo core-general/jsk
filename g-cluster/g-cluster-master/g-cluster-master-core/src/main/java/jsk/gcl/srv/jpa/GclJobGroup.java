@@ -21,6 +21,10 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
+import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
+
 public interface GclJobGroup {
     GclJobGroupId getJgId();
 
@@ -30,13 +34,13 @@ public interface GclJobGroup {
 
     void setJgTag(java.lang.String jgTag);
 
-    jsk.gcl.srv.scaling.model.GclJobStatus getJgStatus();
+    GclJobStatus getJgStatus();
 
-    void setJgStatus(jsk.gcl.srv.scaling.model.GclJobStatus jgStatus);
+    void setJgStatus(GclJobStatus jgStatus);
 
-    jsk.gcl.srv.scaling.model.GclJobGroupInnerState getJgInnerState();
+    GclJobGroupInnerState getJgInnerState();
 
-    void setJgInnerState(jsk.gcl.srv.scaling.model.GclJobGroupInnerState jgInnerState);
+    void setJgInnerState(GclJobGroupInnerState jgInnerState);
 
     java.time.ZonedDateTime getCreatedAt();
 

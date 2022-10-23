@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import sk.utils.IHaikunable;
+import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Fu;
 
 import java.io.Serializable;
@@ -32,7 +33,8 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @NoArgsConstructor(onConstructor_ = @Deprecated)
-public class IdBase<T extends Comparable<T>> implements Serializable, Comparable<IdBase<T>>, IHaikunable<T> {
+public class IdBase<T extends Comparable<T>>
+        implements Serializable, Comparable<IdBase<T>>, IHaikunable<T>, Identifiable<T> {
     protected T id;
 
     public IdBase(T id) {

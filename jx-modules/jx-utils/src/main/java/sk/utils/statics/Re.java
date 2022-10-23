@@ -34,12 +34,13 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings({"unused"})
-public final class Re {
+public final class Re/*flections*/ {
     @SneakyThrows
     public Class<?> cls(String clsName) {
         return Class.forName(clsName);
@@ -88,14 +89,16 @@ public final class Re {
                 .map($ -> (Class<?>) $);
     }
 
+    private static final ConcurrentMap<Class<?>, O<Type[]>> parentParams = new ConcurrentHashMap<>();
+
     public static O<Type[]> getParentParameters(Class<?> curClass) {
-        return O.ofNull(curClass.getGenericSuperclass())
+        return parentParams.computeIfAbsent(curClass, (cls) -> O.ofNull(cls.getGenericSuperclass())
                 .flatMap($ -> $ instanceof ParameterizedType
                               ? O.ofNull(((ParameterizedType) $).getActualTypeArguments())
                               : O.empty())
-                .or(() -> curClass.getSuperclass() != null
-                          ? getParentParameters(curClass.getSuperclass())
-                          : O.<Type[]>empty());
+                .or(() -> cls.getSuperclass() != null
+                          ? getParentParameters(cls.getSuperclass())
+                          : O.<Type[]>empty()));
     }
 
     //region fields

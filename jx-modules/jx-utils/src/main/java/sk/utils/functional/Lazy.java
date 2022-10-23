@@ -21,19 +21,21 @@ package sk.utils.functional;
  */
 
 
+import lombok.Getter;
+
 public class Lazy<T> implements Gett<T> {
+    @Getter private boolean set;
     private T val;
     private final F0<T> init;
 
     public Lazy(F0<T> init) {
-        this.init = init;
+        this.init = () -> {
+            set = true;
+            return init.get();
+        };
     }
 
     public T get() {
-        return val == null ? val = init.get() : val;
-    }
-
-    public boolean isSet() {
-        return val != null;
+        return isSet() ? val : (val = init.get());
     }
 }

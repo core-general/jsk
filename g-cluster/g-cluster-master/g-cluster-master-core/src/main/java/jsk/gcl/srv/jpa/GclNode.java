@@ -21,14 +21,16 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.srv.logic.scaling.model.GclNodeInfo;
+
 public interface GclNode {
     GclNodeId getNId();
 
     void setNId(GclNodeId nId);
 
-    jsk.gcl.srv.scaling.model.GclNodeInfo getNInnerState();
+    GclNodeInfo getNInnerState();
 
-    void setNInnerState(jsk.gcl.srv.scaling.model.GclNodeInfo nInnerState);
+    void setNInnerState(GclNodeInfo nInnerState);
 
     java.time.ZonedDateTime getNLifePing();
 

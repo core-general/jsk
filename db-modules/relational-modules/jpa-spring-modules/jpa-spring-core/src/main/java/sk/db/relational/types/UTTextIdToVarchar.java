@@ -50,6 +50,7 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
         try {
             idClass = Class.forName(className);
             Constructor<?> constructor = idClass.getDeclaredConstructor(String.class);
+            constructor.setAccessible(true);
             creator = string -> {
                 if (string == null) {
                     return null;

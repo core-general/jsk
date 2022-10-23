@@ -21,22 +21,26 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
-public interface GclJobGroupArchive {
-    GclJobGroupArchiveId getJgId();
+import jsk.gcl.cli.model.GclJobGroupId;
+import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
 
-    void setJgId(GclJobGroupArchiveId jgId);
+public interface GclJobGroupArchive {
+    GclJobGroupId getJgId();
+
+    void setJgId(GclJobGroupId jgId);
 
     java.lang.String getTag();
 
     void setTag(java.lang.String tag);
 
-    jsk.gcl.srv.scaling.model.GclJobStatus getJgStatus();
+    GclJobStatus getJgStatus();
 
-    void setJgStatus(jsk.gcl.srv.scaling.model.GclJobStatus jgStatus);
+    void setJgStatus(GclJobStatus jgStatus);
 
-    jsk.gcl.srv.scaling.model.GclJobGroupInnerState getJgInnerState();
+    GclJobGroupInnerState getJgInnerState();
 
-    void setJgInnerState(jsk.gcl.srv.scaling.model.GclJobGroupInnerState jgInnerState);
+    void setJgInnerState(GclJobGroupInnerState jgInnerState);
 
     byte[] getJgZippedJobs();
 

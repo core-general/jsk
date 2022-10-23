@@ -26,6 +26,21 @@ import org.junit.Test;
 public class ArTest {
 
     @Test
+    public void mapAllTest() {
+        Assert.assertArrayEquals(
+                Ar.mapAll(doubles -> doubles[0] + doubles[1], true, new double[]{1, 2, 3}, new double[]{2, 3, 4}),
+                new double[]{3, 5, 7}, 0.001);
+
+
+        Assert.assertArrayEquals(
+                Ar.mapAll(doubles -> doubles[0] + doubles[1], false, new double[]{1, 2, 3}, new double[]{2, 3}),
+                new double[]{3, 5, 3}, 0.001);
+
+        Assert.assertThrows(RuntimeException.class,
+                () -> Ar.mapAll(doubles -> doubles[0] + doubles[1], true, new double[]{1, 2, 3}, new double[]{2, 3}));
+    }
+
+    @Test
     public void intToByteArray() {
         final int[] arr = {1, 3, 5, 7, 8};
         final byte[] bytes = Ar.intToByteArray(arr);

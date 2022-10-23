@@ -5,7 +5,7 @@
     <parent>
         <artifactId>g-cluster-master</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.5.5</version>
+        <version>jsk.17.5.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,23 +15,23 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>g-cluster-master-core</artifactId>
-            <version>jsk.17.5.5</version>
+            <version>jsk.17.5.7</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spark-spring-melody</artifactId>
-            <version>jsk.17.5.5</version>
+            <version>jsk.17.5.7</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spring-jpa-core</artifactId>
-            <version>jsk.17.5.5</version>
+            <version>jsk.17.5.7</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>relational-mig</artifactId>
-            <version>jsk.17.5.5</version>
+            <version>jsk.17.5.7</version>
         </dependency>
     </dependencies>
 </project>

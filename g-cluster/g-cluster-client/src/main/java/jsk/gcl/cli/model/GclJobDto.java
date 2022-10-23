@@ -22,18 +22,18 @@ package jsk.gcl.cli.model;
 
 import lombok.Getter;
 import sk.services.json.JsonPolymorph;
-import sk.utils.ifaces.IdentifiableString;
+import sk.utils.ifaces.Identifiable;
 
 @Getter
 public abstract class GclJobDto<PARAM_CLS, T extends Enum<T> & GclWithSomeCls<PARAM_CLS>>
         extends JsonPolymorph
-        implements IdentifiableString {
-    String jobId; //should be uuid or timed haiku
+        implements Identifiable<GclJobId> {
+    GclJobId jobId;
     T jobType;
     PARAM_CLS params;
 
     @Override
-    public String getId() {
+    public GclJobId getId() {
         return jobId;
     }
 }

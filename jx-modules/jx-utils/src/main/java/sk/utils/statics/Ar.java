@@ -20,12 +20,40 @@ package sk.utils.statics;
  * #L%
  */
 
+import sk.utils.functional.F1;
+
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.IntSummaryStatistics;
+import java.util.function.DoubleUnaryOperator;
 import java.util.stream.IntStream;
 
-public class Ar {
+public class Ar/*rays*/ {
+
+    public static double[] mapAll(F1<double[], Double> summarizer, boolean forceSameSize, double[]... doubles) {
+        IntSummaryStatistics sizes = Arrays.stream(doubles).mapToInt($ -> $.length).distinct().summaryStatistics();
+        if (forceSameSize && sizes.getCount() > 1) {
+            throw new RuntimeException("Different sizes: " + sizes);
+        }
+
+        double[] toRet = new double[sizes.getMax()];
+        double[] curParams = new double[doubles.length];
+        for (int i = 0; i < toRet.length; i++) {
+            for (int j = 0; j < doubles.length; j++) {
+                curParams[j] = indexOr0(doubles[j], i);
+            }
+            toRet[i] = summarizer.apply(curParams);
+        }
+        return toRet;
+    }
+
+    public static double[] map(double[] toMap, DoubleUnaryOperator operator) {
+        for (int i = 0; i < toMap.length; i++) {
+            toMap[i] = operator.applyAsDouble(toMap[i]);
+        }
+        return toMap;
+    }
 
     public static double[] getValuesIncrementedBy1(int count) {
         return IntStream.range(0, count).mapToDouble($ -> $).toArray();
@@ -83,6 +111,18 @@ public class Ar {
 
     public static double avg(double[] coreLoad) {
         return Arrays.stream(coreLoad).average().orElse(0);
+    }
+
+    public static double sum(double[] coreLoad) {
+        return Arrays.stream(coreLoad).sum();
+    }
+
+    public static double lastOr0(double[] coreLoad) {
+        return coreLoad.length == 0 ? 0 : coreLoad[coreLoad.length - 1];
+    }
+
+    public static double indexOr0(double[] coreLoad, int index) {
+        return index < coreLoad.length ? coreLoad[index] : 0;
     }
 
     public static double[] sortCopy(double[] coreLoad) {

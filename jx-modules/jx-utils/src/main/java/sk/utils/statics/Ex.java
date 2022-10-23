@@ -30,7 +30,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Callable;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class Ex {
+public final class Ex/*ceptions*/ {
     public static boolean isInstanceOf(Throwable e, Class<? extends Throwable>... toTest) {
         if (e instanceof UndeclaredThrowableException) {
             e = ((UndeclaredThrowableException) e).getUndeclaredThrowable();

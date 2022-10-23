@@ -21,6 +21,9 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
+import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,22 +43,22 @@ public class GclJobGroupArchiveJpa extends JpaWithContextAndCreatedUpdated imple
     @Id
     @Column(name = "jg_id")
     @Type(type = sk.db.relational.types.UTTextIdToVarchar.type, parameters = {
-            @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclJobGroupArchiveId.type)})
-    GclJobGroupArchiveId jgId;
+            @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclJobGroupId.type)})
+    GclJobGroupId jgId;
 
     @Column(name = "tag")
     java.lang.String tag;
 
     @Column(name = "jg_status")
     @Type(type = UTEnumToString.type, parameters = {
-            @Parameter(name = UTEnumToString.param, value = jsk.gcl.srv.scaling.model.GclJobStatus.type)})
-    jsk.gcl.srv.scaling.model.GclJobStatus jgStatus;
+            @Parameter(name = UTEnumToString.param, value = GclJobStatus.type)})
+    GclJobStatus jgStatus;
 
     @Column(name = "jg_inner_state")
     @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value =
-                    jsk.gcl.srv.scaling.model.GclJobGroupInnerState.type)})
-    jsk.gcl.srv.scaling.model.GclJobGroupInnerState jgInnerState;
+                    GclJobGroupInnerState.type)})
+    GclJobGroupInnerState jgInnerState;
 
     @Column(name = "jg_zipped_jobs")
     byte[] jgZippedJobs;

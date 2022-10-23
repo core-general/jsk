@@ -20,10 +20,11 @@ package jsk.gcl.srv.config;
  * #L%
  */
 
-import jsk.gcl.srv.scaling.schedulers.GclJobGroupArchiveScheduler;
-import jsk.gcl.srv.scaling.schedulers.GclJobLockScheduler;
-import jsk.gcl.srv.scaling.schedulers.GclNodeArchiveScheduler;
-import jsk.gcl.srv.scaling.schedulers.GclScalingDataGatherScheduler;
+import jsk.gcl.srv.logic.jobs.schedulers.GclJobGroupArchiveScheduler;
+import jsk.gcl.srv.logic.jobs.schedulers.GclJobLockScheduler;
+import jsk.gcl.srv.logic.jobs.schedulers.GclJobUpdateLifePingScheduler;
+import jsk.gcl.srv.logic.scaling.schedulers.GclNodeArchiveScheduler;
+import jsk.gcl.srv.logic.scaling.schedulers.GclScalingDataGatherScheduler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -42,6 +43,11 @@ public class GclSchedulingConfig {
     @Bean
     GclJobLockScheduler GclJobLockScheduler() {
         return new GclJobLockScheduler();
+    }
+
+    @Bean
+    GclJobUpdateLifePingScheduler GclJobUpdateLifePingScheduler() {
+        return new GclJobUpdateLifePingScheduler();
     }
 
     @Bean

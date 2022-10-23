@@ -23,11 +23,13 @@ package jsk.gcl.srv.jpa;
 
 import jsk.gcl.cli.model.GclJobDto;
 import jsk.gcl.cli.model.GclJobGroupDto;
-import jsk.gcl.srv.scaling.model.GclJobGroupInnerState;
-import jsk.gcl.srv.scaling.model.GclJobInnerState;
-import jsk.gcl.srv.scaling.model.GclJobStatus;
-import jsk.gcl.srv.scaling.model.GclNodeInfo;
-import jsk.gcl.srv.scaling.schedulers.GclScalingDataGatherScheduler;
+import jsk.gcl.cli.model.GclJobGroupId;
+import jsk.gcl.cli.model.GclJobId;
+import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
+import jsk.gcl.srv.logic.scaling.model.GclNodeInfo;
+import jsk.gcl.srv.logic.scaling.schedulers.GclScalingDataGatherScheduler;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.bull.javamelody.MonitoredWithSpring;
@@ -40,6 +42,7 @@ import sk.services.nodeinfo.INodeInfo;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
+import sk.utils.ids.IdString;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 import sk.utils.statics.Ti;
@@ -88,7 +91,7 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
 
     @Override
     public GclJobGroup newGclJobGroup(GclJobGroupDto dto) {
-        return new GclJobGroupJpa(new GclJobGroupId(dto.getJobGroupId()), prepareTagFromId(dto.getJobGroupId()),
+        return new GclJobGroupJpa(dto.getJobGroupId(), prepareTagFromId(dto.getJobGroupId()),
                 GclJobStatus.READY,
                 new GclJobGroupInnerState(dto.getJobs().size()), null, null, null);
     }
@@ -115,7 +118,7 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
 
     @Override
     public GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?> job) {
-        return new GclJobJpa(new GclJobId(job.getJobId()), prepareTagFromId(job.getJobId()), jJgId, null,
+        return new GclJobJpa(job.getJobId(), prepareTagFromId(job.getJobId()), jJgId, null,
                 GclJobStatus.READY,
                 new GclJobInnerState(job), Ti.minZonedDateTime, null, null, null);
     }
@@ -136,7 +139,7 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
 
         deleteJobsRelatedToGroupId(group.getJgId());
 
-        final GclJobGroupArchiveJpa groupArchive = new GclJobGroupArchiveJpa(new GclJobGroupArchiveId(group.getJgId()),
+        final GclJobGroupArchiveJpa groupArchive = new GclJobGroupArchiveJpa(group.getJgId(),
                 group.getJgTag(), group.getJgStatus(),
                 group.getJgInnerState(),
                 bytes.orElseGet(() -> "Something wrong".getBytes(StandardCharsets.UTF_8))
@@ -233,16 +236,7 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
         throw new RuntimeException("Unknown transactional type: " + toSave.getClass());
     }
 
-    String prepareTagFromId(String id) {
-        return switch (St.count(id, "-")) {
-            case 0 -> ids.tinyHaiku();
-            case 1 -> id;
-            case 2 -> St.subRL(id, "-");
-            default -> {
-                final int firstIndex = id.indexOf("-");
-                final int secondIndex = id.indexOf("-", firstIndex + 1);
-                yield St.ss(id, 0, secondIndex);
-            }
-        };
+    String prepareTagFromId(IdString id) {
+        return St.subRL(id.toString(), "-");
     }
 }

@@ -24,6 +24,7 @@ package sk.utils.javafixes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import sk.utils.functional.O;
 import sk.utils.statics.Fu;
 
 import java.lang.reflect.ParameterizedType;
@@ -76,6 +77,12 @@ public class TypeWrap<T> {
     public static <T> TypeWrap<Set<T>> getSet(Class<T> classInSet) {
         TypeWrap<Set<T>> typeToken = new TypeWrap<>();
         typeToken.type = new CustomType(Set.class, new Type[]{classInSet});
+        return typeToken;
+    }
+
+    public static <T> TypeWrap<O<T>> getO(Class<T> classInSet) {
+        TypeWrap<O<T>> typeToken = new TypeWrap<>();
+        typeToken.type = new CustomType(O.class, new Type[]{classInSet});
         return typeToken;
     }
 

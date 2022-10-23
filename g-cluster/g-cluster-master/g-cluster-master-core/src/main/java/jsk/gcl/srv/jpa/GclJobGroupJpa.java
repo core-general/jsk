@@ -21,6 +21,9 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
+import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
+import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,14 +51,14 @@ public class GclJobGroupJpa extends JpaWithContextAndCreatedUpdated implements G
 
     @Column(name = "jg_status")
     @Type(type = UTEnumToString.type, parameters = {
-            @Parameter(name = UTEnumToString.param, value = jsk.gcl.srv.scaling.model.GclJobStatus.type)})
-    jsk.gcl.srv.scaling.model.GclJobStatus jgStatus;
+            @Parameter(name = UTEnumToString.param, value = GclJobStatus.type)})
+    GclJobStatus jgStatus;
 
     @Column(name = "jg_inner_state")
     @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value =
-                    jsk.gcl.srv.scaling.model.GclJobGroupInnerState.type)})
-    jsk.gcl.srv.scaling.model.GclJobGroupInnerState jgInnerState;
+                    GclJobGroupInnerState.type)})
+    GclJobGroupInnerState jgInnerState;
 
     @Column(name = "created_at")
     @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)

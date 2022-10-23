@@ -36,7 +36,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 
 @Log4j2
-public final class Im {
+public final class Im/*ages*/ {
     public static O<BufferedImage> readImage(String file) {
         return readImage(new File(file));
     }

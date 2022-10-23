@@ -34,7 +34,7 @@ import static sk.utils.functional.O.*;
 
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public final class Cc {
+public final class Cc/*ColleCtions*/ {
     //region String joiners
     public static <A, B extends Iterable<A>> List<String> str(B b) {
         return str(b, Objects::toString);

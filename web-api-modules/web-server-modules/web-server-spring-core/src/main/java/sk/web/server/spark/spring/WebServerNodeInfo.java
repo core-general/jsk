@@ -43,6 +43,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -85,7 +86,12 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
                             .map($ -> X.x($.trim(), beanInfosProcessed.getOrDefault($.trim(), () -> null).apply()))
                             .filter($ -> $.i2() != null)
                             .collect(Collectors.toMap($ -> $.i1(), $ -> $.i2(),
-                                    (a, b) -> Ex.thRow(String.format("keys equals: %s==%s", a, b)), TreeMap::new));
+                                    new BinaryOperator<Object>() {
+                                        @Override
+                                        public Object apply(Object a, Object b) {
+                                            return Ex.thRow(String.format("keys equals: %s==%s", a, b));
+                                        }
+                                    }, TreeMap::new));
                 }
         );
     }

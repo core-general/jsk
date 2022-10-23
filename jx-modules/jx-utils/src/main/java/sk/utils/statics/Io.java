@@ -42,7 +42,7 @@ import static java.util.stream.Collectors.toMap;
 import static sk.utils.functional.O.*;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public final class Io {
+public final class Io/*Input/Output*/ {
     public static void endlessReadFromKeyboard(String endSequence, C1<String> consumer) {
         final String finalSequence = endSequence.trim();
         endlessReadFromKeyboard(s -> {

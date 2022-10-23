@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.srv.logic.scaling.model.GclNodeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,8 +45,8 @@ public class GclNodeJpa extends JpaWithContextAndCreatedUpdated implements GclNo
 
     @Column(name = "n_inner_state")
     @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
-            @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value = jsk.gcl.srv.scaling.model.GclNodeInfo.type)})
-    jsk.gcl.srv.scaling.model.GclNodeInfo nInnerState;
+            @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value = GclNodeInfo.type)})
+    GclNodeInfo nInnerState;
 
     @Column(name = "n_life_ping")
     @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
