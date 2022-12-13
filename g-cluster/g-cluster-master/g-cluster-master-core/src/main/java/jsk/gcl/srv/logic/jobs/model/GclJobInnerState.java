@@ -28,24 +28,37 @@ import lombok.NoArgsConstructor;
 import sk.utils.collections.DequeWithLimit;
 import sk.utils.statics.Ex;
 
+import javax.annotation.Nullable;
+
 @NoArgsConstructor
 @EqualsAndHashCode
 public class GclJobInnerState {
     public static final String type = "jsk.gcl.srv.logic.jobs.model.GclJobInnerState";
 
-    private GclJobDto<?, ?> jobInfo;
+    private GclJobDto<?, ?, ?> jobInfo;
+
+    @Nullable private Object success;
 
     private int failCount;
     private DequeWithLimit<GclJobInnerStateFail> fails;
 
-    public GclJobInnerState(GclJobDto<?, ?> jobInfo) {
+    private boolean finished;
+
+    public GclJobInnerState(GclJobDto<?, ?, ?> jobInfo) {
         this.jobInfo = jobInfo;
         this.fails = new DequeWithLimit<>(5);
     }
 
-    public void fail(Throwable err) {
+    public boolean failAndContinue(Throwable err, int maxFailCount) {
         failCount++;
         fails.add(new GclJobInnerStateFail(Ex.getInfo(err)));
+        finished = finished || failCount >= maxFailCount;
+        return !finished;
+    }
+
+    public void succeed(Object success) {
+        this.success = success;
+        finished = true;
     }
 
     @AllArgsConstructor

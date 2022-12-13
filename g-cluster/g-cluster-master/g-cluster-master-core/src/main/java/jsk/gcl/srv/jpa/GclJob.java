@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
 import jsk.gcl.cli.model.GclJobId;
 import jsk.gcl.srv.logic.jobs.model.GclJobInnerState;
 import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
@@ -61,4 +62,20 @@ public interface GclJob {
     void setUpdatedAt(java.time.ZonedDateTime updatedAt);
 
 
+    default boolean failAndChangeJobGroup(Exception e, int maxTaskRetriesAfterFails) {
+        final boolean proceed = getJInnerState().failAndContinue(e, maxTaskRetriesAfterFails);
+        //we either fail entirely or fail gently
+        if (!proceed) {
+            setJStatus(GclJobStatus.FAIL);
+            return true;
+        } else {
+            setJStatus(GclJobStatus.READY);
+            return false;
+        }
+    }
+
+    default void succeed(Object success) {
+        getJInnerState().succeed(success);
+        setJStatus(GclJobStatus.FINISH);
+    }
 }

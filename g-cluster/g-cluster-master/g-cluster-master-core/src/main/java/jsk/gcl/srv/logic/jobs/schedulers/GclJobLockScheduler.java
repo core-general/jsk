@@ -20,21 +20,18 @@ package jsk.gcl.srv.logic.jobs.schedulers;
  * #L%
  */
 
-import jsk.gcl.srv.jpa.GclJob;
-import jsk.gcl.srv.jpa.GclJobGroup;
+import jsk.gcl.srv.logic.jobs.services.GclJobManager;
 import jsk.gcl.srv.logic.jobs.storage.GclJobStorage;
 import jsk.gcl.srv.logic.scaling.storage.GclNodeStorage;
 import jsk.gcl.srv.logic.scaling.workers.GclScalingLocalWorkerManager;
 import lombok.extern.log4j.Log4j2;
+import sk.exceptions.NotImplementedException;
 import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonoff.CluKvBasedOnOffWorker;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.utils.async.cancel.CancelGetter;
-import sk.utils.functional.O;
-import sk.utils.statics.Ma;
 
 import javax.inject.Inject;
-import java.util.List;
 
 import static sk.utils.statics.Ti.second;
 
@@ -51,14 +48,15 @@ import static sk.utils.statics.Ti.second;
 @Log4j2
 public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWorker.IConf> implements IBoot {
 
-    public static final int MIN_BUFFER_SIZE = 100;
-    public static final int MAX_BUFFER_SIZE = 100;
+    public static final int MIN_BUFFER_SIZE = 250;
+    public static final int MAX_BUFFER_SIZE = 1000;
 
     public GclJobLockScheduler() {
         super("GclJobLockScheduler");
     }
 
     @Inject GclScalingLocalWorkerManager workManager;
+    @Inject GclJobManager jobManager;
     @Inject GclJobStorage jobs;
     @Inject GclNodeStorage nodes;
 
@@ -80,22 +78,40 @@ public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWo
     }
 
 
+    /**
+     * Алгоритм:
+     * 1. Берем все данные о количестве тасок в очереди
+     * 2. Если тасок в буфере меньше, чем min_buffer_size
+     * 3. Считаем сколько нам нужно тасок добрать (смотрим сколько всего свободных тасок, смотрим сколько нод, прикидываем
+     * сколько сейчас тасок на нодах и прикидываем сколько мы можем взять, чтобы было равномерно)
+     * 4. Берем все job_groupы и по очереди из каждой начиная с самой старой пытаемся добрать тасок специальным запросом
+     * (запрос предполагает, что мы апдейтим таски этой жоб групы со статусом реди и возвращаем список айди тех, кого
+     * заапдейтили)
+     * 5. Добавляем взятые таски в очередь и если не донабирали, переходим к следующей job_groupе
+     */
     private void tryLockNewTasks() {
-        int bufferedJobCount = workManager.getBufferJobCount();
-        long activeNodeCount = nodes.getActiveNodeCount();
-        do {
-            O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();
-            if (oJobGroup.isEmpty()) {
-                break;
-            }
-
-            final GclJobGroup jobGroup = oJobGroup.get();
-            final int numOfJobsLeft = jobGroup.getJgInnerState().getNumOfJobsFinished();
-
-            long numOfJobsToLock = Ma.clamp(jobGroup.getJgInnerState().getNumOfJobs() / activeNodeCount, 3, MAX_BUFFER_SIZE);
-            List<GclJob> lockedJobs =
-
-                    bufferedJobCount = workManager.getBufferJobCount();
-        } while (bufferedJobCount < MIN_BUFFER_SIZE);
+        throw new NotImplementedException();
+        //todo
+        //int bufferedJobCount = jobManager.getBufferJobCount();
+        //
+        //if(bufferedJobCount>MIN_BUFFER_SIZE){
+        //    return;
+        //}
+        //
+        //long activeNodeCount = nodes.getActiveNodeCount();
+        //
+        //
+        //do {
+        //    O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();
+        //    if (oJobGroup.isEmpty()) {
+        //        break;
+        //    }
+        //
+        //    final GclJobGroup jobGroup = oJobGroup.get();
+        //    final int numOfJobsLeft = jobGroup.getJgInnerState().getNumOfJobsFinished();
+        //
+        //    long numOfJobsToLock = Ma.clamp(jobGroup.getJgInnerState().getNumOfJobs() / activeNodeCount, 3, MAX_BUFFER_SIZE);
+        //    List<GclJob> lockedJobs = bufferedJobCount = jobManager.getBufferJobCount();
+        //} while (bufferedJobCount < MIN_BUFFER_SIZE);
     }
 }

@@ -31,5 +31,5 @@ import java.util.List;
 @NoArgsConstructor
 public class GclJobGroupDto {
     GclJobGroupId jobGroupId;//uuid or timed haiku is prefered
-    List<GclJobDto<?, ?>> jobs;
+    List<GclJobDto<?, ?, ?>> jobs;
 }

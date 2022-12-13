@@ -327,7 +327,7 @@ public final class Cc/*ColleCtions*/ {
         return toRet;
     }
 
-    public static <T> Comparator<T> orderingComparator(Map<T, Integer> ordering) {
+    public static <T> Comparator<T> orderingComparator(Map<T, Integer> ordering, boolean nullsUp) {
         return new Comparator<T>() {
             @Override
             public int compare(T o1, T o2) {
@@ -338,12 +338,16 @@ public final class Cc/*ColleCtions*/ {
                         : order1 == null && order2 == null
                           ? 0
                           : order1 != null && order2 == null
-                            ? -1
+                            ? nullsUp ? 1 : -1
                             : order1 == null && order2 != null
-                              ? 1
+                              ? nullsUp ? -1 : 1
                               : 0);
             }
         };
+    }
+
+    public static <T> Comparator<T> orderingComparator(Map<T, Integer> ordering) {
+        return orderingComparator(ordering, false);
     }
 
     public static <T extends Enum<T>> EnumMap<T, Integer> orderingEnum(Class<T> cls, List<T> in) {

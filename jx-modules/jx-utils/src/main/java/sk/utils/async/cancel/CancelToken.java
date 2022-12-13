@@ -23,6 +23,6 @@ package sk.utils.async.cancel;
 import lombok.Data;
 
 @Data
-public class CancelToken implements CancelGetter, CancelSetter {
+public class CancelToken implements CancelGSetter {
     volatile boolean isCancelled;
 }

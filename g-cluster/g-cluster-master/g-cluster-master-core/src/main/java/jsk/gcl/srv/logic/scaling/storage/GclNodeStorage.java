@@ -38,5 +38,5 @@ public interface GclNodeStorage extends RdbTransactionManager {
 
     List<GclNode> getInactiveNodes();
 
-    long getActiveNodeCount();
+    int getActiveNodeCount();
 }

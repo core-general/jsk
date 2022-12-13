@@ -60,6 +60,15 @@ public class GclJobGroupJpa extends JpaWithContextAndCreatedUpdated implements G
                     GclJobGroupInnerState.type)})
     GclJobGroupInnerState jgInnerState;
 
+    @Column(name = "jg_num_of_success_tasks")
+    int numOfSuccessTasks;
+
+    @Column(name = "jg_num_of_fail_tasks")
+    int numOfFailTasks;
+
+    @Column(name = "jg_num_of_overall_tasks")
+    int numOfOverallTasks;
+
     @Column(name = "created_at")
     @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
     java.time.ZonedDateTime createdAt;

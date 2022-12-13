@@ -92,6 +92,13 @@ public class StTest {
         assertEquals(St.sub(str).leftLast(",").rightLast(";").get(), "bb;ioo");
     }
 
+
+    @Test
+    public void sub2() {
+        final String str = "[] avhsdjg \" ajdfhajshf jafjas";
+        assertEquals(St.sub(str, "]", "\"").get().trim(), "avhsdjg");
+    }
+
     @Test
     public void subOneLine() {
         final String str = "http://abc.com/bde";

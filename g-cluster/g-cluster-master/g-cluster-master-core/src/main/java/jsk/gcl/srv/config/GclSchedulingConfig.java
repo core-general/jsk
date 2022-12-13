@@ -22,6 +22,7 @@ package jsk.gcl.srv.config;
 
 import jsk.gcl.srv.logic.jobs.schedulers.GclJobGroupArchiveScheduler;
 import jsk.gcl.srv.logic.jobs.schedulers.GclJobLockScheduler;
+import jsk.gcl.srv.logic.jobs.schedulers.GclJobUnlockIfBadScheduler;
 import jsk.gcl.srv.logic.jobs.schedulers.GclJobUpdateLifePingScheduler;
 import jsk.gcl.srv.logic.scaling.schedulers.GclNodeArchiveScheduler;
 import jsk.gcl.srv.logic.scaling.schedulers.GclScalingDataGatherScheduler;
@@ -33,6 +34,11 @@ public class GclSchedulingConfig {
     @Bean
     GclJobGroupArchiveScheduler GclJobGroupArchiveScheduler() {
         return new GclJobGroupArchiveScheduler();
+    }
+
+    @Bean
+    GclJobUnlockIfBadScheduler GclJobUnlockIfBadScheduler() {
+        return new GclJobUnlockIfBadScheduler();
     }
 
     @Bean

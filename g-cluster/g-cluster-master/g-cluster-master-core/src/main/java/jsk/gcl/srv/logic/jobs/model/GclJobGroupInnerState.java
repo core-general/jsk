@@ -27,11 +27,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GclJobGroupInnerState {
     public static final String type = "jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState";
-
-    int numOfJobs;
-    int numOfJobsFinished;//success or fail
-
-    public GclJobGroupInnerState(int numOfJobs) {
-        this.numOfJobs = numOfJobs;
-    }
 }

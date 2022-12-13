@@ -22,18 +22,19 @@ package sk.utils.events;
 
 import lombok.extern.log4j.Log4j2;
 import sk.utils.functional.R;
-import sk.utils.statics.Cc;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by kivan on 8/21/15
  */
 @Log4j2
 public class SimpleEvent {
-    private final Map<String, R> listeners = Cc.lhm();
-    private boolean removeOnException;
+    private final ConcurrentMap<String, R> listeners = new ConcurrentHashMap<>();
+    private final boolean removeOnException;
 
     private SimpleEvent(boolean removeOnException) {
         this.removeOnException = removeOnException;

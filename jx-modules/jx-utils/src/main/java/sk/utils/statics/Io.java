@@ -147,6 +147,7 @@ public final class Io/*Input/Output*/ {
         return O.ofNullable(Thread.currentThread().getContextClassLoader().getResourceAsStream(resource));
     }
 
+
     public static void visitEachFile(String fileOrFolder, C1<File> onFile) {
         visitEachFileWithFinish(fileOrFolder, file -> {
             onFile.accept(file);

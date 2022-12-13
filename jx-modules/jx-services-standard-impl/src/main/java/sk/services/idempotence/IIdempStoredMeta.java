@@ -29,7 +29,7 @@ import sk.utils.functional.O;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-class IIdempStoredMeta {
+public class IIdempStoredMeta {
     boolean lockSign;
     char type;
     String requestHash;

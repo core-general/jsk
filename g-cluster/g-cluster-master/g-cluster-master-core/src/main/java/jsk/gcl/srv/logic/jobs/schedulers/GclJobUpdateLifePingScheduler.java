@@ -20,10 +20,8 @@ package jsk.gcl.srv.logic.jobs.schedulers;
  * #L%
  */
 
-import jsk.gcl.cli.model.GclJobId;
 import jsk.gcl.srv.logic.jobs.services.GclJobManager;
 import jsk.gcl.srv.logic.jobs.storage.GclJobStorage;
-import jsk.gcl.srv.logic.scaling.storage.GclNodeStorage;
 import lombok.extern.log4j.Log4j2;
 import sk.services.boot.IBoot;
 import sk.services.clusterworkers.kvonoff.CluKvBasedOnOffWorker;
@@ -31,7 +29,6 @@ import sk.services.clusterworkers.model.CluDelay;
 import sk.utils.async.cancel.CancelGetter;
 
 import javax.inject.Inject;
-import java.util.List;
 
 import static sk.utils.statics.Ti.second;
 
@@ -47,7 +44,6 @@ public class GclJobUpdateLifePingScheduler extends CluKvBasedOnOffWorker<CluKvBa
 
     @Inject GclJobManager jobManager;
     @Inject GclJobStorage jobs;
-    @Inject GclNodeStorage nodes;
 
     @Override
     public void run() {
@@ -59,8 +55,6 @@ public class GclJobUpdateLifePingScheduler extends CluKvBasedOnOffWorker<CluKvBa
     }
 
     private void updateLifePings(CancelGetter cancelGetter) {
-        List<GclJobId> jobs = jobManager.getAllNodeJobs();
-
-        jobs.updateLigePings(jobs);
+        jobs.updateLifePings(jobManager.getAllNodeJobs());
     }
 }

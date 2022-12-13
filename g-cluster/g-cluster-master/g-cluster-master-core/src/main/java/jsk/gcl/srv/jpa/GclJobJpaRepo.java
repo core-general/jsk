@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobId;
 import sk.db.relational.utils.ReadWriteRepo;
 
 public interface GclJobJpaRepo extends ReadWriteRepo<GclJobJpa, GclJobId> {}

@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
 import jsk.gcl.cli.model.GclJobId;
 import jsk.gcl.srv.logic.jobs.model.GclJobInnerState;
 import jsk.gcl.srv.logic.jobs.model.GclJobStatus;

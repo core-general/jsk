@@ -25,15 +25,10 @@ import sk.services.json.JsonPolymorph;
 import sk.utils.ifaces.Identifiable;
 
 @Getter
-public abstract class GclJobDto<PARAM_CLS, T extends Enum<T> & GclWithSomeCls<PARAM_CLS>>
+public abstract class GclJobDto<IN_CLS, OUT_CLS, T extends GclJobType<IN_CLS, OUT_CLS>>
         extends JsonPolymorph
         implements Identifiable<GclJobId> {
     GclJobId jobId;
     T jobType;
-    PARAM_CLS params;
-
-    @Override
-    public GclJobId getId() {
-        return jobId;
-    }
+    IN_CLS params;
 }

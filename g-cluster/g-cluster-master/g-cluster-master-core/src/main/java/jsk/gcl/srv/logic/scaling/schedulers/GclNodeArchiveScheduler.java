@@ -65,7 +65,7 @@ public class GclNodeArchiveScheduler extends CluKvBasedOnOffWithLockWorker<CluKv
 
     private void mainTask(CancelGetter cancel) {
         List<GclNode> allBadNodes = nodeStorage.getInactiveNodes();
-        allBadNodes.forEach($ -> {
+        allBadNodes.stream().parallel().forEach($ -> {
             try {
                 archive.archiveNode($.getNId());
             } catch (Exception e) {

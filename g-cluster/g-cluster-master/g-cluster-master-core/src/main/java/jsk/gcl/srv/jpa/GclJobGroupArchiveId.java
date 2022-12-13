@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jsk.gcl.cli.model.GclJobGroupId;
 import sk.utils.ids.IdString;
 
 public class GclJobGroupArchiveId extends IdString {

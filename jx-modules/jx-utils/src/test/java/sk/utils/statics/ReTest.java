@@ -54,6 +54,16 @@ public class ReTest {
             B b = new B("123");
             assertEquals("123", getter.apply(b));
         }
+
+        {
+            F1<Object, Object> getter = Re.getter(Re.getNonStaticDeclaredField(С.class, "myField").get());
+            final O<C2<Object, Object>> setter = Re.setter(Re.getNonStaticDeclaredField(С.class, "myField").get());
+
+            С b = new С();
+            setter.get().accept(b, "xxx");
+            assertEquals(getter.apply(b), "WOOOT");
+            assertEquals(b.toString(), "xx");
+        }
     }
 
     @Data
@@ -97,6 +107,24 @@ public class ReTest {
     @Setter
     public static class A {
         String myField;
+    }
+
+    public static class С extends A {
+
+        @Override
+        public String getMyField() {
+            return "WOOOT";
+        }
+
+        @Override
+        public void setMyField(String myField) {
+            this.myField = myField.substring(1);
+        }
+
+        @Override
+        public String toString() {
+            return myField;
+        }
     }
 
     public record B(String myField) {}

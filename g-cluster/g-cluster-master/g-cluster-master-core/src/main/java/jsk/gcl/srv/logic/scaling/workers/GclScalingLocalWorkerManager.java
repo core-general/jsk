@@ -20,35 +20,71 @@ package jsk.gcl.srv.logic.scaling.workers;
  * #L%
  */
 
-import jsk.gcl.srv.jpa.GclJobId;
 import jsk.gcl.srv.logic.jobs.services.GclJobManager;
+import jsk.gcl.srv.logic.scaling.GclOOMManager;
 import lombok.Getter;
-import lombok.Setter;
-import sk.exceptions.NotImplementedException;
+import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
+import sk.services.ids.IIds;
+import sk.utils.functional.O;
+import sk.utils.statics.Fu;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Log4j2
 public class GclScalingLocalWorkerManager {
     @Getter
-    @Setter
     private volatile int desiredLocalWorkerCount;
     private final ConcurrentHashMap<String, GclWorker> workers = new ConcurrentHashMap<>();
 
+    @Inject GclOOMManager oomMgr;
     @Inject GclJobManager jobManager;
-
+    @Inject IIds ids;
 
     public int getLocalWorkerCount() {
         return workers.size();
     }
 
-
-    public int getBufferJobCount() {
-        throw new NotImplementedException();//todo
+    public void setDesiredLocalWorkerCount(int desiredLocalWorkerCount) {
+        this.desiredLocalWorkerCount = desiredLocalWorkerCount;
+        if (desiredLocalWorkerCount > getLocalWorkerCount()) {
+            synchronized (GclScalingLocalWorkerManager.this) {
+                desiredLocalWorkerCount = this.desiredLocalWorkerCount;
+                if (desiredLocalWorkerCount > getLocalWorkerCount()) {
+                    final int numToStart = desiredLocalWorkerCount - getLocalWorkerCount();
+                    startNewWorkers(numToStart);
+                }
+            }
+        }
     }
 
-    public List<GclJobId> getAllInProgressJobIds() {
+    /***
+     * We add workers on change of set desired worker count.
+     * We remove workers on each worker's iteration after comparing with current desired task
+     */
+    private void startNewWorkers(int numToStart) {
+        Fu.run(numToStart, () -> {
+            String workerId = ids.shortIdS();
+            GclWorker worker = new GclWorker(
+                    jobManager::waitForTask,
+                    oe -> onWorkerIterationFinish(workerId, oe),
+                    oomMgr);
+            workers.put(workerId, worker);
+        });
+    }
 
+    @NotNull
+    private Boolean onWorkerIterationFinish(String workerId, O<Exception> oe) {
+        oe.ifPresent(e -> log.error("", e));
+        if (desiredLocalWorkerCount < getLocalWorkerCount()) {
+            synchronized (GclScalingLocalWorkerManager.this) {
+                if (desiredLocalWorkerCount < getLocalWorkerCount()) {
+                    workers.remove(workerId);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

@@ -19,15 +19,19 @@
 ---
 CREATE TABLE gcl_job_group
 (
-    jg_id          TEXT      NOT NULL PRIMARY KEY,
-    jg_tag         TEXT      NOT NULL,
+    jg_id                   TEXT      NOT NULL PRIMARY KEY,
+    jg_tag                  TEXT      NOT NULL,
 
-    jg_status      TEXT      NOT NULL,
-    jg_inner_state JSONB     NOT NULL,
+    jg_status               TEXT      NOT NULL,
+    jg_inner_state          JSONB     NOT NULL,
 
-    created_at     TIMESTAMP NOT NULL,
-    updated_at     TIMESTAMP NOT NULL,
-    version        BIGINT    NOT NULL
+    jg_num_of_success_tasks INT       NOT NULL,
+    jg_num_of_fail_tasks    INT       NOT NULL,
+    jg_num_of_overall_tasks INT       NOT NULL,
+
+    created_at              TIMESTAMP NOT NULL,
+    updated_at              TIMESTAMP NOT NULL,
+    version                 BIGINT    NOT NULL
 );
 -- @enum gcl_job_group jg_status jsk.gcl.srv.scaling.model.GclJobStatus
 -- @jsonb gcl_job_group jg_inner_state jsk.gcl.srv.scaling.model.GclJobGroupInnerState
@@ -56,6 +60,7 @@ CREATE TABLE gcl_job
 -- @jsonb gcl_job j_inner_state jsk.gcl.srv.scaling.model.GclJobInnerState
 CREATE INDEX ON gcl_job USING BTREE (j_tag);
 CREATE INDEX ON gcl_job USING BTREE (j_jg_id, j_status);
+CREATE INDEX ON gcl_job USING BTREE (j_status, j_life_ping);
 CREATE INDEX ON gcl_job USING BTREE (j_life_ping);
 
 

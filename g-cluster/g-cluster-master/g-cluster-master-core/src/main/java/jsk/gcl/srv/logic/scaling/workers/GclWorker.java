@@ -23,13 +23,28 @@ package jsk.gcl.srv.logic.scaling.workers;
 import jsk.gcl.srv.logic.scaling.GclOOMManager;
 import lombok.extern.log4j.Log4j2;
 import sk.utils.async.ForeverThreadWithFinish;
+import sk.utils.functional.F0;
+import sk.utils.functional.F1;
+import sk.utils.functional.O;
+import sk.utils.functional.R;
 
 @Log4j2
 public class GclWorker extends ForeverThreadWithFinish {
-    public GclWorker(GclOOMManager oomManager) {
-        super(() -> {
-            //todo main worker logic goes here
-            throw new RuntimeException();
+    public GclWorker(F0<O<R>> taskGetter, F1<O<Exception>, Boolean> onFinishAndCheckContinue, GclOOMManager oomManager) {
+        super(cancelation -> {
+            Exception result = null;
+            try {
+                final O<R> task = taskGetter.get();
+                task.ifPresent($ -> $.run());
+            } catch (Exception e) {
+                result = e;
+            }
+
+            final Boolean continueSpinning = onFinishAndCheckContinue.apply(O.ofNull(result));
+
+            if (!continueSpinning) {
+                cancelation.setCancelled(true);
+            }
         }, true, (throwable, thread) -> {
             if (throwable instanceof OutOfMemoryError) {
                 oomManager.onOOM((OutOfMemoryError) throwable, thread);

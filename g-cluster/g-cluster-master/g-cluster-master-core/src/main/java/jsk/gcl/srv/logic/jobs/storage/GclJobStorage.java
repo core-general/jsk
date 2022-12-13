@@ -34,13 +34,23 @@ import java.util.List;
 public interface GclJobStorage extends RdbTransactionManager {
     O<GclJobGroup> getJobGroupById(GclJobGroupId jobGroupId);
 
+    List<GclJobGroup> getFinishedOrFailedJobGroups();
+
     GclJobGroup newGclJobGroup(GclJobGroupDto dto);
 
     O<GclJob> getJobById(GclJobId jobId);
 
     List<GclJob> getJobsRelatedTo(GclJobGroupId jobGroupId);
 
-    GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?> job);
+    GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?, ?> job);
 
-    void finishJob(GclJobId id);
+    void incrementJobGroupSuccess(GclJobGroupId jJgId);
+
+    void incrementJobGroupFail(GclJobGroupId jJgId);
+
+    void updateLifePings(List<GclJobId> activeJobs);
+
+    long getActiveJobCount();
+
+    void updateTasksIfLifePingIsOld();
 }

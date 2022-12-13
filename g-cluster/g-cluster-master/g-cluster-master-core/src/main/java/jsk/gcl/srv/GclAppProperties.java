@@ -21,9 +21,11 @@ package jsk.gcl.srv;
  */
 
 public interface GclAppProperties {
-    public int getMinWorkers();
+    int getMinWorkers();
 
-    public int getMaxWorkers();
+    int getMaxWorkers();
 
     long getDurationToScaleWorkersUp();
+
+    int getMaxTaskRetriesAfterFails();
 }

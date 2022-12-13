@@ -90,6 +90,11 @@ public final class Fu/*nctions*/ {
         };
     }
 
+    public static void run(int times, R runnable) {
+        for (int i = 0; i < times; i++) {
+            runnable.run();
+        }
+    }
 
     //region java aliases
     public static <T> boolean equalIgnoreCase(String o1, String o2) {

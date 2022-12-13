@@ -49,9 +49,9 @@ public class GclStorageFacadeImplTest extends MockitoTest {
 
     @Test
     public void prepareTagFromId() {
-        assertEquals(impl.prepareTagFromId("a-b-c-d"), "a-b");
-        assertEquals(impl.prepareTagFromId("a-b-c"), "a-b");
-        assertEquals(impl.prepareTagFromId("a-b"), "a-b");
-        assertEquals(impl.prepareTagFromId("a"), "horror-mission");
+        assertEquals(impl.prepareTagFromId(new GclNodeId("a-b-c-d")), "a-b");
+        assertEquals(impl.prepareTagFromId(new GclNodeId("a-b-c")), "a-b");
+        assertEquals(impl.prepareTagFromId(new GclNodeId("a-b")), "a-b");
+        assertEquals(impl.prepareTagFromId(new GclNodeId("a")), "horror-mission");
     }
 }

@@ -35,10 +35,13 @@ import lombok.extern.log4j.Log4j2;
 import net.bull.javamelody.MonitoredWithSpring;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import sk.db.relational.spring.services.impl.RdbTransactionManagerImpl;
+import sk.exceptions.NotImplementedException;
 import sk.services.bytes.IBytes;
+import sk.services.free.IFree;
 import sk.services.ids.IIds;
 import sk.services.json.IJson;
 import sk.services.nodeinfo.INodeInfo;
+import sk.services.rescache.IResCache;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
@@ -53,6 +56,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @MonitoredWithSpring
@@ -60,9 +65,11 @@ import java.util.List;
 public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements GclStorageFacade {
     private @Inject INodeInfo nodeInfo;
     private @Inject IIds ids;
+    private @Inject IFree free;
     private @Inject IJson json;
     private @Inject IBytes bytes;
     private @Inject ITime times;
+    private @Inject IResCache resCache;
 
     private @Inject NamedParameterJdbcOperations jdbcQuery;
 
@@ -90,12 +97,44 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     }
 
     @Override
+    public List<GclJobGroup> getFinishedOrFailedJobGroups() {
+        return Cc.list(jobGroupRepo.findAll(qjobGroup.jgStatus.in(GclJobStatus.FAIL, GclJobStatus.FINISH)));
+    }
+
+    @Override
     public GclJobGroup newGclJobGroup(GclJobGroupDto dto) {
         return new GclJobGroupJpa(dto.getJobGroupId(), prepareTagFromId(dto.getJobGroupId()),
                 GclJobStatus.READY,
-                new GclJobGroupInnerState(dto.getJobs().size()), null, null, null);
+                new GclJobGroupInnerState(), 0, 0, dto.getJobs().size(), null, null, null);
     }
 
+    @Override
+    public void incrementJobGroupSuccess(GclJobGroupId jJgId) {
+        privateUpdateJobGroup("gcl/sql/increment_job_group_success.sql", jJgId);
+    }
+
+    @Override
+    public void incrementJobGroupFail(GclJobGroupId jJgId) {
+        privateUpdateJobGroup("gcl/sql/increment_job_group_fail.sql", jJgId);
+    }
+
+    @Override
+    public long getActiveJobCount() {
+        throw new NotImplementedException();
+        //todo
+    }
+
+    @Override
+    public void updateTasksIfLifePingIsOld() {
+        //!!!should be set according to GclJobUpdateLifePingScheduler timer (3-4 times that time)
+        final ZonedDateTime limitingDate = times.nowZ().minus(1, ChronoUnit.MINUTES);
+        jdbcQuery.update(resCache.getResource("gcl/sql/batch_update_tasks_with_old_lifepings.sql.ftl").get(),
+                Cc.m("limit_date", Ti.yyyyMMddHHmmss.format(limitingDate)));
+    }
+
+    private int privateUpdateJobGroup(String file, GclJobGroupId jJgId) {
+        return jdbcQuery.update(resCache.getResource(file).get(), Cc.m("jg_id", jJgId.toString()));
+    }
 
     // endregion
 
@@ -112,16 +151,32 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
         return Cc.list(jobRepo.findAll(qjob.jJgId.eq(jobGroupId)));
     }
 
-    private void deleteJobsRelatedToGroupId(GclJobGroupId jobGroupId) {
-        jdbcQuery.update("delete from gcl.gcl_job where j_jg_id=:j_jg_id", Cc.m("j_jg_id", jobGroupId.toString()));
-    }
-
     @Override
-    public GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?> job) {
+    public GclJob newGclJob(GclJobGroupId jJgId, GclJobDto<?, ?, ?> job) {
         return new GclJobJpa(job.getJobId(), prepareTagFromId(job.getJobId()), jJgId, null,
                 GclJobStatus.READY,
                 new GclJobInnerState(job), Ti.minZonedDateTime, null, null, null);
     }
+
+    @Override
+    public void updateLifePings(List<GclJobId> activeJobs) {
+        int numOfGroups = activeJobs.size() / 15_000 + 1;
+        final Map<Integer, List<GclJobId>> groupsToUpdateLifePings =
+                numOfGroups > 1
+                ? activeJobs.stream().collect(Collectors.groupingBy($ -> $.hashCode() % numOfGroups))
+                : Cc.m(0, activeJobs);
+
+        groupsToUpdateLifePings.values().parallelStream().forEach(jobsToUpdatePings -> {
+            final String encodedIds = "'" + Cc.join("','", jobsToUpdatePings) + "'";
+            final String sql = free.processByText("gcl/sql/batch_update_life_pings.sql.ftl", Cc.m("items", encodedIds), true);
+            jdbcQuery.update(sql, Cc.m());
+        });
+    }
+
+    private void deleteJobsRelatedToGroupId(GclJobGroupId jobGroupId) {
+        jdbcQuery.update("delete from gcl.gcl_job where j_jg_id=:j_jg_id", Cc.m("j_jg_id", jobGroupId.toString()));
+    }
+
     // endregion
 
     // ------------------------------------------------
@@ -170,8 +225,8 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
     }
 
     @Override
-    public long getActiveNodeCount() {
-        return nodeRepo.count(qnode.nLifePing.goe(getNodeInactiveTimeLimit()));
+    public int getActiveNodeCount() {
+        return (int) nodeRepo.count(qnode.nLifePing.goe(getNodeInactiveTimeLimit()));
     }
 
     @Override
@@ -236,7 +291,17 @@ public class GclStorageFacadeImpl extends RdbTransactionManagerImpl implements G
         throw new RuntimeException("Unknown transactional type: " + toSave.getClass());
     }
 
-    String prepareTagFromId(IdString id) {
-        return St.subRL(id.toString(), "-");
+    String prepareTagFromId(IdString idx) {
+        final String id = idx.toString();
+        return switch (St.count(id, "-")) {
+            case 0 -> ids.tinyHaiku();
+            case 1 -> id;
+            case 2 -> St.subRL(id, "-");
+            default -> {
+                final int firstIndex = id.indexOf("-");
+                final int secondIndex = id.indexOf("-", firstIndex + 1);
+                yield St.ss(id, 0, secondIndex);
+            }
+        };
     }
 }
