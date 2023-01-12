@@ -21,9 +21,8 @@ package sk.db.util.generator;
  */
 
 import lombok.Getter;
-import sk.db.util.generator.model.entity.JsaEntityField;
-import sk.db.util.generator.model.entity.JsaEntityFieldType;
-import sk.db.util.generator.model.entity.JsaEntityModel;
+import sk.db.util.generator.model.entity.*;
+import sk.db.util.generator.model.sql.JsaRawSqlInfo;
 import sk.db.util.generator.model.sql.JsaTableColumn;
 import sk.db.util.generator.model.sql.JsaTableInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaInfo;
@@ -37,10 +36,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class JsaProcessor {
-    public static List<JsaEntityModel> process(List<JsaTableInfo> tables) {
-        return tables.stream()
+    public static JsaFullEntityModel process(JsaRawSqlInfo fullData) {
+        final List<JsaEnumEntityModel> enums = fullData.enums().stream()
+                .map($ -> new JsaEnumEntityModel($.getEnumTypeName(), St.snakeToCamelCase($.getEnumTypeName()), $.getMembers()))
+                .toList();
+
+        final List<JsaEntityModel> tables = fullData.tables().stream()
                 .map($ -> toModel($))
                 .collect(Cc.toL());
+
+        return new JsaFullEntityModel(enums, tables);
     }
 
     private static JsaEntityModel toModel(JsaTableInfo table) {
@@ -86,6 +91,10 @@ public class JsaProcessor {
         }
         if (fieldType == JsaEntityFieldType.ENUM) {
             JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.ENUM);
+            mainType = meta.getParams().get(0);
+        }
+        if (fieldType == JsaEntityFieldType.PG_ENUM) {
+            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.PG_ENUM);
             mainType = meta.getParams().get(0);
         }
         if (fieldType == JsaEntityFieldType.JSONB) {

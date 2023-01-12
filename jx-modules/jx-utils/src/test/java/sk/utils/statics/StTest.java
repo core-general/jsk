@@ -122,4 +122,12 @@ public class StTest {
         assertEquals(St.longestCommonSubstring("kivan", "ivakivauator").get(), "kiva");
         assertEquals(St.longestCommonSubstring("abc", "def"), O.empty());
     }
+
+    @Test
+    public void snakeToCamelCase() {
+        assertEquals(St.snakeToCamelCase("abc"), "Abc");
+        assertEquals(St.snakeToCamelCase("abc_def"), "AbcDef");
+        assertEquals(St.snakeToCamelCase("abc_def_geh"), "AbcDefGeh");
+        assertEquals(St.snakeToCamelCase("_abc_def_geh_"), "AbcDefGeh");
+    }
 }

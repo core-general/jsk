@@ -40,13 +40,19 @@ public class JsaTableInfo {
     List<JsaTableColumn> fields;
 
     public JsaTableInfo(CreateTable table,
-            Map<X2<String, String>, Map<JsaMetaType, JsaMetaInfo>> tableFieldsToMetaInfos) {
+            Map<X2<String, String>, Map<JsaMetaType, JsaMetaInfo>> tableFieldsToMetaInfos,
+            List<JsaRawEnumTypeInfo> enums) {
         this.tableName = table.getTable().getName();
         fields = table.getColumnDefinitions().stream()
                 .map($ -> {
                     final String fieldName = $.getColumnName().toLowerCase();
+
+                    boolean shouldBePgEnum = tableFieldsToMetaInfos.getOrDefault(X.x(tableName, fieldName), Cc.mEmpty())
+                            .keySet().stream()
+                            .anyMatch(jsaMetaType -> jsaMetaType == JsaMetaType.PG_ENUM);
+
                     return new JsaTableColumn(fieldName,
-                            JsaDbColumnType.parse($.getColDataType().getDataType().toUpperCase()),
+                            JsaDbColumnType.parse($.getColDataType().getDataType().toUpperCase(), enums, shouldBePgEnum),
                             $.getColumnSpecs() != null
                                     && $.getColumnSpecs().stream().map(x -> x.toUpperCase()).collect(Cc.toS())
                                     .containsAll(Cc.l("PRIMARY", "KEY")),

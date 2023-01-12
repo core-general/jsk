@@ -21,7 +21,7 @@ package sk.db.util.generator;
  */
 
 import sk.db.util.generator.model.JsaFileInfo;
-import sk.db.util.generator.model.entity.JsaEntityModel;
+import sk.db.util.generator.model.entity.JsaFullEntityModel;
 import sk.db.util.generator.model.output.JsaEntityOutput;
 import sk.db.util.generator.model.output.JsaPrimaryKeyOutput;
 import sk.db.util.generator.model.output.JsaStorageOutput;
@@ -37,39 +37,37 @@ import sk.utils.functional.C1;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
-import java.util.List;
-
 public class JsaExporter {
     static IRand rnd = new RandImpl();
     static IBytes bytes = new BytesImpl();
     static IIds ids = new IdsImpl(rnd, bytes);
     static IFree free = new Freemarker();
 
-    public static void export(C1<JsaFileInfo> fileProcessor, List<JsaEntityModel> entities, String schema) {
+    public static void export(C1<JsaFileInfo> fileProcessor, JsaFullEntityModel entities, String schema) {
         final String pkg = "__" + rnd.rndString(10, St.eng);
         final String pkgFolder = St.endWith(pkg, "/");
 
         final String prefix = St.capFirst(schema);
-        if (entities.size() > 0) {
+        if (entities.entities().size() > 0) {
             fileProcessor.accept(new JsaFileInfo(
                     pkgFolder + prefix + "StorageFacade.java",
                     free.process("jsa_storage_facade.ftl",
-                            Cc.m("model", new JsaStorageOutput(pkg, prefix, entities)))
+                            Cc.m("model", new JsaStorageOutput(pkg, prefix, entities.entities())))
             ));
             fileProcessor.accept(new JsaFileInfo(
                     pkgFolder + prefix + "StorageFacadeImpl.java",
                     free.process("jsa_storage_facade_impl.ftl",
-                            Cc.m("model", new JsaStorageOutput(pkg, prefix, entities)))
+                            Cc.m("model", new JsaStorageOutput(pkg, prefix, entities.entities())))
             ));
         }
 
-        entities.forEach((entity) -> {
+        entities.entities().forEach((entity) -> {
             fileProcessor.accept(new JsaFileInfo(
                     pkgFolder + entity.getCls() + ".java",
                     free.process("jsa_entity_impl.ftl", Cc.m("model", new JsaEntityOutput(pkg, schema, entity)))
             ));
             fileProcessor.accept(new JsaFileInfo(
-                    pkgFolder + entity.getInterfce() + ".java",
+                    pkgFolder + entity.getIFace() + ".java",
                     free.process("jsa_entity_iface.ftl", Cc.m("model", new JsaEntityOutput(pkg, schema, entity)))
             ));
             fileProcessor.accept(new JsaFileInfo(

@@ -120,7 +120,12 @@ public class DequeWithLimit<T> {
 
     public boolean containsAll(Collection<?> c) {return deque.containsAll(c);}
 
-    public boolean addAll(Collection<? extends T> c) {return deque.addAll(c);}
+    public boolean addAll(Collection<? extends T> c) {
+        for (T t : c) {
+            add(t);
+        }
+        return true;
+    }
 
     public boolean removeAll(Collection<?> c) {return deque.removeAll(c);}
 

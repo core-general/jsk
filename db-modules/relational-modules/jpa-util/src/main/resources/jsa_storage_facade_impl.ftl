@@ -38,15 +38,15 @@ public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl 
 
 <#list model.entites as entity>
     // ------------------------------------------------
-    // region ${entity.interfce}
+    // region ${entity.getIFace()}
     // ------------------------------------------------
     @Override
-    public O<${entity.interfce}> get${entity.simple?cap_first}ById(${entity.getIdField().mainType} ${entity.simple}Id){
+    public O<${entity.getIFace()}> get${entity.simple?cap_first}ById(${entity.getIdField().mainType} ${entity.simple}Id){
     return O.of(${entity.simple}Repo.findById(${entity.simple}Id).map($->$));
     }
 
     @Override
-    public ${entity.interfce} new${entity.interfce}(
+    public ${entity.getIFace()} new${entity.getIFace()}(
     <#list entity.getFieldForFactory() as field>
         <#if field.nullable>O<${field.mainType}><#else>${field.mainType}</#if> ${field.fieldName}<#sep>,</#sep>
     </#list>

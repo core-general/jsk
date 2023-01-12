@@ -22,6 +22,8 @@ package sk.db.util.generator;
 
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import sk.db.util.generator.model.sql.JsaRawEnumTypeInfo;
+import sk.db.util.generator.model.sql.JsaRawSqlInfo;
 import sk.db.util.generator.model.sql.JsaTableInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaType;
@@ -31,13 +33,14 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.*;
 
 public class JsaTableInfoExtractor {
-    public static List<JsaTableInfo> extractTableInfo(String fullSqlCode) {
+    public static JsaRawSqlInfo extractTableInfo(String fullSqlCode) {
         String sqlCode = Cc.stream(fullSqlCode.split("\n"))
                 .map(String::trim)
                 .filter($ -> !$.startsWith("--"))
@@ -58,6 +61,13 @@ public class JsaTableInfoExtractor {
                         .collect(groupingBy($ -> $.i1, mapping($ -> $.i2, toMap(x -> x.getType(), x -> x))));
 
 
+        List<JsaRawEnumTypeInfo> enums = Cc.stream(sqlCode.split(";"))
+                .map(String::trim)
+                .filter(sqlStatement -> !sqlStatement.startsWith("--")
+                        && sqlStatement.toUpperCase().contains("CREATE TYPE") && sqlStatement.toUpperCase().contains("AS ENUM"))
+                .map(sql -> parseEnum(sql))
+                .collect(toList());
+
         List<JsaTableInfo> tables = Cc.stream(sqlCode.split(";"))
                 .map(String::trim)
                 .filter(sqlStatement -> !sqlStatement.startsWith("--")
@@ -65,10 +75,21 @@ public class JsaTableInfoExtractor {
                 .map(sql -> {
                     return (CreateTable) Ex.toRuntime(() -> CCJSqlParserUtil.parse(sql));
                 })
-                .map(table -> new JsaTableInfo(table, tableFieldsToMetaInfos))
+                .map(table -> new JsaTableInfo(table, tableFieldsToMetaInfos, enums))
                 .collect(toList());
 
-        return tables.stream().collect(Cc.toL());
+        return new JsaRawSqlInfo(enums, tables);
+    }
+
+    private static JsaRawEnumTypeInfo parseEnum(String sql) {
+        String name = St.sub(sql, "CREATE TYPE", "AS ENUM").get().trim();
+
+        final String sqlWithItems = St.sub(sql, "(", ")").get();
+        final List<String> items = Arrays.stream(sqlWithItems.split(","))
+                .map($ -> $.replace("'", "").trim())
+                .filter($ -> St.isNotNullOrEmpty($))
+                .toList();
+        return new JsaRawEnumTypeInfo(name, items);
     }
 
 }

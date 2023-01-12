@@ -24,7 +24,7 @@ package ${model.packageName};
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-public interface ${model.model.interfce} {
+public interface ${model.model.getIFace()} {
 <#list model.model.fields as field>
     <#switch field.category>
         <#case "ID">

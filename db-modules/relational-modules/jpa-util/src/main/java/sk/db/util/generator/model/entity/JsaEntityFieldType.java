@@ -32,6 +32,7 @@ public enum JsaEntityFieldType {
     RELATION_IN,
     RELATION_OUT,
     ENUM,
+    PG_ENUM,
     ZDT,
     JSONB,
     VERSION,
@@ -49,6 +50,9 @@ public enum JsaEntityFieldType {
         } else if (field.getMeta().map($ ->
                 $.containsKey(JsaMetaType.ENUM)).orElse(false)) {
             return ENUM;
+        } else if (field.getMeta().map($ ->
+                $.containsKey(JsaMetaType.PG_ENUM)).orElse(false)) {
+            return PG_ENUM;
         } else if (field.getType() == JsaDbColumnType.TIMESTAMP) {
             return ZDT;
         } else if (field.getType() == JsaDbColumnType.JSON) {

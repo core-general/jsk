@@ -38,7 +38,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "${model.model.table}", schema = "${model.dbSchema}")
-public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.hasUpdatedAt()>extends JpaWithContextAndCreatedUpdated</#if> implements ${model.model.interfce} {
+public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.hasUpdatedAt()>extends JpaWithContextAndCreatedUpdated</#if> implements ${model.model.getIFace()} {
 <#list model.model.fields as field>
     <#switch field.category>
         <#case "ID">
@@ -59,6 +59,11 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
         <#case "ENUM">
             @Column(name = "${field.columnName}")
             @Type(type = UTEnumToString.type, parameters = {@Parameter(name = UTEnumToString.param, value = ${field.mainType}.type)})
+            ${field.mainType} ${field.fieldName};
+            <#break>
+        <#case "PG_ENUM">
+            @Column(name = "${field.columnName}")
+            @Type(type = UtPgEnumToEnumUserType.type, parameters = {@Parameter(name = UtPgEnumToEnumUserType.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "ZDT">

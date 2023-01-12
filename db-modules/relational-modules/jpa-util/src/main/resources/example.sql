@@ -17,18 +17,26 @@
 -- limitations under the License.
 -- #L%
 ---
+
+CREATE TYPE enum_type AS ENUM ('t1','t2','t3');
+CREATE TYPE enum_type_2 AS ENUM (
+    't1',
+    't2',
+    't3');
+
 CREATE TABLE abc_t1
 (
-    id         TEXT   NOT NULL PRIMARY KEY,
+    id         TEXT      NOT NULL PRIMARY KEY,
 
-    info       JSONB  NOT NULL,
-
+    info       JSONB     NOT NULL,
+    some_enum  enum_type NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
-    version    BIGINT NOT NULL
+    version    BIGINT    NOT NULL
 );
 
 -- @jsonb abc_t1 info com.example.SomeInfoClass
+-- @pg_enum abc_t1 some_enum com.example.SomeEnum
 
 CREATE TABLE abc_t2
 (

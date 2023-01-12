@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class JsaEntityModel {
     String table;
     String cls;
-    String interfce;
+    String iFace;
     String simple;
     String schema;
     List<JsaEntityField> fields;

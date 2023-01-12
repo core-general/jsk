@@ -28,6 +28,7 @@ import sk.utils.statics.Fu;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static sk.utils.functional.O.empty;
@@ -54,18 +55,25 @@ public enum JsaDbColumnType {
     BYTEA("BYTEA", byte[].class, empty()),
 
     TIMESTAMP("TIMESTAMP", ZonedDateTime.class, of(UTZdtToTimestamp.class)),
-    JSON("JSONB", Object.class, of(UTObjectToJsonb.class));
+    JSON("JSONB", Object.class, of(UTObjectToJsonb.class)),
+
+    PG_ENUM("?", Object.class, of(UtPgEnumToEnumUserType.class));
 
     String sqlType;
     Class javaType;
     O<Class> defaultConverterToNonStandardObject;
 
-    public static JsaDbColumnType parse(String type) {
+    public static JsaDbColumnType parse(String type, List<JsaRawEnumTypeInfo> enums, boolean pgEnumByMeta) {
         try {
-            return Arrays.stream(values())
-                    .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
-                    .findFirst()
-                    .get();
+            if (pgEnumByMeta || enums.stream().anyMatch($ -> $.enumTypeName.trim().equalsIgnoreCase(type))) {
+                return PG_ENUM;
+            } else {
+
+                return Arrays.stream(values())
+                        .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
+                        .findFirst()
+                        .get();
+            }
         } catch (Exception e) {
             throw new RuntimeException(type, e);
         }

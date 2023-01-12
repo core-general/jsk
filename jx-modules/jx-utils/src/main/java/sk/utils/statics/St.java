@@ -286,6 +286,14 @@ public final class St/*rings*/ {
         return longestCommonSubstringPrivate(x, y, x.length(), y.length());
     }
 
+    private static final Pattern snakeToCamelPattern = Pattern.compile("_([a-z])");
+
+    public static String snakeToCamelCase(String snakeCase) {
+        return St.capFirst(snakeToCamelPattern
+                .matcher(snakeCase)
+                .replaceAll(m -> m.group(1).toUpperCase()).replace("_", ""));
+    }
+
     //endregion
 
     //region Start or end

@@ -88,10 +88,11 @@ public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWo
      * (запрос предполагает, что мы апдейтим таски этой жоб групы со статусом реди и возвращаем список айди тех, кого
      * заапдейтили)
      * 5. Добавляем взятые таски в очередь и если не донабирали, переходим к следующей job_groupе
+     *
+     * todo упорядочить все таски по индексу даты создания и по нему их и забирать
      */
     private void tryLockNewTasks() {
-        throw new NotImplementedException();
-        //todo
+        throw new NotImplementedException();//todo
         //int bufferedJobCount = jobManager.getBufferJobCount();
         //
         //if(bufferedJobCount>MIN_BUFFER_SIZE){
@@ -99,7 +100,6 @@ public class GclJobLockScheduler extends CluKvBasedOnOffWorker<CluKvBasedOnOffWo
         //}
         //
         //long activeNodeCount = nodes.getActiveNodeCount();
-        //
         //
         //do {
         //    O<GclJobGroup> oJobGroup = jobs.getOldestNotFinishedJobGroup();

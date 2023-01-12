@@ -32,7 +32,8 @@ public enum JsaMetaType {
     RELATION_IN_FILE("@relationHere", 1/*tableName in this sql file*/),
     RELATION_OUTSIDE("@relationOutside", 2/*id class, jpa class*/),
     JSON("@jsonb", 1/*jsonb class*/),
-    ENUM("@enum", 1/*enum class*/);
+    ENUM("@enum", 1/*enum class*/),
+    PG_ENUM("@pg_enum", 1/*pg enum class*/);
 
     String alias;
     int paramCount;
