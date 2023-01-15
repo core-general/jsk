@@ -21,6 +21,7 @@ package sk.outer.api;
  */
 
 
+import sk.exceptions.NotImplementedException;
 import sk.utils.functional.O;
 import sk.utils.tuples.X2;
 
@@ -28,4 +29,12 @@ public interface OutMessengerApi<IMG, SPECIAL, BUTTONS, RESPONSE> {
     public RESPONSE send(String userId, O<String> text, O<IMG> image, O<SPECIAL> special,
             O<X2<String, byte[]>> document,
             O<BUTTONS> buttons);
+
+    public default RESPONSE editMessageText(String userId, String messageId, String newText, O<BUTTONS> newButtons) {
+        throw new NotImplementedException();
+    }
+
+    public default RESPONSE deleteMessage(String userId, String messageId) {
+        throw new NotImplementedException();
+    }
 }

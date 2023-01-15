@@ -21,6 +21,7 @@ package jsk.outer.telegram.mtc.beans.telegram;
  */
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
@@ -28,7 +29,6 @@ import lombok.AllArgsConstructor;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
-import sk.utils.statics.Im;
 import sk.utils.tuples.X2;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
         mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> requests.add(new SendVideo(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getRawImage())
-                .ifPresent(s -> requests.add(new SendPhoto(userId, Im.savePngToBytes(s))));
+                .ifPresent(imgAndFormat -> requests.add(new SendPhoto(userId, imgAndFormat.i2.toBytes(imgAndFormat.i1()))));
         text.ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
         document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 
@@ -59,5 +59,19 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         });
         List<BaseResponse> collect = requests.stream().map($ -> bot.execute($)).collect(Cc.toL());
         return Cc.last(collect).get();
+    }
+
+    @Override
+    public BaseResponse editMessageText(String __, String inlineMessageId, String newText, O<Keyboard> newButtons) {
+        EditMessageText editMessageTextRequest = new EditMessageText(inlineMessageId, newText);
+        newButtons.filter($ -> $ instanceof InlineKeyboardMarkup)
+                .ifPresent($ -> editMessageTextRequest.replyMarkup((InlineKeyboardMarkup) $));
+        return bot.execute(editMessageTextRequest);
+    }
+
+    @Override
+    public BaseResponse deleteMessage(String userId, String messageId) {
+        DeleteMessage deleterRequest = new DeleteMessage(userId, Integer.parseInt(messageId));
+        return bot.execute(deleterRequest);
     }
 }

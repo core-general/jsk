@@ -25,6 +25,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.utils.functional.O;
+import sk.utils.javafixes.ImgFormat;
+import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 
 import java.awt.image.BufferedImage;
 
@@ -37,7 +40,7 @@ public class MgcTelegramSpecial {
     O<SendInvoice> payments;
     O<String> sticker;
     O<String> video;
-    O<BufferedImage> rawImage;
+    O<X2<BufferedImage, ImgFormat>> rawImage;
 
     public static MgcTelegramSpecial select(O<SendInvoice> payments, O<String> sticker, O<String> video,
             O<BufferedImage> rawImage) {
@@ -56,7 +59,7 @@ public class MgcTelegramSpecial {
         return new MgcTelegramSpecial(empty(), empty(), of(video), empty());
     }
 
-    public static MgcTelegramSpecial rawImage(BufferedImage image) {
-        return new MgcTelegramSpecial(empty(), empty(), empty(), of(image));
+    public static MgcTelegramSpecial rawImage(BufferedImage image, ImgFormat format) {
+        return new MgcTelegramSpecial(empty(), empty(), empty(), of(X.x(image, format)));
     }
 }

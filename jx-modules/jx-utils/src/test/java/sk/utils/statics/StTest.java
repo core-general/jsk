@@ -100,6 +100,13 @@ public class StTest {
     }
 
     @Test
+    public void ss() {
+        assertEquals(St.ss("abc", 0, -1), "abc");
+        assertEquals(St.ss(St.ss("abc", 0, -1), 0, 1), "a");
+        assertEquals(St.ss(St.ss("abc", 0, 1), 0, -1), "a");
+    }
+
+    @Test
     public void subOneLine() {
         final String str = "http://abc.com/bde";
         assertEquals(St.subLF(str, "/"), "/abc.com/bde");

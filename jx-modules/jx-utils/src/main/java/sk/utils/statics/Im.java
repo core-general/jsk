@@ -32,6 +32,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
@@ -107,6 +108,20 @@ public final class Im/*ages*/ {
         jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
         jpegParams.setCompressionQuality(quality);
 
+        if (image.getColorModel().hasAlpha()) {
+            //if image has alpha, we have to convert it to non alpha, otherwise writing throws exception
+            BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = copy.createGraphics();
+            try {
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(0, 0, copy.getWidth(), copy.getHeight());
+                g2d.drawImage(image, 0, 0, null);
+                image = copy;
+            } finally {
+                g2d.dispose();
+            }
+        }
+
         try (output) {
             ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
             writer.setOutput(output);
@@ -140,4 +155,8 @@ public final class Im/*ages*/ {
     }
     //endregion
 
+
+    public enum Format {
+
+    }
 }

@@ -39,6 +39,9 @@ public class SpringApp<K extends SpringAppEntryPoint> {
         return new SpringApp<>(O.empty(), O.empty(), processorWillBeAutowired, configClass);
     }
 
+    /**
+     * @param welcomeTextFolderOrFile https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
+     */
     public static <K extends SpringAppEntryPoint> SpringApp<K> createWithWelcomeAndLogAndInit(
             String welcomeTextFolderOrFile,
             String loggerFolderOrFile,

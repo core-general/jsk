@@ -20,9 +20,7 @@ package jsk.outer.telegram.mtc.utils;
  * #L%
  */
 
-import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardRemove;
+import com.pengrad.telegrambot.model.request.*;
 import sk.utils.statics.Cc;
 
 import java.util.List;
@@ -51,5 +49,27 @@ public class TelUtils {
         } else {
             return new ReplyKeyboardMarkup(collect.toArray(new String[collect.size()][])).resizeKeyboard(true);
         }
+    }
+
+    public static InlineKeyboardMarkup toInlineKeyboard(List<InlineKeyboardButton> buttons, int columns) {
+        return toInlineKeyboard(buttons, columns, Cc.l());
+    }
+
+    public static InlineKeyboardMarkup toInlineKeyboard(List<InlineKeyboardButton> buttons, int columns,
+            List<InlineKeyboardButton> singleColumnButtons) {
+        singleColumnButtons = singleColumnButtons == null ? Cc.l() : singleColumnButtons;
+
+        List<InlineKeyboardButton[]> collect = Cc.l();
+        for (int i = 0; i < buttons.size(); i = i + columns) {
+            int elementsLeft = Math.min(buttons.size() - i, columns);
+            InlineKeyboardButton[] val = new InlineKeyboardButton[elementsLeft];
+            for (int j = 0; j < elementsLeft; j++) {
+                val[j] = buttons.get(i + j);
+            }
+            collect.add(val);
+        }
+
+        collect.addAll(singleColumnButtons.stream().map(x -> new InlineKeyboardButton[]{x}).collect(Cc.toL()));
+        return new InlineKeyboardMarkup(collect.toArray(new InlineKeyboardButton[collect.size()][]));
     }
 }

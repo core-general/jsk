@@ -41,6 +41,11 @@ public class MgcTelegramFileRequest extends AbstractMultipartRequest<MgcTelegram
     }
 
     @Override
+    protected String getDefaultContentType() {
+        return "";
+    }
+
+    @Override
     protected String getFileParamName() {
         return "document";
     }
