@@ -43,7 +43,7 @@ public class MgcTelegramSpecial {
     O<X2<BufferedImage, ImgFormat>> rawImage;
 
     public static MgcTelegramSpecial select(O<SendInvoice> payments, O<String> sticker, O<String> video,
-            O<BufferedImage> rawImage) {
+            O<X2<BufferedImage, ImgFormat>> rawImage) {
         return new MgcTelegramSpecial(payments, sticker, video, rawImage);
     }
 

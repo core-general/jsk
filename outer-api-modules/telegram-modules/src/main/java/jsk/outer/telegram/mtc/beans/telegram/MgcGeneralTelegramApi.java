@@ -44,13 +44,18 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
             O<Keyboard> replyKeyboardMarkup) {
         List<AbstractSendRequest> requests = Cc.l();
 
-        image.ifPresent(s -> requests.add(new SendPhoto(userId, s)));
+        image.ifPresent(s -> {
+            addCaptionIfExistsToImage(text, requests, new SendPhoto(userId, s));
+        });
         mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> requests.add(new SendSticker(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
         mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> requests.add(new SendVideo(userId, s)));
         mgcTelegramSpecial.flatMap($ -> $.getRawImage())
-                .ifPresent(imgAndFormat -> requests.add(new SendPhoto(userId, imgAndFormat.i2.toBytes(imgAndFormat.i1()))));
-        text.ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
+                .ifPresent(imgAndFormat -> {
+                    addCaptionIfExistsToImage(text, requests, new SendPhoto(userId, imgAndFormat.i2.toBytes(imgAndFormat.i1())));
+                });
+        text.filter(__ -> image.isEmpty() && mgcTelegramSpecial.map($ -> $.getRawImage().isEmpty()).orElse(true))
+                .ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
         document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 
         Cc.last(requests).map($ -> {
@@ -59,6 +64,13 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         });
         List<BaseResponse> collect = requests.stream().map($ -> bot.execute($)).collect(Cc.toL());
         return Cc.last(collect).get();
+    }
+
+    private void addCaptionIfExistsToImage(O<String> text, List<AbstractSendRequest> requests, SendPhoto photo) {
+        requests.add(photo);
+        if (text.isPresent()) {
+            photo.caption(text.get());
+        }
     }
 
     @Override
