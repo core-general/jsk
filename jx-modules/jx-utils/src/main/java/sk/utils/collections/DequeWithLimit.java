@@ -127,6 +127,20 @@ public class DequeWithLimit<T> {
         return true;
     }
 
+    public boolean addAllFirst(Collection<? extends T> c) {
+        for (T t : c) {
+            addFirst(t);
+        }
+        return true;
+    }
+
+    public boolean addAllLast(Collection<? extends T> c) {
+        for (T t : c) {
+            addLast(t);
+        }
+        return true;
+    }
+
     public boolean removeAll(Collection<?> c) {return deque.removeAll(c);}
 
     public boolean retainAll(Collection<?> c) {return deque.retainAll(c);}

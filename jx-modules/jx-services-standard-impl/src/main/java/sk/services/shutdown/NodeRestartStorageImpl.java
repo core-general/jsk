@@ -31,7 +31,7 @@ import javax.inject.Inject;
 
 
 /**
- * Storage which persists through JVM restarts. Not VM restarts!
+ * Storage which persists through JVM restarts. Not VM/Hardware restarts!
  */
 @AllArgsConstructor
 @NoArgsConstructor

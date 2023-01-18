@@ -26,6 +26,7 @@ import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -35,7 +36,7 @@ import java.util.List;
 
 @AllArgsConstructor
 public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
-    final TelegramBot bot;
+    @Getter final TelegramBot bot;
 
     @Override
     public BaseResponse send(String userId, O<String> text, O<String> image,
