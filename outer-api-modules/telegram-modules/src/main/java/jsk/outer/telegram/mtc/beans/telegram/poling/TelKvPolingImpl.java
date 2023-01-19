@@ -27,7 +27,7 @@ import javax.inject.Inject;
 
 import static sk.utils.functional.O.of;
 
-public abstract class TelKvPolingImpl implements TelPolingConf {
+public class TelKvPolingImpl implements TelPolingConf {
     @Inject IKvLimitedStore kv;
 
     final private KvSimpleKeyWithName pollingKey;

@@ -64,7 +64,11 @@ public class MgcPolingBootstrap implements IBoot {
             if (conf.usePolling()) {
                 int lastTelegramMessageId = conf.getLastTelegramMessageId();
                 GetUpdates getUpdates = new GetUpdates().limit(100).offset(lastTelegramMessageId).timeout(3)
-                        .allowedUpdates("message", "pre_checkout_query");
+                        .allowedUpdates(
+                                "message",
+                                "callback_query",
+                                "pre_checkout_query"
+                        );
                 GetUpdatesResponse response = null;
                 try {
                     try {
@@ -74,7 +78,11 @@ public class MgcPolingBootstrap implements IBoot {
                     }
                     response.updates().stream().parallel()
                             .collect(Collectors.groupingBy(
-                                    $ -> $.message() != null ? $.message().from().id() : $.preCheckoutQuery().from().id()))
+                                    $ -> $.message() != null
+                                         ? $.message().from().id()
+                                         : ($.callbackQuery() != null)
+                                           ? $.callbackQuery().from().id()
+                                           : $.preCheckoutQuery().from().id()))
                             .values().stream()
                             .parallel()
                             .forEach(X -> X.stream()
