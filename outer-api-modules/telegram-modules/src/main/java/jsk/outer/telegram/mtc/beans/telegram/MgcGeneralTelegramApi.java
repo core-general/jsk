@@ -30,6 +30,7 @@ import lombok.Getter;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
     private void addCaptionIfExistsToImage(O<String> text, List<AbstractSendRequest> requests, SendPhoto photo) {
         requests.add(photo);
         if (text.isPresent()) {
-            photo.caption(text.get());
+            photo.caption(St.raze3dots(text.get(), 990));
         }
     }
 
