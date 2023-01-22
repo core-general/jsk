@@ -1,4 +1,4 @@
-package sk.utils.collections.task_queue;
+package sk.utils.collections.task_queue.model;
 
 /*-
  * #%L
@@ -20,17 +20,16 @@ package sk.utils.collections.task_queue;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-import sk.utils.ifaces.IdentifiableString;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import sk.utils.collections.task_queue.JskPTQPriority;
 
-public interface JskPriorityTask<PRIORITY extends JskPTQPriority, OUT>
-        extends Comparable<JskPriorityTask<PRIORITY, OUT>>, IdentifiableString {
-    JskPTQPriority getPriority();
+import java.time.ZonedDateTime;
 
-    OUT process();
-
-    @Override
-    default int compareTo(@NotNull JskPriorityTask o) {
-        return Integer.compare(this.getPriority().ordinal(), o.getPriority().ordinal());
-    }
+@Data
+@AllArgsConstructor
+public final class JskPTQTaskFromQueueInfo<PRIORITY extends JskPTQPriority> {
+    private final String taskId;
+    private final ZonedDateTime addedAt;
+    private final PRIORITY priority;
 }

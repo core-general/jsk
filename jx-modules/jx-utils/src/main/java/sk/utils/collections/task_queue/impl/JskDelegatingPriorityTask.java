@@ -21,21 +21,25 @@ package sk.utils.collections.task_queue.impl;
  */
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import sk.utils.collections.task_queue.JskPTQPriority;
 import sk.utils.collections.task_queue.JskPriorityTask;
-import sk.utils.functional.F1;
+import sk.utils.functional.F1E;
 
 @Getter
 public class JskDelegatingPriorityTask<PRIORITY extends JskPTQPriority, OUT> implements JskPriorityTask<PRIORITY, OUT> {
+    private final String id;
     private final PRIORITY priority;
-    private final F1<JskDelegatingPriorityTask<PRIORITY, OUT>, OUT> processor;
+    private final F1E<JskDelegatingPriorityTask<PRIORITY, OUT>, OUT> processor;
 
-    public JskDelegatingPriorityTask(PRIORITY priority, F1<JskDelegatingPriorityTask<PRIORITY, OUT>, OUT> processor) {
+    public JskDelegatingPriorityTask(String id, PRIORITY priority, F1E<JskDelegatingPriorityTask<PRIORITY, OUT>, OUT> processor) {
+        this.id = id;
         this.priority = priority;
         this.processor = processor;
     }
 
     @Override
+    @SneakyThrows
     public OUT process() {
         return processor.apply(this);
     }

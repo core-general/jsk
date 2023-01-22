@@ -28,8 +28,12 @@ import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.collections.task_queue.JskPTQPriority;
 import sk.utils.collections.task_queue.JskPriorityTask;
 import sk.utils.collections.task_queue.JskPriorityTaskQueue;
+import sk.utils.collections.task_queue.model.JskPTQTaskFromQueueInfo;
+import sk.utils.functional.F0;
 import sk.utils.statics.Fu;
 
+import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -40,21 +44,42 @@ import java.util.stream.IntStream;
 public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implements JskPriorityTaskQueue<PRIORITY> {
     private final PriorityBlockingQueue<PTQTaskAndItsCompletion<?>> queue = new PriorityBlockingQueue<>();
     private final List<PTQExecutor> executors;
+    private final F0<ZonedDateTime> nowProvider;
     private final String taskQueueName;
 
-    public JskPriorityTaskQueueImpl(String taskQueueName, int executorCount) {
+    public JskPriorityTaskQueueImpl(String taskQueueName, int executorCount, F0<ZonedDateTime> nowProvider) {
         this.taskQueueName = taskQueueName;
         executors = IntStream.range(0, executorCount)
                 .mapToObj($ -> new PTQExecutor($ + ""))
                 .toList();
+        this.nowProvider = nowProvider;
     }
 
     @Override
     public <OUT, TASK extends JskPriorityTask<PRIORITY, OUT>>
     CompletableFuture<OUT> addTask(TASK task) {
         CompletableFuture<OUT> toRet = new CompletableFuture<>();
-        queue.add(new PTQTaskAndItsCompletion<>(toRet, task));
+        queue.add(new PTQTaskAndItsCompletion<>(toRet, task, nowProvider.apply()));
         return toRet;
+    }
+
+    @Override
+    public List<JskPTQTaskFromQueueInfo<PRIORITY>> getTasksInQueueInfo(boolean orderByAddDate/*otherwise order by id*/) {
+        final Comparator<JskPTQTaskFromQueueInfo<PRIORITY>> comparator =
+                orderByAddDate
+                ? Comparator.comparing($ -> $.getAddedAt())
+                : Comparator.comparing($ -> $.getPriority().ordinal());
+        return queue.stream().map($ -> new JskPTQTaskFromQueueInfo<>(
+                $.getTask().getId(),
+                $.getAddedAt(),
+                (PRIORITY) $.getTask().getPriority()
+        )).sorted(comparator).toList();
+    }
+
+    @Override
+    public boolean removeTaskFromQueueById(String taskId) {
+        final String finalTaskId = taskId.trim();
+        return queue.removeIf(task -> Fu.equal(task.getTask().getId().trim(), finalTaskId));
     }
 
     private class PTQExecutor {
@@ -89,6 +114,7 @@ public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implement
     private class PTQTaskAndItsCompletion<OUT> implements Comparable<PTQTaskAndItsCompletion<?>> {
         CompletableFuture<OUT> out;
         JskPriorityTask<PRIORITY, OUT> task;
+        ZonedDateTime addedAt;
 
         @Override
         public int compareTo(@NotNull PTQTaskAndItsCompletion<?> o) {

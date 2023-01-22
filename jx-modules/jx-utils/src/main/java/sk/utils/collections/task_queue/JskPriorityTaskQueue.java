@@ -20,8 +20,15 @@ package sk.utils.collections.task_queue;
  * #L%
  */
 
+import sk.utils.collections.task_queue.model.JskPTQTaskFromQueueInfo;
+
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface JskPriorityTaskQueue<PRIORITY extends JskPTQPriority> {
     <OUT, TASK extends JskPriorityTask<PRIORITY, OUT>> CompletableFuture<OUT> addTask(TASK task);
+
+    List<JskPTQTaskFromQueueInfo<PRIORITY>> getTasksInQueueInfo(boolean orderByAddDate/*otherwise order by id*/);
+
+    boolean removeTaskFromQueueById(String id);
 }
