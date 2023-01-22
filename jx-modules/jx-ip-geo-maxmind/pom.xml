@@ -5,19 +5,19 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.6.17</version>
+        <version>jsk.17.6.18</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-ip-geo-maxmind</artifactId>
-    <version>jsk.17.6.17</version>
+    <version>jsk.17.6.18</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.17.6.17</version>
+            <version>jsk.17.6.18</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
