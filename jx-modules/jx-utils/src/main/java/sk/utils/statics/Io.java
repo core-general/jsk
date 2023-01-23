@@ -104,6 +104,18 @@ public final class Io/*Input/Output*/ {
         return new ByteReader(path);
     }
 
+    public static LineReader sRead(File file) {
+        return sRead(file.getAbsolutePath());
+    }
+
+    public static LineReader sRead(File file, Charset charset) {
+        return new LineReader(file.getAbsolutePath(), charset);
+    }
+
+    public static ByteReader bRead(File file) {
+        return new ByteReader(file.getAbsolutePath());
+    }
+
     public static boolean exists(String path) {
         return path != null && new File(path).exists();
     }

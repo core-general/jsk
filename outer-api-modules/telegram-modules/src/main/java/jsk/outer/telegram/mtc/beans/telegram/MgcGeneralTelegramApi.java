@@ -21,21 +21,25 @@ package jsk.outer.telegram.mtc.beans.telegram;
  */
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.File;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutMessengerApi;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 
+import java.io.IOException;
 import java.util.List;
 
 @AllArgsConstructor
+@Log4j2
 public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
     @Getter final TelegramBot bot;
 
@@ -87,5 +91,16 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
     public BaseResponse deleteMessage(String userId, String messageId) {
         DeleteMessage deleterRequest = new DeleteMessage(userId, Integer.parseInt(messageId));
         return bot.execute(deleterRequest);
+    }
+
+    public O<byte[]> getFileByFileId(String fileId) {
+        try {
+            final File file = bot.execute(new GetFile(fileId)).file();
+            final byte[] fileContent = bot.getFileContent(file);
+            return O.of(fileContent);
+        } catch (IOException e) {
+            log.error("", e);
+            return O.empty();
+        }
     }
 }
