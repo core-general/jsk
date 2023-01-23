@@ -20,13 +20,17 @@ package sk.services.bytes;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import lombok.val;
 import net.jpountz.lz4.LZ4Factory;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import sk.services.utils.LingalaZipHelper;
 import sk.utils.functional.O;
+import sk.utils.statics.Io;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -52,6 +56,20 @@ public class BytesImpl implements IBytes {
         val toRet = new byte[sizeOfSource];
         getLz4Factory().fastDecompressor().decompress(data, 4, toRet, 0, sizeOfSource);
         return toRet;
+    }
+
+    @Override
+    @SneakyThrows
+    public void zipFileOrFolderTo(File sourceFileOrFolder, File targetFile) {
+        targetFile.mkdirs();
+        Io.deleteIfExists(targetFile.getAbsolutePath());
+        try (ZipFile zipFile = new ZipFile(targetFile)) {
+            if (sourceFileOrFolder.isFile()) {
+                zipFile.addFile(sourceFileOrFolder);
+            } else {
+                zipFile.addFolder(sourceFileOrFolder);
+            }
+        }
     }
 
     @Override
@@ -106,6 +124,6 @@ public class BytesImpl implements IBytes {
 
 
     //public static void main(String[] args) {
-    //    var ungzip2 = bytes.unGzipString(gzip);
+    //    IBytes bytes = new BytesImpl();
     //}
 }

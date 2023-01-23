@@ -157,6 +157,9 @@ public interface IBytes {
     //region zip archive
     String ZIP_KEY = "X";
 
+
+    void zipFileOrFolderTo(File sourceFileOrFolder, File targetFile);
+
     default O<byte[]> zipData(byte[] data) {
         return zipArchive(Cc.m(ZIP_KEY, data));
     }
