@@ -123,19 +123,19 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
         }
     }
 
-    private void toLockObtainedState() {
+    protected void toLockObtainedState() {
         setState(LOCK_OBTAINED);
         cancellationToken.setCancelled(false);
         mainTaskReset();
     }
 
-    private void toOffState() {
+    protected void toOffState() {
         setState(OFF);
         cancellationToken.setCancelled(true);
         mainTaskReset();
     }
 
-    private void toLockNotObtainedState() {
+    protected void toLockNotObtainedState() {
         setState(LOCK_IS_NOT_OBTAINED);
         cancellationToken.setCancelled(true);
         mainTaskReset();

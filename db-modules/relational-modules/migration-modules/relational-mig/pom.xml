@@ -5,19 +5,19 @@
     <parent>
         <artifactId>migration-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.6.20</version>
+        <version>jsk.17.6.23</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>relational-mig</artifactId>
-    <version>jsk.17.6.20</version>
+    <version>jsk.17.6.23</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.6.20</version>
+            <version>jsk.17.6.23</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

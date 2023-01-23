@@ -20,16 +20,16 @@ package sk.utils.collections.task_queue.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import sk.utils.collections.task_queue.JskPTQPriority;
+import sk.utils.functional.O;
 
 import java.time.ZonedDateTime;
 
 @Data
-@AllArgsConstructor
 public final class JskPTQTaskFromQueueInfo<PRIORITY extends JskPTQPriority> {
     private final String taskId;
-    private final ZonedDateTime addedAt;
+    private final ZonedDateTime addedToQueueAt;
     private final PRIORITY priority;
+    private O<ZonedDateTime> workStartedAt = O.empty();
 }

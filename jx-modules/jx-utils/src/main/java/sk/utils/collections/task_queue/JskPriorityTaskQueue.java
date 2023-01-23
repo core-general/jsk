@@ -28,6 +28,8 @@ import java.util.concurrent.CompletableFuture;
 public interface JskPriorityTaskQueue<PRIORITY extends JskPTQPriority> {
     <OUT, TASK extends JskPriorityTask<PRIORITY, OUT>> CompletableFuture<OUT> addTask(TASK task);
 
+    List<JskPTQTaskFromQueueInfo<PRIORITY>> getProcessingNowTasks(boolean orderByAddDate/*otherwise order by id*/);
+
     List<JskPTQTaskFromQueueInfo<PRIORITY>> getTasksInQueueInfo(boolean orderByAddDate/*otherwise order by id*/);
 
     boolean removeTaskFromQueueById(String id);

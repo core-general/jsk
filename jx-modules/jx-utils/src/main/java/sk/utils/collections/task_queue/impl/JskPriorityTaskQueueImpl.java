@@ -30,12 +30,15 @@ import sk.utils.collections.task_queue.JskPriorityTask;
 import sk.utils.collections.task_queue.JskPriorityTaskQueue;
 import sk.utils.collections.task_queue.model.JskPTQTaskFromQueueInfo;
 import sk.utils.functional.F0;
+import sk.utils.functional.O;
 import sk.utils.statics.Fu;
 
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.IntStream;
 
@@ -43,6 +46,8 @@ import java.util.stream.IntStream;
 @AllArgsConstructor
 public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implements JskPriorityTaskQueue<PRIORITY> {
     private final PriorityBlockingQueue<PTQTaskAndItsCompletion<?>> queue = new PriorityBlockingQueue<>();
+    private final ConcurrentMap<String, JskPTQTaskFromQueueInfo<PRIORITY>> inWork = new ConcurrentHashMap<>();
+
     private final List<PTQExecutor> executors;
     private final F0<ZonedDateTime> nowProvider;
     private final String taskQueueName;
@@ -64,17 +69,15 @@ public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implement
     }
 
     @Override
-    public List<JskPTQTaskFromQueueInfo<PRIORITY>> getTasksInQueueInfo(boolean orderByAddDate/*otherwise order by id*/) {
-        final Comparator<JskPTQTaskFromQueueInfo<PRIORITY>> comparator =
-                orderByAddDate
-                ? Comparator.comparing($ -> $.getAddedAt())
-                : Comparator.comparing($ -> $.getPriority().ordinal());
-        return queue.stream().map($ -> new JskPTQTaskFromQueueInfo<>(
-                $.getTask().getId(),
-                $.getAddedAt(),
-                (PRIORITY) $.getTask().getPriority()
-        )).sorted(comparator).toList();
+    public List<JskPTQTaskFromQueueInfo<PRIORITY>> getProcessingNowTasks(boolean orderByAddDate) {
+        return inWork.values().stream().sorted(getTaskListComparator(orderByAddDate)).toList();
     }
+
+    @Override
+    public List<JskPTQTaskFromQueueInfo<PRIORITY>> getTasksInQueueInfo(boolean orderByAddDate/*otherwise order by id*/) {
+        return queue.stream().map($ -> $.getInfo()).sorted(getTaskListComparator(orderByAddDate)).toList();
+    }
+
 
     @Override
     public boolean removeTaskFromQueueById(String taskId) {
@@ -95,18 +98,33 @@ public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implement
             try {
                 final PTQTaskAndItsCompletion<OUT> taskAndCompletion = (PTQTaskAndItsCompletion<OUT>) queue.take();
                 OUT output = null;
+                final JskPTQTaskFromQueueInfo<PRIORITY> info = taskAndCompletion.getInfo();
                 try {
+                    info.setWorkStartedAt(O.of(nowProvider.get()));
+                    inWork.put(info.getTaskId(), info);
                     output = taskAndCompletion.getTask().process();
                 } catch (Exception e) {
                     taskAndCompletion.getOut().completeExceptionally(e);
                 } finally {
-                    taskAndCompletion.getOut().complete(output);
+                    try {
+                        taskAndCompletion.getOut().complete(output);
+                    } finally {
+                        inWork.remove(info.getTaskId());
+                    }
                 }
             } catch (InterruptedException e) {
                 //most probably we stop JVM
                 log.info("Processing queue thread %s is interrupted".formatted(thread.getName()));
             }
         }
+    }
+
+    private Comparator<JskPTQTaskFromQueueInfo<PRIORITY>> getTaskListComparator(boolean orderByAddToQueueDate) {
+        final Comparator<JskPTQTaskFromQueueInfo<PRIORITY>> comparator =
+                orderByAddToQueueDate
+                ? Comparator.comparing($ -> $.getAddedToQueueAt())
+                : Comparator.comparing($ -> $.getPriority().ordinal());
+        return comparator;
     }
 
     @Getter
@@ -119,6 +137,14 @@ public class JskPriorityTaskQueueImpl<PRIORITY extends JskPTQPriority> implement
         @Override
         public int compareTo(@NotNull PTQTaskAndItsCompletion<?> o) {
             return Fu.compare(this.task, o.task);
+        }
+
+        public JskPTQTaskFromQueueInfo<PRIORITY> getInfo() {
+            return new JskPTQTaskFromQueueInfo<>(
+                    this.getTask().getId(),
+                    this.getAddedAt(),
+                    (PRIORITY) this.getTask().getPriority()
+            );
         }
     }
 }

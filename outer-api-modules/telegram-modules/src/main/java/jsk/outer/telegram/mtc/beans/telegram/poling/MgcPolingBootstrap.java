@@ -111,5 +111,4 @@ public class MgcPolingBootstrap implements IBoot {
             log.error("", e);
         }
     }
-
 }
