@@ -20,34 +20,58 @@ package jsk.outer.telegram.mtc.beans.telegram;
  * #L%
  */
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.File;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import sk.outer.api.OutMessengerApi;
+import sk.services.ratelimits.IRateLimiter;
+import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
-@AllArgsConstructor
 @Log4j2
 public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
-    @Getter final TelegramBot bot;
+    @Getter protected final TelegramBot bot;
+    @Getter protected final IRateLimiter globalRateLimiter;
+    private final F0<IRateLimiter> perUserRateLimiter;
+
+    final LoadingCache<String, IRateLimiter> perUserLimiting;
+
+    public MgcGeneralTelegramApi(TelegramBot bot) {
+        this(bot, null, null);
+    }
+
+    public MgcGeneralTelegramApi(TelegramBot bot, IRateLimiter globalRateLimiter, F0<IRateLimiter> perUserRateLimiterProvider) {
+        this.bot = bot;
+        this.globalRateLimiter = globalRateLimiter;
+        this.perUserRateLimiter = perUserRateLimiterProvider;
+        perUserLimiting = perUserRateLimiterProvider != null
+                          ? Caffeine.newBuilder()
+                                  .expireAfterWrite(Duration.ofMinutes(1))
+                                  .maximumSize(1000)
+                                  .build(key -> perUserRateLimiterProvider.apply())
+                          : null;
+    }
 
     @Override
     public BaseResponse send(String userId, O<String> text, O<String> image,
             O<MgcTelegramSpecial> mgcTelegramSpecial,
             O<X2<String, byte[]>> document,
             O<Keyboard> replyKeyboardMarkup) {
+
         List<AbstractSendRequest> requests = Cc.l();
 
         image.ifPresent(s -> {
@@ -68,7 +92,23 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
             replyKeyboardMarkup.ifPresent($::replyMarkup);
             return $;
         });
-        List<BaseResponse> collect = requests.stream().map($ -> bot.execute($)).collect(Cc.toL());
+        List<BaseResponse> collect = requests.stream()
+                .map($ -> {
+                    F0<BaseResponse> toRun = () -> {
+                        if (globalRateLimiter != null) {
+                            globalRateLimiter.waitUntilPossible();
+                        }
+                        return bot.execute($);
+                    };
+
+                    if (perUserRateLimiter != null) {
+                        return perUserLimiting.get(userId)
+                                .produceInLimit(() -> toRun.apply());
+                    } else {
+                        return toRun.apply();
+                    }
+                })
+                .collect(Cc.toL());
         return Cc.last(collect).get();
     }
 

@@ -37,6 +37,10 @@ public final class Ti/*mes*/ {
     public static final DateTimeFormatter yyyyMMddHHmmss = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public static final DateTimeFormatter yyyyMMddHHmm = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     public static final DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter HHmmssSSS = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    public static final DateTimeFormatter HHmmss = DateTimeFormatter.ofPattern("HH:mm:ss");
+    public static final DateTimeFormatter HHmm = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter HH = DateTimeFormatter.ofPattern("HH");
 
     public static final ZoneId Moscow = ZoneId.of("Europe/Moscow");
     public static final ZoneId UTC = ZoneOffset.UTC;
