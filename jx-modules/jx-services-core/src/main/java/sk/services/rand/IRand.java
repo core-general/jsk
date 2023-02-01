@@ -26,13 +26,19 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
 import java.util.*;
+import java.util.function.DoubleSupplier;
 import java.util.stream.IntStream;
 
 import static sk.utils.functional.O.ofNullable;
 
 @SuppressWarnings("unused")
-public interface IRand {
+public interface IRand extends DoubleSupplier {
     Random getRandom();
+
+    @Override
+    default double getAsDouble() {
+        return rndDouble();
+    }
 
     default <T> T rndDist(Map<T, Double> vals) {
         return MapRandom.rnd(this::rndDouble, vals);

@@ -51,7 +51,7 @@ public class AsyncImpl implements IAsync {
     private final Map<Integer, IExecutorService> fixPerCore = new ConcurrentHashMap<>();
     private final Map<String, IScheduledExecutorService> dedicatedSchedulerExecutors = new ConcurrentHashMap<>();
     private final IExecutorService coldTaskFJP = new IExecutorServiceImpl(
-            new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(200)));
+            new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(75)));
 
     @Override
     public IExecutorService fixedExec() {

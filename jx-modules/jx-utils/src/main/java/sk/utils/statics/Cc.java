@@ -67,7 +67,7 @@ public final class Cc/*ColleCtions*/ {
 
     public static <K, V, B extends Map<K, V>> String
     joinMap(B b, F2S<K, V> o2sKey, F2S<K, V> o2sVal) {
-        return joinMap(", ", ":", b, o2sKey, o2sVal);
+        return joinMap(",", ":", b, o2sKey, o2sVal);
     }
 
     public static <K, V, B extends Map<K, V>> String
@@ -84,7 +84,7 @@ public final class Cc/*ColleCtions*/ {
     }
 
     public static <A, B extends Stream<A>> String join(B b) {
-        return join(", ", b);
+        return join(",", b);
     }
 
     public static <A, B extends Stream<A>> String join(String del, B b) {
@@ -92,7 +92,7 @@ public final class Cc/*ColleCtions*/ {
     }
 
     public static <A, B extends Stream<A>> String join(B b, F1S<A> o2s) {
-        return join(", ", b, o2s);
+        return join(",", b, o2s);
     }
 
     public static <A, B extends Stream<A>> String join(String del, B b, F1S<A> o2s) {

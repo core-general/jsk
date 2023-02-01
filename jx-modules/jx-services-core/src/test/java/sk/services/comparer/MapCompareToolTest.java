@@ -43,7 +43,7 @@ public class MapCompareToolTest {
             MapCompareResult<String, String> res = MapCompareTool.compare(
                     Cc.m("a", "1", "b", "2", "c", "3"), Cc.m("a", "1")
             );
-            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "b:2, c:3");
+            assertEquals(Cc.joinMap(res.getIn1NotIn2()), "b:2,c:3");
             assertEquals(Cc.joinMap(res.getIn2NotIn1()), "");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
@@ -53,7 +53,7 @@ public class MapCompareToolTest {
                     Cc.m("c", "3"), Cc.m("a", "1", "b", "2", "c", "3")
             );
             assertEquals(Cc.joinMap(res.getIn1NotIn2()), "");
-            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "a:1, b:2");
+            assertEquals(Cc.joinMap(res.getIn2NotIn1()), "a:1,b:2");
             assertEquals(Cc.joinMap(res.getExistButDifferent()), "");
         }
 

@@ -20,6 +20,7 @@ package sk.utils.random;
  * #L%
  */
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 
@@ -35,7 +36,7 @@ public class MapRandom<T> {
             throw new RuntimeException("randomDescription size must be > 0");
         }
         this.randomStream = randomStream;
-        this.randomDescription = randomDescription;
+        this.randomDescription = new HashMap<>(randomDescription);
         df = 1.0d / this.randomDescription.values().stream().mapToDouble(v -> v).sum();
     }
 

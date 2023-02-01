@@ -46,6 +46,6 @@ public class FreemarkerTest {
 
         final UUID id1 = icore.ids().text2Uuid(templateText1);
         final UUID id2 = icore.ids().text2Uuid(templateText2);
-        assertEquals(Cc.join(free.templateCache.keySet().stream().sorted()), id1 + ", " + id2);
+        assertEquals(Cc.join(free.templateCache.keySet().stream().sorted()), id1 + "," + id2);
     }
 }

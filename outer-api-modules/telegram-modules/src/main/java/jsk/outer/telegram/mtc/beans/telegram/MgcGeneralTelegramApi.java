@@ -60,8 +60,8 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
         this.perUserRateLimiter = perUserRateLimiterProvider;
         perUserLimiting = perUserRateLimiterProvider != null
                           ? Caffeine.newBuilder()
-                                  .expireAfterWrite(Duration.ofMinutes(1))
-                                  .maximumSize(1000)
+                                  .expireAfterAccess(Duration.ofMinutes(1))
+                                  .maximumSize(100_000)
                                   .build(key -> perUserRateLimiterProvider.apply())
                           : null;
     }
