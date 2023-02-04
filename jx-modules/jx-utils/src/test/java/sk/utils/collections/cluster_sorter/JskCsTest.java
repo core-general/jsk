@@ -65,8 +65,8 @@ public class JskCsTest {
         final JskCs<Integer, String> cs = JskCs
                 .simple(IntStream.range(0, 100).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP);
         makeRealLifeExperimentAndCheck(cs);
-        assertEquals(108/*!!! TOO MUCH WITH SIMPLE STRATEGY, NEED BATCH OR MORE COMPLEX !!!*/, cs.getExpandsDone());
-        assertEquals(1066/*!!! BUT QUEUE HAS FEWER ELEMENTS THAN WITH BATCH!!!*/, cs.getQueueForTest().calculateSize());
+        assertEquals(108/*!!! TOO MUCH WITH SIMPLE STRATEGY, NEED SMTH MORE COMPLEX LIKE BATCH !!!*/, cs.getExpandsDone());
+        assertEquals(1066/*!!! BUT QUEUE HAS FEWER ELEMENTS COMPARED TO BATCH!!!*/, cs.getQueueForTest().calculateSize());
     }
 
     @Test
