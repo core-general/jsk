@@ -18,7 +18,7 @@
  #L%
 -->
 <#-- @ftlvariable name="model" type="sk.db.util.generator.model.output.JsaEntityOutput" -->
-
+<#-- @formatter:off-->
 package ${model.packageName};
 
 import sk.db.relational.types.*;
@@ -46,15 +46,28 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             @Column(name = "${field.columnName}")
             @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
+            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
+                @ManyToOne(fetch = FetchType.LAZY)
+                @JoinColumn(name = "${field.columnName}", insertable = false, updatable = false)
+                ${field.relatedType} ${field.fieldName?replace("Id", "")};
+            </#if>
             <#break>
-        <#case "RELATION_OUT">
-        <#case "RELATION_IN">
-            @Column(name = "${field.columnName}")
-            @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+        <#case "COMPOSITE_ID">
+            @EmbeddedId
             ${field.mainType} ${field.fieldName};
-            @ManyToOne(fetch = FetchType.LAZY)
-            @JoinColumn(name = "${field.columnName}", insertable = false, updatable = false)
-            ${field.relatedType} ${field.fieldName?replace("Id", "")};
+            <#list model.model.getCompositeId().get().getCompositeFields() as comp_field>
+                <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">
+                    @ManyToOne(fetch = FetchType.LAZY)
+                    @JoinColumn(name = "${comp_field.columnName}", insertable = false, updatable = false)
+                    ${comp_field.relatedType} ${comp_field.fieldName?replace("Id", "")};
+                </#if>
+
+                @Override
+                public ${comp_field.mainType} get${comp_field.fieldName?cap_first}() {
+                    return id.get${comp_field.fieldName?cap_first}();
+                }
+            </#list>
+
             <#break>
         <#case "ENUM">
             @Column(name = "${field.columnName}")
@@ -81,8 +94,18 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "OTHER">
-            @Column(name = "${field.columnName}")
-            ${field.mainType} ${field.fieldName};
+            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
+                @Column(name = "${field.columnName}")
+                @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+                ${field.mainType} ${field.fieldName};
+                @ManyToOne(fetch = FetchType.LAZY)
+                @JoinColumn(name = "${field.columnName}", insertable = false, updatable = false)
+                ${field.relatedType} ${field.fieldName?replace("Id", "")};
+
+                <#else>
+                @Column(name = "${field.columnName}")
+                ${field.mainType} ${field.fieldName};
+            </#if>
             <#break>
     </#switch>
 

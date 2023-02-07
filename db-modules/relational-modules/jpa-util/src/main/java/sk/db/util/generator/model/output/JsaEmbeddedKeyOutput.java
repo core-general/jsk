@@ -1,4 +1,4 @@
-package sk.db.util.generator.model.sql.metainfo;
+package sk.db.util.generator.model.output;
 
 /*-
  * #%L
@@ -20,27 +20,16 @@ package sk.db.util.generator.model.sql.metainfo;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
+import sk.db.util.generator.model.entity.JsaEntityField;
 
 import java.util.List;
 
+@AllArgsConstructor
 @Getter
-public class JsaMetaInfo {
-    JsaMetaType type;
-    String table;
-    String field;
-    List<String> params;
-
-    public JsaMetaInfo(JsaMetaType type, String table, String field, List<String> params) {
-        this.type = type;
-        this.table = table;
-        this.field = field;
-        this.params = params;
-
-        if (params.size() != type.getParamCount()) {
-            Ex.thRow("params.size()!=type.getParamCount() -> " + type + " " + Cc.join(params));
-        }
-    }
+public class JsaEmbeddedKeyOutput {
+    String packageName;
+    String embeddedClassName;
+    List<JsaEntityField> keys;
 }

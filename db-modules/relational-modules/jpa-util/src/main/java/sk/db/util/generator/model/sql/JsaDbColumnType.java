@@ -57,7 +57,10 @@ public enum JsaDbColumnType {
     TIMESTAMP("TIMESTAMP", ZonedDateTime.class, of(UTZdtToTimestamp.class)),
     JSON("JSONB", Object.class, of(UTObjectToJsonb.class)),
 
-    PG_ENUM("?", Object.class, of(UtPgEnumToEnumUserType.class));
+    PG_ENUM("?", Object.class, of(UtPgEnumToEnumUserType.class)),
+    COMPOSITE_ID("?", Object.class, empty()),
+
+    ;
 
     String sqlType;
     Class javaType;

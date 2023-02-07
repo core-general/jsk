@@ -21,7 +21,10 @@ package sk.db.util.generator;
  */
 
 import sk.db.util.generator.model.JsaFileInfo;
+import sk.db.util.generator.model.entity.JsaEntityCompositeKey;
+import sk.db.util.generator.model.entity.JsaEntityField;
 import sk.db.util.generator.model.entity.JsaFullEntityModel;
+import sk.db.util.generator.model.output.JsaEmbeddedKeyOutput;
 import sk.db.util.generator.model.output.JsaEntityOutput;
 import sk.db.util.generator.model.output.JsaPrimaryKeyOutput;
 import sk.db.util.generator.model.output.JsaStorageOutput;
@@ -70,15 +73,30 @@ public class JsaExporter {
                     pkgFolder + entity.getIFace() + ".java",
                     free.process("jsa_entity_iface.ftl", Cc.m("model", new JsaEntityOutput(pkg, schema, entity)))
             ));
-            fileProcessor.accept(new JsaFileInfo(
-                    pkgFolder + entity.getIdField().getMainType() + ".java",
-                    free.process("jsa_entity_id.ftl", Cc.m("model", new JsaPrimaryKeyOutput(pkg, entity.getIdField())))
-            ));
+            if (entity.isComposite()) {
+                JsaEntityCompositeKey composite = entity.getCompositeId().get();
+                fileProcessor.accept(new JsaFileInfo(
+                        pkgFolder + entity.getIdField().getMainType() + ".java",
+                        free.process("jsa_composite_entity_id.ftl",
+                                Cc.m("model", new JsaEmbeddedKeyOutput(pkg, composite.getClassName(),
+                                        entity.getCompositeId().get().getCompositeFields())))
+                ));
+                for (JsaEntityField insideCompositeField : composite.getCompositeFields()) {
+                    fileProcessor.accept(new JsaFileInfo(
+                            pkgFolder + insideCompositeField.getMainType() + ".java",
+                            free.process("jsa_entity_id.ftl", Cc.m("model", new JsaPrimaryKeyOutput(pkg, insideCompositeField)))
+                    ));
+                }
+            } else {
+                fileProcessor.accept(new JsaFileInfo(
+                        pkgFolder + entity.getIdField().getMainType() + ".java",
+                        free.process("jsa_entity_id.ftl", Cc.m("model", new JsaPrimaryKeyOutput(pkg, entity.getIdField())))
+                ));
+            }
             fileProcessor.accept(new JsaFileInfo(
                     pkgFolder + entity.getCls() + "Repo.java",
                     free.process("jsa_entity_repo.ftl", Cc.m("model", new JsaEntityOutput(pkg, schema, entity)))
             ));
         });
-
     }
 }

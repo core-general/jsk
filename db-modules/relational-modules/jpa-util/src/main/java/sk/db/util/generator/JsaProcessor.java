@@ -22,17 +22,20 @@ package sk.db.util.generator;
 
 import lombok.Getter;
 import sk.db.util.generator.model.entity.*;
+import sk.db.util.generator.model.sql.JsaDbColumnType;
 import sk.db.util.generator.model.sql.JsaRawSqlInfo;
 import sk.db.util.generator.model.sql.JsaTableColumn;
 import sk.db.util.generator.model.sql.JsaTableInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaType;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.St;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.stream.Collectors;
 
 public class JsaProcessor {
@@ -60,23 +63,62 @@ public class JsaProcessor {
                 iface,
                 naming.getName(1, false),
                 naming.getSchema(),
+                possibleCompositeField(table, idClass),
                 table.getFields().stream()
-                        .map($ -> createField($, idClass))
+                        .map($ -> createField(table, $, idClass))
                         .collect(Cc.toL())
         );
     }
 
-    private static JsaEntityField createField(JsaTableColumn column, String idClass) {
-        final JsaEntityFieldType fieldType = JsaEntityFieldType.fromTableColumn(column);
+    private static O<JsaEntityCompositeKey> possibleCompositeField(JsaTableInfo table, String idClass) {
+        if (table.isMultiColumnPrimaryKey()) {
+            final List<JsaEntityField> collect = table.getFields().stream().filter($ -> $.isId())
+                    .map($ -> createField(table, $, idClass))
+                    .collect(Collectors.toList());
+
+            final ListIterator<JsaTableColumn> itToDelete = table.getFields().listIterator();
+            while (itToDelete.hasNext()) {
+                final JsaTableColumn next = itToDelete.next();
+                if (collect.stream().anyMatch($ -> $.getColumnName().equalsIgnoreCase(next.getColumnName()))) {
+                    itToDelete.remove();
+                }
+            }
+            table.getFields().add(0, new JsaTableColumn(
+                    "id", JsaDbColumnType.COMPOSITE_ID, true, false, O.empty(), O.empty()
+            ));
+
+            JsaEntityCompositeKey composite = new JsaEntityCompositeKey(
+                    idClass, collect
+            );
+
+            return O.of(composite);
+        } else {
+            return O.empty();
+        }
+    }
+
+    private static JsaEntityField createField(JsaTableInfo table, JsaTableColumn column, String idClass) {
+        final JsaEntityFieldInfo fieldType = JsaEntityFieldInfo.fromTableColumn(table, column);
         final Class javaType = column.getType().getJavaType();
         String mainType = javaType == byte[].class ? "byte[]" : javaType.getName();
         String idType = null;
         String relationType = null;
 
-        if (fieldType == JsaEntityFieldType.ID) {
+        if (fieldType.type() == JsaEntityFieldType.ID || fieldType.type() == JsaEntityFieldType.COMPOSITE_ID) {
             idType = mainType;
             mainType = idClass;
-        } else if (fieldType == JsaEntityFieldType.RELATION_IN) {
+        } else if (fieldType.type() == JsaEntityFieldType.ENUM) {
+            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.ENUM);
+            mainType = meta.getParams().get(0);
+        } else if (fieldType.type() == JsaEntityFieldType.PG_ENUM) {
+            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.PG_ENUM);
+            mainType = meta.getParams().get(0);
+        } else if (fieldType.type() == JsaEntityFieldType.JSONB) {
+            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.JSON);
+            mainType = meta.getParams().get(0);
+        }
+
+        if (fieldType.relation() == JsaEntityRelationType.RELATION_IN) {
             JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.RELATION_IN_FILE);
             String foreignTable = meta.getParams().get(0);
 
@@ -84,22 +126,10 @@ public class JsaProcessor {
 
             mainType = naming.getName(0, true) + "Id";
             relationType = naming.getNameJpa(0, true);
-        } else if (fieldType == JsaEntityFieldType.RELATION_OUT) {
+        } else if (fieldType.relation() == JsaEntityRelationType.RELATION_OUT) {
             JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.RELATION_OUTSIDE);
             mainType = meta.getParams().get(0);
             relationType = meta.getParams().get(1);
-        }
-        if (fieldType == JsaEntityFieldType.ENUM) {
-            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.ENUM);
-            mainType = meta.getParams().get(0);
-        }
-        if (fieldType == JsaEntityFieldType.PG_ENUM) {
-            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.PG_ENUM);
-            mainType = meta.getParams().get(0);
-        }
-        if (fieldType == JsaEntityFieldType.JSONB) {
-            JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.JSON);
-            mainType = meta.getParams().get(0);
         }
 
         return new JsaEntityField(
@@ -110,7 +140,8 @@ public class JsaProcessor {
                 relationType,
                 column.getType().getDefaultConverterToNonStandardObject().map($ -> $.getName()).orElse(null),
                 column.isNullable(),
-                fieldType
+                fieldType.type(),
+                fieldType.relation()
         );
     }
 

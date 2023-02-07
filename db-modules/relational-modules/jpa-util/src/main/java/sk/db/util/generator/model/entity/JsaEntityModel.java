@@ -22,6 +22,7 @@ package sk.db.util.generator.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import sk.utils.functional.O;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ public class JsaEntityModel {
     String iFace;
     String simple;
     String schema;
+    O<JsaEntityCompositeKey> compositeId;
     List<JsaEntityField> fields;
 
 
@@ -55,8 +57,13 @@ public class JsaEntityModel {
 
     public JsaEntityField getIdField() {
         return getFields().stream()
-                .filter(field -> field.getCategory() == JsaEntityFieldType.ID).findFirst()
+                .filter(field -> field.getCategory() == JsaEntityFieldType.ID ||
+                        field.getCategory() == JsaEntityFieldType.COMPOSITE_ID).findFirst()
                 .orElseThrow(() -> new RuntimeException(("Primary key not found for: " + table)));
 
+    }
+
+    public boolean isComposite() {
+        return getCompositeId().isPresent();
     }
 }

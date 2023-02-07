@@ -27,36 +27,40 @@ import java.util.UUID;
 public interface ${model.model.getIFace()} {
 <#list model.model.fields as field>
     <#switch field.category>
+        <#case "COMPOSITE_ID">
+            ${field.mainType} get${field.capName()}();
+
+            void set${field.capName()}(${field.mainType} ${field.fieldName});
+
+            <#list model.model.getCompositeId().get().getCompositeFields() as comp_field>
+                <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">
+                    ${comp_field.relatedType?replace("Jpa", "")} get${comp_field.capName()?replace("Id", "")}();
+                </#if>
+
+                public ${comp_field.mainType} get${comp_field.fieldName?cap_first}();
+            </#list>
+            <#break>
+
         <#case "ID">
             ${field.mainType} get${field.capName()}();
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
-            <#break>
-        <#case "RELATION_IN">
-        <#case "RELATION_OUT">
-            ${field.mainType} get${field.capName()}();
-
-            ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();
 
             void set${field.capName()}(${field.mainType} ${field.fieldName});
+
+            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
+                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();
+            </#if>
             <#break>
         <#case "ENUM">
-            ${field.mainType} get${field.capName()}();
-
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
-            <#break>
         <#case "ZDT">
-            ${field.mainType} get${field.capName()}();
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
-            <#break>
         <#case "JSONB">
-            ${field.mainType} get${field.capName()}();
-
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
-            <#break>
         <#case "OTHER">
             ${field.mainType} get${field.capName()}();
 
             void set${field.capName()}(${field.mainType} ${field.fieldName});
+
+            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
+                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();
+            </#if>
             <#break>
     </#switch>
 </#list>

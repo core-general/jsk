@@ -35,6 +35,7 @@ public class JsaEntityField {
     String converterType;
     boolean nullable;
     JsaEntityFieldType category;
+    JsaEntityRelationType relation;
 
     public String capName() {
         return St.capFirst(fieldName);

@@ -4,7 +4,7 @@ package sk.db.util.generator.model.sql;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2023 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,12 @@ package sk.db.util.generator.model.sql;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import sk.db.util.generator.model.sql.metainfo.JsaMetaInfo;
-import sk.db.util.generator.model.sql.metainfo.JsaMetaType;
-import sk.utils.functional.O;
-
-import java.util.Map;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class JsaTableColumn {
-    String columnName;
-    JsaDbColumnType type;
-    boolean id;
-    boolean nullable;
-    O<JsaForeignKey> foreignKey;
-    O<Map<JsaMetaType, JsaMetaInfo>> meta;
+@NoArgsConstructor
+public class JsaForeignKey {
+    String otherTable;
+    String otherTableField;
 }
