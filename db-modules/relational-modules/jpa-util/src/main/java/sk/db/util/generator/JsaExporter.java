@@ -36,6 +36,7 @@ import sk.services.ids.IIds;
 import sk.services.ids.IdsImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
+import sk.services.rand.SecureRandImpl;
 import sk.utils.functional.C1;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -43,7 +44,7 @@ import sk.utils.statics.St;
 public class JsaExporter {
     static IRand rnd = new RandImpl();
     static IBytes bytes = new BytesImpl();
-    static IIds ids = new IdsImpl(rnd, bytes);
+    static IIds ids = new IdsImpl(new SecureRandImpl(), bytes);
     static IFree free = new Freemarker();
 
     public static void export(C1<JsaFileInfo> fileProcessor, JsaFullEntityModel entities, String schema) {

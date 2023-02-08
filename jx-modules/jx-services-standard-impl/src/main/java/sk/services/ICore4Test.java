@@ -41,6 +41,7 @@ import sk.services.log.ILog;
 import sk.services.log.ILogConsoleImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandTestImpl;
+import sk.services.rand.SecureRandImpl;
 import sk.services.rescache.IResCache;
 import sk.services.rescache.ResCacheImpl;
 import sk.services.retry.IRepeat;
@@ -62,7 +63,7 @@ public class ICore4Test implements ICoreServices {
     private IBytes bytes = new BytesImpl();
 
     private IRand rand = new RandTestImpl();
-    private IIds ids = new IdsImpl(rand, bytes).init();
+    private IIds ids = new IdsImpl(new SecureRandImpl(), bytes).init();
     private ITimeSetter times = new UtcSettableTimeUtilImpl();
     private IJson json = new JGsonImpl(O.empty(), times, bytes).init();
     private ILog iLog = new ILogConsoleImpl(json);

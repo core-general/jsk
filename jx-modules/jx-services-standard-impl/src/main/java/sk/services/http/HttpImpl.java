@@ -22,6 +22,7 @@ package sk.services.http;
 
 import lombok.NoArgsConstructor;
 import sk.exceptions.JskProblem;
+import sk.services.ICoreServices;
 import sk.services.async.IAsync;
 import sk.services.bytes.IBytes;
 import sk.services.http.model.CoreHttpResponse;
@@ -70,6 +71,15 @@ public class HttpImpl implements IHttp {
     protected @Inject IBytes ibytes;
 
     protected HttpClient httpClient;
+
+    public HttpImpl(ICoreServices core) {
+        this.retry = core.repeat();
+        this.times = core.times();
+        this.async = core.async();
+        this.ids = core.ids();
+        this.ibytes = core.bytes();
+        init();
+    }
 
     public HttpImpl(IRepeat retry, ITime times, IAsync async, IIds ids, IBytes ibytes) {
         this.retry = retry;

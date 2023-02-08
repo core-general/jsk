@@ -43,6 +43,7 @@ import sk.services.log.ILog;
 import sk.services.log.ILogConsoleImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
+import sk.services.rand.SecureRandImpl;
 import sk.services.rescache.IResCache;
 import sk.services.rescache.ResCacheImpl;
 import sk.services.retry.IRepeat;
@@ -76,7 +77,7 @@ public class SpringCoreConfig {
     public IHttp http() {return new HttpImpl();}
 
     @Bean
-    public IIds ids() {return new IdsImpl();}
+    public IIds ids() {return new IdsImpl(new SecureRandImpl());}
 
     @Bean
     public ILog iLog() {

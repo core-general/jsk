@@ -21,10 +21,9 @@ package sk.services.ids;
  */
 
 import com.fasterxml.uuid.Generators;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
-import sk.services.rand.IRand;
+import sk.services.rand.SecureRandImpl;
 import sk.services.time.ITime;
 import sk.utils.statics.Im;
 import sk.utils.statics.St;
@@ -43,17 +42,20 @@ import static java.lang.Integer.parseInt;
 import static sk.services.ids.JskHaikunator.LongAndShortHaikunator;
 
 @SuppressWarnings("unused")
-@NoArgsConstructor
 public class IdsImpl implements IIds {
-    @Inject IRand random;
+    private SecureRandImpl random;
     @Inject IBytes bytes;
     @Inject ITime times;
     LongAndShortHaikunator haikunator;
 
-    public IdsImpl(IRand random, IBytes bytes) {
+    public IdsImpl(SecureRandImpl random, IBytes bytes) {
         this.random = random;
         this.bytes = bytes;
         init();
+    }
+
+    public IdsImpl(SecureRandImpl random) {
+        this.random = random;
     }
 
     @PostConstruct

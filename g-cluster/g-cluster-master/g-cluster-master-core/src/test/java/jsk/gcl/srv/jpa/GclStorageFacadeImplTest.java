@@ -26,7 +26,7 @@ import org.mockito.Spy;
 import sk.services.bytes.BytesImpl;
 import sk.services.ids.IIds;
 import sk.services.ids.IdsImpl;
-import sk.services.rand.IRand;
+import sk.services.rand.SecureRandImpl;
 import sk.test.MockitoTest;
 
 import java.util.Random;
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 
 public class GclStorageFacadeImplTest extends MockitoTest {
     @Spy
-    IIds ids = new IdsImpl(new IRand() {
+    IIds ids = new IdsImpl(new SecureRandImpl() {
         Random r = new Random(0);
 
         @Override

@@ -27,7 +27,7 @@ import sk.services.bytes.IBytes;
 import sk.services.http.HttpImpl;
 import sk.services.ids.IIds;
 import sk.services.ids.IdsImpl;
-import sk.services.rand.RandImpl;
+import sk.services.rand.SecureRandImpl;
 import sk.services.retry.RepeatImpl;
 import sk.services.time.TimeUtcImpl;
 import sk.utils.tuples.X2;
@@ -52,7 +52,7 @@ public class MelServlet extends HttpServlet {
         final RepeatImpl repeat = new RepeatImpl(async);
         final TimeUtcImpl times = new TimeUtcImpl();
         final IBytes bytes = new BytesImpl();
-        final IIds ids = new IdsImpl(new RandImpl(), bytes);
+        final IIds ids = new IdsImpl(new SecureRandImpl(), bytes);
         final HttpImpl http = new HttpImpl(repeat, times, async, ids, bytes);
         cleanerTask = new MelCleanTask(async, http);
         cleanerTask.start();

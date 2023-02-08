@@ -1,10 +1,10 @@
-package sk.services.http;
+package sk.services.rand;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2021 Core General
+ * Copyright (C) 2019 - 2023 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,18 @@ package sk.services.http;
  * #L%
  */
 
-import sk.services.ICore4Test;
+import java.security.SecureRandom;
+import java.util.Random;
 
-public class HttpImplWithIsolatedServices extends HttpImpl {
-    public HttpImplWithIsolatedServices() {
-        super(new ICore4Test());
+/**
+ * ~20 times slower per nextInt
+ * ThreadLocal pattern didn't show significant improvement in multithreaded tests
+ */
+public class SecureRandImpl implements IRand {
+    final SecureRandom secureRandom = new SecureRandom();
+
+    @Override
+    public Random getRandom() {
+        return secureRandom;
     }
 }

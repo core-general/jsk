@@ -5,11 +5,11 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.6.33</version>
+        <version>jsk.17.6.34</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>maths</artifactId>
-    <version>jsk.17.6.33</version>
+    <version>jsk.17.6.34</version>
     <modules>
         <module>maths-common</module>
         <module>jfree</module>
