@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter.model;
+package sk.utils.collections.cluster_sorter.abstr.model;
 
 /*-
  * #%L
@@ -21,23 +21,23 @@ package sk.utils.collections.cluster_sorter.model;
  */
 
 import lombok.Getter;
-import sk.utils.collections.cluster_sorter.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.statics.Cc;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class JskCsSources<SRC_ID, ITEM> {
-    @Getter private final List<JskCsSource<SRC_ID, ITEM>> sources;
-    @Getter private final Map<SRC_ID, JskCsSource<SRC_ID, ITEM>> sourcesById;
+public class JskCsSources<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
+    @Getter private final List<SOURCE> sources;
+    @Getter private final Map<SRC_ID, SOURCE> sourcesById;
 
-    public JskCsSources(List<? extends JskCsSource<SRC_ID, ITEM>> sources) {
+    public JskCsSources(List<SOURCE> sources) {
         this.sources = Collections.unmodifiableList(sources);
         this.sourcesById = Collections.unmodifiableMap(sources.stream().collect(Cc.toM($ -> $.getId(), $ -> $)));
     }
 
-    public JskCsSource<SRC_ID, ITEM> getById(SRC_ID id) {
+    public SOURCE getById(SRC_ID id) {
         return sourcesById.get(id);
     }
 }

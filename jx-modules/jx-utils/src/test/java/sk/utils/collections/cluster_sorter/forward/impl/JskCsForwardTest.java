@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.forward.impl;
 
 /*-
  * #%L
@@ -23,7 +23,10 @@ package sk.utils.collections.cluster_sorter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
-import sk.utils.collections.cluster_sorter.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.forward.impl.strategies.JskCsForwardBatch;
+import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
 import sk.utils.tuples.X;
@@ -37,13 +40,13 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-public class JskCsTest {
+public class JskCsForwardTest {
     private static final String E/*XPANDABLE*/ = "💼";
     private static final Comparator COMP = new Comparator();
 
     @Test
     public void test_sameids_throw_exception() {
-        assertThrows(RuntimeException.class, () -> JskCs.simple(Cc.l(
+        assertThrows(RuntimeException.class, () -> JskCsForwardImpl.simple(Cc.l(
                 new JskTestSource(0, 2),
                 new JskTestSource(0, 5)
         ), COMP));
@@ -52,27 +55,29 @@ public class JskCsTest {
     @Test
     public void test_real_life_with_batch() {
         //real life simulation with batch
-        final JskCs<Integer, String> cs = JskCs
+        final JskCsForwardImpl<Integer, String, JskTestSource> cs = JskCsForwardImpl
                 .batch(IntStream.range(0, 100).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP, new JskTestBatch());
         makeRealLifeExperimentAndCheck(cs);
         assertEquals(4/*!!!MUCH LESS WITH BATCH !!!*/, cs.getExpandsDone());
-        assertEquals(1740/*!!! BUT QUEUE HAS MORE ELEMENTS THAN WITH BATCH!!!*/, cs.getQueueForTest().calculateSize());
+        assertEquals(1740/*!!! BUT QUEUE HAS MORE ELEMENTS THAN WITH BATCH!!!*/, cs.getQueue()
+                .calculateSize(Cc.s(JskCsForwardType.FORWARD)));
     }
 
     @Test
     public void test_real_life_no_batch() {
         //real life simulation no batch
-        final JskCs<Integer, String> cs = JskCs
+        final JskCsForwardImpl<Integer, String, JskTestSource> cs = JskCsForwardImpl
                 .simple(IntStream.range(0, 100).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP);
         makeRealLifeExperimentAndCheck(cs);
         assertEquals(108/*!!! TOO MUCH WITH SIMPLE STRATEGY, NEED SMTH MORE COMPLEX LIKE BATCH !!!*/, cs.getExpandsDone());
-        assertEquals(1066/*!!! BUT QUEUE HAS FEWER ELEMENTS COMPARED TO BATCH!!!*/, cs.getQueueForTest().calculateSize());
+        assertEquals(1066/*!!! BUT QUEUE HAS FEWER ELEMENTS COMPARED TO BATCH!!!*/,
+                cs.getQueue().calculateSize(Cc.s(JskCsForwardType.FORWARD)));
     }
 
     @Test
     public void test_gets_with_non_single_elements() {
         //many get
-        final JskCs<Integer, String> simpleClusterSorter = JskCs.simple(Cc.l(
+        final JskCsForwardImpl<Integer, String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(Cc.l(
                 new JskTestSource(0, 2),
                 new JskTestSource(1, 3),
                 new JskTestSource(2, 4),
@@ -80,22 +85,22 @@ public class JskCsTest {
         ), COMP);
 
         assertEquals("", format(simpleClusterSorter.getNext(0)));
-        assertEquals("0-0💼,0-1💼,0-2💼,0-3💼", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("0-0💼,0-1💼,0-2💼,0-3💼", format(simpleClusterSorter.getQueue()));
 
         assertEquals("0-0,0-1", format(simpleClusterSorter.getNext(2)));
-        assertEquals("0-2💼,0-3💼,1-0,1-1💼", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("0-2💼,0-3💼,1-0,1-1💼", format(simpleClusterSorter.getQueue()));
 
         assertEquals("0-2,0-3,1-0", format(simpleClusterSorter.getNext(3)));
-        assertEquals("1-1💼,1-2,1-3,2-2,2-3💼,3-2", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("1-1💼,1-2,1-3,2-2,2-3💼,3-2", format(simpleClusterSorter.getQueue()));
 
         assertEquals("1-1,1-2,1-3,2-1", format(simpleClusterSorter.getNext(4)));
-        assertEquals("2-2,2-3💼,3-2", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("2-2,2-3💼,3-2", format(simpleClusterSorter.getQueue()));
 
         assertEquals("2-2,2-3,3-2", format(simpleClusterSorter.getNext(3)));
-        assertEquals("3-3,4-3", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("3-3,4-3", format(simpleClusterSorter.getQueue()));
 
         assertEquals("3-3,4-3", format(simpleClusterSorter.getNext(5)));
-        assertEquals("", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("", format(simpleClusterSorter.getQueue()));
 
         assertEquals(6, simpleClusterSorter.getExpandsDone());
     }
@@ -109,10 +114,10 @@ public class JskCsTest {
                 new JskTestSource(2, 4),
                 new JskTestSource(3, 5)
         );
-        final JskCs<Integer, String> simpleClusterSorter = JskCs.simple(sources, COMP);
+        final JskCsForwardImpl<Integer, String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(sources, COMP);
 
         assertEquals("", format(simpleClusterSorter.getNext(0)));
-        assertEquals("0-0💼,0-1💼,0-2💼,0-3💼", format(simpleClusterSorter.getQueueForTest()));
+        assertEquals("0-0💼,0-1💼,0-2💼,0-3💼", format(simpleClusterSorter.getQueue()));
 
         List<String> expectedSequence = Cc.sort(sources.stream()
                 .flatMap(src -> IntStream.range(0, src.getMaxElements()).mapToObj(el -> "%d-%d".formatted(el, src.getId())))
@@ -125,7 +130,7 @@ public class JskCsTest {
         }
     }
 
-    private void makeRealLifeExperimentAndCheck(JskCs<Integer, String> cs) {
+    private void makeRealLifeExperimentAndCheck(JskCsForwardImpl<Integer, String, JskTestSource> cs) {
         List<String> expectedSequence =
                 Cc.sort(IntStream.range(0, 100).mapToObj(i -> i)
                         .flatMap(i -> IntStream.range(0, 20).mapToObj(j -> "%d-%d".formatted(j, i)))
@@ -146,18 +151,22 @@ public class JskCsTest {
         return Cc.join(lst);
     }
 
-    private static String format(JskCsQueue<Integer, String> queue) {
-        return Cc.stream(queue).map($ -> $.getItem() + ($.isExpandableLastItem() ? E : "")).collect(Collectors.joining(","));
+    private static String format(JskCsQueueForwardImpl<Integer, String, JskTestSource> queue) {
+        return Cc.list(queue.getDirectionIterators().get(JskCsForwardType.FORWARD)).stream()
+                .map($ -> $.getItem() + ($.isExpandable() ? E : "")).collect(Collectors.joining(","));
     }
 
     @RequiredArgsConstructor
     @Getter
-    private static class JskTestBatch implements JscCsBatchProcessor<Integer, String> {
+    private static class JskTestBatch implements JskCsForwardBatch<Integer, String> {
         @Override
-        public Map<Integer, JskCsList<String>> getNextElements(List<JskCsSource<Integer, String>> sourcesToBatch,
-                Map<Integer, Integer> neededCountsPerSource) {
+        public Map<Integer, Map<JskCsForwardType, JskCsList<String>>> getNextElements(
+                List<JskCsSource<Integer, String>> sourcesToBatch,
+                Map<Integer, Map<JskCsForwardType, Integer>> neededCountsPerSourcePerDirection) {
             return sourcesToBatch.stream()
-                    .map($ -> X.x($.getId(), $.getNextElements(neededCountsPerSource.get($.getId()))))
+                    .map($ -> X.x($.getId(),
+                            Cc.m(JskCsForwardType.FORWARD, $.getNextElements(
+                                    neededCountsPerSourcePerDirection.get($.getId()).get(JskCsForwardType.FORWARD)))))
                     .collect(Cc.toMX2());
         }
     }

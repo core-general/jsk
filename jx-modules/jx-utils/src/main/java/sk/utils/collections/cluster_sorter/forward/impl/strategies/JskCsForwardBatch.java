@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.forward.impl.strategies;
 
 /*-
  * #%L
@@ -20,13 +20,9 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.model.JskCsItem;
-import sk.utils.collections.cluster_sorter.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.JskCsBatchProcessor;
+import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 
-import java.util.Iterator;
-import java.util.Map;
+public interface JskCsForwardBatch<SRC_ID, ITEM> extends JskCsBatchProcessor<SRC_ID, ITEM, JskCsForwardType> {
 
-public interface JskCsGetMoreElementsStrategy<SRC_ID, ITEM> {
-    Map<SRC_ID, JskCsList<ITEM>>
-    onNextLastItem(JskCsItem<SRC_ID, ITEM> itemToExpand, Iterator<JskCsItem<SRC_ID, ITEM>> sortedRestOfQueue, int itemsLeft);
 }

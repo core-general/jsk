@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.abstr;
 
 /*-
  * #%L
@@ -20,24 +20,15 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.model.JskCsItem;
-import sk.utils.functional.O;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
-public interface JskCsQueue<SRC_ID, ITEM> extends Iterable<JskCsItem<SRC_ID, ITEM>> {
-    void addAll(List<JskCsItem<SRC_ID, ITEM>> item);
-
-    O<JskCsItem<SRC_ID, ITEM>> poll();
-
-    Iterator<JskCsItem<SRC_ID, ITEM>> iterator();
-
-    default public int calculateSize() {
-        int i = 0;
-        for (JskCsItem<SRC_ID, ITEM> item : this) {
-            i++;
-        }
-        return i;
-    }
+public interface JskCsExpandElementsStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
+    Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>>
+    onNextLastItem(JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> itemToExpand,
+            Map<EXPAND_DIRECTION, Iterator<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>>> sortedRestOfQueuePaths,
+            int itemsLeft);
 }

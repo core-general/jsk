@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.abstr;
 
 /*-
  * #%L
@@ -20,11 +20,9 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.model.JskCsList;
-import sk.utils.collections.cluster_sorter.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.ifaces.Identifiable;
 
-import java.util.Map;
-
-public interface JskCsInitializationStrategy<SRC_ID, ITEM> {
-    Map<SRC_ID, JskCsList<ITEM>> initialize(int requestedItemCount, JskCsSources<SRC_ID, ITEM> sources);
+public interface JskCsSource<SRC_ID, ITEM> extends Identifiable<SRC_ID> {
+    JskCsList<ITEM> getNextElements(int limit);
 }

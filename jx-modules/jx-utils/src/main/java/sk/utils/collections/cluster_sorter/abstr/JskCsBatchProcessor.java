@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.abstr;
 
 /*-
  * #%L
@@ -20,12 +20,14 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 
 import java.util.List;
 import java.util.Map;
 
-public interface JscCsBatchProcessor<SRC_ID, ITEM> {
-    Map<SRC_ID, JskCsList<ITEM>> getNextElements(List<JskCsSource<SRC_ID, ITEM>> sourcesToBatch,
-            Map<SRC_ID, Integer> neededCountsPerSource);
+public interface JskCsBatchProcessor<SRC_ID, ITEM, EXPAND_DIRECTION> {
+    Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>> getNextElements(
+            List<JskCsSource<SRC_ID, ITEM>> sourcesToBatch,
+            Map<SRC_ID, Map<EXPAND_DIRECTION, Integer>> neededCountsPerSourcePerDirection
+    );
 }

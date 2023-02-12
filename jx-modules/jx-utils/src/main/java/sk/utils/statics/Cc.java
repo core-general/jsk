@@ -102,8 +102,6 @@ public final class Cc/*ColleCtions*/ {
     //endregion
 
     //region iteration
-
-
     public static <A> void eachWithIndex(Iterable<A> nexter, C2<A, Integer> c) {
         int i = 0;
         for (A next : nexter) {
@@ -384,6 +382,10 @@ public final class Cc/*ColleCtions*/ {
 
     public static <A> List<A> list(Iterable<? extends A> nexter) {
         return stream(nexter).collect(toList());
+    }
+
+    public static <A> List<A> list(Iterator<? extends A> nexter) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(nexter, 0), false).collect(toList());
     }
 
     public static <A> Set<A> set(Iterable<? extends A> nexter) {

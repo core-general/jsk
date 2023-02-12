@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter.model;
+package sk.utils.collections.cluster_sorter.abstr.model;
 
 /*-
  * #%L
@@ -24,29 +24,31 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-import sk.utils.collections.cluster_sorter.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 
 import java.util.Comparator;
 
 @Getter
 @AllArgsConstructor
-public class JskCsItem<SRC_ID, ITEM> implements Comparable<JskCsItem<SRC_ID, ITEM>> {
+public class JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>>
+        implements Comparable<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> {
     private Comparator<ITEM> comparator;
-    private JskCsSource<SRC_ID, ITEM> source;
+    private SOURCE source;
     private ITEM item;
-    @Setter private boolean expandableLastItem;
+    @Getter
+    @Setter
+    private boolean isExpandable;
+    @Getter
+    @Setter
+    private EXPAND_DIRECTION marking;
 
     @Override
-    public int compareTo(@NotNull JskCsItem<SRC_ID, ITEM> o) {
+    public int compareTo(@NotNull JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> o) {
         return comparator.compare(item, o.item);
-    }
-
-    public boolean isExpandableLastItem() {
-        return expandableLastItem;
     }
 
     @Override
     public String toString() {
-        return item + (expandableLastItem ? "💼" : "");
+        return item + (isExpandable ? "💼" : "");
     }
 }

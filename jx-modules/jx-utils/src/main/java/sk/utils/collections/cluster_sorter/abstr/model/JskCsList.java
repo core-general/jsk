@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter;
+package sk.utils.collections.cluster_sorter.abstr.model;
 
 /*-
  * #%L
@@ -20,9 +20,14 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.model.JskCsList;
-import sk.utils.ifaces.Identifiable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public interface JskCsSource<SRC_ID, ITEM> extends Identifiable<SRC_ID> {
-    JskCsList<ITEM> getNextElements(int limit);
+import java.util.List;
+
+@Getter
+@AllArgsConstructor
+public class JskCsList<ITEM> {
+    private List<ITEM> items;
+    private boolean hasMoreElements;
 }

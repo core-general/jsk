@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter.impl;
+package sk.utils.collections.cluster_sorter.forward.impl.strategies;
 
 /*-
  * #%L
@@ -20,23 +20,26 @@ package sk.utils.collections.cluster_sorter.impl;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.JskCsInitializationStrategy;
-import sk.utils.collections.cluster_sorter.model.JskCsList;
-import sk.utils.collections.cluster_sorter.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.abstr.JskCsInitStrategy;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
 
 import java.util.Map;
 
-public class JskCsInitializationStrategySimpleImpl<SRC_ID, ITEM> implements JskCsInitializationStrategy<SRC_ID, ITEM> {
+public class JskCsForwardInitSimpleImpl
+        <SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
+        implements JskCsInitStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> {
     @Override
-    public Map<SRC_ID, JskCsList<ITEM>> initialize(int requestedItemCount, JskCsSources<SRC_ID, ITEM> sources) {
+    public Map<SRC_ID, Map<JskCsForwardType, JskCsList<ITEM>>>
+    initialize(int requestedItemCount, JskCsSources<SRC_ID, ITEM, SOURCE> sources) {
         final int numToSelectPerSource = (requestedItemCount / sources.getSources().size()) + 1;
         return sources.getSources()
                 .stream()
-                .map(source -> {
-                    return X.x(source.getId(), source.getNextElements(numToSelectPerSource));
-                })
+                .map(source -> X.x(source.getId(), Cc.m(JskCsForwardType.FORWARD, source.getNextElements(numToSelectPerSource))))
                 .collect(Cc.toMX2());
     }
 }

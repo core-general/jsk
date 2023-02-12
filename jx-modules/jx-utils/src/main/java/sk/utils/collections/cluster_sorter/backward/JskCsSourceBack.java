@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter.model;
+package sk.utils.collections.cluster_sorter.backward;
 
 /*-
  * #%L
@@ -20,14 +20,11 @@ package sk.utils.collections.cluster_sorter.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 
-import java.util.List;
+public interface JskCsSourceBack<SRC_ID, ITEM, JskCsBothType> extends JskCsSource<SRC_ID, ITEM> {
+    JskCsList<ITEM> getPreviousElements(int limit);
 
-@Getter
-@AllArgsConstructor
-public class JskCsList<ITEM> {
-    private List<ITEM> items;
-    private boolean hasMoreElements;
+    ITEM setPositionToItemAndReturnNearest(ITEM item);
 }
