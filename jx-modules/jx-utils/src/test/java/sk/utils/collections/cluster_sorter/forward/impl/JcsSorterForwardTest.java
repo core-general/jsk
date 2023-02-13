@@ -77,6 +77,21 @@ public class JcsSorterForwardTest {
     }
 
     @Test
+    public void test_remove_source() {
+        var sorter = JcsSorterForward.simple(
+                IntStream.range(0, 5).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP);
+
+        assertEquals("0-0,0-1,0-2,0-3,0-4,1-0,1-1,1-2,1-3,1-4", format(sorter.getNext(10)));
+        assertEquals("2-0💼,2-1💼,2-2💼,2-3💼,2-4💼", format(sorter.getQueue()));
+        assertEquals("2-0", format(sorter.removeSource(new JcsSrcId("0"))));
+        assertEquals("2-2", format(sorter.removeSource(new JcsSrcId("2"))));
+
+        assertEquals("2-1💼,2-3💼,2-4💼", format(sorter.getQueue()));
+        assertEquals("2-1,2-3,2-4,3-1,3-3", format(sorter.getNext(5)));
+        assertEquals("3-4,4-1,4-3,4-4,5-1,5-3,5-4💼,6-1,6-3💼,7-1💼", format(sorter.getQueue()));
+    }
+
+    @Test
     public void test_gets_with_non_single_elements() {
         //many get
         final JcsSorterForward<String, JskTestSource> simpleClusterSorter = JcsSorterForward.simple(Cc.l(

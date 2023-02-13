@@ -48,6 +48,28 @@ public class JcsQueueForwardTest extends JcsAbstractQueueTest<JcsEForwardType, J
         assertEquals("7,5,3,2,1,1", Cc.join(queue.getForwardItems()));
     }
 
+    @Test
+    public void removeIfTest() {
+        assertEquals("7,5,3,2,1,1", Cc.join((queue.getForwardItems())));
+
+        assertEquals("7,5", Cc.join(queue.removeElementsIf(el -> el.getItem() > 3)));
+        assertEquals("3,2,1,1", Cc.join((queue.getForwardItems())));
+
+        queue.poll();
+        queue.poll();
+        queue.poll();
+        assertEquals("3", Cc.join((queue.getForwardItems())));
+
+        assertEquals("3", Cc.join(queue.removeElementsIf(el -> el.getItem() > 2)));
+        assertEquals("", Cc.join((queue.getForwardItems())));
+
+        //checking that last consume also work
+        queue.addAllRespectConsumed(Cc.l(
+                new JcsItem<>(Integer::compareTo, null, 1, false, null)
+        ));
+        assertEquals("", Cc.join((queue.getForwardItems())));
+    }
+
 
     @Test
     public void poll() {

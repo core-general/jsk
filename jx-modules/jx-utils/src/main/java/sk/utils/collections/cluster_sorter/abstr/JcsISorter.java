@@ -16,5 +16,5 @@ public interface JcsISorter<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<IT
 
     void addNewSource(SOURCE source);
 
-    void removeSource(JcsSrcId id);
+    List<ITEM> removeSource(JcsSrcId id);
 }

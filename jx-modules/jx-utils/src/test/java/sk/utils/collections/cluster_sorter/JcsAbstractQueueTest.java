@@ -64,5 +64,4 @@ public abstract class JcsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JcsIQ
             assertThrows(ConcurrentModificationException.class, () -> it.next());
         }
     }
-
 }

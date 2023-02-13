@@ -23,6 +23,7 @@ package sk.utils.collections.cluster_sorter.abstr;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.functional.O;
+import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
@@ -47,6 +48,8 @@ public interface JcsIQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITE
     }
 
     default void onDidNotGetToMainQueueWhenAddRespectOrder(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {}
+
+    List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> removeElementsIf(P1<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> predicate);
 
     void clear();
 }

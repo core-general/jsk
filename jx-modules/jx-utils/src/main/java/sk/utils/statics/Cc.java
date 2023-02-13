@@ -305,6 +305,17 @@ public final class Cc/*ColleCtions*/ {
         return addTo;
     }
 
+    public static <T> List<T> removeIf(Collection<T> items, P1<T> predicate) {
+        List<T> removed = Cc.l();
+        items.removeIf(el -> {
+            boolean remove = predicate.test(el);
+            if (remove) {
+                removed.add(el);
+            }
+            return remove;
+        });
+        return removed;
+    }
 
     public static <T, A extends Collection<T>> O<T> find(A collection, P1<T> predicate) {
         return of(collection.stream().filter(predicate).findAny());

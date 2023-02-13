@@ -6,6 +6,7 @@ import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.functional.O;
+import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
 import java.util.*;
@@ -91,6 +92,13 @@ public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
     @Override
     public void onDidNotGetToMainQueueWhenAddRespectOrder(List<JcsItem<ITEM, JcsEBackType, SOURCE>> items) {
         uniAddAll(items, backItems, item -> item.getComparator());
+    }
+
+    @Override
+    public List<JcsItem<ITEM, JcsEBackType, SOURCE>> removeElementsIf(P1<JcsItem<ITEM, JcsEBackType, SOURCE>> predicate) {
+        List<JcsItem<ITEM, JcsEBackType, SOURCE>> forw = Cc.removeIf(forwardItems, predicate);
+        List<JcsItem<ITEM, JcsEBackType, SOURCE>> back = Cc.removeIf(backItems, predicate);
+        return Cc.addAll(Cc.l(), forw, back);
     }
 
     @Override

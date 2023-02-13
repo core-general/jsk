@@ -25,6 +25,7 @@ import sk.utils.collections.cluster_sorter.abstr.model.*;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 
 import java.util.Comparator;
 import java.util.List;
@@ -90,15 +91,15 @@ public abstract class JcsASorter<
     }
 
     @Override
-    public void removeSource(JcsSrcId id) {
-        //TODO !!!!!!!!!!!!!!!!!!!...
-        //boolean removed = sources.removeSource(id);
-        //if (removed) {
-        //    //todo cache source items
-        //
-        //    List<JcsItem< ITEM, EXPAND_DIRECTION, SOURCE>> removedItems =
-        //            queue.removeElementsIf(element -> Fu.equal(element.getSource().getId(), id));
-        //}
+    public List<ITEM> removeSource(JcsSrcId id) {
+        boolean removed = sources.removeSource(id);
+        if (removed) {
+            List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> removedItems =
+                    queue.removeElementsIf(element -> Fu.equal(element.getSource().getId(), id));
+            return removedItems.stream().map($ -> $.getItem()).toList();
+        } else {
+            return Cc.lEmpty();
+        }
     }
 
     @Override

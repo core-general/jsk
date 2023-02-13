@@ -27,6 +27,7 @@ import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.forward.JcsIQueueForward;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.functional.O;
+import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
 import java.util.*;
@@ -41,19 +42,18 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
         JcsAQueue<ITEM, JcsEForwardType, SOURCE>
         implements
         JcsIQueueForward<ITEM, SOURCE> {
-    private List<JcsItem<ITEM, JcsEForwardType, SOURCE>> forwardItems = new ArrayList<>();
-    private O<JcsItem<ITEM, JcsEForwardType, SOURCE>> lastConsumed = O.empty();
-
+    private final List<JcsItem<ITEM, JcsEForwardType, SOURCE>> forwardItems = Cc.l();
+    private final List<JcsItem<ITEM, JcsEForwardType, SOURCE>> lastConsumed = initLastConsumedList();
 
     @Override
     public O<JcsItem<ITEM, JcsEForwardType, SOURCE>> getLastConsumedItem() {
-        return lastConsumed;
+        return Cc.last(lastConsumed);
     }
 
     @Override
     public JcsPollResult<ITEM, JcsEForwardType, SOURCE> poll(JcsEForwardType jskCsForwardType) {
         JcsPollResult<ITEM, JcsEForwardType, SOURCE> item = uniPoll(forwardItems, JcsEForwardType.FORWARD);
-        item.getPolledItem().ifPresent(it -> lastConsumed = O.of(it));
+        item.getPolledItem().ifPresent(it -> lastConsumed.add(it));
         return item;
     }
 
@@ -63,9 +63,15 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
     }
 
     @Override
+    public List<JcsItem<ITEM, JcsEForwardType, SOURCE>> removeElementsIf(P1<JcsItem<ITEM, JcsEForwardType, SOURCE>> toDelete) {
+        Cc.removeIf(lastConsumed, toDelete);
+        return Cc.removeIf(forwardItems, toDelete);
+    }
+
+    @Override
     public void clear() {
         forwardItems.clear();
-        lastConsumed = O.empty();
+        lastConsumed.clear();
     }
 
     public List<JcsItem<ITEM, JcsEForwardType, SOURCE>> getForwardItems() {
@@ -79,7 +85,15 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
 
     @Override
     public void addAllToQueueBeginning(List<JcsItem<ITEM, JcsEForwardType, SOURCE>> jskCsItems) {
-        lastConsumed = O.empty();
+        lastConsumed.clear();
         addAllRespectConsumed(jskCsItems);
+    }
+
+    /**
+     * default queue implementation uses boundless consumed list, which means it rememebers all consumed items (but it doesn't
+     * allow to iterate on them). If bounded behaviour is prefered, the bounded list could be used.
+     */
+    protected List<JcsItem<ITEM, JcsEForwardType, SOURCE>> initLastConsumedList() {
+        return new ArrayList<>();
     }
 }
