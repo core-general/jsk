@@ -22,13 +22,14 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 
 import java.util.Iterator;
 import java.util.Map;
 
-public interface JskCsExpandElementsStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
-    Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>>
-    onNextLastItem(JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> itemToExpand,
-            Map<EXPAND_DIRECTION, Iterator<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>>> sortedRestOfQueuePaths,
+public interface JskCsExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>> {
+    Map<JskCsSrcId, Map<EXPAND_DIRECTION, JskCsList<ITEM>>>
+    onNextLastItem(JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> itemToExpand,
+            Map<EXPAND_DIRECTION, Iterator<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> sortedRestOfQueuePaths,
             int itemsLeft);
 }

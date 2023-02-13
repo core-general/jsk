@@ -23,7 +23,7 @@ package sk.utils.collections.cluster_sorter.backward;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 
-public interface JskCsSourceBack<SRC_ID, ITEM, JskCsBothType> extends JskCsSource<SRC_ID, ITEM> {
+public interface JskCsSourceBack<ITEM> extends JskCsSource<ITEM> {
     JskCsList<ITEM> getPreviousElements(int limit);
 
     ITEM setPositionToItemAndReturnNearest(ITEM item);

@@ -22,10 +22,11 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 
 import java.util.Map;
 
-public interface JskCsInitStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
-    Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>>
-    initialize(int requestedItemCount, JskCsSources<SRC_ID, ITEM, SOURCE> sources);
+public interface JskCsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>> {
+    Map<JskCsSrcId, Map<EXPAND_DIRECTION, JskCsList<ITEM>>>
+    initialize(int requestedItemCount, JskCsSources<ITEM, SOURCE> sources);
 }

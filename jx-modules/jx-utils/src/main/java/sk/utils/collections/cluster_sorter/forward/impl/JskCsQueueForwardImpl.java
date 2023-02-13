@@ -26,6 +26,7 @@ import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsPollResult;
 import sk.utils.collections.cluster_sorter.forward.JskCsQueueForward;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.*;
@@ -35,30 +36,44 @@ import java.util.*;
  * When removing last element, there is no array copy.
  * Items are stored in the order of item comparator.
  */
-public class JskCsQueueForwardImpl<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
+public class JskCsQueueForwardImpl<ITEM, SOURCE extends JskCsSource<ITEM>>
         extends
-        JskCsQueueAbstractImpl<SRC_ID, ITEM, JskCsForwardType, SOURCE>
+        JskCsQueueAbstractImpl<ITEM, JskCsForwardType, SOURCE>
         implements
-        JskCsQueueForward<SRC_ID, ITEM, SOURCE> {
-    protected List<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> forwardItems = new ArrayList<>();
+        JskCsQueueForward<ITEM, SOURCE> {
+    private List<JskCsItem<ITEM, JskCsForwardType, SOURCE>> forwardItems = new ArrayList<>();
+    private O<JskCsItem<ITEM, JskCsForwardType, SOURCE>> lastConsumed = O.empty();
 
-    /** Semantics: we add all elements to the queue, doesn't matter if they are "before" current element */
+
     @Override
-    public void addAll(List<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> newData) {
-        uniAddAll(newData, forwardItems, item -> item.getComparator().reversed());
+    public O<JskCsItem<ITEM, JskCsForwardType, SOURCE>> getLastConsumedItem() {
+        return lastConsumed;
     }
 
     @Override
-    public JskCsPollResult<SRC_ID, ITEM, JskCsForwardType, SOURCE> poll(JskCsForwardType jskCsForwardType) {
-        return uniPoll(forwardItems, JskCsForwardType.FORWARD);
+    public JskCsPollResult<ITEM, JskCsForwardType, SOURCE> poll(JskCsForwardType jskCsForwardType) {
+        JskCsPollResult<ITEM, JskCsForwardType, SOURCE> item = uniPoll(forwardItems, JskCsForwardType.FORWARD);
+        item.getPolledItem().ifPresent(it -> lastConsumed = O.of(it));
+        return item;
     }
 
     @Override
-    public Map<JskCsForwardType, Iterator<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>>> getDirectionIterators() {
+    public Map<JskCsForwardType, Iterator<JskCsItem<ITEM, JskCsForwardType, SOURCE>>> getDirectionIterators() {
         return Cc.m(JskCsForwardType.FORWARD, new JskCsItemIterator<>(forwardItems, () -> modCount));
     }
 
-    public List<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> getForwardItems() {
+    public List<JskCsItem<ITEM, JskCsForwardType, SOURCE>> getForwardItems() {
         return Collections.unmodifiableList(forwardItems);
+    }
+
+    @Override
+    protected List<JskCsItem<ITEM, JskCsForwardType, SOURCE>> getQueuePartToAddElements() {
+        return forwardItems;
+    }
+
+    @Override
+    public void addAllToQueueBeginning(List<JskCsItem<ITEM, JskCsForwardType, SOURCE>> jskCsItems) {
+        lastConsumed = O.empty();
+        addAllRespectConsumed(jskCsItems);
     }
 }

@@ -32,33 +32,30 @@ import java.util.List;
 
 /**
  * !!!NOT THREAD SAFE!!!
- *
- * @param <SRC_ID>
- * @param <ITEM>
  */
-public class JskCsForwardImpl<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
+public class JskCsForwardImpl<ITEM, SOURCE extends JskCsSource<ITEM>>
         extends
-        JskCsAbstractImpl<SRC_ID, ITEM, JskCsForwardType, JskCsQueueForwardImpl<SRC_ID, ITEM, SOURCE>, SOURCE>
-        implements JskCsForward<SRC_ID, ITEM> {
+        JskCsAbstractImpl<ITEM, JskCsForwardType, JskCsQueueForwardImpl<ITEM, SOURCE>, SOURCE>
+        implements JskCsForward<ITEM, SOURCE> {
 
-    public static <SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>> JskCsForwardImpl<SRC_ID, ITEM, SOURCE> custom(
+    public static <ITEM, SOURCE extends JskCsSource<ITEM>> JskCsForwardImpl<ITEM, SOURCE> custom(
             List<SOURCE> sources,
             Comparator<ITEM> comparator,
-            JskCsInitStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> firstFeedStrategy,
-            JskCsExpandElementsStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> getMoreStrategy) {
+            JskCsInitStrategy<ITEM, JskCsForwardType, SOURCE> firstFeedStrategy,
+            JskCsExpandElementsStrategy<ITEM, JskCsForwardType, SOURCE> getMoreStrategy) {
         return new JskCsForwardImpl<>(sources, comparator, firstFeedStrategy, getMoreStrategy);
     }
 
-    public static <SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>> JskCsForwardImpl<SRC_ID, ITEM, SOURCE> simple(
+    public static <ITEM, SOURCE extends JskCsSource<ITEM>> JskCsForwardImpl<ITEM, SOURCE> simple(
             List<SOURCE> sources,
             Comparator<ITEM> comparator) {
         return new JskCsForwardImpl<>(sources, comparator, new JskCsForwardInitSimpleImpl<>(),
                 new JskCsForwardExpandElementSimpleImpl<>());
     }
 
-    public static <SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>> JskCsForwardImpl<SRC_ID, ITEM, SOURCE> batch(
+    public static <ITEM, SOURCE extends JskCsSource<ITEM>> JskCsForwardImpl<ITEM, SOURCE> batch(
             List<SOURCE> sources,
-            Comparator<ITEM> comparator, JskCsBatchProcessor<SRC_ID, ITEM, JskCsForwardType> batchProcessor) {
+            Comparator<ITEM> comparator, JskCsBatchProcessor<ITEM, JskCsForwardType> batchProcessor) {
         return new JskCsForwardImpl<>(sources, comparator, new JskCsForwardInitSimpleImpl<>(),
                 new JskCsForwardExpandBatchGreedyImpl<>(batchProcessor));
     }
@@ -66,13 +63,13 @@ public class JskCsForwardImpl<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, I
     private JskCsForwardImpl(
             List<SOURCE> sources,
             Comparator<ITEM> comparator,
-            JskCsInitStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> firstFeedStrategy,
-            JskCsExpandElementsStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> getMoreStrategy) {
+            JskCsInitStrategy<ITEM, JskCsForwardType, SOURCE> firstFeedStrategy,
+            JskCsExpandElementsStrategy<ITEM, JskCsForwardType, SOURCE> getMoreStrategy) {
         super(sources, comparator, firstFeedStrategy, getMoreStrategy);
     }
 
     @Override
-    protected JskCsQueueForwardImpl<SRC_ID, ITEM, SOURCE> instantiateQueue() {
+    protected JskCsQueueForwardImpl<ITEM, SOURCE> instantiateQueue() {
         return new JskCsQueueForwardImpl<>();
     }
 }

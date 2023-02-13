@@ -7,7 +7,7 @@ import sk.utils.functional.O;
 
 @Getter
 @AllArgsConstructor
-public class JskCsPollResult<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
-    private final O<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> polledItem;
+public class JskCsPollResult<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>> {
+    private final O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> polledItem;
     private final EXPAND_DIRECTION direction;
 }

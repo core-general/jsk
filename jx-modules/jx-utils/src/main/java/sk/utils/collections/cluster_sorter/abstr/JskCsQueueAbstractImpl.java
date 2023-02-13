@@ -27,24 +27,24 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import java.util.Comparator;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public abstract class JskCsQueueAbstractImpl<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>>
-        implements JskCsQueueAbstract<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> {
+public abstract class JskCsQueueAbstractImpl<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>>
+        implements JskCsQueueAbstract<ITEM, EXPAND_DIRECTION, SOURCE> {
     protected long modCount = 0;
 
-    protected JskCsPollResult<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> uniPoll(
-            List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> uniItems, EXPAND_DIRECTION direction) {
+    protected abstract List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getQueuePartToAddElements();
+
+    protected JskCsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> uniPoll(
+            List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> uniItems, EXPAND_DIRECTION direction) {
         modCount++;
         return new JskCsPollResult<>(uniItems.size() > 0 ? O.of(uniItems.remove(uniItems.size() - 1)) : O.empty(), direction);
     }
 
-    protected void uniAddAll(List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> data,
-            List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> target,
-            F1<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>, Comparator<ITEM>> comparatorSupplier) {
+    protected void uniAddAll(List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> data,
+            List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> target,
+            F1<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>, Comparator<ITEM>> comparatorSupplier) {
         if (data.size() > 0) {
             modCount++;
             target.addAll(data);
@@ -53,14 +53,30 @@ public abstract class JskCsQueueAbstractImpl<SRC_ID, ITEM, EXPAND_DIRECTION, SOU
         }
     }
 
-    protected static class JskCsItemIterator<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>>
-            implements Iterator<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> {
-        private final List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> items;
+    @Override
+    public void addAllRespectConsumed(List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {
+        Map<Boolean, List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> split =
+                items.stream().collect(Collectors.groupingBy(
+                        item -> getLastConsumedItem().map(lastConsumedItem -> item.compareTo(lastConsumedItem) >= 0).orElse(true)
+                ));
+        List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> addToBeginning = split.getOrDefault(true, Cc.lEmpty());
+        List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> didNotGetToMainQueue = split.getOrDefault(false, Cc.lEmpty());
+        if (addToBeginning.size() > 0) {
+            uniAddAll(addToBeginning, getQueuePartToAddElements(), (item) -> item.getComparator().reversed());
+        }
+        if (didNotGetToMainQueue.size() > 0) {
+            onDidNotGetToMainQueueWhenAddRespectOrder(didNotGetToMainQueue);
+        }
+    }
+
+    protected static class JskCsItemIterator<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>>
+            implements Iterator<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> {
+        private final List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items;
         int currentIndex;
         private final F0<Long> modCountProvider;
         final long curModCount;
 
-        public JskCsItemIterator(List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> items, F0<Long> modCountProvider) {
+        public JskCsItemIterator(List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, F0<Long> modCountProvider) {
             this.items = items;
             this.currentIndex = items.size();
             this.modCountProvider = modCountProvider;
@@ -74,7 +90,7 @@ public abstract class JskCsQueueAbstractImpl<SRC_ID, ITEM, EXPAND_DIRECTION, SOU
         }
 
         @Override
-        public JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> next() {
+        public JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> next() {
             checkModCount();
             return items.get(--currentIndex);
         }

@@ -29,9 +29,9 @@ import sk.utils.statics.Cc;
 import static org.junit.Assert.assertEquals;
 import static sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType.FORWARD;
 
-public class JskCsQueueForwardImplTest extends JskCsAbstractQueueTest<JskCsForwardType, JskCsQueueForwardImpl<?, Integer, ?>> {
+public class JskCsQueueForwardImplTest extends JskCsAbstractQueueTest<JskCsForwardType, JskCsQueueForwardImpl<Integer, ?>> {
 
-    protected JskCsQueueForwardImpl<?, Integer, ?> initQueue() {
+    protected JskCsQueueForwardImpl<Integer, ?> initQueue() {
         return new JskCsQueueForwardImpl<>();
     }
 
@@ -55,7 +55,7 @@ public class JskCsQueueForwardImplTest extends JskCsAbstractQueueTest<JskCsForwa
         assertEquals(1, queue.poll().getPolledItem().get().getItem().longValue());
         assertEquals(2, queue.poll().getPolledItem().get().getItem().longValue());
 
-        queue.addAll(Cc.l(
+        queue.addAllToQueueBeginning(Cc.l(
                 new JskCsItem<>(Integer::compareTo, null, 1, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 8, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 2, false, null)
@@ -67,5 +67,16 @@ public class JskCsQueueForwardImplTest extends JskCsAbstractQueueTest<JskCsForwa
         assertEquals(5, queue.poll().getPolledItem().get().getItem().longValue());
         assertEquals(7, queue.poll().getPolledItem().get().getItem().longValue());
         assertEquals(8, queue.poll().getPolledItem().get().getItem().longValue());
+
+        queue.addAllRespectConsumed(Cc.l(
+                new JskCsItem<>(Integer::compareTo, null, 4, false, null),
+                new JskCsItem<>(Integer::compareTo, null, 12, false, null),
+                new JskCsItem<>(Integer::compareTo, null, 8, false, null),
+                new JskCsItem<>(Integer::compareTo, null, 15, false, null),
+                new JskCsItem<>(Integer::compareTo, null, 2, false, null)
+        ));
+        assertEquals(8, queue.poll().getPolledItem().get().getItem().longValue());
+        assertEquals(12, queue.poll().getPolledItem().get().getItem().longValue());
+        assertEquals(15, queue.poll().getPolledItem().get().getItem().longValue());
     }
 }

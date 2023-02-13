@@ -21,40 +21,41 @@ package sk.utils.collections.cluster_sorter.backward;
  */
 
 import sk.utils.collections.cluster_sorter.abstr.JskCsQueueAbstract;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsPollResult;
-import sk.utils.collections.cluster_sorter.backward.model.JskCsBothType;
+import sk.utils.collections.cluster_sorter.backward.model.JskCsBackType;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
 
-public interface JskCsQueueBack<SRC_ID, ITEM, SOURCE extends JskCsSourceBack<SRC_ID, ITEM, JskCsBothType>>
-        extends JskCsQueueAbstract<SRC_ID, ITEM, JskCsBothType, SOURCE> {
+public interface JskCsQueueBack<ITEM, SOURCE extends JskCsSource<ITEM>>
+        extends JskCsQueueAbstract<ITEM, JskCsBackType, SOURCE> {
 
-    public O<JskCsItem<SRC_ID, ITEM, JskCsBothType, SOURCE>> setLastSelectedItemAndReturnLastUsed(ITEM newItem);
+    public O<JskCsItem<ITEM, JskCsBackType, SOURCE>> setLastSelectedItemAndReturnLastUsed(ITEM newItem);
 
-    default JskCsPollResult<SRC_ID, ITEM, JskCsBothType, SOURCE> poll() {
-        return poll(JskCsBothType.FORWARD);
+    default JskCsPollResult<ITEM, JskCsBackType, SOURCE> poll() {
+        return poll(JskCsBackType.FORWARD);
     }
 
-    default Iterator<JskCsItem<SRC_ID, ITEM, JskCsBothType, SOURCE>> iterator() {
-        return getDirectionIterators().get(JskCsBothType.FORWARD);
+    default Iterator<JskCsItem<ITEM, JskCsBackType, SOURCE>> iterator() {
+        return getDirectionIterators().get(JskCsBackType.FORWARD);
     }
 
-    default JskCsPollResult<SRC_ID, ITEM, JskCsBothType, SOURCE> pollBack() {
-        return poll(JskCsBothType.BACKWARD);
+    default JskCsPollResult<ITEM, JskCsBackType, SOURCE> pollBack() {
+        return poll(JskCsBackType.BACKWARD);
     }
 
-    default Iterator<JskCsItem<SRC_ID, ITEM, JskCsBothType, SOURCE>> iteratorBack() {
-        return getDirectionIterators().get(JskCsBothType.BACKWARD);
+    default Iterator<JskCsItem<ITEM, JskCsBackType, SOURCE>> iteratorBack() {
+        return getDirectionIterators().get(JskCsBackType.BACKWARD);
     }
 
     default public int calculateSize() {
-        return calculateSize(Cc.s(JskCsBothType.FORWARD));
+        return calculateSize(Cc.s(JskCsBackType.FORWARD));
     }
 
     default public int calculateSizeBack() {
-        return calculateSize(Cc.s(JskCsBothType.BACKWARD));
+        return calculateSize(Cc.s(JskCsBackType.BACKWARD));
     }
 }

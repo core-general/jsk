@@ -22,6 +22,7 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsPollResult;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
@@ -29,17 +30,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface JskCsQueueAbstract<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
+public interface JskCsQueueAbstract<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>> {
+    /** If items were already consumed, added elemen */
+    void addAllRespectConsumed(List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items);
 
-    void addAll(List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> item);
+    O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getLastConsumedItem();
 
-    JskCsPollResult<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> poll(EXPAND_DIRECTION direction);
+    JskCsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> poll(EXPAND_DIRECTION direction);
 
-    Map<EXPAND_DIRECTION, Iterator<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>>> getDirectionIterators();
+    Map<EXPAND_DIRECTION, Iterator<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> getDirectionIterators();
 
     default public int calculateSize(Set<EXPAND_DIRECTION> directions) {
         return getDirectionIterators().entrySet().stream().mapToInt($ -> {
             return Cc.list($.getValue()).size();
         }).sum();
     }
+
+    default void onDidNotGetToMainQueueWhenAddRespectOrder(List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {}
 }

@@ -1,11 +1,13 @@
 package sk.utils.collections.cluster_sorter.forward;
 
 import sk.utils.collections.cluster_sorter.abstr.JskCsAbstract;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 
 import java.util.List;
 
-public interface JskCsForward<SRC_ID, ITEM> extends JskCsAbstract<SRC_ID, ITEM, JskCsForwardType> {
+public interface JskCsForward<ITEM, SOURCE extends JskCsSource<ITEM>>
+        extends JskCsAbstract<ITEM, JskCsForwardType, SOURCE> {
     default List<ITEM> getNext(int count) {
         return getNext(count, JskCsForwardType.FORWARD);
     }

@@ -30,8 +30,8 @@ import java.util.Comparator;
 
 @Getter
 @AllArgsConstructor
-public class JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<SRC_ID, ITEM>>
-        implements Comparable<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> {
+public class JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSource<ITEM>>
+        implements Comparable<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> {
     private Comparator<ITEM> comparator;
     private SOURCE source;
     private ITEM item;
@@ -43,7 +43,7 @@ public class JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE extends JskCsSourc
     private EXPAND_DIRECTION marking;
 
     @Override
-    public int compareTo(@NotNull JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> o) {
+    public int compareTo(@NotNull JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> o) {
         return comparator.compare(item, o.item);
     }
 

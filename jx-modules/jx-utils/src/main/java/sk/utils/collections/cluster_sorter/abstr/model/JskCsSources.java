@@ -20,24 +20,37 @@ package sk.utils.collections.cluster_sorter.abstr.model;
  * #L%
  */
 
-import lombok.Getter;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
-public class JskCsSources<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>> {
-    @Getter private final List<SOURCE> sources;
-    @Getter private final Map<SRC_ID, SOURCE> sourcesById;
+public class JskCsSources<ITEM, SOURCE extends JskCsSource<ITEM>> {
+    private final Map<JskCsSrcId, SOURCE> sourcesById;
 
-    public JskCsSources(List<SOURCE> sources) {
-        this.sources = Collections.unmodifiableList(sources);
-        this.sourcesById = Collections.unmodifiableMap(sources.stream().collect(Cc.toM($ -> $.getId(), $ -> $)));
+    public JskCsSources(Collection<SOURCE> sources) {
+        this.sourcesById = sources.stream().collect(Cc.toM($ -> $.getId(), $ -> $));
     }
 
-    public SOURCE getById(SRC_ID id) {
+    public Map<JskCsSrcId, SOURCE> getSourcesById() {
+        return Collections.unmodifiableMap(sourcesById);
+    }
+
+    public SOURCE getById(JskCsSrcId id) {
         return sourcesById.get(id);
+    }
+
+    public boolean removeSource(JskCsSrcId id) {
+        return O.ofNull(sourcesById.get(id)).map($ -> {
+            sourcesById.remove($.getId());
+            return true;
+        }).orElse(false);
+    }
+
+    public void addSource(SOURCE src) {
+        sourcesById.put(src.getId(), src);
     }
 }

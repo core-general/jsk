@@ -24,19 +24,20 @@ import sk.utils.collections.cluster_sorter.abstr.JskCsExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
 import java.util.Map;
 
-public class JskCsForwardExpandElementSimpleImpl<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
-        implements JskCsExpandElementsStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> {
+public class JskCsForwardExpandElementSimpleImpl<ITEM, SOURCE extends JskCsSource<ITEM>>
+        implements JskCsExpandElementsStrategy<ITEM, JskCsForwardType, SOURCE> {
 
     @Override
-    public Map<SRC_ID, Map<JskCsForwardType, JskCsList<ITEM>>> onNextLastItem(
-            JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE> itemToExpand,
-            Map<JskCsForwardType, Iterator<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>>> sortedRestOfQueuePaths,
+    public Map<JskCsSrcId, Map<JskCsForwardType, JskCsList<ITEM>>> onNextLastItem(
+            JskCsItem<ITEM, JskCsForwardType, SOURCE> itemToExpand,
+            Map<JskCsForwardType, Iterator<JskCsItem<ITEM, JskCsForwardType, SOURCE>>> sortedRestOfQueuePaths,
             int itemsLeft) {
         return Cc.m(itemToExpand.getSource().getId(),
                 Cc.m(JskCsForwardType.FORWARD, itemToExpand.getSource().getNextElements(itemsLeft)));

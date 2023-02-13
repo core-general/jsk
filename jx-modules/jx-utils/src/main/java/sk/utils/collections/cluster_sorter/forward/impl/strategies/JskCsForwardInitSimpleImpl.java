@@ -24,6 +24,7 @@ import sk.utils.collections.cluster_sorter.abstr.JskCsInitStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
@@ -31,13 +32,13 @@ import sk.utils.tuples.X;
 import java.util.Map;
 
 public class JskCsForwardInitSimpleImpl
-        <SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
-        implements JskCsInitStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> {
+        <ITEM, SOURCE extends JskCsSource<ITEM>>
+        implements JskCsInitStrategy<ITEM, JskCsForwardType, SOURCE> {
     @Override
-    public Map<SRC_ID, Map<JskCsForwardType, JskCsList<ITEM>>>
-    initialize(int requestedItemCount, JskCsSources<SRC_ID, ITEM, SOURCE> sources) {
-        final int numToSelectPerSource = (requestedItemCount / sources.getSources().size()) + 1;
-        return sources.getSources()
+    public Map<JskCsSrcId, Map<JskCsForwardType, JskCsList<ITEM>>>
+    initialize(int requestedItemCount, JskCsSources<ITEM, SOURCE> sources) {
+        final int numToSelectPerSource = (requestedItemCount / sources.getSourcesById().size()) + 1;
+        return sources.getSourcesById().values()
                 .stream()
                 .map(source -> X.x(source.getId(), Cc.m(JskCsForwardType.FORWARD, source.getNextElements(numToSelectPerSource))))
                 .collect(Cc.toMX2());

@@ -1,5 +1,5 @@
 package sk.utils.collections.cluster_sorter.backward.model;
 
-public enum JskCsBothType {
+public enum JskCsBackType {
     FORWARD, BACKWARD
 }

@@ -26,6 +26,7 @@ import sk.utils.collections.cluster_sorter.abstr.JskCsExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
@@ -36,25 +37,24 @@ import java.util.Map;
 
 @AllArgsConstructor
 public class JskCsForwardExpandBatchGreedyImpl<
-        SRC_ID,
         ITEM,
-        SOURCE extends JskCsSource<SRC_ID, ITEM>
+        SOURCE extends JskCsSource<ITEM>
         >
-        implements JskCsExpandElementsStrategy<SRC_ID, ITEM, JskCsForwardType, SOURCE> {
-    private final JskCsBatchProcessor<SRC_ID, ITEM, JskCsForwardType> batchProcessor;
+        implements JskCsExpandElementsStrategy<ITEM, JskCsForwardType, SOURCE> {
+    private final JskCsBatchProcessor<ITEM, JskCsForwardType> batchProcessor;
 
     @Override
-    public Map<SRC_ID, Map<JskCsForwardType, JskCsList<ITEM>>> onNextLastItem(
-            JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE> itemToExpand,
-            Map<JskCsForwardType, Iterator<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>>> sortedRestOfQueuePaths,
+    public Map<JskCsSrcId, Map<JskCsForwardType, JskCsList<ITEM>>> onNextLastItem(
+            JskCsItem<ITEM, JskCsForwardType, SOURCE> itemToExpand,
+            Map<JskCsForwardType, Iterator<JskCsItem<ITEM, JskCsForwardType, SOURCE>>> sortedRestOfQueuePaths,
             int itemsLeft) {
 
         int needItems = itemsLeft;
-        List<JskCsSource<SRC_ID, ITEM>> sourcesToExpand = Cc.l(itemToExpand.getSource());
-        Iterator<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> sortedRestOfQueue =
+        List<JskCsSource<ITEM>> sourcesToExpand = Cc.l(itemToExpand.getSource());
+        Iterator<JskCsItem<ITEM, JskCsForwardType, SOURCE>> sortedRestOfQueue =
                 sortedRestOfQueuePaths.get(JskCsForwardType.FORWARD);
         while (itemsLeft-- > 0 && sortedRestOfQueue.hasNext()) {
-            final JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE> queueItem = sortedRestOfQueue.next();
+            final JskCsItem<ITEM, JskCsForwardType, SOURCE> queueItem = sortedRestOfQueue.next();
             if (queueItem.isExpandable()) {
                 sourcesToExpand.add(queueItem.getSource());
             }

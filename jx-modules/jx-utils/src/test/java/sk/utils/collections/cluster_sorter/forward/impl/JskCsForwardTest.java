@@ -24,7 +24,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
 import sk.utils.collections.cluster_sorter.abstr.JskCsSource;
+import sk.utils.collections.cluster_sorter.abstr.JskCsSourceA;
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 import sk.utils.collections.cluster_sorter.forward.impl.strategies.JskCsForwardBatch;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 import sk.utils.statics.Cc;
@@ -55,7 +57,7 @@ public class JskCsForwardTest {
     @Test
     public void test_real_life_with_batch() {
         //real life simulation with batch
-        final JskCsForwardImpl<Integer, String, JskTestSource> cs = JskCsForwardImpl
+        final JskCsForwardImpl<String, JskTestSource> cs = JskCsForwardImpl
                 .batch(IntStream.range(0, 100).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP, new JskTestBatch());
         makeRealLifeExperimentAndCheck(cs);
         assertEquals(4/*!!!MUCH LESS WITH BATCH !!!*/, cs.getExpandsDone());
@@ -66,7 +68,7 @@ public class JskCsForwardTest {
     @Test
     public void test_real_life_no_batch() {
         //real life simulation no batch
-        final JskCsForwardImpl<Integer, String, JskTestSource> cs = JskCsForwardImpl
+        final JskCsForwardImpl<String, JskTestSource> cs = JskCsForwardImpl
                 .simple(IntStream.range(0, 100).mapToObj($ -> new JskTestSource($, 20)).toList(), COMP);
         makeRealLifeExperimentAndCheck(cs);
         assertEquals(108/*!!! TOO MUCH WITH SIMPLE STRATEGY, NEED SMTH MORE COMPLEX LIKE BATCH !!!*/, cs.getExpandsDone());
@@ -77,7 +79,7 @@ public class JskCsForwardTest {
     @Test
     public void test_gets_with_non_single_elements() {
         //many get
-        final JskCsForwardImpl<Integer, String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(Cc.l(
+        final JskCsForwardImpl<String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(Cc.l(
                 new JskTestSource(0, 2),
                 new JskTestSource(1, 3),
                 new JskTestSource(2, 4),
@@ -114,13 +116,13 @@ public class JskCsForwardTest {
                 new JskTestSource(2, 4),
                 new JskTestSource(3, 5)
         );
-        final JskCsForwardImpl<Integer, String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(sources, COMP);
+        final JskCsForwardImpl<String, JskTestSource> simpleClusterSorter = JskCsForwardImpl.simple(sources, COMP);
 
         assertEquals("", format(simpleClusterSorter.getNext(0)));
         assertEquals("0-0💼,0-1💼,0-2💼,0-3💼", format(simpleClusterSorter.getQueue()));
 
         List<String> expectedSequence = Cc.sort(sources.stream()
-                .flatMap(src -> IntStream.range(0, src.getMaxElements()).mapToObj(el -> "%d-%d".formatted(el, src.getId())))
+                .flatMap(src -> IntStream.range(0, src.getMaxElements()).mapToObj(el -> "%d-%s".formatted(el, src.getId())))
                 .collect(Collectors.toList()), COMP);
 
         int counter = 0;
@@ -130,7 +132,7 @@ public class JskCsForwardTest {
         }
     }
 
-    private void makeRealLifeExperimentAndCheck(JskCsForwardImpl<Integer, String, JskTestSource> cs) {
+    private void makeRealLifeExperimentAndCheck(JskCsForwardImpl<String, JskTestSource> cs) {
         List<String> expectedSequence =
                 Cc.sort(IntStream.range(0, 100).mapToObj(i -> i)
                         .flatMap(i -> IntStream.range(0, 20).mapToObj(j -> "%d-%d".formatted(j, i)))
@@ -151,18 +153,18 @@ public class JskCsForwardTest {
         return Cc.join(lst);
     }
 
-    private static String format(JskCsQueueForwardImpl<Integer, String, JskTestSource> queue) {
+    private static String format(JskCsQueueForwardImpl<String, JskTestSource> queue) {
         return Cc.list(queue.getDirectionIterators().get(JskCsForwardType.FORWARD)).stream()
                 .map($ -> $.getItem() + ($.isExpandable() ? E : "")).collect(Collectors.joining(","));
     }
 
     @RequiredArgsConstructor
     @Getter
-    private static class JskTestBatch implements JskCsForwardBatch<Integer, String> {
+    private static class JskTestBatch implements JskCsForwardBatch<String> {
         @Override
-        public Map<Integer, Map<JskCsForwardType, JskCsList<String>>> getNextElements(
-                List<JskCsSource<Integer, String>> sourcesToBatch,
-                Map<Integer, Map<JskCsForwardType, Integer>> neededCountsPerSourcePerDirection) {
+        public Map<JskCsSrcId, Map<JskCsForwardType, JskCsList<String>>> getNextElements(
+                List<JskCsSource<String>> sourcesToBatch,
+                Map<JskCsSrcId, Map<JskCsForwardType, Integer>> neededCountsPerSourcePerDirection) {
             return sourcesToBatch.stream()
                     .map($ -> X.x($.getId(),
                             Cc.m(JskCsForwardType.FORWARD, $.getNextElements(
@@ -171,13 +173,16 @@ public class JskCsForwardTest {
         }
     }
 
-    @RequiredArgsConstructor
     @Getter
-    private static class JskTestSource implements JskCsSource<Integer, String> {
-        final Integer id;
+    private static class JskTestSource extends JskCsSourceA<String> {
         final int maxElements;
 
         List<String> producedElements = Cc.l();
+
+        public JskTestSource(int id, int maxElements) {
+            super(new JskCsSrcId(id + ""));
+            this.maxElements = maxElements;
+        }
 
         @Override
         public String toString() {
@@ -189,7 +194,7 @@ public class JskCsForwardTest {
             final int couldProduceMore = maxElements - producedElements.size();
             int willProduceNow = Math.min(couldProduceMore, limit);
             final List<String> items =
-                    IntStream.range(0, willProduceNow).mapToObj(i -> "%d-%d".formatted(producedElements.size() + i, id))
+                    IntStream.range(0, willProduceNow).mapToObj(i -> "%d-%s".formatted(producedElements.size() + i, id))
                             .toList();
             producedElements.addAll(items);
             return new JskCsList<>(items, producedElements.size() < maxElements);

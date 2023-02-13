@@ -27,17 +27,20 @@ import sk.utils.collections.cluster_sorter.abstr.model.JskCsPollResult;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 
 import java.util.Iterator;
+import java.util.List;
 
-public interface JskCsQueueForward<SRC_ID, ITEM, SOURCE extends JskCsSource<SRC_ID, ITEM>>
+public interface JskCsQueueForward<ITEM, SOURCE extends JskCsSource<ITEM>>
         extends
-        JskCsQueueAbstract<SRC_ID, ITEM, JskCsForwardType, SOURCE>,
-        Iterable<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> {
+        JskCsQueueAbstract<ITEM, JskCsForwardType, SOURCE>,
+        Iterable<JskCsItem<ITEM, JskCsForwardType, SOURCE>> {
 
-    default JskCsPollResult<SRC_ID, ITEM, JskCsForwardType, SOURCE> poll() {
+    void addAllToQueueBeginning(List<JskCsItem<ITEM, JskCsForwardType, SOURCE>> items);
+
+    default JskCsPollResult<ITEM, JskCsForwardType, SOURCE> poll() {
         return poll(JskCsForwardType.FORWARD);
     }
 
-    default Iterator<JskCsItem<SRC_ID, ITEM, JskCsForwardType, SOURCE>> iterator() {
+    default Iterator<JskCsItem<ITEM, JskCsForwardType, SOURCE>> iterator() {
         return getDirectionIterators().get(JskCsForwardType.FORWARD);
     }
 }

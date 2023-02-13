@@ -23,6 +23,6 @@ package sk.utils.collections.cluster_sorter.forward.impl.strategies;
 import sk.utils.collections.cluster_sorter.abstr.JskCsBatchProcessor;
 import sk.utils.collections.cluster_sorter.forward.model.JskCsForwardType;
 
-public interface JskCsForwardBatch<SRC_ID, ITEM> extends JskCsBatchProcessor<SRC_ID, ITEM, JskCsForwardType> {
+public interface JskCsForwardBatch<ITEM> extends JskCsBatchProcessor<ITEM, JskCsForwardType> {
 
 }

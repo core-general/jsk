@@ -21,10 +21,7 @@ package sk.utils.collections.cluster_sorter.abstr;
  */
 
 import lombok.Getter;
-import sk.utils.collections.cluster_sorter.abstr.model.JskCsItem;
-import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JskCsPollResult;
-import sk.utils.collections.cluster_sorter.abstr.model.JskCsSources;
+import sk.utils.collections.cluster_sorter.abstr.model.*;
 import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -36,34 +33,31 @@ import java.util.Map;
 
 /**
  * !!!NOT THREAD SAFE!!!
- *
- * @param <SRC_ID>
- * @param <ITEM>
  */
 public abstract class JskCsAbstractImpl<
-        SRC_ID,
         ITEM,
         EXPAND_DIRECTION,
-        QUEUE extends JskCsQueueAbstract<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>,
-        SOURCE extends JskCsSource<SRC_ID, ITEM>
+        QUEUE extends JskCsQueueAbstract<ITEM, EXPAND_DIRECTION, SOURCE>,
+        SOURCE extends JskCsSource<ITEM>
         >
-        implements JskCsAbstract<SRC_ID, ITEM, EXPAND_DIRECTION> {
-    protected final JskCsSources<SRC_ID, ITEM, SOURCE> sources;
+        implements JskCsAbstract<ITEM, EXPAND_DIRECTION, SOURCE> {
+
+    protected final JskCsSources<ITEM, SOURCE> sources;
     protected final Comparator<ITEM> comparator;
-    protected final JskCsInitStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy;
-    protected final JskCsExpandElementsStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy;
+    protected final JskCsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy;
+    protected final JskCsExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy;
 
     @Getter protected final QUEUE queue = instantiateQueue();
 
-    protected final Map<SRC_ID, JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> expandableLastItems = Cc.m();
+    protected final Map<JskCsSrcId, JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandableLastItems = Cc.m();
     protected boolean initDone;
     @Getter private int expandsDone;
 
     protected JskCsAbstractImpl(
             List<SOURCE> sources,
             Comparator<ITEM> comparator,
-            JskCsInitStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy,
-            JskCsExpandElementsStrategy<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy) {
+            JskCsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy,
+            JskCsExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy) {
 
         this.sources = new JskCsSources<>(sources);
         this.comparator = comparator;
@@ -89,15 +83,37 @@ public abstract class JskCsAbstractImpl<
 
     protected abstract QUEUE instantiateQueue();
 
+    @Override
+    public Map<JskCsSrcId, SOURCE> getAllSources() {
+        return sources.getSourcesById();
+    }
+
+    @Override
+    public void addNewSource(SOURCE source) {
+        //TODO !!!!!!!!!!!!!!!!!!!...
+    }
+
+    @Override
+    public void removeSource(JskCsSrcId id) {
+        //TODO !!!!!!!!!!!!!!!!!!!...
+        //boolean removed = sources.removeSource(id);
+        //if (removed) {
+        //    //todo cache source items
+        //
+        //    List<JskCsItem< ITEM, EXPAND_DIRECTION, SOURCE>> removedItems =
+        //            queue.removeElementsIf(element -> Fu.equal(element.getSource().getId(), id));
+        //}
+    }
+
     protected void traverseQueue(List<ITEM> toRet, int overallCount,
-            F0<JskCsPollResult<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler) {
+            F0<JskCsPollResult<ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler) {
         while (toRet.size() < overallCount) {
-            final JskCsPollResult<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> pollResult = queuePoler.apply();
+            final JskCsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> pollResult = queuePoler.apply();
             if (pollResult.getPolledItem().isEmpty()) {
                 break;
             }
 
-            final JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> nextItem = pollResult.getPolledItem().get();
+            final JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem = pollResult.getPolledItem().get();
             toRet.add(nextItem.getItem());
             if (nextItem.isExpandable()) {
                 onNextExpandableItem(nextItem,
@@ -106,10 +122,10 @@ public abstract class JskCsAbstractImpl<
         }
     }
 
-    protected void onNextExpandableItem(JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
-        final Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>> afterNextItemExpansion =
+    protected void onNextExpandableItem(JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
+        final Map<JskCsSrcId, Map<EXPAND_DIRECTION, JskCsList<ITEM>>> afterNextItemExpansion =
                 getMoreStrategy.onNextLastItem(nextItem, queue.getDirectionIterators(), itemsLeft);
-        O<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem = clearPreviousLastItem(nextItem.getSource().getId());
+        O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem = clearPreviousLastItem(nextItem.getSource().getId());
         processSourceRequestResult(afterNextItemExpansion, expandedItem);
         expandsDone++;
     }
@@ -122,29 +138,29 @@ public abstract class JskCsAbstractImpl<
     }
 
     protected void processSourceRequestResult(
-            Map<SRC_ID, Map<EXPAND_DIRECTION, JskCsList<ITEM>>> data,
-            O<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem
+            Map<JskCsSrcId, Map<EXPAND_DIRECTION, JskCsList<ITEM>>> data,
+            O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem
     ) {
-        List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> queueAdd = Cc.l();
+        List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> queueAdd = Cc.l();
         data.forEach((genId, list) -> {
             queueAdd.addAll(formJskCsItemsFromList(genId, list, expandedItem));
         });
-        queue.addAll(queueAdd);
+        queue.addAllRespectConsumed(queueAdd);
     }
 
-    protected List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> formJskCsItemsFromList(
-            SRC_ID genId,
+    protected List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> formJskCsItemsFromList(
+            JskCsSrcId genId,
             Map<EXPAND_DIRECTION, JskCsList<ITEM>> map,
-            O<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> lastExpandedItem) {
+            O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> lastExpandedItem) {
         clearPreviousLastItem(genId);
-        List<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> toAdd = Cc.l();
+        List<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> toAdd = Cc.l();
 
         map.forEach(((expandDirection, list) -> {
             final int size = list.getItems().size();
             for (int i = 0; i < size; i++) {
                 final boolean isExpandableLastItem = list.isHasMoreElements() && i == size - 1;
                 final SOURCE source = sources.getSourcesById().get(genId);
-                final JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE> item =
+                final JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE> item =
                         new JskCsItem<>(comparator, source, list.getItems().get(i), isExpandableLastItem, expandDirection);
                 toAdd.add(item);
                 if (isExpandableLastItem) {
@@ -156,7 +172,7 @@ public abstract class JskCsAbstractImpl<
         return toAdd;
     }
 
-    protected O<JskCsItem<SRC_ID, ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(SRC_ID genId) {
+    protected O<JskCsItem<ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(JskCsSrcId genId) {
         return O.ofNull(expandableLastItems.get(genId)).map($ -> {
             //clear previous last item
             $.setExpandable(false);

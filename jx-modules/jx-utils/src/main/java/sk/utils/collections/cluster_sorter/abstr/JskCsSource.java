@@ -21,8 +21,10 @@ package sk.utils.collections.cluster_sorter.abstr;
  */
 
 import sk.utils.collections.cluster_sorter.abstr.model.JskCsList;
-import sk.utils.ifaces.Identifiable;
+import sk.utils.collections.cluster_sorter.abstr.model.JskCsSrcId;
 
-public interface JskCsSource<SRC_ID, ITEM> extends Identifiable<SRC_ID> {
+public interface JskCsSource<ITEM> {
+    JskCsSrcId getId();
+
     JskCsList<ITEM> getNextElements(int limit);
 }

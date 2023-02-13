@@ -14,8 +14,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-public abstract class JskCsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JskCsQueueAbstract<?, Integer, EXPAND_DIRECTION,
-        ?>> {
+public abstract class JskCsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JskCsQueueAbstract<Integer, EXPAND_DIRECTION, ?>> {
     protected QUEUE queue;
 
     protected abstract QUEUE initQueue();
@@ -25,12 +24,12 @@ public abstract class JskCsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends Jsk
     @Before
     public void init() {
         queue = initQueue();
-        queue.addAll(Cc.l(
+        queue.addAllRespectConsumed(Cc.l(
                 new JskCsItem<>(Integer::compareTo, null, 1, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 5, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 3, false, null)
         ));
-        queue.addAll(Cc.l(
+        queue.addAllRespectConsumed(Cc.l(
                 new JskCsItem<>(Integer::compareTo, null, 2, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 7, false, null),
                 new JskCsItem<>(Integer::compareTo, null, 1, false, null)
@@ -39,17 +38,16 @@ public abstract class JskCsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends Jsk
 
     @Test
     public void iterator() {
-
         {
             List<Integer> values = Cc.l();
 
-            Iterator<JskCsItem<?, Integer, EXPAND_DIRECTION, ?>> iterator =
-                    (Iterator<JskCsItem<?, Integer, EXPAND_DIRECTION, ?>>) (Object) queue.getDirectionIterators()
+            Iterator<JskCsItem<Integer, EXPAND_DIRECTION, ?>> iterator =
+                    (Iterator<JskCsItem<Integer, EXPAND_DIRECTION, ?>>) (Object) queue.getDirectionIterators()
                             .get(getForwardDirection());
-            for (JskCsItem<?, Integer, EXPAND_DIRECTION, ?> item : new Iterable<JskCsItem<?, Integer, EXPAND_DIRECTION, ?>>() {
+            for (JskCsItem<Integer, EXPAND_DIRECTION, ?> item : new Iterable<JskCsItem<Integer, EXPAND_DIRECTION, ?>>() {
                 @NotNull
                 @Override
-                public Iterator<JskCsItem<?, Integer, EXPAND_DIRECTION, ?>> iterator() {
+                public Iterator<JskCsItem<Integer, EXPAND_DIRECTION, ?>> iterator() {
                     return iterator;
                 }
             }) {
@@ -59,7 +57,7 @@ public abstract class JskCsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends Jsk
         }
 
         {
-            final Iterator<? extends JskCsItem<?, Integer, EXPAND_DIRECTION, ?>> it =
+            final Iterator<? extends JskCsItem<Integer, EXPAND_DIRECTION, ?>> it =
                     queue.getDirectionIterators().get(getForwardDirection());
             it.next();
             queue.poll(getForwardDirection());
