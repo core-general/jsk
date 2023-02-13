@@ -52,8 +52,10 @@ public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         );
     }
 
-
-    @Override
+    /**
+     * Is not a part of the interface because could cause ambiguity with actual CS (CS needs not only to poll, but to expand,
+     * which queue doesn't know about, probably could be fixed by also adding the callback processor to this method)
+     */
     public O<JcsItem<ITEM, JcsEBackType, SOURCE>> setLastSelectedItemAndReturnLastUsed(ITEM newItem) {
         int indexInItems = Cc.firstIndex(forwardItems, item -> item.getComparator().compare(item.getItem(), newItem) <= 0);
         if (indexInItems > -1) {
@@ -89,6 +91,12 @@ public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
     @Override
     public void onDidNotGetToMainQueueWhenAddRespectOrder(List<JcsItem<ITEM, JcsEBackType, SOURCE>> items) {
         uniAddAll(items, backItems, item -> item.getComparator());
+    }
+
+    @Override
+    public void clear() {
+        forwardItems.clear();
+        backItems.clear();
     }
 
     @Override

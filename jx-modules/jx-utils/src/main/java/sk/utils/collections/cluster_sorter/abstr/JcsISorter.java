@@ -10,6 +10,8 @@ public interface JcsISorter<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<IT
 
     boolean hasNext(int initializingCount, EXPAND_DIRECTION direction);
 
+    void setPositionToItem(ITEM item);
+
     Map<JcsSrcId, SOURCE> getAllSources();
 
     void addNewSource(SOURCE source);

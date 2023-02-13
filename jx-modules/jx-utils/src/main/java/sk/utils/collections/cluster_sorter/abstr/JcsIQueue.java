@@ -47,4 +47,6 @@ public interface JcsIQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITE
     }
 
     default void onDidNotGetToMainQueueWhenAddRespectOrder(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {}
+
+    void clear();
 }

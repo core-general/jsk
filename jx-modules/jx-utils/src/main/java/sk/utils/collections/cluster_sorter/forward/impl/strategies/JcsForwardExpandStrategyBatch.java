@@ -36,12 +36,9 @@ import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
-public class JcsForwardBatchExpandGreedy<
-        ITEM,
-        SOURCE extends JcsISource<ITEM>
-        >
+public class JcsForwardExpandStrategyBatch<ITEM, SOURCE extends JcsISource<ITEM>>
         implements JcsIExpandElementsStrategy<ITEM, JcsEForwardType, SOURCE> {
-    private final JcsIBatchProcessor<ITEM, JcsEForwardType> batchProcessor;
+    private final JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> batchProcessor;
 
     @Override
     public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>> onNextLastItem(
@@ -50,7 +47,7 @@ public class JcsForwardBatchExpandGreedy<
             int itemsLeft) {
 
         int needItems = itemsLeft;
-        List<JcsISource<ITEM>> sourcesToExpand = Cc.l(itemToExpand.getSource());
+        List<SOURCE> sourcesToExpand = Cc.l(itemToExpand.getSource());
         Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueue =
                 sortedRestOfQueuePaths.get(JcsEForwardType.FORWARD);
         while (itemsLeft-- > 0 && sortedRestOfQueue.hasNext()) {

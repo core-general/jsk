@@ -1,7 +1,6 @@
 package sk.utils.collections.cluster_sorter.backward;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsISorter;
-import sk.utils.functional.O;
 
 import java.util.List;
 
@@ -10,6 +9,4 @@ public interface JcsISorterBack<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
     List<ITEM> getPrevious(int count);
 
     boolean hasPrevious(int initializingCount);
-
-    O<ITEM> setPositionToItemAndReturnNearest(ITEM item);
 }

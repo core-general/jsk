@@ -26,7 +26,6 @@ import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,7 @@ public abstract class JcsASorter<
     protected final Map<JcsSrcId, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandableLastItems = Cc.m();
     protected boolean initDone;
     @Getter private int expandsDone;
+    @Getter private int clearsDone;
 
     protected JcsASorter(
             List<SOURCE> sources,
@@ -67,11 +67,7 @@ public abstract class JcsASorter<
 
     @Override
     public List<ITEM> getNext(int count, EXPAND_DIRECTION direction) {
-        initIfNeeded(count);
-
-        List<ITEM> toRet = new ArrayList<>();
-        traverseQueue(toRet, count, () -> queue.poll(direction));
-        return toRet;
+        return traverseQueue(count, () -> queue.poll(direction));
     }
 
     @Override
@@ -105,8 +101,22 @@ public abstract class JcsASorter<
         //}
     }
 
-    protected void traverseQueue(List<ITEM> toRet, int overallCount,
+    @Override
+    public void setPositionToItem(ITEM item) {
+        //clear all state, set position in all sources, initialize again
+        if (!sources.getSourcesById().values().stream().allMatch($ -> $.canSetPosition())) {
+            throw new UnsupportedOperationException();
+        }
+        clearState();
+        sources.getSourcesById().values().stream().forEach($ -> $.setPositionToItem(item));
+    }
+
+    protected List<ITEM> traverseQueue(int overallCount,
             F0<JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler) {
+        initIfNeeded(overallCount);
+
+        List<ITEM> toRet = Cc.l();
+
         while (toRet.size() < overallCount) {
             final JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> pollResult = queuePoler.apply();
             if (pollResult.getPolledItem().isEmpty()) {
@@ -120,6 +130,7 @@ public abstract class JcsASorter<
                         overallCount - toRet.size() + 1/*+1 because we have to expand the one we have added*/);
             }
         }
+        return toRet;
     }
 
     protected void onNextExpandableItem(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
@@ -179,5 +190,12 @@ public abstract class JcsASorter<
             expandableLastItems.remove(genId);
             return $;
         });
+    }
+
+    protected void clearState() {
+        queue.clear();
+        expandableLastItems.clear();
+        initDone = false;
+        clearsDone++;
     }
 }

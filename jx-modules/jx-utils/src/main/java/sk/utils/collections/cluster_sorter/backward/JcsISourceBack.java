@@ -25,6 +25,4 @@ import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 
 public interface JcsISourceBack<ITEM> extends JcsISource<ITEM> {
     JcsList<ITEM> getPreviousElements(int limit);
-
-    ITEM setPositionToItemAndReturnNearest(ITEM item);
 }

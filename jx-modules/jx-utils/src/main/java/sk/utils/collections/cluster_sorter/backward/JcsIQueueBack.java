@@ -25,15 +25,12 @@ import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
-import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
 
 public interface JcsIQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         extends JcsIQueue<ITEM, JcsEBackType, SOURCE> {
-
-    public O<JcsItem<ITEM, JcsEBackType, SOURCE>> setLastSelectedItemAndReturnLastUsed(ITEM newItem);
 
     default JcsPollResult<ITEM, JcsEBackType, SOURCE> poll() {
         return poll(JcsEBackType.FORWARD);

@@ -4,9 +4,7 @@ import sk.utils.collections.cluster_sorter.abstr.JcsASorter;
 import sk.utils.collections.cluster_sorter.abstr.JcsIExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JcsInitStrategy;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
-import sk.utils.functional.O;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -26,26 +24,15 @@ public class JcsSorterBackSimple<ITEM, SOURCE extends JcsISourceBack<ITEM>>
         super(sources, comparator, firstFeedStrategy, getMoreStrategy);
     }
 
-
     @Override
     public List<ITEM> getPrevious(int count) {
-        initIfNeeded(count);
-
-        List<ITEM> toRet = new ArrayList<>();
-        traverseQueue(toRet, count, () -> queue.pollBack());
-        return toRet;
+        return traverseQueue(count, () -> queue.pollBack());
     }
 
     @Override
     public boolean hasPrevious(int initializingCount) {
         initIfNeeded(initializingCount);
-
         return queue.iteratorBack().hasNext();
-    }
-
-    @Override
-    public O<ITEM> setPositionToItemAndReturnNearest(ITEM item) {
-        return O.empty();//TODO !!!!!!!!!!!!!!!!!!!...
     }
 
     @Override

@@ -22,8 +22,9 @@ package sk.utils.collections.cluster_sorter.forward.impl;
 
 import sk.utils.collections.cluster_sorter.abstr.*;
 import sk.utils.collections.cluster_sorter.forward.JcsISorterForward;
-import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsForwardBatchExpandGreedy;
+import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsForwardExpandStrategyBatch;
 import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsForwardExpandStrategySimple;
+import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsForwardInitStrategyBatch;
 import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsForwardInitStrategySimple;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 
@@ -55,9 +56,9 @@ public class JcsSorterForward<ITEM, SOURCE extends JcsISource<ITEM>>
 
     public static <ITEM, SOURCE extends JcsISource<ITEM>> JcsSorterForward<ITEM, SOURCE> batch(
             List<SOURCE> sources,
-            Comparator<ITEM> comparator, JcsIBatchProcessor<ITEM, JcsEForwardType> batchProcessor) {
-        return new JcsSorterForward<>(sources, comparator, new JcsForwardInitStrategySimple<>(),
-                new JcsForwardBatchExpandGreedy<>(batchProcessor));
+            Comparator<ITEM> comparator, JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> batchProcessor) {
+        return new JcsSorterForward<>(sources, comparator, new JcsForwardInitStrategyBatch<>(batchProcessor),
+                new JcsForwardExpandStrategyBatch<>(batchProcessor));
     }
 
     private JcsSorterForward(

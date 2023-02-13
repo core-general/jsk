@@ -62,6 +62,12 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
         return Cc.m(JcsEForwardType.FORWARD, new JskCsItemIterator<>(forwardItems, () -> modCount));
     }
 
+    @Override
+    public void clear() {
+        forwardItems.clear();
+        lastConsumed = O.empty();
+    }
+
     public List<JcsItem<ITEM, JcsEForwardType, SOURCE>> getForwardItems() {
         return Collections.unmodifiableList(forwardItems);
     }

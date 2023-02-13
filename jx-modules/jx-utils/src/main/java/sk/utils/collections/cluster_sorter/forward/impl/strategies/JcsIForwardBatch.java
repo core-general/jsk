@@ -21,8 +21,8 @@ package sk.utils.collections.cluster_sorter.forward.impl.strategies;
  */
 
 import sk.utils.collections.cluster_sorter.abstr.JcsIBatchProcessor;
+import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 
-public interface JcsIForwardBatch<ITEM> extends JcsIBatchProcessor<ITEM, JcsEForwardType> {
-
-}
+public interface JcsIForwardBatch<ITEM, SOURCE extends JcsISource<ITEM>>
+        extends JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> {}

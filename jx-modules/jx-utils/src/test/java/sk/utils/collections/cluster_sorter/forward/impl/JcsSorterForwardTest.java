@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.junit.Test;
 import sk.utils.collections.cluster_sorter.abstr.JcsASource;
-import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsIForwardBatch;
@@ -34,6 +33,7 @@ import sk.utils.statics.Ma;
 import sk.utils.tuples.X;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -160,10 +160,10 @@ public class JcsSorterForwardTest {
 
     @RequiredArgsConstructor
     @Getter
-    private static class JskTestBatch implements JcsIForwardBatch<String> {
+    private static class JskTestBatch implements JcsIForwardBatch<String, JskTestSource> {
         @Override
         public Map<JcsSrcId, Map<JcsEForwardType, JcsList<String>>> getNextElements(
-                List<JcsISource<String>> sourcesToBatch,
+                Collection<JskTestSource> sourcesToBatch,
                 Map<JcsSrcId, Map<JcsEForwardType, Integer>> neededCountsPerSourcePerDirection) {
             return sourcesToBatch.stream()
                     .map($ -> X.x($.getId(),

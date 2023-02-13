@@ -27,4 +27,12 @@ public interface JcsISource<ITEM> {
     JcsSrcId getId();
 
     JcsList<ITEM> getNextElements(int limit);
+
+    default boolean canSetPosition() {
+        return false;
+    }
+
+    default void setPositionToItem(ITEM item) {
+        throw new UnsupportedOperationException();
+    }
 }

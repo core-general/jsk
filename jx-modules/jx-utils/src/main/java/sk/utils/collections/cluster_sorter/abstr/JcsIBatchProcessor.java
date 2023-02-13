@@ -23,12 +23,12 @@ package sk.utils.collections.cluster_sorter.abstr;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
-public interface JcsIBatchProcessor<ITEM, EXPAND_DIRECTION> {
+public interface JcsIBatchProcessor<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
     Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> getNextElements(
-            List<JcsISource<ITEM>> sourcesToBatch,
+            Collection<SOURCE> sourcesToBatch,
             Map<JcsSrcId, Map<EXPAND_DIRECTION, Integer>> neededCountsPerSourcePerDirection
     );
 }
