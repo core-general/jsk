@@ -26,6 +26,7 @@ import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
+import sk.utils.tuples.X;
 
 import java.util.Comparator;
 import java.util.List;
@@ -44,26 +45,27 @@ public abstract class JcsASorter<
 
     protected final JcsSources<ITEM, SOURCE> sources;
     protected final Comparator<ITEM> comparator;
-    protected final JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy;
-    protected final JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy;
+    protected final JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> initSourceStrategy;
+    protected final JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreFromSourceStrategy;
 
     @Getter protected final QUEUE queue = instantiateQueue();
 
-    protected final Map<JcsSrcId, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandableLastItems = Cc.m();
+    protected final Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> expandableLastItems = Cc.m();
     protected boolean initDone;
+    protected O<ITEM> positionSet = O.empty();
     @Getter private int expandsDone;
     @Getter private int clearsDone;
 
     protected JcsASorter(
             List<SOURCE> sources,
             Comparator<ITEM> comparator,
-            JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> firstFeedStrategy,
-            JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreStrategy) {
+            JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE> initSourceStrategy,
+            JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE> getMoreFromSourceStrategy) {
 
         this.sources = new JcsSources<>(sources);
         this.comparator = comparator;
-        this.firstFeedStrategy = firstFeedStrategy;
-        this.getMoreStrategy = getMoreStrategy;
+        this.initSourceStrategy = initSourceStrategy;
+        this.getMoreFromSourceStrategy = getMoreFromSourceStrategy;
     }
 
     @Override
@@ -78,16 +80,9 @@ public abstract class JcsASorter<
         return queue.getDirectionIterators().get(direction).hasNext();
     }
 
-    protected abstract QUEUE instantiateQueue();
-
     @Override
     public Map<JcsSrcId, SOURCE> getAllSources() {
         return sources.getSourcesById();
-    }
-
-    @Override
-    public void addNewSource(SOURCE source) {
-        //TODO !!!!!!!!!!!!!!!!!!!...
     }
 
     @Override
@@ -103,14 +98,33 @@ public abstract class JcsASorter<
     }
 
     @Override
-    public void setPositionToItem(ITEM item) {
+    public final void addNewSource(SOURCE source) {
+        if (sources.getSourcesById().containsKey(source.getId())) {
+            throw new RuntimeException("Source with id: %s already exist".formatted(source.getId()));
+        }
+        positionSet.ifPresent($ -> source.setPositionToItem($));
+        addNewSourcePrivate(source, initSourceStrategy.initialize(5, new JcsSources<>(Cc.l(source)), false).get(source.getId()),
+                positionSet);
+        sources.addSource(source);
+    }
+
+    @Override
+    public final void setPositionToItem(ITEM item) {
         //clear all state, set position in all sources, initialize again
         if (!sources.getSourcesById().values().stream().allMatch($ -> $.canSetPosition())) {
             throw new UnsupportedOperationException();
         }
         clearState();
+        positionSet = O.of(item);
         sources.getSourcesById().values().stream().forEach($ -> $.setPositionToItem(item));
     }
+
+
+    protected abstract QUEUE instantiateQueue();
+
+    protected abstract void addNewSourcePrivate(
+            SOURCE source, Map<EXPAND_DIRECTION, JcsList<ITEM>> initialSourceItems, O<ITEM> positionSet);
+
 
     protected List<ITEM> traverseQueue(int overallCount,
             F0<JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler) {
@@ -135,48 +149,61 @@ public abstract class JcsASorter<
     }
 
     protected void onNextExpandableItem(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
-        final Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> afterNextItemExpansion =
-                getMoreStrategy.onNextLastItem(nextItem, queue.getDirectionIterators(), itemsLeft);
-        O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem = clearPreviousLastItem(nextItem.getSource().getId());
-        processSourceRequestResult(afterNextItemExpansion, expandedItem);
+        final Map<JcsSrcId, JcsList<ITEM>> afterNextItemExpansion =
+                getMoreFromSourceStrategy.getMoreFromSourceInDirection(nextItem.getSource(), nextItem.getExpandDirection(),
+                        queue.getDirectionIterators().get(nextItem.getExpandDirection()), itemsLeft);
+        clearPreviousLastItem(nextItem.getSource().getId(), nextItem.getExpandDirection());
+        processSourceRequestResult(
+                afterNextItemExpansion.entrySet().stream()
+                        .map($ -> X.x($.getKey(), Cc.m(nextItem.getExpandDirection(), $.getValue())))
+                        .collect(Cc.toMX2()), sources, O.empty());
         expandsDone++;
     }
 
     protected void initIfNeeded(int requestedItemCount) {
         if (!initDone) {
-            processSourceRequestResult(firstFeedStrategy.initialize(requestedItemCount, sources), O.empty());
+            Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> initialize =
+                    initSourceStrategy.initialize(requestedItemCount, sources, positionSet.isEmpty());
+            initialize.forEach((k, v) -> {
+                addNewSourcePrivate(sources.getById(k), v, positionSet);
+            });
             initDone = true;
         }
     }
 
     protected void processSourceRequestResult(
             Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> data,
-            O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> expandedItem
+            JcsSources<ITEM, SOURCE> sources,
+            O<ITEM> position
     ) {
         List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> queueAdd = Cc.l();
         data.forEach((genId, list) -> {
-            queueAdd.addAll(formJskCsItemsFromList(genId, list, expandedItem));
+            queueAdd.addAll(formJskCsItemsFromList(sources.getById(genId), list));
         });
-        queue.addAllRespectConsumed(queueAdd);
+        if (position.isPresent()) {
+            queue.addAllRespectItem(queueAdd, position);
+        } else {
+            queue.addAllRespectConsumed(queueAdd);
+        }
+
     }
 
     protected List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> formJskCsItemsFromList(
-            JcsSrcId genId,
-            Map<EXPAND_DIRECTION, JcsList<ITEM>> map,
-            O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> lastExpandedItem) {
-        clearPreviousLastItem(genId);
+            SOURCE source,
+            Map<EXPAND_DIRECTION, JcsList<ITEM>> map) {
         List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> toAdd = Cc.l();
 
         map.forEach(((expandDirection, list) -> {
+            clearPreviousLastItem(source.getId(), expandDirection);
             final int size = list.getItems().size();
             for (int i = 0; i < size; i++) {
                 final boolean isExpandableLastItem = list.isHasMoreElements() && i == size - 1;
-                final SOURCE source = sources.getSourcesById().get(genId);
                 final JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> item =
                         new JcsItem<>(comparator, source, list.getItems().get(i), isExpandableLastItem, expandDirection);
                 toAdd.add(item);
                 if (isExpandableLastItem) {
-                    expandableLastItems.put(source.getId(), item);
+                    Cc.computeAndApply(expandableLastItems, source.getId(),
+                            (id, mp) -> Cc.put(mp, expandDirection, item), () -> Cc.m());
                 }
             }
         }));
@@ -184,19 +211,26 @@ public abstract class JcsASorter<
         return toAdd;
     }
 
-    protected O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(JcsSrcId genId) {
-        return O.ofNull(expandableLastItems.get(genId)).map($ -> {
-            //clear previous last item
-            $.setExpandable(false);
-            expandableLastItems.remove(genId);
-            return $;
-        });
+    protected O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(JcsSrcId genId, EXPAND_DIRECTION direction) {
+        return O.ofNull(expandableLastItems.get(genId))
+                .flatMap($ -> O.ofNull($.get(direction)))
+                .map($ -> {
+                    //clear previous last item
+                    $.setExpandable(false);
+                    var realMap = expandableLastItems.getOrDefault(genId, Cc.m());
+                    realMap.remove(direction);
+                    if (realMap.size() == 0) {
+                        expandableLastItems.remove(genId);
+                    }
+                    return $;
+                });
     }
 
     protected void clearState() {
         queue.clear();
         expandableLastItems.clear();
         initDone = false;
+        positionSet = O.empty();
         clearsDone++;
     }
 }

@@ -22,6 +22,7 @@ package sk.utils.collections.cluster_sorter.abstr.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import sk.utils.statics.Cc;
 
 import java.util.List;
 
@@ -30,4 +31,9 @@ import java.util.List;
 public class JcsList<ITEM> {
     private List<ITEM> items;
     private boolean hasMoreElements;
+
+    @Override
+    public String toString() {
+        return "hasMore:" + hasMoreElements + " " + Cc.join(items);
+    }
 }

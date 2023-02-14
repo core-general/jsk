@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.17.6.34</version>
+    <version>jsk.17.7.1</version>
 
     <modules>
         <module>jx-modules</module>
@@ -113,7 +113,17 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <configuration>
+                    <parallel>all</parallel>
+                    <useUnlimitedThreads>true</useUnlimitedThreads>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -150,6 +160,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

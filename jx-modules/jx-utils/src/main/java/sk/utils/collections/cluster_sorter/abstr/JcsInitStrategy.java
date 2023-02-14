@@ -28,5 +28,5 @@ import java.util.Map;
 
 public interface JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
     Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>>
-    initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources);
+    initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition);
 }

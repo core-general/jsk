@@ -35,11 +35,11 @@ public class JcsForwardExpandStrategySimple<ITEM, SOURCE extends JcsISource<ITEM
         implements JcsIExpandElementsStrategy<ITEM, JcsEForwardType, SOURCE> {
 
     @Override
-    public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>> onNextLastItem(
-            JcsItem<ITEM, JcsEForwardType, SOURCE> itemToExpand,
-            Map<JcsEForwardType, Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>>> sortedRestOfQueuePaths,
+    public Map<JcsSrcId, JcsList<ITEM>>
+    getMoreFromSourceInDirection(SOURCE source,
+            JcsEForwardType direction,
+            Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueuePath,
             int itemsLeft) {
-        return Cc.m(itemToExpand.getSource().getId(),
-                Cc.m(JcsEForwardType.FORWARD, itemToExpand.getSource().getNextElements(itemsLeft)));
+        return Cc.m(source.getId(), source.getNextElements(itemsLeft));
     }
 }

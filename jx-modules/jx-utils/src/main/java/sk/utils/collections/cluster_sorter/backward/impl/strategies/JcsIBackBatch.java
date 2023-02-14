@@ -1,4 +1,4 @@
-package sk.utils.collections.cluster_sorter.backward;
+package sk.utils.collections.cluster_sorter.backward.impl.strategies;
 
 /*-
  * #%L
@@ -20,9 +20,9 @@ package sk.utils.collections.cluster_sorter.backward;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.abstr.JcsISource;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.JcsIBatchProcessor;
+import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
+import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 
-public interface JcsISourceBack<ITEM> extends JcsISource<ITEM> {
-    JcsList<ITEM> getPreviousElements(int limit);
-}
+public interface JcsIBackBatch<ITEM, SOURCE extends JcsIBackSource<ITEM>>
+        extends JcsIBatchProcessor<ITEM, JcsEBackType, SOURCE> {}

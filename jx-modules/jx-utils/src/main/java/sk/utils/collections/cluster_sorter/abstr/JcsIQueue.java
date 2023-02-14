@@ -33,7 +33,11 @@ import java.util.Set;
 
 public interface JcsIQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
     /** If items were already consumed, added elemen */
-    void addAllRespectConsumed(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items);
+    default void addAllRespectConsumed(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {
+        addAllRespectItem(items, getLastConsumedItem().map($ -> $.getItem()));
+    }
+
+    void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> item);
 
     O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getLastConsumedItem();
 

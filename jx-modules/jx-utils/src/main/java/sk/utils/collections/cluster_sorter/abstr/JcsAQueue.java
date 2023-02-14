@@ -34,6 +34,26 @@ public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
         implements JcsIQueue<ITEM, EXPAND_DIRECTION, SOURCE> {
     protected long modCount = 0;
 
+    @Override
+    public void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> _itemToRespect) {
+        O<ITEM> toRespect = _itemToRespect.or(() -> getLastConsumedItem().map($ -> $.getItem()));
+
+        Map<Boolean, List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> split =
+                items.stream().collect(Collectors.groupingBy(
+                        item -> toRespect.map(
+                                        itemToRespect -> item.getComparator().compare(item.getItem(), itemToRespect) >= 0)
+                                .orElse(true)
+                ));
+        List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> addToBeginning = split.getOrDefault(true, Cc.lEmpty());
+        List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> didNotGetToMainQueue = split.getOrDefault(false, Cc.lEmpty());
+        if (addToBeginning.size() > 0) {
+            uniAddAll(addToBeginning, getQueuePartToAddElements(), (item) -> item.getComparator().reversed());
+        }
+        if (didNotGetToMainQueue.size() > 0) {
+            onDidNotGetToMainQueueWhenAddRespectOrder(didNotGetToMainQueue);
+        }
+    }
+
     protected abstract List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getQueuePartToAddElements();
 
     protected JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> uniPoll(
@@ -50,22 +70,6 @@ public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
             target.addAll(data);
             final Comparator<ITEM> reversed = comparatorSupplier.apply(target.get(0));
             Cc.sort(target, (o1, o2) -> reversed.compare(o1.getItem(), o2.getItem()));
-        }
-    }
-
-    @Override
-    public void addAllRespectConsumed(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {
-        Map<Boolean, List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> split =
-                items.stream().collect(Collectors.groupingBy(
-                        item -> getLastConsumedItem().map(lastConsumedItem -> item.compareTo(lastConsumedItem) >= 0).orElse(true)
-                ));
-        List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> addToBeginning = split.getOrDefault(true, Cc.lEmpty());
-        List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> didNotGetToMainQueue = split.getOrDefault(false, Cc.lEmpty());
-        if (addToBeginning.size() > 0) {
-            uniAddAll(addToBeginning, getQueuePartToAddElements(), (item) -> item.getComparator().reversed());
-        }
-        if (didNotGetToMainQueue.size() > 0) {
-            onDidNotGetToMainQueueWhenAddRespectOrder(didNotGetToMainQueue);
         }
     }
 
@@ -101,5 +105,4 @@ public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
             }
         }
     }
-
 }

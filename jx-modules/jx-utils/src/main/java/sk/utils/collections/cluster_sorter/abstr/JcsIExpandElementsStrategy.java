@@ -28,8 +28,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 public interface JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
-    Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>>
-    onNextLastItem(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> itemToExpand,
-            Map<EXPAND_DIRECTION, Iterator<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> sortedRestOfQueuePaths,
+    Map<JcsSrcId, JcsList<ITEM>>
+    getMoreFromSourceInDirection(SOURCE source,
+            EXPAND_DIRECTION direction,
+            Iterator<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> sortedRestOfQueuePath,
             int itemsLeft);
 }

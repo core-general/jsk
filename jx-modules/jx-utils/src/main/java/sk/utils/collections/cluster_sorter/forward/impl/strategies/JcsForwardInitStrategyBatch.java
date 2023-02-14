@@ -42,7 +42,7 @@ public class JcsForwardInitStrategyBatch
 
     @Override
     public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>>
-    initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources) {
+    initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition) {
         final int numToSelectPerSource = (requestedItemCount / sources.getSourcesById().size()) + 1;
 
         Map<JcsSrcId, Map<JcsEForwardType, Integer>> toBatch = sources.getSourcesById().entrySet().stream()

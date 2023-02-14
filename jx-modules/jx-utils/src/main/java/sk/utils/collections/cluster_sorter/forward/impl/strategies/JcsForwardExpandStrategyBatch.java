@@ -41,22 +41,23 @@ public class JcsForwardExpandStrategyBatch<ITEM, SOURCE extends JcsISource<ITEM>
     private final JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> batchProcessor;
 
     @Override
-    public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>> onNextLastItem(
-            JcsItem<ITEM, JcsEForwardType, SOURCE> itemToExpand,
-            Map<JcsEForwardType, Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>>> sortedRestOfQueuePaths,
+    public Map<JcsSrcId, JcsList<ITEM>>
+    getMoreFromSourceInDirection(SOURCE source,
+            JcsEForwardType direction,
+            Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueue,
             int itemsLeft) {
 
         int needItems = itemsLeft;
-        List<SOURCE> sourcesToExpand = Cc.l(itemToExpand.getSource());
-        Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueue =
-                sortedRestOfQueuePaths.get(JcsEForwardType.FORWARD);
+        List<SOURCE> sourcesToExpand = Cc.l(source);
         while (itemsLeft-- > 0 && sortedRestOfQueue.hasNext()) {
             final JcsItem<ITEM, JcsEForwardType, SOURCE> queueItem = sortedRestOfQueue.next();
             if (queueItem.isExpandable()) {
                 sourcesToExpand.add(queueItem.getSource());
             }
         }
-        return batchProcessor.getNextElements(sourcesToExpand,
+        Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>> batchResult = batchProcessor.getNextElements(sourcesToExpand,
                 sourcesToExpand.stream().map($ -> X.x($.getId(), Cc.m(JcsEForwardType.FORWARD, needItems))).collect(Cc.toMX2()));
+        return batchResult.entrySet().stream().map($ -> X.x($.getKey(), $.getValue().get(JcsEForwardType.FORWARD)))
+                .collect(Cc.toMX2());
     }
 }

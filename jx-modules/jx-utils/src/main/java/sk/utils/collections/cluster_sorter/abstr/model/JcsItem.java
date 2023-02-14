@@ -40,7 +40,7 @@ public class JcsItem<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>>
     private boolean isExpandable;
     @Getter
     @Setter
-    private EXPAND_DIRECTION marking;
+    private EXPAND_DIRECTION expandDirection;
 
     @Override
     public int compareTo(@NotNull JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> o) {
