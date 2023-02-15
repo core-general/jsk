@@ -86,7 +86,7 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
 
     private void addNewSourcePrivate0(SOURCE source, JcsSources<ITEM, SOURCE> sources,
             Map<JcsEBackType, JcsList<ITEM>> initialSourceItems, int iteration, O<ITEM> position) {
-        processSourceRequestResult(Cc.m(source.getId(), initialSourceItems), sources, position);
+        processSourceRequestResult(Cc.m(source.getSourceId(), initialSourceItems), sources, position);
         boolean processOtherQueue = true;
         if (O.ofNull(initialSourceItems.get(JcsEBackType.FORWARD)).map($ -> $.isHasMoreElements()).orElse(false)) {
             processOtherQueue =
@@ -116,10 +116,10 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
         boolean hasExpandableItemOfGoodType = false;
         JcsList<ITEM> items = null;
         for (JcsItem<ITEM, JcsEBackType, SOURCE> item : Cc.iterable(queueItems)) {
-            if (item.isExpandable() && Fu.equal(item.getSource().getId(), source.getId())) {
+            if (item.isExpandable() && Fu.equal(item.getSource().getSourceId(), source.getSourceId())) {
                 if (item.getExpandDirection() == badType) {
                     items = getMoreFromSourceStrategy.getMoreFromSourceInDirection(source, badType, Collections.emptyIterator(),
-                            Math.min(1000, iteration * iteration * iteration * 10)).get(source.getId());
+                            Math.min(1000, iteration * iteration * iteration * 10)).get(source.getSourceId());
                 } else {
                     hasExpandableItemOfGoodType = true;
                 }

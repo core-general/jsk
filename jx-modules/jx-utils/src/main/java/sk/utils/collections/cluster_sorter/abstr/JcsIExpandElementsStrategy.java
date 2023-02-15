@@ -22,13 +22,13 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 
 import java.util.Iterator;
 import java.util.Map;
 
 public interface JcsIExpandElementsStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
-    Map<JcsSrcId, JcsList<ITEM>>
+    Map<JcsSourceId, JcsList<ITEM>>
     getMoreFromSourceInDirection(SOURCE source,
             EXPAND_DIRECTION direction,
             Iterator<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> sortedRestOfQueuePath,

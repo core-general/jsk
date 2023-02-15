@@ -20,7 +20,7 @@ package sk.utils.collections.cluster_sorter.abstr;
  * #L%
  */
 
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 
 import java.util.List;
 import java.util.Map;
@@ -32,9 +32,9 @@ public interface JcsISorter<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<IT
 
     void setPositionToItem(ITEM item);
 
-    Map<JcsSrcId, SOURCE> getAllSources();
+    Map<JcsSourceId, SOURCE> getAllSources();
 
     void addNewSource(SOURCE source);
 
-    List<ITEM> removeSource(JcsSrcId id);
+    List<ITEM> removeSource(JcsSourceId id);
 }

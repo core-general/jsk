@@ -24,7 +24,7 @@ import sk.utils.collections.cluster_sorter.abstr.JcsIExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
 
@@ -35,11 +35,11 @@ public class JcsForwardExpandStrategySimple<ITEM, SOURCE extends JcsISource<ITEM
         implements JcsIExpandElementsStrategy<ITEM, JcsEForwardType, SOURCE> {
 
     @Override
-    public Map<JcsSrcId, JcsList<ITEM>>
+    public Map<JcsSourceId, JcsList<ITEM>>
     getMoreFromSourceInDirection(SOURCE source,
             JcsEForwardType direction,
             Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueuePath,
             int itemsLeft) {
-        return Cc.m(source.getId(), source.getNextElements(itemsLeft));
+        return Cc.m(source.getSourceId(), source.getNextUnseenElements(itemsLeft));
     }
 }

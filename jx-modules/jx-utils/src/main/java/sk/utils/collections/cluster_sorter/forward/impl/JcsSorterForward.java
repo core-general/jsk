@@ -89,15 +89,16 @@ public class JcsSorterForward<ITEM, SOURCE extends JcsISource<ITEM>>
 
     private void addNewSourceCustom0(SOURCE source, JcsSources<ITEM, SOURCE> sources,
             Map<JcsEForwardType, JcsList<ITEM>> initialSourceItems, int iteration, O<ITEM> position) {
-        processSourceRequestResult(Cc.m(source.getId(), initialSourceItems), sources, position);
+        processSourceRequestResult(Cc.m(source.getSourceId(), initialSourceItems), sources, position);
         if (initialSourceItems.get(JcsEForwardType.FORWARD).isHasMoreElements()) {
             // if new source has more elements, then we search new source items in queue, if not find, then we get more elements
             // from new source
-            boolean newSourceIsInQueue = Cc.stream(queue).anyMatch($ -> Fu.equal($.getSource().getId(), source.getId()));
+            boolean newSourceIsInQueue =
+                    Cc.stream(queue).anyMatch($ -> Fu.equal($.getSource().getSourceId(), source.getSourceId()));
             if (!newSourceIsInQueue) {
                 JcsList<ITEM> items = getMoreFromSourceStrategy.getMoreFromSourceInDirection(source, JcsEForwardType.FORWARD,
                         Collections.emptyIterator(),
-                        Math.min(1000, iteration * iteration * iteration * 10)).get(source.getId());
+                        Math.min(1000, iteration * iteration * iteration * 10)).get(source.getSourceId());
                 addNewSourceCustom0(source, sources, Cc.m(JcsEForwardType.FORWARD, items), iteration + 1, position);
             }
         }

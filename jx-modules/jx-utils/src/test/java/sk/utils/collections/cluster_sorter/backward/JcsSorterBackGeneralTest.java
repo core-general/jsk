@@ -27,7 +27,7 @@ import org.junit.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractCsTest;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.impl.JcsSorterBack;
 import sk.utils.collections.cluster_sorter.backward.impl.strategies.JcsIBackBatch;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
@@ -125,22 +125,22 @@ public abstract class JcsSorterBackGeneralTest extends JcsAbstractCsTest<JcsTest
     @Getter
     public static class JcsTestBatchBack implements JcsIBackBatch<String, JcsTestBackSource> {
         @Override
-        public Map<JcsSrcId, Map<JcsEBackType, JcsList<String>>> getNextElements(
+        public Map<JcsSourceId, Map<JcsEBackType, JcsList<String>>> getNextElements(
                 Collection<JcsTestBackSource> sourcesToBatch,
-                Map<JcsSrcId, Map<JcsEBackType, Integer>> neededCountsPerSourcePerDirection) {
+                Map<JcsSourceId, Map<JcsEBackType, Integer>> neededCountsPerSourcePerDirection) {
             return sourcesToBatch.stream()
                     .map($ -> {
                         Map<JcsEBackType, JcsList<String>> map = Cc.m();
-                        Integer needForward = neededCountsPerSourcePerDirection.get($.getId()).getOrDefault(FORWARD, 0);
-                        Integer needBackward = neededCountsPerSourcePerDirection.get($.getId()).getOrDefault(BACKWARD, 0);
+                        Integer needForward = neededCountsPerSourcePerDirection.get($.getSourceId()).getOrDefault(FORWARD, 0);
+                        Integer needBackward = neededCountsPerSourcePerDirection.get($.getSourceId()).getOrDefault(BACKWARD, 0);
                         if (needForward > 0) {
-                            map.put(FORWARD, $.getNextElements(1));
+                            map.put(FORWARD, $.getNextUnseenElements(1));
                         }
                         if (needBackward > 0) {
-                            map.put(BACKWARD, $.getPreviousElements(1));
+                            map.put(BACKWARD, $.getPreviousUnseenElements(1));
                         }
 
-                        return X.x($.getId(), map);
+                        return X.x($.getSourceId(), map);
                     })
                     .collect(Cc.toMX2());
         }

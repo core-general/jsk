@@ -26,7 +26,7 @@ import sk.utils.collections.cluster_sorter.abstr.JcsIExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
@@ -41,7 +41,7 @@ public class JcsForwardExpandStrategyBatch<ITEM, SOURCE extends JcsISource<ITEM>
     private final JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> batchProcessor;
 
     @Override
-    public Map<JcsSrcId, JcsList<ITEM>>
+    public Map<JcsSourceId, JcsList<ITEM>>
     getMoreFromSourceInDirection(SOURCE source,
             JcsEForwardType direction,
             Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> sortedRestOfQueue,
@@ -55,8 +55,9 @@ public class JcsForwardExpandStrategyBatch<ITEM, SOURCE extends JcsISource<ITEM>
                 sourcesToExpand.add(queueItem.getSource());
             }
         }
-        Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>> batchResult = batchProcessor.getNextElements(sourcesToExpand,
-                sourcesToExpand.stream().map($ -> X.x($.getId(), Cc.m(JcsEForwardType.FORWARD, needItems))).collect(Cc.toMX2()));
+        Map<JcsSourceId, Map<JcsEForwardType, JcsList<ITEM>>> batchResult = batchProcessor.getNextElements(sourcesToExpand,
+                sourcesToExpand.stream().map($ -> X.x($.getSourceId(), Cc.m(JcsEForwardType.FORWARD, needItems)))
+                        .collect(Cc.toMX2()));
         return batchResult.entrySet().stream().map($ -> X.x($.getKey(), $.getValue().get(JcsEForwardType.FORWARD)))
                 .collect(Cc.toMX2());
     }

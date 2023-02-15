@@ -23,8 +23,8 @@ package sk.utils.collections.cluster_sorter.forward.impl.strategies;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.JcsInitStrategy;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSources;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
@@ -35,12 +35,13 @@ public class JcsForwardInitStrategySimple
         <ITEM, SOURCE extends JcsISource<ITEM>>
         implements JcsInitStrategy<ITEM, JcsEForwardType, SOURCE> {
     @Override
-    public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>>
+    public Map<JcsSourceId, Map<JcsEForwardType, JcsList<ITEM>>>
     initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition) {
         final int numToSelectPerSource = (requestedItemCount / sources.getSourcesById().size()) + 1;
         return sources.getSourcesById().values()
                 .stream()
-                .map(source -> X.x(source.getId(), Cc.m(JcsEForwardType.FORWARD, source.getNextElements(numToSelectPerSource))))
+                .map(source -> X.x(source.getSourceId(),
+                        Cc.m(JcsEForwardType.FORWARD, source.getNextUnseenElements(numToSelectPerSource))))
                 .collect(Cc.toMX2());
     }
 }

@@ -25,7 +25,7 @@ import org.junit.Test;
 import sk.utils.collections.cluster_sorter.abstr.JcsASorter;
 import sk.utils.collections.cluster_sorter.abstr.JcsASource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
@@ -68,23 +68,23 @@ public abstract class JcsAbstractCsTest<T extends JcsAbstractCsTest.JcsTestSourc
         }
 
         public JcsTestSource(int id, int maxElements, int setElement) {
-            super(new JcsSrcId(id + ""));
+            super(new JcsSourceId(id + ""));
             this.maxElements = maxElements;
             iteratorForward = setElement;
         }
 
         @Override
         public String toString() {
-            return id + "";
+            return getSourceId() + "";
         }
 
         @Override
-        public JcsList<String> getNextElements(int limit) {
+        public JcsList<String> getNextUnseenElements(int limit) {
             final int couldProduceMore = maxElements - size();
             int willProduceNow = Math.min(couldProduceMore, limit);
             final List<String> items =
                     IntStream.range(0, willProduceNow)
-                            .mapToObj(i -> X.x(iteratorForward + i, id))
+                            .mapToObj(i -> X.x(iteratorForward + i, getSourceId()))
                             .filter($ -> $.i1() < maxElements)
                             .map($ -> "%d-%s".formatted($.i1(), $.i2()))
                             .toList();
@@ -111,12 +111,12 @@ public abstract class JcsAbstractCsTest<T extends JcsAbstractCsTest.JcsTestSourc
         }
 
         @Override
-        public JcsList<String> getPreviousElements(int limit) {
+        public JcsList<String> getPreviousUnseenElements(int limit) {
             final int couldProduceMore = maxElements - size();
             int willProduceNow = Math.min(couldProduceMore, limit);
             final List<String> items =
                     IntStream.range(0, willProduceNow)
-                            .mapToObj(i -> X.x(iteratorBackward - i, id))
+                            .mapToObj(i -> X.x(iteratorBackward - i, getSourceId()))
                             .filter($ -> $.i1() >= 0)
                             .map($ -> "%d-%s".formatted($.i1(), $.i2()))
                             .toList();

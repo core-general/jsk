@@ -29,28 +29,28 @@ import java.util.Collections;
 import java.util.Map;
 
 public class JcsSources<ITEM, SOURCE extends JcsISource<ITEM>> {
-    private final Map<JcsSrcId, SOURCE> sourcesById;
+    private final Map<JcsSourceId, SOURCE> sourcesById;
 
     public JcsSources(Collection<SOURCE> sources) {
-        this.sourcesById = sources.stream().collect(Cc.toM($ -> $.getId(), $ -> $));
+        this.sourcesById = sources.stream().collect(Cc.toM($ -> $.getSourceId(), $ -> $));
     }
 
-    public Map<JcsSrcId, SOURCE> getSourcesById() {
+    public Map<JcsSourceId, SOURCE> getSourcesById() {
         return Collections.unmodifiableMap(sourcesById);
     }
 
-    public SOURCE getById(JcsSrcId id) {
+    public SOURCE getById(JcsSourceId id) {
         return sourcesById.get(id);
     }
 
-    public boolean removeSource(JcsSrcId id) {
+    public boolean removeSource(JcsSourceId id) {
         return O.ofNull(sourcesById.get(id)).map($ -> {
-            sourcesById.remove($.getId());
+            sourcesById.remove($.getSourceId());
             return true;
         }).orElse(false);
     }
 
     public void addSource(SOURCE src) {
-        sourcesById.put(src.getId(), src);
+        sourcesById.put(src.getSourceId(), src);
     }
 }

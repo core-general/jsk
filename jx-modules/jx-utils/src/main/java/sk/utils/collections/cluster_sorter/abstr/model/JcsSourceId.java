@@ -24,7 +24,7 @@ import lombok.Value;
 import sk.utils.ifaces.IdentifiableString;
 
 @Value
-public class JcsSrcId implements IdentifiableString {
+public class JcsSourceId implements IdentifiableString {
     String id;
 
     @Override

@@ -23,8 +23,8 @@ package sk.utils.collections.cluster_sorter.backward.impl.strategies;
 import lombok.AllArgsConstructor;
 import sk.utils.collections.cluster_sorter.abstr.JcsInitStrategy;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSources;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 import sk.utils.statics.Cc;
@@ -40,7 +40,7 @@ public class JcsBackInitStrategyBatch
     private final JcsIBackBatch<ITEM, SOURCE> batchProcessor;
 
     @Override
-    public Map<JcsSrcId, Map<JcsEBackType, JcsList<ITEM>>>
+    public Map<JcsSourceId, Map<JcsEBackType, JcsList<ITEM>>>
     initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition) {
         final int numToSelectPerSource =
                 (requestedItemCount / sources.getSourcesById().size()) + 1;
@@ -49,7 +49,7 @@ public class JcsBackInitStrategyBatch
         if (!isStartingPosition) {
             selector.put(JcsEBackType.BACKWARD, numToSelectPerSource);
         }
-        Map<JcsSrcId, Map<JcsEBackType, Integer>> toBatch = sources.getSourcesById().entrySet().stream()
+        Map<JcsSourceId, Map<JcsEBackType, Integer>> toBatch = sources.getSourcesById().entrySet().stream()
                 .map($ -> X.x($.getKey(), selector))
                 .collect(Cc.toMX2());
 

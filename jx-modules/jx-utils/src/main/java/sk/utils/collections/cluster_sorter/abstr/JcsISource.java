@@ -21,12 +21,12 @@ package sk.utils.collections.cluster_sorter.abstr;
  */
 
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 
 public interface JcsISource<ITEM> {
-    JcsSrcId getId();
+    JcsSourceId getSourceId();
 
-    JcsList<ITEM> getNextElements(int limit);
+    JcsList<ITEM> getNextUnseenElements(int limit);
 
     default boolean canSetPosition() {
         return false;

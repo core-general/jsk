@@ -24,5 +24,5 @@ import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 
 public interface JcsIBackSource<ITEM> extends JcsISource<ITEM> {
-    JcsList<ITEM> getPreviousElements(int limit);
+    JcsList<ITEM> getPreviousUnseenElements(int limit);
 }

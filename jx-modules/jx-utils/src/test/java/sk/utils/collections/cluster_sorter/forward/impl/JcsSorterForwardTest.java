@@ -26,7 +26,7 @@ import org.junit.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractCsTest;
 import sk.utils.collections.cluster_sorter.abstr.JcsASorter;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.forward.impl.strategies.JcsIForwardBatch;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
@@ -81,8 +81,8 @@ public class JcsSorterForwardTest extends JcsAbstractCsTest<JcsAbstractCsTest.Jc
 
         assertEquals("0-0 0-1 0-2 0-3 0-4 1-0 1-1 1-2 1-3 1-4", format(sorter.getNext(10)));
         assertEquals("2-0💼 2-1💼 2-2💼 2-3💼 2-4💼", format(sorter.getQueue()));
-        assertEquals("2-0", format(sorter.removeSource(new JcsSrcId("0"))));
-        assertEquals("2-2", format(sorter.removeSource(new JcsSrcId("2"))));
+        assertEquals("2-0", format(sorter.removeSource(new JcsSourceId("0"))));
+        assertEquals("2-2", format(sorter.removeSource(new JcsSourceId("2"))));
 
         assertEquals("2-1💼 2-3💼 2-4💼", format(sorter.getQueue()));
         assertEquals("2-1 2-3 2-4 3-1 3-3", format(sorter.getNext(5)));
@@ -160,7 +160,7 @@ public class JcsSorterForwardTest extends JcsAbstractCsTest<JcsAbstractCsTest.Jc
         assertEquals("0-0💼 0-1💼 0-2💼 0-3💼", format(simpleClusterSorter.getQueue()));
 
         List<String> expectedSequence = Cc.sort(sources.stream()
-                .flatMap(src -> IntStream.range(0, src.getMaxElements()).mapToObj(el -> "%d-%s".formatted(el, src.getId())))
+                .flatMap(src -> IntStream.range(0, src.getMaxElements()).mapToObj(el -> "%d-%s".formatted(el, src.getSourceId())))
                 .collect(Collectors.toList()), COMP);
 
         int counter = 0;
@@ -197,13 +197,13 @@ public class JcsSorterForwardTest extends JcsAbstractCsTest<JcsAbstractCsTest.Jc
     @Getter
     private static class JcsTestBatch implements JcsIForwardBatch<String, JcsTestSource> {
         @Override
-        public Map<JcsSrcId, Map<JcsEForwardType, JcsList<String>>> getNextElements(
+        public Map<JcsSourceId, Map<JcsEForwardType, JcsList<String>>> getNextElements(
                 Collection<JcsTestSource> sourcesToBatch,
-                Map<JcsSrcId, Map<JcsEForwardType, Integer>> neededCountsPerSourcePerDirection) {
+                Map<JcsSourceId, Map<JcsEForwardType, Integer>> neededCountsPerSourcePerDirection) {
             return sourcesToBatch.stream()
-                    .map($ -> X.x($.getId(),
-                            Cc.m(JcsEForwardType.FORWARD, $.getNextElements(
-                                    neededCountsPerSourcePerDirection.get($.getId()).get(JcsEForwardType.FORWARD)))))
+                    .map($ -> X.x($.getSourceId(),
+                            Cc.m(JcsEForwardType.FORWARD, $.getNextUnseenElements(
+                                    neededCountsPerSourcePerDirection.get($.getSourceId()).get(JcsEForwardType.FORWARD)))))
                     .collect(Cc.toMX2());
         }
     }

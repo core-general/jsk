@@ -193,7 +193,6 @@ public final class Re/*flections*/ {
     }
     //endregion
 
-
     //region Proxies
     @SuppressWarnings("unchecked")
     public static <T> T singleProxy(Class<T> cls, InvocationHandler handler) {
@@ -205,7 +204,6 @@ public final class Re/*flections*/ {
         return (T1) Proxy.newProxyInstance(cls.getClassLoader(), new Class[]{cls, cl2}, handler);
     }
     //endregion
-
 
     //region private
     private static SortedSet<Field> getAllNonStaticFields(SortedSet<Field> fields, Class<?> type,

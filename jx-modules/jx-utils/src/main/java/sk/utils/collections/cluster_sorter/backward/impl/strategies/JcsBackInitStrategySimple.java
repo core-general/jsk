@@ -22,8 +22,8 @@ package sk.utils.collections.cluster_sorter.backward.impl.strategies;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsInitStrategy;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSources;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 import sk.utils.statics.Cc;
@@ -35,19 +35,19 @@ public class JcsBackInitStrategySimple
         <ITEM, SOURCE extends JcsIBackSource<ITEM>>
         implements JcsInitStrategy<ITEM, JcsEBackType, SOURCE> {
     @Override
-    public Map<JcsSrcId, Map<JcsEBackType, JcsList<ITEM>>>
+    public Map<JcsSourceId, Map<JcsEBackType, JcsList<ITEM>>>
     initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition) {
         final int numToSelectPerSource = (requestedItemCount / sources.getSourcesById().size()) + 1;
         return sources.getSourcesById().values()
                 .stream()
                 .map(source -> {
                     Map<JcsEBackType, JcsList<ITEM>> toGet =
-                            Cc.m(JcsEBackType.FORWARD, source.getNextElements(numToSelectPerSource));
+                            Cc.m(JcsEBackType.FORWARD, source.getNextUnseenElements(numToSelectPerSource));
                     if (!isStartingPosition) {
-                        toGet.put(JcsEBackType.BACKWARD, source.getPreviousElements(numToSelectPerSource));
+                        toGet.put(JcsEBackType.BACKWARD, source.getPreviousUnseenElements(numToSelectPerSource));
                     }
 
-                    return X.x(source.getId(), toGet);
+                    return X.x(source.getSourceId(), toGet);
                 })
                 .collect(Cc.toMX2());
     }

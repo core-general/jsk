@@ -50,7 +50,7 @@ public abstract class JcsASorter<
 
     @Getter protected final QUEUE queue = instantiateQueue();
 
-    protected final Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> expandableLastItems = Cc.m();
+    protected final Map<JcsSourceId, Map<EXPAND_DIRECTION, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> expandableLastItems = Cc.m();
     protected boolean initDone;
     protected O<ITEM> positionSet = O.empty();
     @Getter private int expandsDone;
@@ -81,16 +81,16 @@ public abstract class JcsASorter<
     }
 
     @Override
-    public Map<JcsSrcId, SOURCE> getAllSources() {
+    public Map<JcsSourceId, SOURCE> getAllSources() {
         return sources.getSourcesById();
     }
 
     @Override
-    public List<ITEM> removeSource(JcsSrcId id) {
+    public List<ITEM> removeSource(JcsSourceId id) {
         boolean removed = sources.removeSource(id);
         if (removed) {
             List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> removedItems =
-                    queue.removeElementsIf(element -> Fu.equal(element.getSource().getId(), id));
+                    queue.removeElementsIf(element -> Fu.equal(element.getSource().getSourceId(), id));
             return removedItems.stream().map($ -> $.getItem()).toList();
         } else {
             return Cc.lEmpty();
@@ -99,11 +99,12 @@ public abstract class JcsASorter<
 
     @Override
     public final void addNewSource(SOURCE source) {
-        if (sources.getSourcesById().containsKey(source.getId())) {
-            throw new RuntimeException("Source with id: %s already exist".formatted(source.getId()));
+        if (sources.getSourcesById().containsKey(source.getSourceId())) {
+            throw new RuntimeException("Source with id: %s already exist".formatted(source.getSourceId()));
         }
         positionSet.ifPresent($ -> source.setPositionToItem($));
-        addNewSourcePrivate(source, initSourceStrategy.initialize(5, new JcsSources<>(Cc.l(source)), false).get(source.getId()),
+        addNewSourcePrivate(source,
+                initSourceStrategy.initialize(5, new JcsSources<>(Cc.l(source)), false).get(source.getSourceId()),
                 positionSet);
         sources.addSource(source);
     }
@@ -149,10 +150,10 @@ public abstract class JcsASorter<
     }
 
     protected void onNextExpandableItem(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
-        final Map<JcsSrcId, JcsList<ITEM>> afterNextItemExpansion =
+        final Map<JcsSourceId, JcsList<ITEM>> afterNextItemExpansion =
                 getMoreFromSourceStrategy.getMoreFromSourceInDirection(nextItem.getSource(), nextItem.getExpandDirection(),
                         queue.getDirectionIterators().get(nextItem.getExpandDirection()), itemsLeft);
-        clearPreviousLastItem(nextItem.getSource().getId(), nextItem.getExpandDirection());
+        clearPreviousLastItem(nextItem.getSource().getSourceId(), nextItem.getExpandDirection());
         processSourceRequestResult(
                 afterNextItemExpansion.entrySet().stream()
                         .map($ -> X.x($.getKey(), Cc.m(nextItem.getExpandDirection(), $.getValue())))
@@ -162,7 +163,7 @@ public abstract class JcsASorter<
 
     protected void initIfNeeded(int requestedItemCount) {
         if (!initDone) {
-            Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> initialize =
+            Map<JcsSourceId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> initialize =
                     initSourceStrategy.initialize(requestedItemCount, sources, positionSet.isEmpty());
             initialize.forEach((k, v) -> {
                 addNewSourcePrivate(sources.getById(k), v, positionSet);
@@ -172,7 +173,7 @@ public abstract class JcsASorter<
     }
 
     protected void processSourceRequestResult(
-            Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> data,
+            Map<JcsSourceId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> data,
             JcsSources<ITEM, SOURCE> sources,
             O<ITEM> position
     ) {
@@ -194,7 +195,7 @@ public abstract class JcsASorter<
         List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> toAdd = Cc.l();
 
         map.forEach(((expandDirection, list) -> {
-            clearPreviousLastItem(source.getId(), expandDirection);
+            clearPreviousLastItem(source.getSourceId(), expandDirection);
             final int size = list.getItems().size();
             for (int i = 0; i < size; i++) {
                 final boolean isExpandableLastItem = list.isHasMoreElements() && i == size - 1;
@@ -202,7 +203,7 @@ public abstract class JcsASorter<
                         new JcsItem<>(comparator, source, list.getItems().get(i), isExpandableLastItem, expandDirection);
                 toAdd.add(item);
                 if (isExpandableLastItem) {
-                    Cc.computeAndApply(expandableLastItems, source.getId(),
+                    Cc.computeAndApply(expandableLastItems, source.getSourceId(),
                             (id, mp) -> Cc.put(mp, expandDirection, item), () -> Cc.m());
                 }
             }
@@ -211,7 +212,7 @@ public abstract class JcsASorter<
         return toAdd;
     }
 
-    protected O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(JcsSrcId genId, EXPAND_DIRECTION direction) {
+    protected O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> clearPreviousLastItem(JcsSourceId genId, EXPAND_DIRECTION direction) {
         return O.ofNull(expandableLastItems.get(genId))
                 .flatMap($ -> O.ofNull($.get(direction)))
                 .map($ -> {

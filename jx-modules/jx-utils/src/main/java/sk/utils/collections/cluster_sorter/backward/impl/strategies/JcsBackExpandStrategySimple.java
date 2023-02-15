@@ -23,7 +23,7 @@ package sk.utils.collections.cluster_sorter.backward.impl.strategies;
 import sk.utils.collections.cluster_sorter.abstr.JcsIExpandElementsStrategy;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 import sk.utils.statics.Cc;
@@ -35,14 +35,14 @@ public class JcsBackExpandStrategySimple<ITEM, SOURCE extends JcsIBackSource<ITE
         implements JcsIExpandElementsStrategy<ITEM, JcsEBackType, SOURCE> {
 
     @Override
-    public Map<JcsSrcId, JcsList<ITEM>>
+    public Map<JcsSourceId, JcsList<ITEM>>
     getMoreFromSourceInDirection(SOURCE source,
             JcsEBackType direction,
             Iterator<JcsItem<ITEM, JcsEBackType, SOURCE>> sortedRestOfQueuePath,
             int itemsLeft) {
-        return Cc.m(source.getId(), switch (direction) {
-            case FORWARD -> source.getNextElements(itemsLeft);
-            case BACKWARD -> source.getPreviousElements(itemsLeft);
+        return Cc.m(source.getSourceId(), switch (direction) {
+            case FORWARD -> source.getNextUnseenElements(itemsLeft);
+            case BACKWARD -> source.getPreviousUnseenElements(itemsLeft);
         });
     }
 }

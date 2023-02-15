@@ -21,12 +21,12 @@ package sk.utils.collections.cluster_sorter.abstr;
  */
 
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSources;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 
 import java.util.Map;
 
 public interface JcsInitStrategy<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
-    Map<JcsSrcId, Map<EXPAND_DIRECTION, JcsList<ITEM>>>
+    Map<JcsSourceId, Map<EXPAND_DIRECTION, JcsList<ITEM>>>
     initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition);
 }

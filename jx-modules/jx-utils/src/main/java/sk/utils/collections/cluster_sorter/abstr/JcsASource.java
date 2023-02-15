@@ -22,10 +22,10 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 
 @AllArgsConstructor
 @Getter
 public abstract class JcsASource<ITEM> implements JcsISource<ITEM> {
-    protected JcsSrcId id;
+    protected JcsSourceId sourceId;
 }

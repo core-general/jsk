@@ -25,8 +25,8 @@ import sk.utils.collections.cluster_sorter.abstr.JcsIBatchProcessor;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 import sk.utils.collections.cluster_sorter.abstr.JcsInitStrategy;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSources;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsSrcId;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
@@ -41,11 +41,11 @@ public class JcsForwardInitStrategyBatch
     private final JcsIBatchProcessor<ITEM, JcsEForwardType, SOURCE> batchProcessor;
 
     @Override
-    public Map<JcsSrcId, Map<JcsEForwardType, JcsList<ITEM>>>
+    public Map<JcsSourceId, Map<JcsEForwardType, JcsList<ITEM>>>
     initialize(int requestedItemCount, JcsSources<ITEM, SOURCE> sources, boolean isStartingPosition) {
         final int numToSelectPerSource = (requestedItemCount / sources.getSourcesById().size()) + 1;
 
-        Map<JcsSrcId, Map<JcsEForwardType, Integer>> toBatch = sources.getSourcesById().entrySet().stream()
+        Map<JcsSourceId, Map<JcsEForwardType, Integer>> toBatch = sources.getSourcesById().entrySet().stream()
                 .map($ -> X.x($.getKey(), Cc.m(JcsEForwardType.FORWARD, numToSelectPerSource)))
                 .collect(Cc.toMX2());
 
