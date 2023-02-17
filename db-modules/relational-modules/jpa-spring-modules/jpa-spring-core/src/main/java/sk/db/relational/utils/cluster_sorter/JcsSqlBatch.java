@@ -21,7 +21,6 @@ package sk.db.relational.utils.cluster_sorter;
  */
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.impl.strategies.JcsIBackBatch;
@@ -30,6 +29,7 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 
+import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class JcsSqlBatch<ITEM extends JcsBatchableItem, SOURCE extends JcsSqlSou
     public static final String DIRECTION = "_direction_";
     public static final String UNION = "\nUNION\n";
 
-    private final NamedParameterJdbcOperations namedJdbc;
+    private final EntityManager entityManager;
 
     private final Class<ITEM> cls;
 
@@ -65,7 +65,7 @@ public class JcsSqlBatch<ITEM extends JcsBatchableItem, SOURCE extends JcsSqlSou
             return directionsQuery;
         }).collect(joining(UNION));
 
-        List<ITEM> items = namedJdbc.queryForList(finalSql, Cc.m(), cls);
+        List<ITEM> items = entityManager.createNativeQuery(finalSql, cls).getResultList();
         Map<JcsSourceId, Map<JcsEBackType, JcsList<ITEM>>> collect =
                 items.stream().collect(groupingBy($ -> $.getSourceId(),
                         collectingAndThen(groupingBy($1 -> $1.getDirection()),

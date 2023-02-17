@@ -24,7 +24,6 @@ import com.querydsl.core.types.Order;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import sk.services.ICoreServices;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
@@ -34,6 +33,7 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static sk.utils.collections.cluster_sorter.backward.model.JcsEBackType.BACKWARD;
@@ -53,7 +53,7 @@ public class JcsSqlSource<ITEM> implements JcsIBackSource<ITEM> {
     private final Order order;
 
     private final ICoreServices iCore;
-    private final NamedParameterJdbcOperations namedJdbc;
+    private final EntityManager entityManager;
 
 
     private O<ITEM> positionItem = O.empty();
@@ -86,7 +86,7 @@ public class JcsSqlSource<ITEM> implements JcsIBackSource<ITEM> {
     @NotNull
     private JcsList<ITEM> getItemsPrivate(int limit, JcsEBackType direction) {
         String request = createSql(limit, direction);
-        List<ITEM> finalItems = namedJdbc.queryForList(request, Cc.m(), cls);
+        List<ITEM> finalItems = entityManager.createNativeQuery(request, cls).getResultList();
         updateOffset(finalItems.size(), direction);
         return new JcsList<>(finalItems, finalItems.size() == limit);
     }
