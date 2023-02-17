@@ -23,6 +23,7 @@ package sk.utils.collections.cluster_sorter.backward;
 import sk.utils.collections.cluster_sorter.abstr.JcsISorter;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
+import sk.utils.statics.Cc;
 
 import java.util.List;
 
@@ -34,6 +35,10 @@ public interface JcsISorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
 
     default boolean hasNext(int initializingCount) {
         return hasNext(initializingCount, JcsEBackType.FORWARD);
+    }
+
+    default List<ITEM> getPreviousSortedForward(int count) {
+        return Cc.reverse(getNext(count, JcsEBackType.BACKWARD));
     }
 
     default List<ITEM> getPrevious(int count) {

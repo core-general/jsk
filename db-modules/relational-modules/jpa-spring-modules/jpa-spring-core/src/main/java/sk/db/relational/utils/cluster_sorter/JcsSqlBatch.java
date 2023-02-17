@@ -25,6 +25,7 @@ import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.impl.strategies.JcsIBackBatch;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
+import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
@@ -33,6 +34,7 @@ import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.*;
 
@@ -52,7 +54,8 @@ public class JcsSqlBatch<ITEM extends JcsBatchableItem, SOURCE extends JcsSqlSou
             Collection<SOURCE> sourcesToBatch,
             Map<JcsSourceId, Map<JcsEBackType, Integer>> neededCountsPerSourcePerDirection
     ) {
-        String finalSql = sourcesToBatch.stream().map($ -> {
+        int[] counter = new int[]{0};
+        String firstPart = "with " + sourcesToBatch.stream().map($ -> {
             Map<JcsEBackType, Integer> limits = neededCountsPerSourcePerDirection.get($.getSourceId());
             String directionsQuery = limits.entrySet().stream().map(dirLim -> {
                 String selectForSource = $.createSql(dirLim.getValue(), dirLim.getKey());
@@ -60,13 +63,18 @@ public class JcsSqlBatch<ITEM extends JcsBatchableItem, SOURCE extends JcsSqlSou
                         $.getSourceId().toString(), SOURCE_ID,
                         dirLim.getKey().toString(), DIRECTION
                 ));
-                return selectForSource;
-            }).collect(joining(UNION));
+                return """
+                        var_%d as (%s)""".formatted(counter[0]++, selectForSource);
+            }).collect(joining(","));
             return directionsQuery;
-        }).collect(joining(UNION));
+        }).collect(joining(","));
+
+        String secondPart = IntStream.range(0, counter[0]).mapToObj(i -> "select * from var_" + i).collect(joining(UNION));
+
+        String finalSql = firstPart + " " + secondPart;
 
         List<ITEM> items = entityManager.createNativeQuery(finalSql, cls).getResultList();
-        Map<JcsSourceId, Map<JcsEBackType, JcsList<ITEM>>> collect =
+        Map<JcsSourceId, Map<JcsEBackType, JcsList<ITEM>>> result =
                 items.stream().collect(groupingBy($ -> $.getSourceId(),
                         collectingAndThen(groupingBy($1 -> $1.getDirection()),
                                 XX -> XX.entrySet().stream().map($$ -> {
@@ -79,6 +87,13 @@ public class JcsSqlBatch<ITEM extends JcsBatchableItem, SOURCE extends JcsSqlSou
                                                     .get($$.getKey()) == $$.getValue().size()
                                     ));
                                 }).filter(Fu.notNull()).collect(Cc.toMX2()))));
-        return collect;
+        //update offsets
+        sourcesToBatch.forEach(source -> {
+            O.ofNull(result.get(source.getSourceId())).ifPresent($ -> $.forEach((direction, list) -> {
+                source.updateOffset(list.getItems().size(), direction);
+            }));
+        });
+
+        return result;
     }
 }

@@ -31,9 +31,7 @@ import sk.utils.collections.cluster_sorter.backward.model.JcsIBackSource;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @AllArgsConstructor
 public class JcsBackExpandStrategyBatch<ITEM, SOURCE extends JcsIBackSource<ITEM>>
@@ -48,7 +46,8 @@ public class JcsBackExpandStrategyBatch<ITEM, SOURCE extends JcsIBackSource<ITEM
             int itemsLeft) {
 
         int needItems = itemsLeft;
-        List<SOURCE> sourcesToExpand = Cc.l(source);
+        Set<SOURCE> sourcesToExpand = Collections.newSetFromMap(new IdentityHashMap<>());
+        sourcesToExpand.add(source);
         while (itemsLeft-- > 0 && sortedRestOfQueue.hasNext()) {
             final JcsItem<ITEM, JcsEBackType, SOURCE> queueItem = sortedRestOfQueue.next();
             if (queueItem.isExpandable()) {

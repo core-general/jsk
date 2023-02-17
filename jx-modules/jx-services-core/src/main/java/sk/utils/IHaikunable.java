@@ -22,9 +22,14 @@ package sk.utils;
 
 import sk.services.ids.JskHaikunator;
 import sk.utils.ifaces.Identifiable;
+import sk.utils.statics.St;
 
 public interface IHaikunable<T> extends Identifiable<T> {
     default String toShortHaiku() {
         return JskHaikunator.toShortHaiku(toStringer());
+    }
+
+    default String toShortestHaiku() {
+        return St.subRL(toShortHaiku(), "-");
     }
 }
