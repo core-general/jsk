@@ -22,12 +22,13 @@ package sk.utils.collections.cluster_sorter.abstr;
 
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
-import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>>
@@ -35,8 +36,9 @@ public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
     protected long modCount = 0;
 
     @Override
-    public void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> _itemToRespect) {
-        O<ITEM> toRespect = _itemToRespect.or(() -> getLastConsumedItem().map($ -> $.getItem()));
+    public void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> _itemToRespect,
+            EXPAND_DIRECTION expandDirection) {
+        O<ITEM> toRespect = _itemToRespect.or(() -> getLastConsumedItem(expandDirection).map($ -> $.getItem()));
 
         Map<Boolean, List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> split =
                 items.stream().collect(Collectors.groupingBy(
@@ -70,39 +72,6 @@ public abstract class JcsAQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISourc
             target.addAll(data);
             final Comparator<ITEM> reversed = comparatorSupplier.apply(target.get(0));
             Cc.sort(target, (o1, o2) -> reversed.compare(o1.getItem(), o2.getItem()));
-        }
-    }
-
-    protected static class JskCsItemIterator<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>>
-            implements Iterator<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> {
-        private final List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items;
-        int currentIndex;
-        private final F0<Long> modCountProvider;
-        final long curModCount;
-
-        public JskCsItemIterator(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, F0<Long> modCountProvider) {
-            this.items = items;
-            this.currentIndex = items.size();
-            this.modCountProvider = modCountProvider;
-            curModCount = modCountProvider.apply();
-        }
-
-        @Override
-        public boolean hasNext() {
-            checkModCount();
-            return currentIndex > 0;
-        }
-
-        @Override
-        public JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> next() {
-            checkModCount();
-            return items.get(--currentIndex);
-        }
-
-        private void checkModCount() {
-            if (modCountProvider.apply() != curModCount) {
-                throw new ConcurrentModificationException();
-            }
         }
     }
 }

@@ -48,12 +48,12 @@ public abstract class JcsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JcsIQ
                 new JcsItem<>(Integer::compareTo, null, 1, false, null),
                 new JcsItem<>(Integer::compareTo, null, 5, false, null),
                 new JcsItem<>(Integer::compareTo, null, 3, false, null)
-        ));
+        ), getForwardDirection());
         queue.addAllRespectConsumed(Cc.l(
                 new JcsItem<>(Integer::compareTo, null, 2, false, null),
                 new JcsItem<>(Integer::compareTo, null, 7, false, null),
                 new JcsItem<>(Integer::compareTo, null, 1, false, null)
-        ));
+        ), getForwardDirection());
     }
 
     @Test

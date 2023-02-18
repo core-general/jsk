@@ -66,7 +66,7 @@ public class JcsQueueForwardTest extends JcsAbstractQueueTest<JcsEForwardType, J
         //checking that last consume also work
         queue.addAllRespectConsumed(Cc.l(
                 new JcsItem<>(Integer::compareTo, null, 1, false, null)
-        ));
+        ), getForwardDirection());
         assertEquals("", Cc.join((queue.getForwardItems())));
     }
 
@@ -96,7 +96,7 @@ public class JcsQueueForwardTest extends JcsAbstractQueueTest<JcsEForwardType, J
                 new JcsItem<>(Integer::compareTo, null, 8, false, null),
                 new JcsItem<>(Integer::compareTo, null, 15, false, null),
                 new JcsItem<>(Integer::compareTo, null, 2, false, null)
-        ));
+        ), getForwardDirection());
         assertEquals(8, queue.poll().getPolledItem().get().getItem().longValue());
         assertEquals(12, queue.poll().getPolledItem().get().getItem().longValue());
         assertEquals(15, queue.poll().getPolledItem().get().getItem().longValue());

@@ -22,6 +22,7 @@ package sk.utils.collections.cluster_sorter.forward.impl;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsAQueue;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
+import sk.utils.collections.cluster_sorter.abstr.JcsItemIterator;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.forward.JcsIQueueForward;
@@ -30,7 +31,10 @@ import sk.utils.functional.O;
 import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Queue based on ArrayList. The last element is the head of the queue.
@@ -46,7 +50,7 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
     private final List<JcsItem<ITEM, JcsEForwardType, SOURCE>> lastConsumed = initLastConsumedList();
 
     @Override
-    public O<JcsItem<ITEM, JcsEForwardType, SOURCE>> getLastConsumedItem() {
+    public O<JcsItem<ITEM, JcsEForwardType, SOURCE>> getLastConsumedItem(JcsEForwardType consumeDirection) {
         return Cc.last(lastConsumed);
     }
 
@@ -58,8 +62,8 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
     }
 
     @Override
-    public Map<JcsEForwardType, Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>>> getDirectionIterators() {
-        return Cc.m(JcsEForwardType.FORWARD, new JskCsItemIterator<>(forwardItems, () -> modCount));
+    public Map<JcsEForwardType, JcsItemIterator<ITEM, JcsEForwardType, SOURCE>> getDirectionIterators() {
+        return Cc.m(JcsEForwardType.FORWARD, new JcsItemIterator<>(JcsEForwardType.FORWARD, forwardItems, () -> modCount));
     }
 
     @Override
@@ -86,7 +90,7 @@ public class JcsQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
     @Override
     public void addAllToQueueBeginning(List<JcsItem<ITEM, JcsEForwardType, SOURCE>> jskCsItems) {
         lastConsumed.clear();
-        addAllRespectConsumed(jskCsItems);
+        addAllRespectConsumed(jskCsItems, JcsEForwardType.FORWARD);
     }
 
     /**

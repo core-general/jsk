@@ -22,12 +22,10 @@ package sk.utils.collections.cluster_sorter.backward;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsIQueue;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
-import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
+import sk.utils.collections.cluster_sorter.abstr.JcsItemIterator;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.backward.model.JcsEBackType;
 import sk.utils.statics.Cc;
-
-import java.util.Iterator;
 
 public interface JcsIQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         extends JcsIQueue<ITEM, JcsEBackType, SOURCE> {
@@ -36,7 +34,7 @@ public interface JcsIQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         return poll(JcsEBackType.FORWARD);
     }
 
-    default Iterator<JcsItem<ITEM, JcsEBackType, SOURCE>> iterator() {
+    default JcsItemIterator<ITEM, JcsEBackType, SOURCE> iterator() {
         return getDirectionIterators().get(JcsEBackType.FORWARD);
     }
 
@@ -44,7 +42,7 @@ public interface JcsIQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         return poll(JcsEBackType.BACKWARD);
     }
 
-    default Iterator<JcsItem<ITEM, JcsEBackType, SOURCE>> iteratorBack() {
+    default JcsItemIterator<ITEM, JcsEBackType, SOURCE> iteratorBack() {
         return getDirectionIterators().get(JcsEBackType.BACKWARD);
     }
 

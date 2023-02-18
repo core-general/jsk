@@ -26,24 +26,23 @@ import sk.utils.functional.O;
 import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public interface JcsIQueue<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>> {
     /** If items were already consumed, added elemen */
-    default void addAllRespectConsumed(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items) {
-        addAllRespectItem(items, getLastConsumedItem().map($ -> $.getItem()));
+    default void addAllRespectConsumed(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, EXPAND_DIRECTION consumeDirection) {
+        addAllRespectItem(items, getLastConsumedItem(consumeDirection).map($ -> $.getItem()), consumeDirection);
     }
 
-    void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> item);
+    void addAllRespectItem(List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> items, O<ITEM> item, EXPAND_DIRECTION consumeDirection);
 
-    O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getLastConsumedItem();
+    O<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> getLastConsumedItem(EXPAND_DIRECTION consumeDirection);
 
     JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE> poll(EXPAND_DIRECTION direction);
 
-    Map<EXPAND_DIRECTION, Iterator<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>>> getDirectionIterators();
+    Map<EXPAND_DIRECTION, JcsItemIterator<ITEM, EXPAND_DIRECTION, SOURCE>> getDirectionIterators();
 
     default public int calculateSize(Set<EXPAND_DIRECTION> directions) {
         return getDirectionIterators().entrySet().stream().mapToInt($ -> {

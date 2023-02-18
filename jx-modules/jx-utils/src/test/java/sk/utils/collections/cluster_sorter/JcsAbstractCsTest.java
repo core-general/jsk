@@ -31,6 +31,7 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
+import sk.utils.tuples.X2;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -86,10 +87,14 @@ public abstract class JcsAbstractCsTest<T extends JcsAbstractCsTest.JcsTestSourc
                     IntStream.range(0, willProduceNow)
                             .mapToObj(i -> X.x(iteratorForward + i, getSourceId()))
                             .filter($ -> $.i1() < maxElements)
-                            .map($ -> "%d-%s".formatted($.i1(), $.i2()))
+                            .map($ -> formatter($))
                             .toList();
             iteratorForward += items.size();
             return new JcsList<>(items, iteratorForward < maxElements);
+        }
+
+        protected String formatter(X2<Integer, JcsSourceId> $) {
+            return "%d-%s".formatted($.i1(), $.i2());
         }
 
         protected int size() {
@@ -118,7 +123,7 @@ public abstract class JcsAbstractCsTest<T extends JcsAbstractCsTest.JcsTestSourc
                     IntStream.range(0, willProduceNow)
                             .mapToObj(i -> X.x(iteratorBackward - i, getSourceId()))
                             .filter($ -> $.i1() >= 0)
-                            .map($ -> "%d-%s".formatted($.i1(), $.i2()))
+                            .map($ -> formatter($))
                             .toList();
             iteratorBackward -= items.size();
             return new JcsList<>(items, iteratorBackward >= 0);

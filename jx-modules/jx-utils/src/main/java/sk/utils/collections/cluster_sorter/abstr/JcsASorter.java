@@ -70,7 +70,7 @@ public abstract class JcsASorter<
 
     @Override
     public List<ITEM> getNext(int count, EXPAND_DIRECTION direction) {
-        return traverseQueue(count, () -> queue.poll(direction));
+        return traverseQueue(count, () -> queue.poll(direction), direction);
     }
 
     @Override
@@ -128,7 +128,7 @@ public abstract class JcsASorter<
 
 
     protected List<ITEM> traverseQueue(int overallCount,
-            F0<JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler) {
+            F0<JcsPollResult<ITEM, EXPAND_DIRECTION, SOURCE>> queuePoler, EXPAND_DIRECTION direction) {
         initIfNeeded(overallCount);
 
         List<ITEM> toRet = Cc.l();
@@ -142,14 +142,15 @@ public abstract class JcsASorter<
             final JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem = pollResult.getPolledItem().get();
             toRet.add(nextItem.getItem());
             if (nextItem.isExpandable()) {
-                onNextExpandableItem(nextItem,
+                onNextExpandableItem(direction, nextItem,
                         overallCount - toRet.size() + 1/*+1 because we have to expand the one we have added*/);
             }
         }
         return toRet;
     }
 
-    protected void onNextExpandableItem(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem, int itemsLeft) {
+    protected void onNextExpandableItem(EXPAND_DIRECTION direction, JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> nextItem,
+            int itemsLeft) {
         final Map<JcsSourceId, JcsList<ITEM>> afterNextItemExpansion =
                 getMoreFromSourceStrategy.getMoreFromSourceInDirection(nextItem.getSource(), nextItem.getExpandDirection(),
                         queue.getDirectionIterators().get(nextItem.getExpandDirection()), itemsLeft);
@@ -157,7 +158,7 @@ public abstract class JcsASorter<
         processSourceRequestResult(
                 afterNextItemExpansion.entrySet().stream()
                         .map($ -> X.x($.getKey(), Cc.m(nextItem.getExpandDirection(), $.getValue())))
-                        .collect(Cc.toMX2()), sources, O.empty());
+                        .collect(Cc.toMX2()), sources, O.empty(), direction);
         expandsDone++;
     }
 
@@ -175,16 +176,17 @@ public abstract class JcsASorter<
     protected void processSourceRequestResult(
             Map<JcsSourceId, Map<EXPAND_DIRECTION, JcsList<ITEM>>> data,
             JcsSources<ITEM, SOURCE> sources,
-            O<ITEM> position
+            O<ITEM> position,
+            EXPAND_DIRECTION expandDirection
     ) {
         List<JcsItem<ITEM, EXPAND_DIRECTION, SOURCE>> queueAdd = Cc.l();
         data.forEach((genId, list) -> {
             queueAdd.addAll(formJskCsItemsFromList(sources.getById(genId), list));
         });
         if (position.isPresent()) {
-            queue.addAllRespectItem(queueAdd, position);
+            queue.addAllRespectItem(queueAdd, position, expandDirection);
         } else {
-            queue.addAllRespectConsumed(queueAdd);
+            queue.addAllRespectConsumed(queueAdd, expandDirection);
         }
 
     }

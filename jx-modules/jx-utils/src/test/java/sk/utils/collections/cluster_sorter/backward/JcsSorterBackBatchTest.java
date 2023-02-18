@@ -21,13 +21,47 @@ package sk.utils.collections.cluster_sorter.backward;
  */
 
 import org.junit.Test;
+import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.impl.JcsSorterBack;
+import sk.utils.statics.Cc;
+import sk.utils.tuples.X2;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 public class JcsSorterBackBatchTest extends JcsSorterBackGeneralTest {
+    @Test
+    public void test_problem_with_sequential_elements_in_source() {
+        var backSorter = createSorter(Cc.l(
+                new JcsTestBackSource(0, 5) {
+                    @Override
+                    protected String formatter(X2<Integer, JcsSourceId> $) {
+                        return "%s-%d".formatted($.i2(), $.i1());
+                    }
+                },
+                new JcsTestBackSource(1, 5) {
+                    @Override
+                    protected String formatter(X2<Integer, JcsSourceId> $) {
+                        return "%s-%d".formatted($.i2(), $.i1());
+                    }
+                },
+                new JcsTestBackSource(2, 5) {
+                    @Override
+                    protected String formatter(X2<Integer, JcsSourceId> $) {
+                        return "%s-%d".formatted($.i2(), $.i1());
+                    }
+                }
+        ), COMP);
+
+        backSorter.setPositionToItem(
+                "4-0");//dirty hack to make cases in back queue, because formatter is overridden in sources above
+        assertEquals("", format(backSorter.getPreviousSortedForward(0)));
+        assertEquals("0-3<-💼 0-4 1-3<-💼 1-4 2-3<-💼 2-4 <-B|F-> ", formatFull(backSorter.getQueue()));
+        assertEquals("1-0 1-1 1-2 1-3 1-4 2-0 2-1 2-2 2-3 2-4", format(backSorter.getPreviousSortedForward(10)));
+        assertEquals("0-1<-💼 0-2 0-3 0-4 <-B|F-> 1-0 1-1 1-2 1-3 1-4 2-0 2-1 2-2 2-3 2-4", formatFull(backSorter.getQueue()));
+    }
+
     @Test
     public void test_normal_scenario_start_from_end() {
         var backSorter = createSorter(sources, COMP);

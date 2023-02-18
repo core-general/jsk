@@ -81,12 +81,12 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
 
     @Override
     protected void addNewSourcePrivate(SOURCE source, Map<JcsEBackType, JcsList<ITEM>> initialSourceItems, O<ITEM> position) {
-        addNewSourcePrivate0(source, new JcsSources<>(Cc.l(source)), initialSourceItems, 1, position);
+        addNewSourcePrivate0(source, new JcsSources<>(Cc.l(source)), initialSourceItems, 1, position, JcsEBackType.FORWARD);
     }
 
     private void addNewSourcePrivate0(SOURCE source, JcsSources<ITEM, SOURCE> sources,
-            Map<JcsEBackType, JcsList<ITEM>> initialSourceItems, int iteration, O<ITEM> position) {
-        processSourceRequestResult(Cc.m(source.getSourceId(), initialSourceItems), sources, position);
+            Map<JcsEBackType, JcsList<ITEM>> initialSourceItems, int iteration, O<ITEM> position, JcsEBackType direction) {
+        processSourceRequestResult(Cc.m(source.getSourceId(), initialSourceItems), sources, position, direction);
         boolean processOtherQueue = true;
         if (O.ofNull(initialSourceItems.get(JcsEBackType.FORWARD)).map($ -> $.isHasMoreElements()).orElse(false)) {
             processOtherQueue =
@@ -102,7 +102,7 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
     /**
      * @param queueItems we are checking particular queue to understand if there are bad elements inside. If there are -
      *                   we try to push them to other queue iteratively
-     * @param badType    type of expand which is not allowed in the particular part of the queue
+     * @param direction  type of expand which is not allowed in the particular part of the queue
      * @param iteration  number of iteration, which influences how many items we request from sources
      * @param position
      * @return - true if other queue should be processed
@@ -111,14 +111,14 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
             SOURCE source,
             JcsSources<ITEM, SOURCE> sources,
             Iterator<JcsItem<ITEM, JcsEBackType, SOURCE>> queueItems,
-            JcsEBackType badType,
+            JcsEBackType direction,
             int iteration, O<ITEM> position) {
         boolean hasExpandableItemOfGoodType = false;
         JcsList<ITEM> items = null;
         for (JcsItem<ITEM, JcsEBackType, SOURCE> item : Cc.iterable(queueItems)) {
             if (item.isExpandable() && Fu.equal(item.getSource().getSourceId(), source.getSourceId())) {
-                if (item.getExpandDirection() == badType) {
-                    items = getMoreFromSourceStrategy.getMoreFromSourceInDirection(source, badType, Collections.emptyIterator(),
+                if (item.getExpandDirection() == direction) {
+                    items = getMoreFromSourceStrategy.getMoreFromSourceInDirection(source, direction, Collections.emptyIterator(),
                             Math.min(1000, iteration * iteration * iteration * 10)).get(source.getSourceId());
                 } else {
                     hasExpandableItemOfGoodType = true;
@@ -126,7 +126,7 @@ public class JcsSorterBack<ITEM, SOURCE extends JcsIBackSource<ITEM>>
             }
         }
         if (items != null) {
-            addNewSourcePrivate0(source, sources, Cc.m(badType, items), iteration + 1, position);
+            addNewSourcePrivate0(source, sources, Cc.m(direction, items), iteration + 1, position, direction);
         }
         return !hasExpandableItemOfGoodType;
     }

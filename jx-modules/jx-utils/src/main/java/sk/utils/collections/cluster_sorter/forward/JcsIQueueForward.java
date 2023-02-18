@@ -22,11 +22,12 @@ package sk.utils.collections.cluster_sorter.forward;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsIQueue;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
+import sk.utils.collections.cluster_sorter.abstr.JcsItemIterator;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
+import sk.utils.functional.O;
 
-import java.util.Iterator;
 import java.util.List;
 
 public interface JcsIQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
@@ -34,13 +35,17 @@ public interface JcsIQueueForward<ITEM, SOURCE extends JcsISource<ITEM>>
         JcsIQueue<ITEM, JcsEForwardType, SOURCE>,
         Iterable<JcsItem<ITEM, JcsEForwardType, SOURCE>> {
 
+    default public O<JcsItem<ITEM, JcsEForwardType, SOURCE>> getLastConsumedItem() {
+        return getLastConsumedItem(JcsEForwardType.FORWARD);
+    }
+
     void addAllToQueueBeginning(List<JcsItem<ITEM, JcsEForwardType, SOURCE>> items);
 
     default JcsPollResult<ITEM, JcsEForwardType, SOURCE> poll() {
         return poll(JcsEForwardType.FORWARD);
     }
 
-    default Iterator<JcsItem<ITEM, JcsEForwardType, SOURCE>> iterator() {
+    default JcsItemIterator<ITEM, JcsEForwardType, SOURCE> iterator() {
         return getDirectionIterators().get(JcsEForwardType.FORWARD);
     }
 }

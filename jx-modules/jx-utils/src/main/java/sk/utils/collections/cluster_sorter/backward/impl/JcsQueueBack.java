@@ -22,6 +22,7 @@ package sk.utils.collections.cluster_sorter.backward.impl;
 
 import sk.utils.collections.cluster_sorter.abstr.JcsAQueue;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
+import sk.utils.collections.cluster_sorter.abstr.JcsItemIterator;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsPollResult;
 import sk.utils.collections.cluster_sorter.backward.JcsIQueueBack;
@@ -30,7 +31,10 @@ import sk.utils.functional.O;
 import sk.utils.functional.P1;
 import sk.utils.statics.Cc;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
         extends JcsAQueue<ITEM, JcsEBackType, SOURCE>
@@ -47,8 +51,11 @@ public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
     }
 
     @Override
-    public O<JcsItem<ITEM, JcsEBackType, SOURCE>> getLastConsumedItem() {
-        return Cc.last(backItems);
+    public O<JcsItem<ITEM, JcsEBackType, SOURCE>> getLastConsumedItem(JcsEBackType consumeDirection) {
+        return Cc.last(switch (consumeDirection) {
+            case FORWARD -> backItems;
+            case BACKWARD -> forwardItems;
+        });
     }
 
     @Override
@@ -67,10 +74,10 @@ public class JcsQueueBack<ITEM, SOURCE extends JcsISource<ITEM>>
     }
 
     @Override
-    public Map<JcsEBackType, Iterator<JcsItem<ITEM, JcsEBackType, SOURCE>>> getDirectionIterators() {
+    public Map<JcsEBackType, JcsItemIterator<ITEM, JcsEBackType, SOURCE>> getDirectionIterators() {
         return Cc.m(
-                JcsEBackType.FORWARD, new JskCsItemIterator<>(forwardItems, () -> modCount),
-                JcsEBackType.BACKWARD, new JskCsItemIterator<>(backItems, () -> modCount)
+                JcsEBackType.FORWARD, new JcsItemIterator<>(JcsEBackType.FORWARD, forwardItems, () -> modCount),
+                JcsEBackType.BACKWARD, new JcsItemIterator<>(JcsEBackType.BACKWARD, backItems, () -> modCount)
         );
     }
 

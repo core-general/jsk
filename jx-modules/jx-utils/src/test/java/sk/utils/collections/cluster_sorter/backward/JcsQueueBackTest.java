@@ -62,7 +62,7 @@ public class JcsQueueBackTest extends JcsAbstractQueueTest<JcsEBackType, JcsQueu
                 new JcsItem<>(Integer::compareTo, null, 1, false, null),
                 new JcsItem<>(Integer::compareTo, null, 0, false, null),
                 new JcsItem<>(Integer::compareTo, null, 3, false, null)
-        ));
+        ), getForwardDirection());
 
         assertEquals("7,5,4,3,3", format(queue.getForwardItems()));
         assertEquals("0,1,1,1,2", format(queue.getBackItems()));

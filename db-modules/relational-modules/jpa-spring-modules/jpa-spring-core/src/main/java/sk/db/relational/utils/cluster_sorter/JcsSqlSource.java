@@ -97,11 +97,18 @@ public class JcsSqlSource<ITEM> implements JcsIBackSource<ITEM> {
                 "defaultWhere", defaultWhere.orElse("true"),
                 "itemSelector", positionItem.isPresent() ? selectItem(direction) : "",
                 "orderByField", itemSelectorField,
-                "orderByDirection", order.name(),
+                "orderByDirection", (direction == BACKWARD ? switchOrder(order) : order).name(),
                 "limit", limit + "",
                 "offset", (direction == BACKWARD ? currentOffsetBackward : currentOffsetForward) + ""
         ));
         return request;
+    }
+
+    private Order switchOrder(Order order) {
+        return switch (order) {
+            case ASC -> Order.DESC;
+            case DESC -> Order.ASC;
+        };
     }
 
     void updateOffset(int addToOffset, JcsEBackType direction) {
