@@ -41,14 +41,18 @@ public class WebAuthFilter implements WebServerFilter {
 
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
+        //basic auth
+        requestContext.getRequestContext().getWebAuthBasicCheck().run();
+
+        //if it is passed other auth
         final O<WebAuth> oAuth = requestContext.getRequestContext().getWebAuth();
         if (oAuth.isPresent()) {
             final WebAuth auth = oAuth.get();
             final WebRequestInnerContext ctx = requestContext.getRequestContext();
 
             O<String> secretValue = auth.isParamOrHeader()
-                    ? ctx.getParamAsString(auth.paramName())
-                    : ctx.getRequestHeader(auth.paramName());
+                                    ? ctx.getParamAsString(auth.paramName())
+                                    : ctx.getRequestHeader(auth.paramName());
 
             boolean result;
             if (!St.isNullOrEmpty(auth.getPassword())) {

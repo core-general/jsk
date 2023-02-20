@@ -99,4 +99,8 @@ public interface TestApi1 {
 
     @WebGET
     String exceptTest();
+
+    @WebGET
+    @WebAuthBasic(realmName = "XXX", forceParametersExist = true)
+    String basicAuthTest();
 }

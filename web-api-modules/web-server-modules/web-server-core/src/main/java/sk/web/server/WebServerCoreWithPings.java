@@ -31,7 +31,6 @@ import sk.utils.functional.F3;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
-import sk.utils.statics.Fu;
 import sk.utils.statics.St;
 import sk.web.WebMethodType;
 import sk.web.exceptions.IWebExcept;
@@ -45,15 +44,12 @@ import sk.web.server.context.WebRequestInnerContext;
 import sk.web.server.context.WebRequestOuterFullContext;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterNext;
-import sk.web.server.params.WebApiInfoParams;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
 
 import javax.inject.Inject;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeSet;
 
 import static sk.web.WebMethodType.GET;
@@ -66,9 +62,8 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
     @Inject IWebExcept except;
     @Inject INodeInfo nodeInfo;
     @Inject IFree free;
-    @Inject WebContextHolder ctxHolder;
     @Inject IBytes bytes;
-    @Inject Optional<WebApiInfoParams> apiInfoParams;
+    @Inject WebContextHolder ctxHolder;
 
     public WebServerCoreWithPings(Class<T> tClass, T impl) {
         super(tClass, impl);
@@ -91,8 +86,8 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
                 (wmt, out, render) -> context -> {
                     try {
                         final WebRequestInnerContext innerCtx =
-                                prepareInnerContext(context, api, wmt, getExceptionProcessors(O.empty()), O.empty(), O.empty(),
-                                        render);
+                                prepareInnerContext(context, api, wmt, getExceptionProcessors(O.empty()), O.empty(), () -> {},
+                                        O.empty(), render);
                         final WebServerFilterNext filterChain = createFilterChain(api, out, innerCtx, filters);
 
                         final WebFilterOutput apply = filterChain.invokeNext();
@@ -134,7 +129,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
             final String apiInfo = base + "api-info";
             final WebServerFilterNext apiInfoProcessor =
                     () -> {
-                        checkBasicAuth();
+                        checkBasic();
                         String htmlCacheTemp = htmlInfoCache;
                         if (empty.equals(htmlCacheTemp)) {
                             synchronized (htmlInfoCacheLock) {
@@ -154,7 +149,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
             final String postmanApiInfo = base + "api-info-postman";
             final WebServerFilterNext apiInfoProcessor =
                     () -> {
-                        checkBasicAuth();
+                        checkBasic();
                         String postmanCacheTemp = postmanInfoCache;
                         if (empty.equals(postmanCacheTemp)) {
                             synchronized (postmanInfoCacheLock) {
@@ -172,6 +167,11 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         }
     }
 
+    private void checkBasic() {
+        checkBasicAuth((header) -> ctxHolder.get().getRequestHeader(header), (k, v) -> ctxHolder.get().setResponseHeader(k, v),
+                "Api info", false);
+    }
+
     private List<String> getCategoriesFromRequest() {
         final O<String> needInfo = ctxHolder.get().getParamAsString("needInfo");
         if (needInfo.isEmpty()) {
@@ -183,20 +183,6 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
 
     protected Map<String, String> getAdditionalParams4Postman() {
         return Cc.m();
-    }
-
-    private void checkBasicAuth() {
-        apiInfoParams.ifPresent(apiInfoPar -> {
-            ctxHolder.get().getRequestHeader("Authorization")
-                    .map($ -> $.trim().split("\\s"))
-                    .filter($ -> $.length > 0 && $[0].contains("Basic"))
-                    .map($ -> new String(bytes.dec64($[$.length - 1]), StandardCharsets.UTF_8))
-                    .filter($ -> Fu.equal($, apiInfoPar.getBasicAuthLogin() + ":" + apiInfoPar.getBasicAuthPass()))
-                    .orElseGet(() -> {
-                        ctxHolder.get().setResponseHeader("WWW-Authenticate", "Basic realm=\"Api info\", charset=\"UTF-8\"");
-                        return except.throwBySubstatus(401, "forbidden", "");
-                    });
-        });
     }
 
     private final static String empty = "E";

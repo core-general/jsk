@@ -177,6 +177,11 @@ public class WebSparkTest {
             }, 1000, 3000, TimeUnit.MILLISECONDS);
             return "";
         }
+
+        @Override
+        public String basicAuthTest() {
+            return "abc";
+        }
     }
 
     public static class Api3Impl implements TestApiSwaggerTest3 {

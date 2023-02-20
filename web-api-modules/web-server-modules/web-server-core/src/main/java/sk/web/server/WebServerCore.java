@@ -26,6 +26,7 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import sk.exceptions.JskProblem;
 import sk.services.bean.IServiceLocator;
+import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.services.ids.IIds;
 import sk.services.json.IJson;
@@ -59,6 +60,7 @@ import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.WebServerFilterNext;
 import sk.web.server.filters.standard.*;
 import sk.web.server.model.WebProblemWithRequestBodyException;
+import sk.web.server.params.WebApiInfoParams;
 import sk.web.server.params.WebExceptionParams;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
@@ -68,6 +70,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -104,6 +107,10 @@ public class WebServerCore<API>
     @Inject protected IJson json;
     @Inject protected ITime time;
     @Inject protected IIds ids;
+
+    @Inject protected WebContextHolder ctxHolder;
+    @Inject protected Optional<WebApiInfoParams> apiInfoParams;
+    @Inject protected IBytes bytes;
 
     @Getter
     @Setter
@@ -223,11 +230,18 @@ public class WebServerCore<API>
                             : of(new WebRedirectResult($.redirectPath(), $.addModelFieldsAsRedirectParameters())));
 
             final O<WebAuth> webAuth = webApiMethod.getAnnotation(WebAuth.class, WebAuthNO.class);
+            final O<WebAuthBasic> webAuthBasic = webApiMethod.getAnnotation(WebAuthBasic.class, WebAuthNO.class);
             final O<WebIdempotence> webIdempotence = webApiMethod.getAnnotation(WebIdempotence.class, WebIdempotenceNO.class);
 
             final C1<WebRequestOuterFullContext> outerProcessor = outerContext -> {
+                R basicAuthCheck =
+                        webAuthBasic.map($ -> (R) () -> checkBasicAuth((header) -> outerContext.getRequestHeader(header),
+                                (k, v) -> outerContext.setResponseHeader(k, v), $.realmName(),
+                                $.forceParametersExist())).orElseGet(() -> () -> {});
+
+
                 final WebRequestInnerContext innerContext = prepareInnerContext(outerContext, webApiMethod, methodInfo.getType(),
-                        eCur.or(() -> eProc), webAuth, webIdempotence, foundRender);
+                        eCur.or(() -> eProc), webAuth, basicAuthCheck, webIdempotence, foundRender);
                 try {
                     WebServerFilterNext curent =
                             invokeBaseMethodSupplier(method, paramGetters, methodInfo, mustMultipart, outerContext);
@@ -271,6 +285,23 @@ public class WebServerCore<API>
 
         created = true;
     }
+
+    @Override
+    public IBeanInfo<WebServerShortInfo> gatherDiagnosticInfo() {
+        return new IBeanInfo<>("WEB/SERVERS/" + apiClass.getSimpleName(),
+                () -> info.toShortInfo());
+    }
+
+    @Override
+    public long waitBeforeStopMs() {
+        return 100;
+    }
+
+    @Override
+    public void onStop() {
+        setShouldStop(true);
+    }
+
 
     protected String getMethodSpecificInfo(ArrayList<WebServerFilter> methodSpecificFilters, WebMethodInfo methodInfo) {
         StringBuilder sb = new StringBuilder("");
@@ -320,8 +351,9 @@ public class WebServerCore<API>
     protected final WebRequestInnerContext prepareInnerContext(WebRequestOuterFullContext outerContext,
             WebApiMethod<API> apiMethod, WebMethodType webMethodType,
             O<F1<Class<? extends Exception>, O<F2<Exception, WebRequestInnerContext, WebFilterOutput>>>> exceptions,
-            O<WebAuth> webAuth, O<WebIdempotence> webIdempotence, sk.web.renders.WebRender foundRender) {
-        return new WebRequestInnerContextImpl(
+            O<WebAuth> webAuth, R webAuthBasicCheck, O<WebIdempotence> webIdempotence,
+            sk.web.renders.WebRender foundRender) {
+        return new WebRequestInnerContextImpl<>(
                 shouldStop,
                 ids.shortIdS(),
                 time.nowZ(),
@@ -331,6 +363,7 @@ public class WebServerCore<API>
                 webMethodType,
                 exceptions,
                 webAuth,
+                webAuthBasicCheck,
                 webIdempotence,
                 foundRender,
                 outerContext
@@ -340,6 +373,89 @@ public class WebServerCore<API>
     protected WebRequestIp getIpInfo(WebRequestOuterFullContext outerContext) {
         return outerContext.getFullIpInfo();
     }
+
+    protected void checkBasicAuth(
+            F1<String, O<String>> headerSupplier,
+            C2<String, String> headerConsumer,
+            String realm, boolean forceHasParameters) {
+        apiInfoParams.ifPresentOrElse(apiInfoPar -> {
+            headerSupplier.apply("Authorization")
+                    .map($ -> $.trim().split("\\s"))
+                    .filter($ -> $.length > 0 && $[0].contains("Basic"))
+                    .map($ -> new String(bytes.dec64($[$.length - 1]), StandardCharsets.UTF_8))
+                    .filter($ -> Fu.equal($, apiInfoPar.getBasicAuthLogin() + ":" + apiInfoPar.getBasicAuthPass()))
+                    .orElseGet(() -> {
+                        headerConsumer.accept("WWW-Authenticate", "Basic realm=\"" + realm + "\", charset=\"UTF-8\"");
+                        return webExcept.throwBySubstatus(401, "forbidden", "");
+                    });
+        }, () -> {
+            if (forceHasParameters) {
+                throw new RuntimeException("WebApiInfoParams is not found, but must be present");
+            }
+        });
+    }
+
+    protected class WebServerContextWithInfo {
+        private final WebServerContext _env;
+
+        public WebServerContextWithInfo(WebServerContext _env) {this._env = _env;}
+
+        public void addPost(String path, C1<WebRequestOuterFullContext> webRequestProcessor, boolean multipartSure,
+                O<WebMethodInfo> methodInfo) {
+            methodInfo.ifPresentOrElse(
+                    $ -> info.getPostMethods().add(OneOf.left($)),
+                    () -> info.getPostMethods().add(OneOf.right(path))
+            );
+            _env.addPost(path, webRequestProcessor, multipartSure);
+        }
+
+        public void addGet(String path, C1<WebRequestOuterFullContext> webRequestProcessor, O<WebMethodInfo> methodInfo) {
+            methodInfo.ifPresentOrElse(
+                    $ -> info.getGetMethods().add(OneOf.left($)),
+                    () -> info.getGetMethods().add(OneOf.right(path))
+            );
+            _env.addGet(path, webRequestProcessor);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class WebServerInfo {
+        final String apiClassName;
+        @Getter final List<OneOf<WebMethodInfo, String>> getMethods = Cc.l();
+        @Getter final List<OneOf<WebMethodInfo, String>> postMethods = Cc.l();
+
+        final F1<List<OneOf<WebMethodInfo, String>>, SortedMap<String, String>> converter = x -> x.stream()
+                .map($ -> {
+                    final String except =
+                            $.collect(w -> w.getPrecompiledModel().getExceptions().stream().map(y -> y.getExceptionName())
+                                    .sorted()
+                                    .collect(joining(",")), s -> "");
+                    final X2<String, String> x1 = X.x(
+                            $.collect(w -> String.format("%s %s(%s)",
+                                            St.subLL(w.getReturnValue().getTypeName(), "."),
+                                            w.getFullMethodPath(),
+                                            Cc.join(", ", w.getParamAndTypes(),
+                                                    pit -> subLL(pit.getType().getType().getTypeName(), ".") + " " + pit.getName())),
+                                    w -> w),
+                            except.length() > 0 ? "Exceptions: " + except : "No exceptions"
+                    );
+                    return x1;
+                }).collect(Collectors.toMap(
+                        X2::i1,
+                        X2::i2, (String a, String b) -> a, TreeMap::new));
+
+        public WebServerShortInfo toShortInfo() {
+            return new WebServerShortInfo(apiClassName, converter.apply(getMethods), converter.apply(postMethods));
+        }
+    }
+
+    @RequiredArgsConstructor
+    public static class WebServerShortInfo {
+        final String apiClassName;
+        final SortedMap<String, String> getMethods;
+        final SortedMap<String, String> postMethods;
+    }
+
 
     private boolean mustMultipart(WebMethodInfo methodInfo, WebApiMethod<API> apiMethod) {
         O<WebPOST> annotation = apiMethod.getAnnotation(WebPOST.class);
@@ -467,80 +583,5 @@ public class WebServerCore<API>
         return true;
     }
 
-    @Override
-    public IBeanInfo<WebServerShortInfo> gatherDiagnosticInfo() {
-        return new IBeanInfo<>("WEB/SERVERS/" + apiClass.getSimpleName(),
-                () -> info.toShortInfo());
-    }
 
-    @Override
-    public long waitBeforeStopMs() {
-        return 100;
-    }
-
-    @Override
-    public void onStop() {
-        setShouldStop(true);
-    }
-
-    protected class WebServerContextWithInfo {
-        private final WebServerContext _env;
-
-        public WebServerContextWithInfo(WebServerContext _env) {this._env = _env;}
-
-        public void addPost(String path, C1<WebRequestOuterFullContext> webRequestProcessor, boolean multipartSure,
-                O<WebMethodInfo> methodInfo) {
-            methodInfo.ifPresentOrElse(
-                    $ -> info.getPostMethods().add(OneOf.left($)),
-                    () -> info.getPostMethods().add(OneOf.right(path))
-            );
-            _env.addPost(path, webRequestProcessor, multipartSure);
-        }
-
-        public void addGet(String path, C1<WebRequestOuterFullContext> webRequestProcessor, O<WebMethodInfo> methodInfo) {
-            methodInfo.ifPresentOrElse(
-                    $ -> info.getGetMethods().add(OneOf.left($)),
-                    () -> info.getGetMethods().add(OneOf.right(path))
-            );
-            _env.addGet(path, webRequestProcessor);
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static class WebServerInfo {
-        final String apiClassName;
-        @Getter final List<OneOf<WebMethodInfo, String>> getMethods = Cc.l();
-        @Getter final List<OneOf<WebMethodInfo, String>> postMethods = Cc.l();
-
-        final F1<List<OneOf<WebMethodInfo, String>>, SortedMap<String, String>> converter = x -> x.stream()
-                .map($ -> {
-                    final String except =
-                            $.collect(w -> w.getPrecompiledModel().getExceptions().stream().map(y -> y.getExceptionName())
-                                    .sorted()
-                                    .collect(joining(",")), s -> "");
-                    final X2<String, String> x1 = X.x(
-                            $.collect(w -> String.format("%s %s(%s)",
-                                            St.subLL(w.getReturnValue().getTypeName(), "."),
-                                            w.getFullMethodPath(),
-                                            Cc.join(", ", w.getParamAndTypes(),
-                                                    pit -> subLL(pit.getType().getType().getTypeName(), ".") + " " + pit.getName())),
-                                    w -> w),
-                            except.length() > 0 ? "Exceptions: " + except : "No exceptions"
-                    );
-                    return x1;
-                }).collect(Collectors.toMap(
-                        X2::i1,
-                        X2::i2, (String a, String b) -> a, TreeMap::new));
-
-        public WebServerShortInfo toShortInfo() {
-            return new WebServerShortInfo(apiClassName, converter.apply(getMethods), converter.apply(postMethods));
-        }
-    }
-
-    @RequiredArgsConstructor
-    public static class WebServerShortInfo {
-        final String apiClassName;
-        final SortedMap<String, String> getMethods;
-        final SortedMap<String, String> postMethods;
-    }
 }

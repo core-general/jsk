@@ -27,6 +27,7 @@ import sk.services.translate.LangType;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
+import sk.utils.functional.R;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X2;
 import sk.web.WebMethodType;
@@ -55,6 +56,7 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     final WebMethodType apiMethodType;
     final O<F1<Class<? extends Exception>, O<F2<Exception, WebRequestInnerContext, WebFilterOutput>>>> exceptionProcessors;
     final O<WebAuth> webAuth;
+    final R webAuthBasicCheck;
     final O<WebIdempotence> webIdempotence;
     final WebRender webRender;
 

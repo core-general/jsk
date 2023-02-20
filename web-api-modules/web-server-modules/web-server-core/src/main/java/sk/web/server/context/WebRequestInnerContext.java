@@ -24,6 +24,7 @@ import sk.services.translate.LangType;
 import sk.utils.functional.F1;
 import sk.utils.functional.F2;
 import sk.utils.functional.O;
+import sk.utils.functional.R;
 import sk.utils.tuples.X2;
 import sk.web.WebMethodType;
 import sk.web.renders.WebFilterOutput;
@@ -100,6 +101,8 @@ public interface WebRequestInnerContext {
     void redirect(String url);
 
     O<sk.web.annotations.WebAuth> getWebAuth();
+
+    R getWebAuthBasicCheck();
 
     O<sk.web.annotations.WebIdempotence> getWebIdempotence();
 
