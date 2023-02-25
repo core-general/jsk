@@ -25,28 +25,4 @@ import sk.services.ICore4Test;
 public class IdsImplTest {
     static ICore4Test ic4t = new ICore4Test();
     static IIds ids = ic4t.ids();
-
-    //public static void main(String[] args) {
-    //    Map<String, Void> alreadyHave = new ConcurrentHashMap<>();
-    //    AtomicLong haveCounter = new AtomicLong(0l);
-    //    AtomicNotifier an = new AtomicNotifier(Integer.MAX_VALUE - 1, 100_000_000, s -> {
-    //        System.out.println(s);
-    //        System.out.println("have: " + haveCounter.get());
-    //    });
-    //
-    //    IntStream.range(0, Integer.MAX_VALUE - 1).parallel().forEach(i -> {
-    //        final String val = ids.unique(i + "", 1);
-    //        Cc.compute(alreadyHave, val, (k, v) -> {
-    //            haveCounter.incrementAndGet();
-    //            return null;
-    //        }, () -> null);
-    //        an.incrementAndNotify();
-    //    });
-    //}
-
-    //public static void main(String[] args) {
-    //    for (int i = 0; i < 1000; i++) {
-    //        Io.reWriteBin("/tmp/img" + i + ".png", w -> w.append(ids.genUniquePngImage()));
-    //    }
-    //}
 }

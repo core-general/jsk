@@ -53,14 +53,18 @@ public interface IIds {
     UUID text2Uuid(String val);
 
     default String unique(String val) {
-        return unique(val.getBytes(StandardCharsets.UTF_8), 8, false);
+        return unique(val.getBytes(StandardCharsets.UTF_8));
     }
 
-    default String unique(String val, int iterations) {
-        return unique(val.getBytes(StandardCharsets.UTF_8), iterations, false);
+    default String unique(String val, int rawByteSize) {
+        return unique(val.getBytes(StandardCharsets.UTF_8), rawByteSize);
     }
 
-    String unique(byte[] val, int iterations, boolean valIsCloned);
+    default String unique(byte[] val) {
+        return unique(val, 32);
+    }
+
+    String unique(byte[] val, int rawByteSize);
     //endregion
 
     //region Haiku
@@ -70,6 +74,7 @@ public interface IIds {
 
     /** ~1.4*10^11 combinations */
     String shortHaiku();
+
 
     JskHaikunator.LongAndShortHaikunator defaultHaikunators();
 

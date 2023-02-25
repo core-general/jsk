@@ -46,7 +46,8 @@ public abstract class IBootTempSafe implements IBootTemp {
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     OPERATION '%s' IS POTENTIALLY UNSAFE
                     PLEASE IF YOU ARE !SURE! WHAT YOU ARE DOING
-                    CREATE A FILE: %s
+                    PLEASE EXECUTE COMMAND:
+                    touch %s
                     IT WILL BE CHECKED AND THEN DELETED AFTER
                     goSafely METHOD RETURNS
                     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -20,6 +20,8 @@ package sk.services.free;
  * #L%
  */
 
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.core.HTMLOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
@@ -31,8 +33,10 @@ import sk.utils.functional.F0E;
 import sk.utils.javafixes.BuilderStringWriter;
 import sk.utils.statics.Ex;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.StringReader;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -40,6 +44,7 @@ import java.util.concurrent.ConcurrentMap;
 @Log4j2
 public class Freemarker implements IFree {
     @Inject IIds ids;
+    @Inject Optional<TemplateLoader> templateLoader = Optional.empty();
 
     private final Configuration resourceFreemarker;
     private final Configuration textFreemarker;
@@ -49,8 +54,14 @@ public class Freemarker implements IFree {
     final ConcurrentMap<String, Template> templateCache = new ConcurrentHashMap<>();
 
     public Freemarker(IIds ids) {
+        this(ids, null);
+    }
+
+    public Freemarker(IIds ids, TemplateLoader tl) {
         this();
         this.ids = ids;
+        templateLoader = Optional.ofNullable(tl);
+        postInit();
     }
 
     public Freemarker() {
@@ -69,6 +80,18 @@ public class Freemarker implements IFree {
         textFreemarkerHtml = new Configuration(new Version("2.3.23"));
         textFreemarkerHtml.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version("2.3.23")).build());
         textFreemarkerHtml.setOutputFormat(HTMLOutputFormat.INSTANCE);
+    }
+
+    @PostConstruct
+    public Freemarker postInit() {
+        templateLoader.ifPresent($ -> {
+            textFreemarker.setTemplateLoader($);
+            textFreemarkerHtml.setTemplateLoader($);
+        });
+        ClassTemplateLoader classTemplateLoader = new ClassTemplateLoader(this.getClass(), "/");
+        resourceFreemarker.setTemplateLoader(classTemplateLoader);
+        resourceFreemarkerHtml.setTemplateLoader(classTemplateLoader);
+        return this;
     }
 
     @Override
@@ -109,7 +132,7 @@ public class Freemarker implements IFree {
                     () -> new Template("_", new StringReader(templateText), (html ? textFreemarkerHtml : textFreemarker));
             Template template;
             if (templateIsCacheable) {
-                template = templateCache.computeIfAbsent(ids.text2Uuid(templateText).toString(), (k) -> {
+                template = templateCache.computeIfAbsent(ids.unique(templateText), (k) -> {
                     try {
                         return templater.apply();
                     } catch (Exception e) {

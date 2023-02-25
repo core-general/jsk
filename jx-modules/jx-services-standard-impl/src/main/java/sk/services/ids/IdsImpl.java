@@ -21,7 +21,6 @@ package sk.services.ids;
  */
 
 import com.fasterxml.uuid.Generators;
-import org.jetbrains.annotations.NotNull;
 import sk.services.bytes.IBytes;
 import sk.services.rand.SecureRandImpl;
 import sk.services.time.ITime;
@@ -32,9 +31,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
 
@@ -76,14 +73,14 @@ public class IdsImpl implements IIds {
 
         random.nextBytes(bytes);
 
-        String s = enc64LeaveLettersAndNumbers(bytes);
+        String s = this.bytes.enc62(bytes);
 
         return s.substring(0, length);
     }
 
     @Override
     public UUID text2Uuid(String val) {
-        return UUID.nameUUIDFromBytes(val.getBytes(StandardCharsets.UTF_8));
+        return bytes.crcAny(val.getBytes(St.UTF8), 16).asUUID();
     }
 
     @Override
@@ -98,23 +95,8 @@ public class IdsImpl implements IIds {
     }
 
     @Override
-    public String unique(byte[] val, int iterations, boolean valIsCloned) {
-        if (iterations > 255) {
-            throw new RuntimeException("Must be less than 255 bytes");
-        }
-        if (valIsCloned) {
-            val = Arrays.copyOf(val, val.length);
-        }
-        ByteBuffer bb = ByteBuffer.allocate(iterations * 4);
-
-        bb.putInt(0, this.bytes.crc32Signed(val));
-
-        for (byte i = -128; i < 127 - (255 - iterations + 1); i++) {
-            val[0] = i;
-            bb.putInt((i + 128 + 1) * 4, this.bytes.crc32Signed(val));
-        }
-
-        return enc64LeaveLettersAndNumbers(bb.array());
+    public String unique(byte[] val, int unqieKeyRawByteSize) {
+        return bytes.crcAny(val, unqieKeyRawByteSize).asBase62();
     }
 
     @Override
@@ -139,12 +121,6 @@ public class IdsImpl implements IIds {
     @Override
     public String timedHaiku() {
         return haikunator.timed().haikunate();
-    }
-
-    @NotNull
-    private String enc64LeaveLettersAndNumbers(byte[] array) {
-        final String s = bytes.enc64(array);
-        return St.ss(s, 0, s.indexOf('=')).replaceAll("[+/=]", "0");
     }
 
 

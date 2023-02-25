@@ -24,8 +24,6 @@ import org.junit.Test;
 import sk.services.ICore4Test;
 import sk.utils.statics.Cc;
 
-import java.util.UUID;
-
 import static org.junit.Assert.assertEquals;
 
 public class FreemarkerTest {
@@ -44,8 +42,8 @@ public class FreemarkerTest {
         assertEquals(free.processByText(templateText2, Cc.m("abc", "7"), true), "73");
 
 
-        final UUID id1 = icore.ids().text2Uuid(templateText1);
-        final UUID id2 = icore.ids().text2Uuid(templateText2);
+        String id1 = icore.ids().unique(templateText1);
+        String id2 = icore.ids().unique(templateText2);
         assertEquals(Cc.join(free.templateCache.keySet().stream().sorted()), id1 + "," + id2);
     }
 }

@@ -22,14 +22,18 @@ package sk.services.bytes;
 
 import sk.services.http.CrcAndSize;
 import sk.services.http.EtagAndSize;
+import sk.utils.collections.ByteArrKey;
 import sk.utils.functional.O;
+import sk.utils.javafixes.Base62;
 import sk.utils.statics.*;
 
 import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.util.zip.*;
@@ -56,12 +60,16 @@ public interface IBytes {
         }
     }
 
+    //region CRC
     default long crc32(byte[] bytes) {
-        Checksum checksum = new CRC32();
-        checksum.update(bytes, 0, bytes.length);
-        return checksum.getValue();
+        return crc32(bytes, 0, bytes.length);
     }
 
+    default long crc32(byte[] bytes, int offset, int size) {
+        Checksum checksum = new CRC32();
+        checksum.update(bytes, offset, size);
+        return checksum.getValue();
+    }
 
     default long crc32c(byte[] bytes) {
         Checksum checksum = new CRC32C();
@@ -70,7 +78,11 @@ public interface IBytes {
     }
 
     default int crc32Signed(byte[] bytes) {
-        final long l = crc32(bytes);
+        return crc32Signed(bytes, 0, bytes.length);
+    }
+
+    default int crc32Signed(byte[] bytes, int offset, int limit) {
+        final long l = crc32(bytes, offset, limit);
         return (int) (l - Integer.MAX_VALUE / 2);
     }
 
@@ -78,13 +90,34 @@ public interface IBytes {
         return crc32(utf.getBytes(UTF_8));
     }
 
-
-    default EtagAndSize calcEtagAndSize(byte[] data) {
-        return new EtagAndSize(St.bytesToHex(md5(data)), data.length);
+    default ByteArrKey crcAny64(byte[] toEncode) {
+        return crcAny(toEncode, 8);
     }
 
-    default CrcAndSize calcCrcAndSize(byte[] data) {
-        return new CrcAndSize(crc32(data), data.length);
+    default ByteArrKey crcAny128(byte[] toEncode) {
+        return crcAny(toEncode, 16);
+    }
+
+    default ByteArrKey crcAny256(byte[] toEncode) {
+        return crcAny(toEncode, 32);
+    }
+
+    default ByteArrKey crcAny(byte[] toEncode, int byteCount) {
+        int numOfSlices = byteCount / 4 + (byteCount % 4 == 0 ? 0 : 1);
+        int layerSizeBytes = numOfSlices * 4;
+        int sliceSize = toEncode.length / numOfSlices + (toEncode.length % numOfSlices == 0 ? 0 : 1);
+        int shuffler = crc32Signed(String.valueOf(crc32Signed(toEncode) << 1).getBytes());
+        ByteBuffer bb = ByteBuffer.allocate(numOfSlices * 4);
+        for (int i = 0; i < numOfSlices; i++) {
+            int offset = i * sliceSize;
+            offset = offset >= toEncode.length ? toEncode.length - 1 : offset;
+            int curSlizeSize = Math.min(sliceSize, toEncode.length - offset);
+            int i1 = crc32Signed(toEncode, offset, curSlizeSize);
+            int value = crc32Signed(String.valueOf(i1 ^ shuffler + i).getBytes());
+            bb.putInt(i * 4, value);
+        }
+
+        return new ByteArrKey(Arrays.copyOf(bb.array(), byteCount));
     }
 
     default O<String> decodeCrcEncodedValue(String encodedValue) {
@@ -104,9 +137,23 @@ public interface IBytes {
         }
         return O.empty();
     }
+    //endregion
 
+    default EtagAndSize calcEtagAndSize(byte[] data) {
+        return new EtagAndSize(St.bytesToHex(md5(data)), data.length);
+    }
+
+    default CrcAndSize calcCrcAndSize(byte[] data) {
+        return new CrcAndSize(crc32(data), data.length);
+    }
+
+    //region Base64/62
     default String enc64(byte[] bytes) {
         return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    default String enc62(byte[] bytes) {
+        return Base62.encode(bytes);
     }
 
     default String enc64Url(byte[] bytes) {
@@ -117,10 +164,17 @@ public interface IBytes {
         return Base64.getDecoder().decode(bytes);
     }
 
+    default byte[] dec62(String bytes) {
+        return Base62.decode(bytes);
+    }
+
     default byte[] dec64Url(String bytes) {
         return Base64.getUrlDecoder().decode(bytes);
     }
+    //endregion
 
+
+    //region UrlEncode
     default String urlEncode(String value) {
         return URLEncoder.encode(value, UTF_8);
     }
@@ -128,8 +182,10 @@ public interface IBytes {
     default String urlDecode(String value) {
         return URLDecoder.decode(value, UTF_8);
     }
+    //endregion
 
 
+    //region BCrypt
     default String bcryptHash(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
@@ -140,6 +196,7 @@ public interface IBytes {
     default boolean bcryptCheck(String password, String hash) {
         return BCrypt.checkpw(password, hash);
     }
+    //endregion
 
 
     //endregion

@@ -5,24 +5,24 @@
     <parent>
         <artifactId>spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.7.17</version>
+        <version>jsk.17.7.22</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spring-core</artifactId>
-    <version>jsk.17.7.17</version>
+    <version>jsk.17.7.22</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.7.17</version>
+            <version>jsk.17.7.22</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-properties-plugin-model</artifactId>
-            <version>jsk.17.7.17</version>
+            <version>jsk.17.7.22</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
