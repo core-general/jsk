@@ -5,15 +5,15 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.7.22</version>
+        <version>jsk.17.8.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.17.7.22</version>
+    <version>jsk.17.8.1</version>
     <properties>
-        <aws-version>2.17.191</aws-version>
+        <aws-version>2.20.12</aws-version>
     </properties>
 
     <modules>

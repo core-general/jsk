@@ -5,7 +5,7 @@
     <parent>
         <artifactId>fb-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.7.22</version>
+        <version>jsk.17.8.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,12 +14,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.17.7.22</version>
+            <version>jsk.17.8.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.17.7.22</version>
+            <version>jsk.17.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -33,6 +33,12 @@
             <groupId>com.github.messenger4j</groupId>
             <artifactId>messenger4j</artifactId>
             <version>1.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

@@ -5,18 +5,18 @@
     <parent>
         <artifactId>web-server-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.7.22</version>
+        <version>jsk.17.8.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-melody-patch</artifactId>
-    <version>jsk.17.7.22</version>
+    <version>jsk.17.8.1</version>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.17.7.22</version>
+            <version>jsk.17.8.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -39,6 +39,7 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
