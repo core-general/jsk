@@ -59,6 +59,6 @@ public class ApiMethodModel {
     }
 
     public ApiFieldOrParameterModel getReturnInfoOrVoid() {
-        return returnInfo.orElseGet(() -> new ApiFieldOrParameterModel("", O.empty(), O.of("void")));
+        return returnInfo.orElseGet(() -> new ApiFieldOrParameterModel("", false, O.empty(), O.of("void")));
     }
 }

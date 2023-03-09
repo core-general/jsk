@@ -48,6 +48,7 @@ public class WebMethodInfo {
     public static class ParameterNameAndType {
         String name;
         TypeWrap type;
+        boolean merging;
 
         public String getTypeName() {
             return O.ofNull(type).flatMap($ -> O.ofNull($.getType())).flatMap($ -> O.ofNull($.getTypeName())).orElse("NONE");

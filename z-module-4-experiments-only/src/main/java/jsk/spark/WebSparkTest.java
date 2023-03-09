@@ -182,6 +182,16 @@ public class WebSparkTest {
         public String basicAuthTest() {
             return "abc";
         }
+
+        @Override
+        public String testParamsToObjectMergerGet(SomeClass2 someCls2) {
+            return json.to(someCls2, true);
+        }
+
+        @Override
+        public String testParamsToObjectMergerPost(SomeClass2 someCls2) {
+            return testParamsToObjectMergerGet(someCls2);
+        }
     }
 
     public static class Api3Impl implements TestApiSwaggerTest3 {

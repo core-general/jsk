@@ -103,4 +103,12 @@ public interface TestApi1 {
     @WebGET
     @WebAuthBasic(realmName = "XXX", forceParametersExist = true)
     String basicAuthTest();
+
+    @WebGET
+    @WebRender(WebRenderType.RAW_STRING)
+    String testParamsToObjectMergerGet(@WebParamsToObject SomeClass2 someCls2);
+
+    @WebPOST
+    @WebRender(WebRenderType.RAW_STRING)
+    String testParamsToObjectMergerPost(@WebParamsToObject SomeClass2 someCls2);
 }

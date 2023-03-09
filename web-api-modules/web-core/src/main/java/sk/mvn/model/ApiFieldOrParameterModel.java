@@ -33,6 +33,7 @@ import sk.utils.statics.St;
 @NoArgsConstructor
 public class ApiFieldOrParameterModel {
     String name;
+    boolean isMerging;
     O<String> comment = O.empty();
     O<String> typeSimpleName = O.empty();
 

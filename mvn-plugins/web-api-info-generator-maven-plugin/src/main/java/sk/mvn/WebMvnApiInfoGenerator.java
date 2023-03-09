@@ -49,9 +49,11 @@ import sk.services.nodeinfo.model.ApiBuildInfo;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.statics.Io;
 import sk.utils.statics.St;
 import sk.utils.tuples.X1;
+import sk.web.annotations.WebParamsToObject;
 import sk.web.annotations.WebPath;
 
 import java.util.*;
@@ -211,9 +213,10 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
                             boolean isEnum = compile.getEnumByName(currentType).isPresent();
 
                             processedTypes.put(currentType, isEnum
-                                    ? getEnumType(currentType, compile.getEnumByName(currentType).get())
-                                    : getClassTypeAndAddNewTypesToQueue(currentType, compile.getClassByName(currentType).get(),
-                                            typeProcessor::accept));
+                                                            ? getEnumType(currentType, compile.getEnumByName(currentType).get())
+                                                            : getClassTypeAndAddNewTypesToQueue(currentType,
+                                                                    compile.getClassByName(currentType).get(),
+                                                                    typeProcessor::accept));
                         } catch (Exception e) {
                             processedTypes.put(currentType, emptyDtoTypeCreator(currentType));
                         }
@@ -228,13 +231,14 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
     private ApiDtoClassModel getClassTypeAndAddNewTypesToQueue(String currentType, ClassOrInterfaceDeclaration clz,
             C1<O<String>> tryAddToQueue) {
         O<String> oParentType = clz.getExtendedTypes().size() > 0
-                ? O.ofNull(clz.getExtendedTypes().get(0).asString())
-                : empty();
+                                ? O.ofNull(clz.getExtendedTypes().get(0).asString())
+                                : empty();
 
         List<ApiFieldOrParameterModel> fields = clz.getFields().stream()
                 .filter($ -> !$.isStatic() && !$.isFinal() && !$.isTransient() &&
-                        !$.getVariable(0).getNameAsString().equals("__class"))
+                             !$.getVariable(0).getNameAsString().equals("__class"))
                 .map($ -> new ApiFieldOrParameterModel($.getVariable(0).getNameAsString(),
+                        false,
                         getJavadocNoParams($.getJavadoc()),
                         O.ofNull($.getVariable(0).getTypeAsString())
                 ))
@@ -249,7 +253,7 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
 
     private ApiDtoClassModel getEnumType(String name, EnumDeclaration enumDeclaration) {
         List<ApiFieldOrParameterModel> fields = enumDeclaration.getEntries().stream()
-                .map($ -> new ApiFieldOrParameterModel($.getNameAsString(), getJavadocNoParams($.getJavadoc()), null))
+                .map($ -> new ApiFieldOrParameterModel($.getNameAsString(), false, getJavadocNoParams($.getJavadoc()), null))
                 .collect(Cc.toL());
         return new ApiDtoClassModel(name, true, fields, empty(), getJavadocNoParams(enumDeclaration.getJavadoc()));
     }
@@ -281,6 +285,10 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
             Map<String, String> paramComments = getJavadocMapBlock(methodDesc.getJavadoc(), "param");
             List<ApiFieldOrParameterModel> parameters = methodDesc.getParameters().stream()
                     .map(param -> new ApiFieldOrParameterModel(param.getNameAsString(),
+                            param.getAnnotations().getFirst()
+                                    .map($ -> Fu.equalIgnoreCase($.getName().getIdentifier(),
+                                            WebParamsToObject.class.getSimpleName()))
+                                    .orElse(false),
                             ofNull(paramComments.get(param.getNameAsString())),
                             O.ofNull(param.getTypeAsString())
                     ))
@@ -302,7 +310,7 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
                     path,
                     getJavadocNoParams(methodDesc.getJavadoc()),
                     exceptions,
-                    O.ofNull(methodDesc.getTypeAsString()).map(x -> new ApiFieldOrParameterModel(null,
+                    O.ofNull(methodDesc.getTypeAsString()).map(x -> new ApiFieldOrParameterModel(null, false,
                             getJavadocOneParam(methodDesc.getJavadoc(), "return"), ofNull(x))),
                     parameters);
             String hash = apiUtil.calculateHashCode(
@@ -388,8 +396,8 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
 
     private Map<String, String> getJavadocMapBlock(Optional<Javadoc> javadoc, String javadocParam) {
         return javadoc.map(c -> c.getBlockTags().stream()
-                .filter(t -> t.getTagName().equalsIgnoreCase(javadocParam) && t.getName().isPresent())
-                .collect(Cc.toM(t -> t.getName().get(), t -> t.getContent().toText(), (a, b) -> a)))
+                        .filter(t -> t.getTagName().equalsIgnoreCase(javadocParam) && t.getName().isPresent())
+                        .collect(Cc.toM(t -> t.getName().get(), t -> t.getContent().toText(), (a, b) -> a)))
                 .orElse(Cc.m());
     }
 

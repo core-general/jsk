@@ -59,7 +59,8 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
         Map<String, Method> currentMethods = stream(getActualApiMethods(apiCls)).collect(toM($ -> $.getName(), $ -> $));
         ApiClassModel precompiledModel = hasher.getApiClassFromResources(apiCls)
                 .orElseGet(() -> except.throwByDescription("Api class descriptor file not found \n" +
-                        "Please enable plugin web-api-info-generator-maven-plugin for:" + apiCls));
+                                                           "Please enable plugin web-api-info-generator-maven-plugin for:" +
+                                                           apiCls));
 
         validateModel(currentMethods, precompiledModel)
                 .ifPresent($ -> except.throwByDescription("Can't parse api for " + apiCls + "\n" + $));
@@ -80,11 +81,13 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
                     return new WebMethodInfo($.getValue(),
                             getMethodApiPath(basePath, $.getValue()),
                             method,
-                            new WebMethodInfo.ParameterNameAndType(null, TypeWrap.raw($.getValue().getReturnType())),
+                            new WebMethodInfo.ParameterNameAndType(null, TypeWrap.raw($.getValue().getReturnType()), false),
                             mapEachWithIndex(Arrays.asList($.getValue().getParameters()),
                                     (p, i) -> new WebMethodInfo.ParameterNameAndType(
                                             methodModel.getParams().get(i).getName(),
-                                            TypeWrap.raw(paramTypes[i]))),
+                                            TypeWrap.raw(paramTypes[i]),
+                                            methodModel.getParams().get(i).isMerging()
+                                    )),
                             methodModel);
                 })
                 .collect(toM($ -> $.getMethod().getName(), $ -> $));
@@ -122,9 +125,9 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
             return O.empty();
         } else {
             String neuToOld = "Methods in new API class not existing in old:" +
-                    thisMethods.stream().sorted().collect(Collectors.joining(", "));
+                              thisMethods.stream().sorted().collect(Collectors.joining(", "));
             String oldToNeu = "Methods in old API class not existing in new:" +
-                    otherMethods.stream().sorted().collect(Collectors.joining(", "));
+                              otherMethods.stream().sorted().collect(Collectors.joining(", "));
 
             return O.of("Api problems: \n" + neuToOld + "\n" + oldToNeu);
         }

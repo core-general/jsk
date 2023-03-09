@@ -1,10 +1,10 @@
-package jsk.spark.testmodel;
+package sk.web.annotations;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2023 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,15 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import sk.utils.functional.O;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.Optional;
-
-@NoArgsConstructor
-@AllArgsConstructor
 /**
- * Cool class
+ * Allows to merge parameters of request directly to an object (for example in case you send some form data, which could not
+ * be automatically wrapped to json object)
  */
-public class SomeClass2 {
-    String cool;
-    /**
-     * Cool field
-     */
-    SomeEnum enum1;
-
-    Optional<String> someString = Optional.empty();
-    Optional<SomeClass1> some = Optional.empty();
-
-    O<String> someString1 = O.empty();
-    O<SomeClass1> some1 = O.empty();
-}
+@Retention(value = RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER})
+public @interface WebParamsToObject {}

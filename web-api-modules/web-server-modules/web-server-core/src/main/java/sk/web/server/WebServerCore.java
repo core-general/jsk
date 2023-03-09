@@ -259,7 +259,7 @@ public class WebServerCore<API>
                     //should be fixed, that's why stacktrace
                     if (exceptConf.shouldLog(unknownExc)) {
                         log.error("Error on request unknown: " + exceptConf.getUnknownExceptionHttpCode() + " " +
-                                INTERNAL_ERROR, unknownExc);
+                                  INTERNAL_ERROR, unknownExc);
                     }
                     outerContext.setError(exceptConf.getUnknownExceptionHttpCode(),
                             webExcept.getDefaultExceptionRender(), JskProblem.code(INTERNAL_ERROR), webApiMethod);
@@ -267,17 +267,10 @@ public class WebServerCore<API>
             };
 
             switch (methodInfo.getType()) {
-                case POST_MULTI_SURE:
-                    env.addPost(methodInfo.getFullMethodPath(), outerProcessor, true, of(methodInfo));
-                    break;
-                case POST_MULTI:
-                case POST_FORM:
-                case POST_BODY:
-                    env.addPost(methodInfo.getFullMethodPath(), outerProcessor, false, of(methodInfo));
-                    break;
-                case GET:
-                    env.addGet(methodInfo.getFullMethodPath(), outerProcessor, of(methodInfo));
-                    break;
+                case POST_MULTI_SURE -> env.addPost(methodInfo.getFullMethodPath(), outerProcessor, true, of(methodInfo));
+                case POST_MULTI, POST_FORM, POST_BODY ->
+                        env.addPost(methodInfo.getFullMethodPath(), outerProcessor, false, of(methodInfo));
+                case GET -> env.addGet(methodInfo.getFullMethodPath(), outerProcessor, of(methodInfo));
             }
         }
 
@@ -288,8 +281,7 @@ public class WebServerCore<API>
 
     @Override
     public IBeanInfo<WebServerShortInfo> gatherDiagnosticInfo() {
-        return new IBeanInfo<>("WEB/SERVERS/" + apiClass.getSimpleName(),
-                () -> info.toShortInfo());
+        return new IBeanInfo<>("WEB/SERVERS/" + apiClass.getSimpleName(), () -> info.toShortInfo());
     }
 
     @Override
@@ -471,7 +463,7 @@ public class WebServerCore<API>
         for (int i = 0; i < params.size(); i++) {
             WebMethodInfo.ParameterNameAndType nt = params.get(i);
             F1<WebRequestReadableOuterContext, Object> oneParameter =
-                    getOneParameter(nt.getName(), nt.getType().getType(), false, onlyBody);
+                    getOneParameter(nt.getName(), nt.getType().getType(), false, onlyBody, nt.isMerging());
             cachedInvokers.put(nt.getName(), oneParameter);
         }
         return (param, webRequestContext) -> {
@@ -485,14 +477,14 @@ public class WebServerCore<API>
     }
 
     private F1<WebRequestReadableOuterContext, Object> getOneParameter(String paramName, Type type, boolean nullAllowed,
-            boolean onlyBody) {
+            boolean onlyBody, boolean isMerged) {
         if (type instanceof ParameterizedType) {
             Type[] typePar = ((ParameterizedType) type).getActualTypeArguments();
             if (((ParameterizedType) type).getRawType() == O.class) {
-                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody)
+                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody, false)
                         .andThen(O::ofNullable);
             } else if (((ParameterizedType) type).getRawType() == Optional.class) {
-                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody)
+                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody, false)
                         .andThen(Optional::ofNullable);
             } else {
                 return fromString(paramName, nullAllowed, s -> json.from(s, TypeWrap.raw(type)), onlyBody);
@@ -526,6 +518,23 @@ public class WebServerCore<API>
         } else if (type == byte[].class) {
             return w -> (onlyBody ? w.getBody() : w.getParamAsBytes(paramName))
                     .orElseGet(() -> (byte[]) NON_NULL_CHECK.apply(paramName, nullAllowed).get());
+        } else if (isMerged) {
+            Class cls = (Class) type;
+            return ctx -> {
+                Object obj = Re.createObjectByDefault(cls).get();
+                boolean[] allNull = new boolean[]{true};
+                Re.getAllNonStaticFields(cls).forEach(field -> {
+                    boolean fieldNullAllowed = (field.getType() == O.class || field.getType() == Optional.class);
+                    Object fieldValue =
+                            getOneParameter(field.getName(), field.getGenericType(), nullAllowed || fieldNullAllowed, false,
+                                    false).apply(ctx);
+                    if (fieldValue != null) {
+                        allNull[0] = false;
+                    }
+                    Re.setter(field).get().accept(obj, fieldValue);
+                });
+                return allNull[0] ? null : obj;
+            };
         } else {
             return fromString(paramName, nullAllowed, s -> json.from(s, TypeWrap.raw(type)), onlyBody);
         }
