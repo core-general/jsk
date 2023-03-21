@@ -1,10 +1,10 @@
-package sk.web.server.params;
+package jsk.vaadin.components;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2023 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ package sk.web.server.params;
  * #L%
  */
 
-public interface WebApiInfoParams {
-    public String getBasicAuthLogin();
+import com.vaadin.flow.component.html.Span;
 
-    public String getBasicAuthPass();
+public class YHtml extends Span {
+    public YHtml(String html) {
+        super();
+        getElement().setProperty("innerHTML", html);
+    }
 }

@@ -60,7 +60,7 @@ import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.WebServerFilterNext;
 import sk.web.server.filters.standard.*;
 import sk.web.server.model.WebProblemWithRequestBodyException;
-import sk.web.server.params.WebApiInfoParams;
+import sk.web.server.params.WebBasicAuthParams;
 import sk.web.server.params.WebExceptionParams;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
@@ -109,7 +109,7 @@ public class WebServerCore<API>
     @Inject protected IIds ids;
 
     @Inject protected WebContextHolder ctxHolder;
-    @Inject protected Optional<WebApiInfoParams> apiInfoParams;
+    @Inject protected Optional<WebBasicAuthParams> apiInfoParams;
     @Inject protected IBytes bytes;
 
     @Getter
@@ -382,7 +382,7 @@ public class WebServerCore<API>
                     });
         }, () -> {
             if (forceHasParameters) {
-                throw new RuntimeException("WebApiInfoParams is not found, but must be present");
+                throw new RuntimeException("WebBasicAuthParams is not found, but must be present");
             }
         });
     }

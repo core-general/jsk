@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.17.8.5</version>
+    <version>jsk.17.8.7</version>
 
     <modules>
         <module>jx-modules</module>
@@ -21,6 +21,7 @@
         <module>mvn-plugins</module>
         <module>maths</module>
         <module>g-cluster</module>
+        <module>web-api-modules/web-server-modules/web-vaadin-common</module>
     </modules>
 
     <properties>

@@ -156,6 +156,15 @@ public final class Im/*ages*/ {
     //endregion
 
 
+    public static String toHexColor(Color color, boolean withAlpha) {
+        final String hexColorAlphaFirst = Integer.toHexString(color.getRGB());
+        if (withAlpha) {
+            return "#" + hexColorAlphaFirst.substring(hexColorAlphaFirst.length() - 6) + hexColorAlphaFirst.substring(0, 2);
+        } else {
+            return "#" + hexColorAlphaFirst.substring(2);
+        }
+    }
+
     public enum Format {
 
     }

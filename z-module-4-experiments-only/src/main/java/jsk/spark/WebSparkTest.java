@@ -61,7 +61,7 @@ import sk.web.server.filters.additional.WebRequestFullInfo;
 import sk.web.server.filters.additional.WebUserActionLoggingFilter;
 import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
-import sk.web.server.params.WebApiInfoParams;
+import sk.web.server.params.WebBasicAuthParams;
 import sk.web.server.params.WebIdempotenceParams;
 import sk.web.server.params.WebUserActionLoggerParams;
 import sk.web.server.spark.WebJettyEntryPoint;
@@ -336,8 +336,8 @@ public class WebSparkTest {
         }
 
         @Bean
-        WebApiInfoParams WebApiInfoParams() {
-            return new WebApiInfoParams() {
+        WebBasicAuthParams WebApiInfoParams() {
+            return new WebBasicAuthParams() {
                 @Override
                 public String getBasicAuthLogin() {
                     return "abc";
