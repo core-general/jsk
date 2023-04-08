@@ -37,7 +37,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
-public class UTLongIdToBigInt implements UserType, ParameterizedType {
+public class UTLongIdToBigInt implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTLongIdToBigInt";
     @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
 
@@ -69,8 +69,8 @@ public class UTLongIdToBigInt implements UserType, ParameterizedType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.BIGINT};
+    public int getSqlType() {
+        return Types.BIGINT;
     }
 
     @Override
@@ -79,9 +79,9 @@ public class UTLongIdToBigInt implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        Long val = rs.getLong(names[0]);
+        Long val = rs.getLong(names);
         return creator.apply(val);
     }
 

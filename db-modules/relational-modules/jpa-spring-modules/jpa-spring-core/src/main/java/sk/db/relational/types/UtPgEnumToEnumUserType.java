@@ -35,7 +35,7 @@ import java.util.Properties;
 /**
  * This class is used to convert postgresql enums to java enums
  */
-public class UtPgEnumToEnumUserType implements UserType, ParameterizedType {
+public class UtPgEnumToEnumUserType implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UtPgEnumToEnumUserType";
     public static final String param = "targetType";
 
@@ -57,8 +57,8 @@ public class UtPgEnumToEnumUserType implements UserType, ParameterizedType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
@@ -77,9 +77,9 @@ public class UtPgEnumToEnumUserType implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String name = rs.getString(names[0]);
+        String name = rs.getString(names);
         return rs.wasNull() ? null : Enum.valueOf(enumClass, name);
     }
 

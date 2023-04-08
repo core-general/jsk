@@ -20,6 +20,7 @@ package sk.db.relational.model;
  * #L%
  */
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,7 +30,6 @@ import sk.db.relational.types.UTStringToJsonb;
 import sk.db.relational.types.UTUuidIdToUuid;
 import sk.db.relational.types.UTZdtToTimestamp;
 
-import javax.persistence.*;
 import java.time.ZonedDateTime;
 
 @Data
@@ -40,7 +40,7 @@ import java.time.ZonedDateTime;
 public class JpaImportantLog extends JpaWithContextAndCreatedUpdated {
     @Id
     @Column(name = "id")
-    @Type(type = UTUuidIdToUuid.type, parameters = {@Parameter(name = UTUuidIdToUuid.param, value = ImportantLogId.type)})
+    @Type(value = UTUuidIdToUuid.class, parameters = {@Parameter(name = UTUuidIdToUuid.param, value = ImportantLogId.type)})
     ImportantLogId id;
 
     @Column(name = "category")
@@ -50,7 +50,7 @@ public class JpaImportantLog extends JpaWithContextAndCreatedUpdated {
     String type;
 
     @Column(name = "info")
-    @Type(type = UTStringToJsonb.type)
+    @Type(value = UTStringToJsonb.class)
     String info;
 
     @Version
@@ -58,11 +58,11 @@ public class JpaImportantLog extends JpaWithContextAndCreatedUpdated {
     Long counter;
 
     @Column(name = "created_at")
-    @Type(type = UTZdtToTimestamp.type)
+    @Type(value = UTZdtToTimestamp.class)
     ZonedDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Type(type = UTZdtToTimestamp.type)
+    @Type(value = UTZdtToTimestamp.class)
     ZonedDateTime updatedAt;
 
     @PrePersist

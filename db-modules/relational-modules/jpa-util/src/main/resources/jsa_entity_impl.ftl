@@ -29,7 +29,7 @@ import lombok.*;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -71,12 +71,12 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             <#break>
         <#case "ENUM">
             @Column(name = "${field.columnName}")
-            @Type(type = UTEnumToString.type, parameters = {@Parameter(name = UTEnumToString.param, value = ${field.mainType}.type)})
+            @Type(value = UTEnumToString.class, parameters = {@Parameter(name = UTEnumToString.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "PG_ENUM">
             @Column(name = "${field.columnName}")
-            @Type(type = UtPgEnumToEnumUserType.type, parameters = {@Parameter(name = UtPgEnumToEnumUserType.param, value = ${field.mainType}.type)})
+            @Type(value = UtPgEnumToEnumUserType.class, parameters = {@Parameter(name = UtPgEnumToEnumUserType.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "ZDT">

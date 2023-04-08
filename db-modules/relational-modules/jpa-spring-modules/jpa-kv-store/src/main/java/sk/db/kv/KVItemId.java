@@ -20,14 +20,14 @@ package sk.db.kv;
  * #L%
  */
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import sk.services.kv.keys.KvKey;
 import sk.services.kv.keys.KvKeyRaw;
 import sk.utils.statics.Cc;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.List;
 

@@ -33,7 +33,7 @@ import java.sql.Types;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
-public class UTEnumToString implements UserType, ParameterizedType {
+public class UTEnumToString implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTEnumToString";
     public static final String param = "enumClassName";
     private Class<Enum> enumClass;
@@ -59,8 +59,8 @@ public class UTEnumToString implements UserType, ParameterizedType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
@@ -79,9 +79,9 @@ public class UTEnumToString implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String name = rs.getString(names[0]);
+        String name = rs.getString(names);
         //noinspection unchecked
         return rs.wasNull() ? null : Enum.valueOf(enumClass, name);
     }

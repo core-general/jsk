@@ -37,7 +37,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings({"unused"})
-public class UTIntIdToInt implements UserType, ParameterizedType {
+public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTIntIdToInt";
     public static final String param = "targetType";
 
@@ -68,9 +68,10 @@ public class UTIntIdToInt implements UserType, ParameterizedType {
         }
     }
 
+
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.INTEGER};
+    public int getSqlType() {
+        return Types.INTEGER;
     }
 
     @Override
@@ -79,9 +80,9 @@ public class UTIntIdToInt implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        Integer uuid = rs.getInt(names[0]);
+        Integer uuid = rs.getInt(names);
         return creator.apply(uuid);
     }
 

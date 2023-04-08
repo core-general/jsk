@@ -37,7 +37,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
-public class UTTextIdToVarchar implements UserType, ParameterizedType {
+public class UTTextIdToVarchar implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTTextIdToVarchar";
     @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
 
@@ -70,8 +70,8 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
@@ -80,9 +80,9 @@ public class UTTextIdToVarchar implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
-            throws HibernateException, SQLException {
-        String uuid = rs.getString(names[0]);
+    public Object nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
+            throws SQLException {
+        String uuid = rs.getString(position);
         return creator.apply(uuid);
     }
 

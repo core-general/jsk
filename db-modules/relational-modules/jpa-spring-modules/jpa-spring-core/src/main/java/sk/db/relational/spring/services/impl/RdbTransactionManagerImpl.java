@@ -20,6 +20,9 @@ package sk.db.relational.spring.services.impl;
  * #L%
  */
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceContext;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -33,9 +36,6 @@ import sk.utils.functional.O;
 import sk.utils.tuples.*;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.OptimisticLockException;
-import javax.persistence.PersistenceContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

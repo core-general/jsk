@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.8.7</version>
+        <version>jsk.17.9.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-spring-core</artifactId>
-            <version>jsk.17.8.7</version>
+            <version>jsk.17.9.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

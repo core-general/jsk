@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jakarta.persistence.*;
 import jsk.gcl.cli.model.GclJobGroupId;
 import jsk.gcl.cli.model.GclJobId;
 import jsk.gcl.srv.logic.jobs.model.GclJobInnerState;
@@ -33,8 +34,6 @@ import org.hibernate.annotations.Type;
 import sk.db.relational.model.JpaWithContextAndCreatedUpdated;
 import sk.db.relational.types.UTEnumToString;
 
-import javax.persistence.*;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,7 +42,7 @@ import javax.persistence.*;
 public class GclJobJpa extends JpaWithContextAndCreatedUpdated implements GclJob {
     @Id
     @Column(name = "j_id")
-    @Type(type = sk.db.relational.types.UTTextIdToVarchar.type, parameters = {
+    @Type(value = sk.db.relational.types.UTTextIdToVarchar.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclJobId.type)})
     GclJobId jId;
 
@@ -51,7 +50,7 @@ public class GclJobJpa extends JpaWithContextAndCreatedUpdated implements GclJob
     java.lang.String jTag;
 
     @Column(name = "j_jg_id")
-    @Type(type = sk.db.relational.types.UTTextIdToVarchar.type, parameters = {
+    @Type(value = sk.db.relational.types.UTTextIdToVarchar.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclJobGroupId.type)})
     GclJobGroupId jJgId;
     @ManyToOne(fetch = FetchType.LAZY)
@@ -59,26 +58,26 @@ public class GclJobJpa extends JpaWithContextAndCreatedUpdated implements GclJob
     GclJobGroupJpa jJg;
 
     @Column(name = "j_status")
-    @Type(type = UTEnumToString.type, parameters = {
+    @Type(value = UTEnumToString.class, parameters = {
             @Parameter(name = UTEnumToString.param, value = GclJobStatus.type)})
     GclJobStatus jStatus;
 
     @Column(name = "j_inner_state")
-    @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
+    @Type(value = sk.db.relational.types.UTObjectToJsonb.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value =
                     GclJobInnerState.type)})
     GclJobInnerState jInnerState;
 
     @Column(name = "j_life_ping")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime jLifePing;
 
     @Column(name = "created_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime updatedAt;
 
     @Version

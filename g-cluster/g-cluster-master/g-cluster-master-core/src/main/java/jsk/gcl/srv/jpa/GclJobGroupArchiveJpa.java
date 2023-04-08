@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jakarta.persistence.*;
 import jsk.gcl.cli.model.GclJobGroupId;
 import jsk.gcl.srv.logic.jobs.model.GclJobGroupInnerState;
 import jsk.gcl.srv.logic.jobs.model.GclJobStatus;
@@ -32,8 +33,6 @@ import org.hibernate.annotations.Type;
 import sk.db.relational.model.JpaWithContextAndCreatedUpdated;
 import sk.db.relational.types.UTEnumToString;
 
-import javax.persistence.*;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,7 +41,7 @@ import javax.persistence.*;
 public class GclJobGroupArchiveJpa extends JpaWithContextAndCreatedUpdated implements GclJobGroupArchive {
     @Id
     @Column(name = "jg_id")
-    @Type(type = sk.db.relational.types.UTTextIdToVarchar.type, parameters = {
+    @Type(value = sk.db.relational.types.UTTextIdToVarchar.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclJobGroupId.type)})
     GclJobGroupId jgId;
 
@@ -50,12 +49,12 @@ public class GclJobGroupArchiveJpa extends JpaWithContextAndCreatedUpdated imple
     java.lang.String tag;
 
     @Column(name = "jg_status")
-    @Type(type = UTEnumToString.type, parameters = {
+    @Type(value = UTEnumToString.class, parameters = {
             @Parameter(name = UTEnumToString.param, value = GclJobStatus.type)})
     GclJobStatus jgStatus;
 
     @Column(name = "jg_inner_state")
-    @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
+    @Type(value = sk.db.relational.types.UTObjectToJsonb.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value =
                     GclJobGroupInnerState.type)})
     GclJobGroupInnerState jgInnerState;
@@ -64,11 +63,11 @@ public class GclJobGroupArchiveJpa extends JpaWithContextAndCreatedUpdated imple
     byte[] jgZippedJobs;
 
     @Column(name = "created_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime updatedAt;
 
     @Version

@@ -31,12 +31,12 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @SuppressWarnings("unused")
-public class UTZdtToTimestamp implements UserType, UTWithContext {
+public class UTZdtToTimestamp implements UserType<Object>, UTWithContext {
     public final static String type = "sk.db.relational.types.UTZdtToTimestamp";
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.TIMESTAMP};
+    public int getSqlType() {
+        return Types.TIMESTAMP;
     }
 
     @Override
@@ -45,9 +45,9 @@ public class UTZdtToTimestamp implements UserType, UTWithContext {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        Timestamp timestamp = rs.getTimestamp(names[0]);
+        Timestamp timestamp = rs.getTimestamp(names);
         return rs.wasNull() ? null : timestamp.toLocalDateTime().atZone(getZone(session));
     }
 

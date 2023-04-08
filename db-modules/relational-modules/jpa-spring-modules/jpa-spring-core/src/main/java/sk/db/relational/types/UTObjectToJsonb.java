@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class UTObjectToJsonb implements UserType, ParameterizedType, UTWithContext {
+public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTWithContext {
     public final static String type = "sk.db.relational.types.UTObjectToJsonb";
     public static final String param = "targetType";
 
@@ -54,8 +54,8 @@ public class UTObjectToJsonb implements UserType, ParameterizedType, UTWithConte
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.OTHER};
+    public int getSqlType() {
+        return Types.OTHER;
     }
 
     @Override
@@ -64,9 +64,9 @@ public class UTObjectToJsonb implements UserType, ParameterizedType, UTWithConte
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String value = rs.getString(names[0]);
+        String value = rs.getString(names);
         return rs.wasNull() ? null : getJson(session).from(value, cls);
     }
 

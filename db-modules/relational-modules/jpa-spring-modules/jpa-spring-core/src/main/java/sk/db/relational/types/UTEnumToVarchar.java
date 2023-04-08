@@ -36,7 +36,7 @@ import java.util.Properties;
  * This class is used to cloneMe postgresql enums to java enums like this
  */
 @SuppressWarnings("unused")
-public class UTEnumToVarchar implements UserType, ParameterizedType {
+public class UTEnumToVarchar implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTEnumToVarchar";
     @SuppressWarnings("WeakerAccess") public static final String param = "enumClassName";
 
@@ -52,8 +52,9 @@ public class UTEnumToVarchar implements UserType, ParameterizedType {
         }
     }
 
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    @Override
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     public Class returnedClass() {
@@ -61,9 +62,9 @@ public class UTEnumToVarchar implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String name = rs.getString(names[0]);
+        String name = rs.getString(names);
         //noinspection unchecked
         return rs.wasNull() ? null : Enum.valueOf(enumClass, name);
     }

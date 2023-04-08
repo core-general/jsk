@@ -32,12 +32,12 @@ import java.sql.Types;
 import java.util.Objects;
 
 @SuppressWarnings("unused")
-public class UTStringToJsonb implements UserType {
+public class UTStringToJsonb implements UserType<Object> {
     public static final String type = "sk.db.relational.types.UTStringToJsonb";
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.OTHER};
+    public int getSqlType() {
+        return Types.OTHER;
     }
 
     @Override
@@ -46,9 +46,9 @@ public class UTStringToJsonb implements UserType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String name = rs.getString(names[0]);
+        String name = rs.getString(names);
         return rs.wasNull() ? null : name;
     }
 

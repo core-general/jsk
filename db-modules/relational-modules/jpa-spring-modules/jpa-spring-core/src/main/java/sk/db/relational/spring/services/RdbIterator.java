@@ -24,6 +24,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,7 +42,6 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
 import javax.inject.Inject;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;

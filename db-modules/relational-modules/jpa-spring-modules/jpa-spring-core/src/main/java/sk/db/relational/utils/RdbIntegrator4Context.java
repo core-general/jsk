@@ -31,8 +31,6 @@ import sk.db.relational.model.JpaWithContext;
 import sk.db.relational.spring.config.RdbBaseDbConfig;
 import sk.spring.services.CoreServices;
 
-import java.util.Map;
-
 public class RdbIntegrator4Context implements Integrator {
     @Override
     public void integrate(Metadata metadata,
@@ -59,7 +57,7 @@ public class RdbIntegrator4Context implements Integrator {
             }
 
             @Override
-            public void onPersist(PersistEvent event, Map createdAlready) throws HibernateException {
+            public void onPersist(PersistEvent event, PersistContext createdAlready) throws HibernateException {
                 inject(ctx, event.getObject());
             }
         });
@@ -73,7 +71,7 @@ public class RdbIntegrator4Context implements Integrator {
             }
 
             @Override
-            public void onMerge(MergeEvent event, Map copiedAlready) throws HibernateException {
+            public void onMerge(MergeEvent event, MergeContext copiedAlready) throws HibernateException {
                 inject(ctx, event.getEntity());
             }
         });

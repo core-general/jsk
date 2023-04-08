@@ -20,6 +20,7 @@ package sk.db.relational.model;
  * #L%
  */
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import sk.db.relational.types.UTZdtToBigInt;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -43,7 +43,7 @@ public class JpaAppProperties {
     @Column(name = "value")
     String value;
     @Column(name = "property_date")
-    @Type(type = UTZdtToBigInt.type)
+    @Type(value = UTZdtToBigInt.class)
     ZonedDateTime propertyDate;
     @Column(name = "description")
     String description;

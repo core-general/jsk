@@ -21,6 +21,7 @@ package sk.db.relational.utils.cluster_sorter;
  */
 
 import com.querydsl.core.types.Order;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,6 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 
 import static sk.utils.collections.cluster_sorter.backward.model.JcsEBackType.BACKWARD;

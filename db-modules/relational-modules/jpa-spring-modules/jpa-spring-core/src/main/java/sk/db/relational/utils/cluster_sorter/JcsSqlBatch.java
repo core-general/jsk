@@ -20,6 +20,7 @@ package sk.db.relational.utils.cluster_sorter;
  * #L%
  */
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
@@ -30,7 +31,6 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 
-import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

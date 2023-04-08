@@ -35,12 +35,12 @@ import java.util.Objects;
 import java.util.Set;
 
 @SuppressWarnings("unused")
-public class UTStringSetToString implements UserType {
+public class UTStringSetToString implements UserType<Object> {
     public final static String type = "sk.db.relational.types.UTStringSetToString";
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
@@ -49,9 +49,9 @@ public class UTStringSetToString implements UserType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String set = rs.getString(names[0]);
+        String set = rs.getString(names);
         return rs.wasNull() ? null : toSet(set);
     }
 

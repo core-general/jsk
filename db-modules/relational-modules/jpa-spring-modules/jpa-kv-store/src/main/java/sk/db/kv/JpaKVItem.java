@@ -20,12 +20,12 @@ package sk.db.kv;
  * #L%
  */
 
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import sk.db.relational.model.JpaWithContextAndCreatedUpdated;
 import sk.db.relational.types.UTZdtToTimestamp;
 
-import javax.persistence.*;
 import java.time.ZonedDateTime;
 
 @EqualsAndHashCode(callSuper = false)
@@ -46,11 +46,11 @@ public class JpaKVItem extends JpaWithContextAndCreatedUpdated {
     Long lockDate;
 
     @Column(name = "created_at")
-    @Type(type = UTZdtToTimestamp.type)
+    @Type(value = UTZdtToTimestamp.class)
     ZonedDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Type(type = UTZdtToTimestamp.type)
+    @Type(value = UTZdtToTimestamp.class)
     ZonedDateTime updatedAt;
 
     @Version

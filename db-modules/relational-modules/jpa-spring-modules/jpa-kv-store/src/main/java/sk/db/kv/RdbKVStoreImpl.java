@@ -21,6 +21,7 @@ package sk.db.kv;
  */
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
@@ -42,7 +43,6 @@ import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 
 import javax.inject.Inject;
-import javax.persistence.OptimisticLockException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;

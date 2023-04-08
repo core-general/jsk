@@ -34,23 +34,23 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @SuppressWarnings({"unused"})
-public class UTLocalDateToText implements UserType {
+public class UTLocalDateToText implements UserType<Object> {
     public final static String type = "sk.db.relational.types.UTLocalDateToText";
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
-    public Class<LocalDate> returnedClass() {
+    public Class returnedClass() {
         return LocalDate.class;
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        String ldt = rs.getString(names[0]);
+        String ldt = rs.getString(names);
         return LocalDate.parse(ldt, Ti.yyyyMMdd);
     }
 

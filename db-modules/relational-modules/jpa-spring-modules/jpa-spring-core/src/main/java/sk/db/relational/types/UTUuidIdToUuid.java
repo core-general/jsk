@@ -38,7 +38,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @SuppressWarnings({"unused"})
-public class UTUuidIdToUuid implements UserType, ParameterizedType {
+public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType {
     public final static String type = "sk.db.relational.types.UTUuidIdToUuid";
     public static final String param = "targetType";
 
@@ -70,8 +70,8 @@ public class UTUuidIdToUuid implements UserType, ParameterizedType {
     }
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.OTHER};
+    public int getSqlType() {
+        return Types.OTHER;
     }
 
     @Override
@@ -80,9 +80,9 @@ public class UTUuidIdToUuid implements UserType, ParameterizedType {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        UUID uuid = (UUID) rs.getObject(names[0]);
+        UUID uuid = (UUID) rs.getObject(names);
         return creator.apply(uuid);
     }
 

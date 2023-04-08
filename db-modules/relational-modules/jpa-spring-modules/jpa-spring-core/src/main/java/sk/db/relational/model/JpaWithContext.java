@@ -20,21 +20,17 @@ package sk.db.relational.model;
  * #L%
  */
 
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Tuplizer;
-import sk.db.relational.utils.CtxAwarePojoTuplizer;
 import sk.spring.services.CoreServices;
-
-import javax.persistence.Transient;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Tuplizer(impl = CtxAwarePojoTuplizer.class)
 public abstract class JpaWithContext {
     protected transient @Transient CoreServices ctx;
 }

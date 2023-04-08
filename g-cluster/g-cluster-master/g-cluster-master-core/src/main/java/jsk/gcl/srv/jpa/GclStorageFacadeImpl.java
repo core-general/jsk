@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jakarta.transaction.Transactional;
 import jsk.gcl.cli.model.GclJobDto;
 import jsk.gcl.cli.model.GclJobGroupDto;
 import jsk.gcl.cli.model.GclJobGroupId;
@@ -51,7 +52,6 @@ import sk.utils.statics.St;
 import sk.utils.statics.Ti;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;

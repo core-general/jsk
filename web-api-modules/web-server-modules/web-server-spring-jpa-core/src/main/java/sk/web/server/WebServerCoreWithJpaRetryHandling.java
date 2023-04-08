@@ -20,6 +20,7 @@ package sk.web.server;
  * #L%
  */
 
+import jakarta.persistence.OptimisticLockException;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -30,7 +31,6 @@ import sk.utils.functional.O;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.context.WebRequestInnerContext;
 
-import javax.persistence.OptimisticLockException;
 import java.lang.reflect.Method;
 
 public class WebServerCoreWithJpaRetryHandling<T> extends WebServerCoreWithPings<T> {

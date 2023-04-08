@@ -34,12 +34,12 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @SuppressWarnings("unused")
-public class UTZdtToBigInt implements UserType, UTWithContext {
+public class UTZdtToBigInt implements UserType<Object>, UTWithContext {
     public final static String type = "sk.db.relational.types.UTZdtToBigInt";
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.BIGINT};
+    public int getSqlType() {
+        return Types.BIGINT;
     }
 
     @Override
@@ -48,9 +48,9 @@ public class UTZdtToBigInt implements UserType, UTWithContext {
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+    public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        long timestamp = rs.getLong(names[0]);
+        long timestamp = rs.getLong(names);
         return rs.wasNull() ? null : getInjector(session).times().toZDT(timestamp);
     }
 

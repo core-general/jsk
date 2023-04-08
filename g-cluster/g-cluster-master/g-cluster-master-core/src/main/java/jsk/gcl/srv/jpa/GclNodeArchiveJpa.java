@@ -21,6 +21,7 @@ package jsk.gcl.srv.jpa;
  * #L%
  */
 
+import jakarta.persistence.*;
 import jsk.gcl.srv.logic.scaling.model.GclNodeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,8 +29,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import sk.db.relational.model.JpaWithContextAndCreatedUpdated;
-
-import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
@@ -39,21 +38,21 @@ import javax.persistence.*;
 public class GclNodeArchiveJpa extends JpaWithContextAndCreatedUpdated implements GclNodeArchive {
     @Id
     @Column(name = "n_id")
-    @Type(type = sk.db.relational.types.UTTextIdToVarchar.type, parameters = {
+    @Type(value = sk.db.relational.types.UTTextIdToVarchar.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTTextIdToVarchar.param, value = GclNodeArchiveId.type)})
     GclNodeArchiveId nId;
 
     @Column(name = "n_inner_state")
-    @Type(type = sk.db.relational.types.UTObjectToJsonb.type, parameters = {
+    @Type(value = sk.db.relational.types.UTObjectToJsonb.class, parameters = {
             @Parameter(name = sk.db.relational.types.UTObjectToJsonb.param, value = GclNodeInfo.type)})
     GclNodeInfo nInnerState;
 
     @Column(name = "created_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime createdAt;
 
     @Column(name = "updated_at")
-    @Type(type = sk.db.relational.types.UTZdtToTimestamp.type)
+    @Type(value = sk.db.relational.types.UTZdtToTimestamp.class)
     java.time.ZonedDateTime updatedAt;
 
     @Version
