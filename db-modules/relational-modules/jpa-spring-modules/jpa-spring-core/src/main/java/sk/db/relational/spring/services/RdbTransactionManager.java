@@ -21,8 +21,8 @@ package sk.db.relational.spring.services;
  */
 
 
-import sk.utils.collections.YaTransactional;
+import sk.utils.collections.ITransactionManager;
 
 @SuppressWarnings("unused")
 //Left for compatibility
-public interface RdbTransactionManager extends YaTransactional {}
+public interface RdbTransactionManager extends ITransactionManager {}

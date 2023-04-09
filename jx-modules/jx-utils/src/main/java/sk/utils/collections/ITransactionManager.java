@@ -26,7 +26,7 @@ import sk.utils.tuples.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-public interface YaTransactional {
+public interface ITransactionManager {
     <A, T extends X1<A>>
     T transactionWithSaveX1(Supplier<T> howToGet, F1<T, List<Object>> whatToSave);
 
