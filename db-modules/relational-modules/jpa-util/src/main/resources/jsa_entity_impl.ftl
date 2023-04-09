@@ -44,7 +44,7 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
         <#case "ID">
             @Id
             @Column(name = "${field.columnName}")
-            @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+            @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
             <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
                 @ManyToOne(fetch = FetchType.LAZY)
@@ -81,12 +81,12 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             <#break>
         <#case "ZDT">
             @Column(name = "${field.columnName}")
-            @Type(type = ${field.converterType}.type)
+            @Type(value = ${field.converterType}.class
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "JSONB">
             @Column(name = "${field.columnName}")
-            @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+            @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "VERSION">
@@ -96,7 +96,7 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
         <#case "OTHER">
             <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
                 @Column(name = "${field.columnName}")
-                @Type(type = ${field.converterType}.type, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+                @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
                 ${field.mainType} ${field.fieldName};
                 @ManyToOne(fetch = FetchType.LAZY)
                 @JoinColumn(name = "${field.columnName}", insertable = false, updatable = false)
