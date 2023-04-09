@@ -83,7 +83,7 @@ public class UTEnumToString implements UserType<Object>, ParameterizedType {
             throws HibernateException, SQLException {
         String name = rs.getString(names);
         //noinspection unchecked
-        return rs.wasNull() ? null : Enum.valueOf(enumClass, name);
+        return rs.wasNull() ? null : Enum.valueOf(returnedClass(), name);
     }
 
     @Override

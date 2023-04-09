@@ -50,6 +50,26 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     @Inject RdbTransactionWrapperRequiresNew transForceNew;
     @PersistenceContext EntityManager manager;
 
+    @Override
+    public <T> T transactional(Supplier<T> sup) {
+        return trans.transactional(sup);
+    }
+
+    @Override
+    public void transactionalRun(Runnable run) {
+        trans.transactionalRun(run);
+    }
+
+    @Override
+    public <T> T transactionalForceNew(Supplier<T> sup) {
+        return transForceNew.transactionalForceNew(sup);
+    }
+
+    @Override
+    public void transactionalRunForceNew(Runnable run) {
+        transForceNew.transactionalRunForceNew(run);
+    }
+
     @SuppressWarnings("WeakerAccess")
     protected abstract void saveSingleItem(Object singleItem);
 

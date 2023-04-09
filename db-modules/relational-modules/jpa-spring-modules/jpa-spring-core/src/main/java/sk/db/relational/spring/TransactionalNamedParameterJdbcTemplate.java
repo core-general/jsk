@@ -27,7 +27,7 @@ import org.springframework.jdbc.core.namedparam.ParsedSql;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.transaction.annotation.Transactional;
+import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -35,244 +35,212 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class TransactionalNamedParameterJdbcTemplate extends NamedParameterJdbcTemplate {
-    public TransactionalNamedParameterJdbcTemplate(DataSource ds) {super(ds);}
+    private final RdbTransactionWrapperImpl transWrapper;
+
+    public TransactionalNamedParameterJdbcTemplate(DataSource ds, RdbTransactionWrapperImpl transWrapper) {
+        super(ds);
+        this.transWrapper = transWrapper;
+
+    }
 
     @Override
-    @Transactional
     public JdbcOperations getJdbcOperations() {
-        return super.getJdbcOperations();
+        return transWrapper.transactional(() -> super.getJdbcOperations());
     }
 
     @Override
-    @Transactional
     public JdbcTemplate getJdbcTemplate() {
-        return super.getJdbcTemplate();
+        return transWrapper.transactional(() -> super.getJdbcTemplate());
     }
 
     @Override
-    @Transactional
     public void setCacheLimit(int cacheLimit) {
-        super.setCacheLimit(cacheLimit);
+        transWrapper.transactionalRun(() -> super.setCacheLimit(cacheLimit));
     }
 
     @Override
-    @Transactional
     public int getCacheLimit() {
-        return super.getCacheLimit();
+        return transWrapper.transactional(() -> super.getCacheLimit());
     }
 
     @Override
-    @Transactional
     public <T> T execute(String sql, SqlParameterSource paramSource, PreparedStatementCallback<T> action)
             throws DataAccessException {
-        return super.execute(sql, paramSource, action);
+        return transWrapper.transactional(() -> super.execute(sql, paramSource, action));
     }
 
     @Override
-    @Transactional
     public <T> T execute(String sql, Map<String, ?> paramMap, PreparedStatementCallback<T> action)
             throws DataAccessException {
-        return super.execute(sql, paramMap, action);
+        return transWrapper.transactional(() -> super.execute(sql, paramMap, action));
     }
 
     @Override
-    @Transactional
     public <T> T execute(String sql, PreparedStatementCallback<T> action) throws DataAccessException {
-        return super.execute(sql, action);
+        return transWrapper.transactional(() -> super.execute(sql, action));
     }
 
     @Override
-    @Transactional
     public <T> T query(String sql, SqlParameterSource paramSource, ResultSetExtractor<T> rse) throws DataAccessException {
-        return super.query(sql, paramSource, rse);
+        return transWrapper.transactional(() -> super.query(sql, paramSource, rse));
     }
 
     @Override
-    @Transactional
     public <T> T query(String sql, Map<String, ?> paramMap, ResultSetExtractor<T> rse) throws DataAccessException {
-        return super.query(sql, paramMap, rse);
+        return transWrapper.transactional(() -> super.query(sql, paramMap, rse));
     }
 
     @Override
-    @Transactional
     public <T> T query(String sql, ResultSetExtractor<T> rse) throws DataAccessException {
-        return super.query(sql, rse);
+        return transWrapper.transactional(() -> super.query(sql, rse));
     }
 
     @Override
-    @Transactional
     public void query(String sql, SqlParameterSource paramSource, RowCallbackHandler rch) throws DataAccessException {
-        super.query(sql, paramSource, rch);
+        transWrapper.transactionalRun(() -> super.query(sql, paramSource, rch));
     }
 
     @Override
-    @Transactional
     public void query(String sql, Map<String, ?> paramMap, RowCallbackHandler rch) throws DataAccessException {
-        super.query(sql, paramMap, rch);
+        transWrapper.transactionalRun(() -> super.query(sql, paramMap, rch));
     }
 
     @Override
-    @Transactional
     public void query(String sql, RowCallbackHandler rch) throws DataAccessException {
-        super.query(sql, rch);
+        transWrapper.transactionalRun(() -> super.query(sql, rch));
     }
 
     @Override
-    @Transactional
     public <T> List<T> query(String sql, SqlParameterSource paramSource, RowMapper<T> rowMapper)
             throws DataAccessException {
-        return super.query(sql, paramSource, rowMapper);
+        return transWrapper.transactional(() -> super.query(sql, paramSource, rowMapper));
     }
 
     @Override
-    @Transactional
     public <T> List<T> query(String sql, Map<String, ?> paramMap, RowMapper<T> rowMapper) throws DataAccessException {
-        return super.query(sql, paramMap, rowMapper);
+        return transWrapper.transactional(() -> super.query(sql, paramMap, rowMapper));
     }
 
     @Override
-    @Transactional
     public <T> List<T> query(String sql, RowMapper<T> rowMapper) throws DataAccessException {
-        return super.query(sql, rowMapper);
+        return transWrapper.transactional(() -> super.query(sql, rowMapper));
     }
 
     @Override
-    @Transactional
     public <T> T queryForObject(String sql, SqlParameterSource paramSource, RowMapper<T> rowMapper)
             throws DataAccessException {
-        return super.queryForObject(sql, paramSource, rowMapper);
+        return transWrapper.transactional(() -> super.queryForObject(sql, paramSource, rowMapper));
     }
 
     @Override
-    @Transactional
     public <T> T queryForObject(String sql, Map<String, ?> paramMap, RowMapper<T> rowMapper) throws DataAccessException {
-        return super.queryForObject(sql, paramMap, rowMapper);
+        return transWrapper.transactional(() -> super.queryForObject(sql, paramMap, rowMapper));
     }
 
     @Override
-    @Transactional
     public <T> T queryForObject(String sql, SqlParameterSource paramSource, Class<T> requiredType)
             throws DataAccessException {
-        return super.queryForObject(sql, paramSource, requiredType);
+        return transWrapper.transactional(() -> super.queryForObject(sql, paramSource, requiredType));
     }
 
     @Override
-    @Transactional
     public <T> T queryForObject(String sql, Map<String, ?> paramMap, Class<T> requiredType) throws DataAccessException {
-        return super.queryForObject(sql, paramMap, requiredType);
+        return transWrapper.transactional(() -> super.queryForObject(sql, paramMap, requiredType));
     }
 
     @Override
-    @Transactional
     public Map<String, Object> queryForMap(String sql, SqlParameterSource paramSource) throws DataAccessException {
-        return super.queryForMap(sql, paramSource);
+        return transWrapper.transactional(() -> super.queryForMap(sql, paramSource));
     }
 
     @Override
-    @Transactional
     public Map<String, Object> queryForMap(String sql, Map<String, ?> paramMap) throws DataAccessException {
-        return super.queryForMap(sql, paramMap);
+        return transWrapper.transactional(() -> super.queryForMap(sql, paramMap));
     }
 
     @Override
-    @Transactional
     public <T> List<T> queryForList(String sql, SqlParameterSource paramSource, Class<T> elementType)
             throws DataAccessException {
-        return super.queryForList(sql, paramSource, elementType);
+        return transWrapper.transactional(() -> super.queryForList(sql, paramSource, elementType));
     }
 
     @Override
-    @Transactional
     public <T> List<T> queryForList(String sql, Map<String, ?> paramMap, Class<T> elementType)
             throws DataAccessException {
-        return super.queryForList(sql, paramMap, elementType);
+        return transWrapper.transactional(() -> super.queryForList(sql, paramMap, elementType));
     }
 
     @Override
-    @Transactional
     public List<Map<String, Object>> queryForList(String sql, SqlParameterSource paramSource) throws DataAccessException {
-        return super.queryForList(sql, paramSource);
+        return transWrapper.transactional(() -> super.queryForList(sql, paramSource));
     }
 
     @Override
-    @Transactional
     public List<Map<String, Object>> queryForList(String sql, Map<String, ?> paramMap) throws DataAccessException {
-        return super.queryForList(sql, paramMap);
+        return transWrapper.transactional(() -> super.queryForList(sql, paramMap));
     }
 
     @Override
-    @Transactional
     public SqlRowSet queryForRowSet(String sql, SqlParameterSource paramSource) throws DataAccessException {
-        return super.queryForRowSet(sql, paramSource);
+        return transWrapper.transactional(() -> super.queryForRowSet(sql, paramSource));
     }
 
     @Override
-    @Transactional
     public SqlRowSet queryForRowSet(String sql, Map<String, ?> paramMap) throws DataAccessException {
-        return super.queryForRowSet(sql, paramMap);
+        return transWrapper.transactional(() -> super.queryForRowSet(sql, paramMap));
     }
 
     @Override
-    @Transactional
     public int update(String sql, SqlParameterSource paramSource) throws DataAccessException {
-        return super.update(sql, paramSource);
+        return transWrapper.transactional(() -> super.update(sql, paramSource));
     }
 
     @Override
-    @Transactional
     public int update(String sql, Map<String, ?> paramMap) throws DataAccessException {
-        return super.update(sql, paramMap);
+        return transWrapper.transactional(() -> super.update(sql, paramMap));
     }
 
     @Override
-    @Transactional
     public int update(String sql, SqlParameterSource paramSource, KeyHolder generatedKeyHolder)
             throws DataAccessException {
-        return super.update(sql, paramSource, generatedKeyHolder);
+        return transWrapper.transactional(() -> super.update(sql, paramSource, generatedKeyHolder));
     }
 
     @Override
-    @Transactional
     public int update(String sql, SqlParameterSource paramSource, KeyHolder generatedKeyHolder, String[] keyColumnNames)
             throws DataAccessException {
-        return super.update(sql, paramSource, generatedKeyHolder, keyColumnNames);
+        return transWrapper.transactional(() -> super.update(sql, paramSource, generatedKeyHolder, keyColumnNames));
     }
 
     @Override
-    @Transactional
     public int[] batchUpdate(String sql, Map<String, ?>[] batchValues) {
-        return super.batchUpdate(sql, batchValues);
+        return transWrapper.transactional(() -> super.batchUpdate(sql, batchValues));
     }
 
     @Override
-    @Transactional
     public int[] batchUpdate(String sql, SqlParameterSource[] batchArgs) {
-        return super.batchUpdate(sql, batchArgs);
+        return transWrapper.transactional(() -> super.batchUpdate(sql, batchArgs));
     }
 
     @Override
-    @Transactional
     protected PreparedStatementCreator getPreparedStatementCreator(String sql, SqlParameterSource paramSource) {
-        return super.getPreparedStatementCreator(sql, paramSource);
+        return transWrapper.transactional(() -> super.getPreparedStatementCreator(sql, paramSource));
     }
 
     @Override
-    @Transactional
     protected PreparedStatementCreator getPreparedStatementCreator(String sql, SqlParameterSource paramSource,
             Consumer<PreparedStatementCreatorFactory> customizer) {
-        return super.getPreparedStatementCreator(sql, paramSource, customizer);
+        return transWrapper.transactional(() -> super.getPreparedStatementCreator(sql, paramSource, customizer));
     }
 
     @Override
-    @Transactional
     protected ParsedSql getParsedSql(String sql) {
-        return super.getParsedSql(sql);
+        return transWrapper.transactional(() -> super.getParsedSql(sql));
     }
 
     @Override
-    @Transactional
     protected PreparedStatementCreatorFactory getPreparedStatementCreatorFactory(ParsedSql parsedSql,
             SqlParameterSource paramSource) {
-        return super.getPreparedStatementCreatorFactory(parsedSql, paramSource);
+        return transWrapper.transactional(() -> super.getPreparedStatementCreatorFactory(parsedSql, paramSource));
     }
 }

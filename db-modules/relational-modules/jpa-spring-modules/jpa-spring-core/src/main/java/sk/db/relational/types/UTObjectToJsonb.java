@@ -67,7 +67,7 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         String value = rs.getString(names);
-        return rs.wasNull() ? null : getJson(session).from(value, cls);
+        return rs.wasNull() ? null : getJson(session).from(value, returnedClass());
     }
 
     @Override

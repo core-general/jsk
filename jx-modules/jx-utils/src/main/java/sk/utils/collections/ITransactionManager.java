@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public interface ITransactionManager {
+    <T> T transactional(Supplier<T> sup);
+
+    void transactionalRun(Runnable run);
+
     <A, T extends X1<A>>
     T transactionWithSaveX1(Supplier<T> howToGet, F1<T, List<Object>> whatToSave);
 
@@ -96,6 +100,9 @@ public interface ITransactionManager {
         return transactionWithSaveX7(howToGet, X7::asList);
     }
 
+    <T> T transactionalForceNew(Supplier<T> sup);
+
+    void transactionalRunForceNew(Runnable run);
 
     default <A, T extends X1<A>>
     T transactionWithSaveX1ForceNew(Supplier<T> howToGet) {

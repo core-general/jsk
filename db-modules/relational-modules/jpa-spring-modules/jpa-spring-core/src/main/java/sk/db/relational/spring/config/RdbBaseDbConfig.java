@@ -132,7 +132,7 @@ public class RdbBaseDbConfig {
     }
 
     @Bean
-    public NamedParameterJdbcOperations NamedParameterJdbcTemplate(DataSource ds) {
-        return new TransactionalNamedParameterJdbcTemplate(ds);
+    public NamedParameterJdbcOperations NamedParameterJdbcTemplate(RdbTransactionWrapperImpl transWrapper, DataSource ds) {
+        return new TransactionalNamedParameterJdbcTemplate(ds, transWrapper);
     }
 }
