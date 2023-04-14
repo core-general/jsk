@@ -20,15 +20,14 @@ package sk.db.relational.spring.services.impl;
  * #L%
  */
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
-import jakarta.persistence.PersistenceContext;
+import lombok.NoArgsConstructor;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import sk.db.relational.spring.services.EntityManagerProvider;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
-import sk.db.relational.spring.services.RdbTransactionWrapperRequiresNew;
 import sk.services.retry.IRepeat;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
@@ -44,11 +43,16 @@ import java.util.function.Supplier;
 import static sk.utils.statics.Cc.s;
 
 @SuppressWarnings("unused")
+@NoArgsConstructor
 public abstract class RdbTransactionManagerImpl implements RdbTransactionManager {
+    @Inject EntityManagerProvider em;
     @Inject IRepeat retry;
     @Inject RdbTransactionWrapper trans;
-    @Inject RdbTransactionWrapperRequiresNew transForceNew;
-    @PersistenceContext EntityManager manager;
+
+    public RdbTransactionManagerImpl(EntityManagerProvider em, RdbTransactionWrapper trans) {
+        this.trans = trans;
+        this.em = em;
+    }
 
     @Override
     public <T> T transactional(Supplier<T> sup) {
@@ -62,12 +66,12 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
 
     @Override
     public <T> T transactionalForceNew(Supplier<T> sup) {
-        return transForceNew.transactionalForceNew(sup);
+        return trans.transactionalForceNew(sup);
     }
 
     @Override
     public void transactionalRunForceNew(Runnable run) {
-        transForceNew.transactionalRunForceNew(run);
+        trans.transactionalRunForceNew(run);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -166,7 +170,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
                 saveObjects.forEach(this::trySave);
                 return t;
             };
-            return forceNew ? transForceNew.transactionalForceNew(lambda) : trans.transactional(lambda);
+            return forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
         });
     }
 
@@ -186,7 +190,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
         } else {
             //to ensure that the entity is guaranteed to save, in some cases instances are not saved
             //see EntityState.getEntityState
-            manager.detach(toSave);
+            em.getEntityManager().detach(toSave);
             saveSingleItem(toSave);
         }
     }

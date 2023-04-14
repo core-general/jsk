@@ -27,7 +27,7 @@ import org.springframework.jdbc.core.namedparam.ParsedSql;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
+import sk.db.relational.spring.services.RdbTransactionWrapper;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -35,12 +35,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class TransactionalNamedParameterJdbcTemplate extends NamedParameterJdbcTemplate {
-    private final RdbTransactionWrapperImpl transWrapper;
+    private final RdbTransactionWrapper transWrapper;
 
-    public TransactionalNamedParameterJdbcTemplate(DataSource ds, RdbTransactionWrapperImpl transWrapper) {
+    public TransactionalNamedParameterJdbcTemplate(DataSource ds, RdbTransactionWrapper transWrapper) {
         super(ds);
         this.transWrapper = transWrapper;
-
     }
 
     @Override

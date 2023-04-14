@@ -20,6 +20,7 @@ package sk.db.relational.spring.services.impl;
  * #L%
  */
 
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +42,17 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 @Log4j2
+@NoArgsConstructor
 public class RdbILogImpl implements ILog {
     @Inject JpaImportantLogRepo impoLog;
     @Inject IIds ids;
     @Inject IJson json;
     @Inject CoreServices core;
     @Inject RdbTransactionWrapperRequiresNew trans;
+
+    public RdbILogImpl(RdbTransactionWrapperRequiresNew trans) {
+        this.trans = trans;
+    }
 
     @Override
     public void uni(ILogSeverity severity, ILogCategory category, String type, Map<String, Object> info, ILogType logType) {

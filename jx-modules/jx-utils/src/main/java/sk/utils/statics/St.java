@@ -54,69 +54,6 @@ public final class St/*rings*/ {
     public static final Charset UTF8 = StandardCharsets.UTF_8;
 
     //region Common
-    private static final long[] orders = LongStream.iterate(1, curVal -> curVal * 10).limit(19).toArray();
-    public static final String[] STANDARD_MEASUREMENTS = {"k", "m", "b", "t", "q", "i"};
-    public static final String[] MEMORY_MEASUREMENTS = {"Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
-
-    public static String shortNumberForm(long number) {
-        return shortNumberForm(number, STANDARD_MEASUREMENTS);
-    }
-
-    public static String shortNumberForm(long number, String[] measurements) {
-        if (measurements.length < 6) {
-            final String[] arr = new String[6];
-            Arrays.fill(arr, "?");
-            System.arraycopy(measurements, 0, arr, 0, measurements.length);
-            measurements = arr;
-        }
-        if (number < 0 || number > 999_999_999_999_999_999L) {
-            throw new RuntimeException("Unsupported number:" + number);
-        }
-        if (number == 0) {
-            return "0";
-        }
-        //find curent order
-        int order = 0;
-        ORDER_SEARCH:
-        for (; order < orders.length; order += 3) {
-            if ((number) / orders[order] == 0) {
-                order = order - 6;
-                break ORDER_SEARCH;
-            }
-        }
-
-        if (order < 0) {
-            return String.valueOf(number);
-        }
-
-        String suffix = switch (order) {
-            case 0 -> measurements[0];
-            case 3 -> measurements[1];
-            case 6 -> measurements[2];
-            case 9 -> measurements[3];
-            case 12 -> measurements[4];
-            case 15 -> measurements[5];
-            default -> throw new IllegalStateException("Unexpected value: " + order);
-        };
-
-        final long high = number / orders[order + 3];
-
-        if (number < orders[order + 3]) {
-            return high + suffix;
-        } else if (number < orders[Math.min(order + 5, orders.length)]) {
-            final long low = (number % orders[order + 3]) / orders[order + 2];
-            StringBuilder toRet = new StringBuilder(5);
-            toRet.append(high);
-            if (low > 0) {
-                toRet.append(".").append(low);
-            }
-            toRet.append(suffix);
-            return toRet.toString();
-        } else {
-            return high + suffix;
-        }
-    }
-
     public static String removeLastIf(String str, char toRemoveIfLast) {
         if (str.charAt(str.length() - 1) == toRemoveIfLast) {
             return ss(str, 0, str.length() - 1);
@@ -163,51 +100,6 @@ public final class St/*rings*/ {
             i = string.indexOf(toCount, i + toCount.length());
         }
         return sum;
-    }
-
-    public static boolean contains(String str, Pattern regex) {
-        return regex.matcher(str).find();
-    }
-
-    public static O<String> matchFirst(String str, Pattern regex) {
-        Matcher matcher = regex.matcher(str);
-        if (matcher.find()) {
-            return O.of(matcher.group(1));
-        }
-        return O.empty();
-    }
-
-    public static List<String> matchAllFirst(String str, Pattern regex) {
-        Matcher matcher = regex.matcher(str);
-        List<String> toRet = new ArrayList<>();
-        while (matcher.find()) {
-            toRet.add(matcher.group(1));
-        }
-        return toRet;
-    }
-
-    public static List<String> matchFirstAll(String str, Pattern regex) {
-        Matcher matcher = regex.matcher(str);
-        List<String> lst = new ArrayList<>();
-        if (matcher.find()) {
-            for (int i = 1; i <= matcher.groupCount(); i++) {
-                lst.add(matcher.group(i));
-            }
-        }
-        return lst;
-    }
-
-    public static List<List<String>> matchAll(String str, Pattern regex) {
-        Matcher matcher = regex.matcher(str);
-        List<List<String>> toRet = new ArrayList<>();
-        while (matcher.find()) {
-            List<String> lst = new ArrayList<>();
-            toRet.add(lst);
-            for (int i = 1; i <= matcher.groupCount(); i++) {
-                lst.add(matcher.group(i));
-            }
-        }
-        return toRet;
     }
 
     public static String leaveOnlyLetters(String toProcess) {
@@ -293,7 +185,119 @@ public final class St/*rings*/ {
                 .matcher(snakeCase)
                 .replaceAll(m -> m.group(1).toUpperCase()).replace("_", ""));
     }
+    //endregion
 
+    //region Short number form
+    private static final long[] orders = LongStream.iterate(1, curVal -> curVal * 10).limit(19).toArray();
+    public static final String[] STANDARD_MEASUREMENTS = {"k", "m", "b", "t", "q", "i"};
+    public static final String[] MEMORY_MEASUREMENTS = {"Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
+
+    public static String shortNumberForm(long number) {
+        return shortNumberForm(number, STANDARD_MEASUREMENTS);
+    }
+
+    public static String shortNumberForm(long number, String[] measurements) {
+        if (measurements.length < 6) {
+            final String[] arr = new String[6];
+            Arrays.fill(arr, "?");
+            System.arraycopy(measurements, 0, arr, 0, measurements.length);
+            measurements = arr;
+        }
+        if (number < 0 || number > 999_999_999_999_999_999L) {
+            throw new RuntimeException("Unsupported number:" + number);
+        }
+        if (number == 0) {
+            return "0";
+        }
+        //find curent order
+        int order = 0;
+        ORDER_SEARCH:
+        for (; order < orders.length; order += 3) {
+            if ((number) / orders[order] == 0) {
+                order = order - 6;
+                break ORDER_SEARCH;
+            }
+        }
+
+        if (order < 0) {
+            return String.valueOf(number);
+        }
+
+        String suffix = switch (order) {
+            case 0 -> measurements[0];
+            case 3 -> measurements[1];
+            case 6 -> measurements[2];
+            case 9 -> measurements[3];
+            case 12 -> measurements[4];
+            case 15 -> measurements[5];
+            default -> throw new IllegalStateException("Unexpected value: " + order);
+        };
+
+        final long high = number / orders[order + 3];
+
+        if (number < orders[order + 3]) {
+            return high + suffix;
+        } else if (number < orders[Math.min(order + 5, orders.length)]) {
+            final long low = (number % orders[order + 3]) / orders[order + 2];
+            StringBuilder toRet = new StringBuilder(5);
+            toRet.append(high);
+            if (low > 0) {
+                toRet.append(".").append(low);
+            }
+            toRet.append(suffix);
+            return toRet.toString();
+        } else {
+            return high + suffix;
+        }
+    }
+
+    //endregion
+
+    //region Regexp
+    public static boolean contains(String str, Pattern regex) {
+        return regex.matcher(str).find();
+    }
+
+    public static O<String> matchFirst(String str, Pattern regex) {
+        Matcher matcher = regex.matcher(str);
+        if (matcher.find()) {
+            return O.of(matcher.group(1));
+        }
+        return O.empty();
+    }
+
+    public static List<String> matchAllFirst(String str, Pattern regex) {
+        Matcher matcher = regex.matcher(str);
+        List<String> toRet = new ArrayList<>();
+        while (matcher.find()) {
+            toRet.add(matcher.group(1));
+        }
+        return toRet;
+    }
+
+    public static List<String> matchFirstAll(String str, Pattern regex) {
+        Matcher matcher = regex.matcher(str);
+        List<String> lst = new ArrayList<>();
+        if (matcher.find()) {
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                lst.add(matcher.group(i));
+            }
+        }
+        return lst;
+    }
+
+    public static List<List<String>> matchAll(String str, Pattern regex) {
+        Matcher matcher = regex.matcher(str);
+        List<List<String>> toRet = new ArrayList<>();
+        while (matcher.find()) {
+            List<String> lst = new ArrayList<>();
+            toRet.add(lst);
+            for (int i = 1; i <= matcher.groupCount(); i++) {
+                lst.add(matcher.group(i));
+            }
+        }
+        return toRet;
+    }
     //endregion
 
     //region Start or end

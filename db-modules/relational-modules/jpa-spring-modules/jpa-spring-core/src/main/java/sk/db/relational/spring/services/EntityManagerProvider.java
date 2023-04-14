@@ -4,7 +4,7 @@ package sk.db.relational.spring.services;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 Core General
+ * Copyright (C) 2019 - 2023 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,8 @@ package sk.db.relational.spring.services;
  * #L%
  */
 
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
 
-import java.util.function.Supplier;
-
-public interface RdbTransactionWrapper extends RdbTransactionWrapperRequiresNew {
-    @SuppressWarnings("UnusedReturnValue")
-    @Transactional(rollbackFor = Exception.class)
-    <T> T transactional(Supplier<T> sup);
-
-    @SuppressWarnings("UnusedReturnValue")
-    @Transactional(rollbackFor = Exception.class)
-    void transactionalRun(Runnable run);
+public interface EntityManagerProvider {
+    public EntityManager getEntityManager();
 }

@@ -23,11 +23,10 @@ package sk.db.relational.spring.services.impl;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
-import sk.db.relational.spring.services.RdbTransactionWrapperRequiresNew;
 
 import java.util.function.Supplier;
 
-public class RdbTransactionWrapperImpl implements RdbTransactionWrapper, RdbTransactionWrapperRequiresNew {
+public class RdbTransactionWrapperImpl implements RdbTransactionWrapper {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public <T> T transactional(Supplier<T> sup) {

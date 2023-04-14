@@ -30,6 +30,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import sk.db.relational.spring.TransactionalNamedParameterJdbcTemplate;
 import sk.db.relational.spring.proprties.RdbProperties;
+import sk.db.relational.spring.services.EntityManagerProviderImpl;
 import sk.db.relational.spring.services.RdbIterator;
 import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
 import sk.db.relational.utils.RdbIntegratorProvider4Context;
@@ -129,6 +130,11 @@ public class RdbBaseDbConfig {
     @Bean
     public RdbTransactionWrapperImpl RdbTransactionWrapperImpl() {
         return new RdbTransactionWrapperImpl();
+    }
+
+    @Bean
+    public EntityManagerProviderImpl EntityManagerProviderImpl() {
+        return new EntityManagerProviderImpl();
     }
 
     @Bean
