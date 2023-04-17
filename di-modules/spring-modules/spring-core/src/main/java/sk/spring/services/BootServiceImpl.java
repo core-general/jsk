@@ -38,17 +38,22 @@ public class BootServiceImpl implements ApplicationListener<ContextRefreshedEven
     @Inject List<IBoot> boots = new ArrayList<>();
     @Inject ITime times;
 
+    private volatile boolean initFinished;
+
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        StringBuilder sb = new StringBuilder("\nIBoots\n");
-        boots.forEach(bootstrap -> {
-            sb.append("     ")
-                    .append(Ti.yyyyMMddHHmmssSSS.format(times.nowZ()))
-                    .append(" ").append(bootstrap.getClass())
-                    .append("\n");
-            bootstrap.run();
-        });
-        log.info(sb.toString());
+    public synchronized void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
+        if (!initFinished) {
+            initFinished = true;
+            StringBuilder sb = new StringBuilder("\nIBoots\n");
+            boots.forEach(bootstrap -> {
+                sb.append("     ")
+                        .append(Ti.yyyyMMddHHmmssSSS.format(times.nowZ()))
+                        .append(" ").append(bootstrap.getClass())
+                        .append("\n");
+                bootstrap.run();
+            });
+            log.info(sb.toString());
+        }
     }
 
 }
