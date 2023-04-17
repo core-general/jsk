@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.9.10</version>
+        <version>jsk.17.9.11</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,37 +15,37 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-spring-core</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-dynamodb-spring-core</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-model-mapper</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-s3-core</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spark-spring-melody</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-client-swagger-generator</artifactId>
-            <version>jsk.17.9.10</version>
+            <version>jsk.17.9.11</version>
         </dependency>
     </dependencies>
 
@@ -75,7 +75,7 @@
     <!--            <plugin>-->
     <!--                <groupId>jsk</groupId>-->
     <!--                <artifactId>spring-properties-plugin</artifactId>-->
-    <!--                <version>jsk.17.9.10</version>-->
+    <!--                <version>jsk.17.9.11</version>-->
     <!--                <configuration>-->
     <!--                    <propertyPathPrefix>super_properties</propertyPathPrefix>-->
     <!--                </configuration>-->
@@ -91,7 +91,7 @@
     <!--            <plugin>-->
     <!--                <groupId>jsk</groupId>-->
     <!--                <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
-    <!--                <version>jsk.17.9.10</version>-->
+    <!--                <version>jsk.17.9.11</version>-->
     <!--                <configuration>-->
     <!--                    <apiClasses>-->
     <!--                        <param>jsk.spark.TestApi1</param>-->
@@ -114,7 +114,7 @@
     <!--            &lt;!&ndash;                <plugin>&ndash;&gt;-->
     <!--            &lt;!&ndash;                    <groupId>jsk</groupId>&ndash;&gt;-->
     <!--            &lt;!&ndash;                    <artifactId>web-client-swagger-maven-plugin</artifactId>&ndash;&gt;-->
-    <!--            &lt;!&ndash;                    <version>jsk.17.9.10</version>&ndash;&gt;-->
+    <!--            &lt;!&ndash;                    <version>jsk.17.9.11</version>&ndash;&gt;-->
     <!--            &lt;!&ndash;                    <configuration>&ndash;&gt;-->
     <!--            &lt;!&ndash;                        <apiClasses>&ndash;&gt;-->
     <!--            &lt;!&ndash;                            <param>jsk.spark.TestApiSwaggerTest3</param>&ndash;&gt;-->
@@ -127,7 +127,7 @@
     <!--            &lt;!&ndash;                        <dependency>&ndash;&gt;-->
     <!--            &lt;!&ndash;                            <groupId>jsk</groupId>&ndash;&gt;-->
     <!--            &lt;!&ndash;                            <artifactId>z-module-4-experiments-only</artifactId>&ndash;&gt;-->
-    <!--            &lt;!&ndash;                            <version>jsk.17.9.10</version>&ndash;&gt;-->
+    <!--            &lt;!&ndash;                            <version>jsk.17.9.11</version>&ndash;&gt;-->
     <!--            &lt;!&ndash;                        </dependency>&ndash;&gt;-->
     <!--            &lt;!&ndash;                    </dependencies>&ndash;&gt;-->
     <!--            &lt;!&ndash;                    <executions>&ndash;&gt;-->
@@ -141,7 +141,7 @@
     <!--            <plugin>-->
     <!--                <groupId>jsk</groupId>-->
     <!--                <artifactId>web-client-swagger-maven-plugin</artifactId>-->
-    <!--                <version>jsk.17.9.10</version>-->
+    <!--                <version>jsk.17.9.11</version>-->
     <!--                <configuration>-->
     <!--                    <apiClasses>-->
     <!--                        <param>jsk.spark.TestApiSwaggerTest3</param>-->
@@ -154,7 +154,7 @@
     <!--                    <dependency>-->
     <!--                        <groupId>jsk</groupId>-->
     <!--                        <artifactId>z-module-4-experiments-only</artifactId>-->
-    <!--                        <version>jsk.17.9.10</version>-->
+    <!--                        <version>jsk.17.9.11</version>-->
     <!--                    </dependency>-->
     <!--                </dependencies>-->
     <!--                <executions>-->
