@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>spring-core</artifactId>
+            <artifactId>jx-services-core</artifactId>
             <version>jsk.17.9.12</version>
         </dependency>
         <dependency>
