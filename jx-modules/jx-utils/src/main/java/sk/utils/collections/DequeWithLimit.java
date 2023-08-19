@@ -39,6 +39,15 @@ public class DequeWithLimit<T> {
         deque = new ArrayDeque<>();
     }
 
+    public int getSoftLimit() {
+        return maxSize;
+    }
+
+    public void setSoftLimit(int maxSize) {
+        this.maxSize = maxSize;
+
+    }
+
     public void addFirst(@NotNull T t) {
         deque.addFirst(t);
         while (deque.size() > maxSize) {
@@ -62,10 +71,6 @@ public class DequeWithLimit<T> {
         addFirst(t);
     }
 
-    public boolean offerFirst(@NotNull T t) {return deque.offerFirst(t);}
-
-    public boolean offerLast(@NotNull T t) {return deque.offerLast(t);}
-
     public T removeFirst() {return deque.removeFirst();}
 
     public T removeLast() {return deque.removeLast();}
@@ -85,8 +90,6 @@ public class DequeWithLimit<T> {
     public boolean removeFirstOccurrence(Object o) {return deque.removeFirstOccurrence(o);}
 
     public boolean removeLastOccurrence(Object o) {return deque.removeLastOccurrence(o);}
-
-    public boolean offer(@NotNull T t) {return deque.offer(t);}
 
     public T remove() {return deque.remove();}
 
