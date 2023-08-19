@@ -99,7 +99,7 @@ If you want to fork JSK and put it to S3 as well, you should do this:
         
 6. To deploy artifact to S3 you have to use command:
                
-        mvn --settings settings.xml clean deploy -Diam-user-access-key-id=X_IAM_ACCESS_KEY_X -Diam-user-secret-key=X_IAM_SECRET_X  -Daws.region=us-east-1;
+        mvn --settings settings.xml clean deploy -Diam-user-access-key-id=X_IAM_ACCESS_KEY_X -Diam-user-secret-key=X_IAM_SECRET_X  -`Daws.region`=us-east-1;
  
 -Daws.region parameter is necessary if you don't have AWS configured locally.
 

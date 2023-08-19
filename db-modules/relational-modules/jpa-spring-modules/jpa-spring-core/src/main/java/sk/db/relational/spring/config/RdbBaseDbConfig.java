@@ -32,6 +32,7 @@ import sk.db.relational.spring.TransactionalNamedParameterJdbcTemplate;
 import sk.db.relational.spring.proprties.RdbProperties;
 import sk.db.relational.spring.services.EntityManagerProviderImpl;
 import sk.db.relational.spring.services.RdbIterator;
+import sk.db.relational.spring.services.RdbTransactionWrapper;
 import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
 import sk.db.relational.utils.RdbIntegratorProvider4Context;
 import sk.spring.services.CoreServices;
@@ -138,7 +139,7 @@ public class RdbBaseDbConfig {
     }
 
     @Bean
-    public NamedParameterJdbcOperations NamedParameterJdbcTemplate(RdbTransactionWrapperImpl transWrapper, DataSource ds) {
+    public NamedParameterJdbcOperations NamedParameterJdbcTemplate(RdbTransactionWrapper transWrapper, DataSource ds) {
         return new TransactionalNamedParameterJdbcTemplate(ds, transWrapper);
     }
 }
