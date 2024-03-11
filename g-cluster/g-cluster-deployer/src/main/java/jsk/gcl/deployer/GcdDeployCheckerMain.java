@@ -55,6 +55,8 @@ public class GcdDeployCheckerMain {
     static ArgParser<ARGS> prop;
 
     public static void main(String[] ___) {
+        java.security.Security.setProperty("networkaddress.cache.ttl", "0");
+        java.security.Security.setProperty("networkaddress.cache.negative.ttl", "0");
         prop = ArgParser.parse(___, ARGS.URLS);
         ICoreServices core = new ICore4Test();
         http = core.http();
@@ -63,25 +65,28 @@ public class GcdDeployCheckerMain {
 
         List<String> urls =
                 Arrays.stream(prop.getRequiredArg(ARGS.URLS).replace(",", ";").split(";")).map(String::strip).toList();
-        O<String> oldNver = getOldNver(urls);
+        String nverHeader = prop.getRequiredArg(ARGS.VER_HEADER);
+        O<String> oldNver = getOldNver(urls, nverHeader);
 
         final List<OneOf<ResultVersionInfo, Throwable>> results = async.supplyParallel(urls.stream()
-                .map($ -> (F0<OneOf<ResultVersionInfo, Throwable>>) () -> waitUntilServerIsUpdated($, oldNver))
+                .map($ -> (F0<OneOf<ResultVersionInfo, Throwable>>) () -> waitUntilServerIsUpdated($,
+                        oldNver, nverHeader, Ma.pb(prop.getRequiredArg(ARGS.RESET_TO_ZERO_IF_OLD_VERSION_MET))
+                ))
                 .toList());
 
         findErrorsOrOk(urls, results)
                 .apply(ok -> System.out.println(ok), exc -> Ex.thRow(exc));
     }
 
-    private static O<String> getOldNver(List<String> urls) {
+    private static O<String> getOldNver(List<String> urls, String nverHeader) {
         final List<OneOf<CoreHttpResponse, Exception>> oldNverResults = async.supplyParallel(urls.stream()
-                .map(u -> (F0<OneOf<CoreHttpResponse, Exception>>) () -> http.get(u).tryCount(2).timeout(of(ofSeconds(2)))
+                .map(u -> (F0<OneOf<CoreHttpResponse, Exception>>) () -> http.get(u).tryCount(3).timeout(of(ofSeconds(3)))
                         .goResponse()).toList());
 
         final List<X2<String, Long>> nVers =
                 oldNverResults.stream().filter($ -> $.isLeft() && Ma.inside($.left().code(), 200, 299))
                         .map($ -> $.left())
-                        .map($ -> $.getHeader("_nVer"))
+                        .map($ -> $.getHeader(nverHeader))
                         .filter($ -> $.isPresent())
                         .map($ -> X.x($.get(), Ma.pl(St.subLL($.get(), "-"))/*build milli time*/))
                         .sorted(Comparator.comparing($ -> $.i2))
@@ -103,7 +108,7 @@ public class GcdDeployCheckerMain {
                 .collect(Collectors.groupingBy($ -> $.newNver()));
         if (notEqualNVer.size() != 1) {
             errors += "\n\nNVers different %d:\n".formatted(notEqualNVer.size()) +
-                    Cc.joinMap("\n", "\n", notEqualNVer, (k, v) -> k, (k, v) -> "   " + Cc.join("\n   ", v));
+                      Cc.joinMap("\n", "\n", notEqualNVer, (k, v) -> k, (k, v) -> "   " + Cc.join("\n   ", v));
         }
 
         final List<String> urlsWithNoResponse = startingUrls.stream()
@@ -127,7 +132,8 @@ public class GcdDeployCheckerMain {
                        Collectors.joining("\n")));
     }
 
-    private static OneOf<ResultVersionInfo, Throwable> waitUntilServerIsUpdated(String url, O<String> onVerOld) {
+    private static OneOf<ResultVersionInfo, Throwable> waitUntilServerIsUpdated(String url, O<String> onVerOld,
+            String nverHeader, boolean resetToZeroIfOldVersionMet) {
         try {
             final int successRetryConf = Ma.pi(prop.getRequiredArg(ARGS.NUMBER_OF_OK_RESPONSES));
 
@@ -140,13 +146,17 @@ public class GcdDeployCheckerMain {
             String nVerNew = nverOld;
             while (between(start, times.nowLDT()).toSeconds() <= Ma.pi(prop.getRequiredArg(ARGS.TIME_LIMIT_S))) {
                 if (!(okVersionCount < successRetryConf)) {break;}
-                nVerNew = getNVer(url).orElse(nverOld);
-                okVersionCount = Fu.notEqual(onVerOld, nVerNew) ? okVersionCount + 1 : 0;
+                nVerNew = getNVer(url, nverHeader).orElse(nverOld);
+                okVersionCount = Fu.notEqual(nverOld, nVerNew)
+                                 ? okVersionCount + 1
+                                 : resetToZeroIfOldVersionMet
+                                   ? 0
+                                   : okVersionCount;
 
                 Ti.sleep(Ti.second * Ma.pi(prop.getRequiredArg(ARGS.RETRY_PERIOD_S)));
             }
             if (okVersionCount < successRetryConf) {
-                throw new RuntimeException("Nver retry failed for nverold:" + onVerOld);
+                throw new RuntimeException("Nver retry failed for nverold:" + nVerNew);
             }
             return OneOf.left(new ResultVersionInfo(url, nverOld, nVerNew));
 
@@ -159,9 +169,17 @@ public class GcdDeployCheckerMain {
     private static Map<String, Integer> urlCounter = new ConcurrentHashMap<>();
 
     @SneakyThrows
-    private static O<String> getNVer(String url) {
+    private static O<String> getNVer(String url, String nverHeader) {
         try {
-            return http.get(url).tryCount(5).trySleepMs(1000).timeout(of(ofSeconds(4))).goResponse().left().getHeader("_nVer");
+            int retries = 5;
+            CoreHttpResponse left = null;
+            while (retries-- > 0) {
+                left = http.get(url).tryCount(retries).trySleepMs(1000).timeout(of(ofSeconds(4))).goResponse().left();
+                if (Ma.inside(left.code(), 200, 299)) {
+                    break;
+                }
+            }
+            return left.getHeader(nverHeader);
         } catch (Exception e) {
             return O.empty();
         }
@@ -177,6 +195,8 @@ public class GcdDeployCheckerMain {
     @AllArgsConstructor
     @Getter
     private enum ARGS implements ArgParserConfigProvider<ARGS> {
+        VER_HEADER(of(ts("-hdr")), true, "Header to get data from"),
+        RESET_TO_ZERO_IF_OLD_VERSION_MET(of(ts("-reset")), true, "If true - we reset to 0 if old nver is found"),
         URLS(of(ts("-u")), true, "Urls to check. Use , or ; to separate urls to check"),
         TIME_LIMIT_S(of(ts("-tl")), true, "Time limit to check for new nver in seconds"),
         NUMBER_OF_OK_RESPONSES(of(ts("-ok")), true, "Number of new version responses to assume everything is fine"),

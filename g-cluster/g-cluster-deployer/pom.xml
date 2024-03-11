@@ -67,7 +67,7 @@
             </build>
         </profile>
         <profile>
-            <!-- Deploy build is activated using -PdeployChecker -->
+            <!-- Deploy checker build is activated using -PdeployChecker -->
             <id>deployChecker</id>
 
             <build>
