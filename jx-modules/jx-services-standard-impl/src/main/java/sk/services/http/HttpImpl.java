@@ -20,6 +20,8 @@ package sk.services.http;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
 import sk.exceptions.JskProblem;
 import sk.services.ICoreServices;
@@ -38,8 +40,6 @@ import sk.utils.statics.Fu;
 import sk.utils.statics.Io;
 import sk.utils.tuples.X;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;

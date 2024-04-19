@@ -20,11 +20,11 @@ package sk.services.comparer;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.services.comparer.model.MapCompareResult;
 import sk.utils.statics.Cc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MapCompareToolTest {
 

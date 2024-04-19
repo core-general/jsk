@@ -24,14 +24,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 
 import java.lang.reflect.Type;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ReTest {
     @Test

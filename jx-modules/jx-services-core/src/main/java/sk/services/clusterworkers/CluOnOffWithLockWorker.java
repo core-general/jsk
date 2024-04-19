@@ -23,7 +23,7 @@ package sk.services.clusterworkers;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Value;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluMessage;
@@ -42,7 +42,7 @@ import static sk.services.clusterworkers.CluOnOffWithLockWorker.Messages.Simple.
 import static sk.services.clusterworkers.CluOnOffWithLockWorker.State.*;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-@Log4j2
+@Slf4j
 public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
         extends CluWorker<CluOnOffWithLockWorker.State, BaseMessage> {
     private CluScheduler<State, BaseMessage> onOffScheduler;
@@ -119,7 +119,9 @@ public class CluOnOffWithLockWorker<CONFIG extends CluOnOffWithLockWorker.IConf>
         } else if (m == MainTaskIdOld) {
             toLockNotObtainedState();
         } else {
-            log.debug(() -> name + " - In state " + curState + " " + m.getClass() + " is unknown for CluOnOffWithLockWorker");
+            if (log.isDebugEnabled()) {
+                log.debug(name + " - In state " + curState + " " + m.getClass() + " is unknown for CluOnOffWithLockWorker");
+            }
         }
     }
 

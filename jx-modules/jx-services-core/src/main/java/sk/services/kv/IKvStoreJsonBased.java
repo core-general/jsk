@@ -20,12 +20,11 @@ package sk.services.kv;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.json.IJson;
 import sk.utils.javafixes.TypeWrap;
-
-import javax.inject.Inject;
 
 @AllArgsConstructor
 @NoArgsConstructor

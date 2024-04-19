@@ -22,6 +22,7 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import sk.services.json.IJson;
@@ -35,21 +36,15 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTWithContext {
+public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTWithContext, DynamicParameterizedType {
     public final static String type = "sk.db.relational.types.UTObjectToJsonb";
     public static final String param = "targetType";
 
     private Class<?> cls;
-    private static IJson ijson;
 
     public void setParameterValues(Properties parameters) {
-        String claz = parameters.getProperty(param);
-        try {
-            synchronized (this) {
-                cls = Class.forName(claz);
-            }
-        } catch (ClassNotFoundException e) {
-            throw new HibernateException("Enum class not found ", e);
+        synchronized (this) {
+            cls = UtUtils.getType(parameters, param);
         }
     }
 

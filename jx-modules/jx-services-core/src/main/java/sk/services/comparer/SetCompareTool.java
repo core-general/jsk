@@ -29,6 +29,7 @@ import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.Cc;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -48,6 +49,16 @@ public class SetCompareTool<A extends Identifiable<String>> extends CollectionCo
                 setFrom(result.getIn1NotIn2(), parallel),
                 setFrom(result.getIn2NotIn1(), parallel)
         );
+    }
+
+    public static <A, B> Map<A, B> allExistOrThrow(Map<A, B> mapWithKV, Set<A> keys) {
+        SetCompareResult<A> compare = compare(keys, mapWithKV.keySet());
+
+        if (compare.hasDifferences()) {
+            String notExist = Cc.join(", ", compare.getIn1NotIn2().stream().sorted());
+            throw new RuntimeException(String.format("Ids not found: [%s] ", notExist));
+        }
+        return mapWithKV;
     }
 
     private static <X> List<ToStringWrapper<X>> setTo(Set<X> xes, boolean parallel) {

@@ -45,7 +45,9 @@ public final class Re/*flections*/ {
 
     public static <T> O<T> createObjectByDefault(Class<T> claz) {
         try {
-            return O.of(claz.getDeclaredConstructor().newInstance());
+            Constructor<T> declaredConstructor = claz.getDeclaredConstructor();
+            declaredConstructor.setAccessible(true);
+            return O.of(declaredConstructor.newInstance());
         } catch (Throwable e) {
             return O.empty();
         }

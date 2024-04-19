@@ -20,7 +20,7 @@ package sk.web.exceptions;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.exceptions.JskProblem;
 import sk.exceptions.JskProblemException;
 import sk.services.except.IExceptBase;
@@ -40,7 +40,7 @@ public interface IWebExcept extends IExceptBase {
                 haveStackTrace(JskProblemException.class));
     }
 
-    @NotNull
+
     default JskProblem getMissingParameterProblem(String paramName, boolean param) {
         final String headerOrParam = param ? "param" : "header";
         return JskProblem.substatus("missing_" + headerOrParam, headerOrParam + ": " + paramName + " must exist");
@@ -57,7 +57,7 @@ public interface IWebExcept extends IExceptBase {
                 haveStackTrace(JskProblemException.class));
     }
 
-    @NotNull
+
     default JskProblem getMustRetry(String reason) {
         return JskProblem.substatus("must_retry", reason);
     }

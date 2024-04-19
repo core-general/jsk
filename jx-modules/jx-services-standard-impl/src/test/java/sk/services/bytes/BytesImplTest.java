@@ -20,7 +20,7 @@ package sk.services.bytes;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import sk.services.rand.RandImpl;
 import sk.test.MockitoTest;
@@ -29,7 +29,7 @@ import sk.utils.statics.St;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BytesImplTest extends MockitoTest {
     @InjectMocks BytesImpl bytes;
@@ -51,27 +51,6 @@ public class BytesImplTest extends MockitoTest {
 
         assertEquals("7dfbf474-f187-30a6-9be0-1ef6b79104a5", bytes.crcAny(new byte[]{0}, 16).asUUID().toString());
         assertEquals("5803c742-ad21-3ec2-894c-d02af720649b", bytes.crcAny(new byte[]{1}, 16).asUUID().toString());
-
-
-        //int vals = 1_0000;
-        //List<String> items = Cc.l();
-        //
-        //for (int i = 0; i < vals; i++) {
-        //    int finalI = i;
-        //    String str = IntStream.range(0, i+1).mapToObj($ -> (finalI == $ ? "e" : "q")).collect(Collectors.joining());
-        //    String hexe = bytes.crcAny(str.getBytes(),16).asHex();
-        //    System.out.println(St.minSymbolsOtherwisePrefix(i + "", 3, "0") + " " + /*str + " " +*/ hexe);
-        //    items.add(hexe);
-        //}
-        //
-        //Map<String, Long> valz = items.stream().flatMap($ -> $.chars().mapToObj($$ -> ((char) $$) + ""))
-        //        .collect(Collectors.groupingBy($ -> $, Collectors.counting()));
-        //System.out.println(Cc.joinMap("\n", ":", valz));
-        //double avg = valz.values().stream().mapToLong($ -> $.longValue()).average().getAsDouble();
-        //System.out.println("AVG: %.1f".formatted(avg));
-        //double sqrt = Math.sqrt(valz.values().stream().mapToDouble($ -> Math.pow(avg - $, 2)).sum() / valz.values().size());
-        //System.out.println("SKO%%: %.3f".formatted((sqrt/avg)*100)+"%");
-        //System.out.println("SKO: %.1f".formatted((sqrt)));
     }
 
     @Test
@@ -81,7 +60,7 @@ public class BytesImplTest extends MockitoTest {
             final long crc = bytes.crc32(val.getBytes(StandardCharsets.UTF_8));
             final String s = bytes.decodeCrcEncodedValue(crc + val)
                     .orElseThrow(() -> new RuntimeException("Wrong: " + crc + val));
-            assertEquals("Wrong: " + crc + val, s, val);
+            assertEquals(s, val, "Wrong: " + crc + val);
         });
     }
 }

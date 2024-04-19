@@ -20,9 +20,9 @@ package sk.web.auth;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
 import java.util.Optional;
 
 public class WebAuthServerWithStaticSecrets implements WebAuthServer {

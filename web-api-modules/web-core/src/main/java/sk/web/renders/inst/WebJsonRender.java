@@ -20,12 +20,11 @@ package sk.web.renders.inst;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.json.IJson;
 import sk.services.profile.IAppProfile;
-
-import javax.inject.Inject;
 
 @NoArgsConstructor
 @AllArgsConstructor

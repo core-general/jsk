@@ -20,6 +20,7 @@ package sk.spring.services;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
@@ -27,8 +28,6 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Fu;
-
-import javax.annotation.PostConstruct;
 
 
 @Data

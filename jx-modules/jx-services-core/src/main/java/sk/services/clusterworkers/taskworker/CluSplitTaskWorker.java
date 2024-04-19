@@ -22,7 +22,7 @@ package sk.services.clusterworkers.taskworker;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.CluOnOffWorker;
 import sk.services.clusterworkers.model.CluDelay;
@@ -42,7 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public class CluSplitTaskWorker<CUSTOM_META, RESULT, CONFIG extends CluSplitTaskWorker.IConf<CUSTOM_META, RESULT>>
         extends CluOnOffWorker<CONFIG> {
     public CluSplitTaskWorker(String workerName) {

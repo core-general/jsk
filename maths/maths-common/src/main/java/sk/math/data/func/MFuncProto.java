@@ -49,7 +49,7 @@ public abstract class MFuncProto extends JsonPolymorph {
     }
     //
     //public static void main(String[] args) {
-    //    ICoreServices core = new ICore4Test();
+    //    ICoreServices core = new CoreServicesRaw();
     //
     //    final MFuncImpl<MX1Linear3> mx1Linear3MFunc = new MFuncImpl<>(new MX1Linear3(), new double[]{1, 2, 3, 4});
     //    final List<Double> l1 = IntStream.range(0, 10).mapToObj($ -> mx1Linear3MFunc.value($)).toList();

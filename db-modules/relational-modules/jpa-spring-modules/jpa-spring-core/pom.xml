@@ -5,24 +5,24 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.9.15</version>
+        <version>jsk.21.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-spring-core</artifactId>
 
     <packaging>jar</packaging>
-    <version>jsk.17.9.15</version>
+    <version>jsk.21.0.1</version>
 
     <properties>
-        <spring-data.version>3.0.4</spring-data.version>
+        <spring-data.version>3.2.5</spring-data.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.17.9.15</version>
+            <version>jsk.21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -31,17 +31,12 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.1.7.Final</version>
+            <version>6.4.4.Final</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>com.mchange</groupId>-->
-        <!--            <artifactId>c3p0</artifactId>-->
-        <!--            <version>0.9.5.5</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
+            <version>5.1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -67,14 +62,14 @@
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-jpa</artifactId>
-            <version>5.0.0</version>
+            <version>5.1.0</version>
             <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.17.9.15</version>
+            <version>jsk.21.0.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

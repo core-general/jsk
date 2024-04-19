@@ -27,13 +27,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import jsk.vaadin.components.YHorizontal;
 import jsk.vaadin.components.YVertical;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.vaadin.firitin.components.button.VButton;
 import org.vaadin.firitin.components.dialog.VDialog;
 import sk.utils.functional.C1;
 import sk.utils.functional.R;
 
-@Log4j2
+@Slf4j
 public abstract class YBindedBufferedDialogField<T> extends YBindedBufferedButtonField<T> {
     protected VDialog dialog = new VDialog()
             .withModal(true)

@@ -20,7 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 
 import static java.util.Comparator.*;
 
-@Log4j2
+@Slf4j
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class Fu/*nctions*/ {
 

@@ -20,12 +20,14 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import sk.utils.functional.O;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import java.awt.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StTest {
     @Test
@@ -34,7 +36,7 @@ public class StTest {
 
         final String hexed = St.bytesToHex(initial);
         final byte[] back = St.hexToBytes(hexed);
-        Assert.assertArrayEquals(initial, back);
+        Assertions.assertArrayEquals(initial, back);
     }
 
     @Test
@@ -67,6 +69,14 @@ public class StTest {
         assertThrows(RuntimeException.class, () -> St.shortNumberForm(1000000000000000000L));
         assertThrows(RuntimeException.class, () -> St.shortNumberForm(-1L));
     }
+
+    @Test
+    public void colorHexTest() {
+        Color c = Color.RED;
+        assertEquals("#ff0000", St.toHex(c, false));
+        assertEquals(c, St.fromHex(St.toHex(c, false)));
+    }
+
 
     @Test
     public void count() {
@@ -136,5 +146,19 @@ public class StTest {
         assertEquals(St.snakeToCamelCase("abc_def"), "AbcDef");
         assertEquals(St.snakeToCamelCase("abc_def_geh"), "AbcDefGeh");
         assertEquals(St.snakeToCamelCase("_abc_def_geh_"), "AbcDefGeh");
+    }
+
+    @Test
+    public void camelToSnakeCase() {
+        assertEquals(St.camelToSnake("Abc"), "abc");
+        assertEquals(St.camelToSnake("AbcDef"), "abc_def");
+        assertEquals(St.camelToSnake("AbcDefGeh"), "abc_def_geh");
+    }
+
+    @Test
+    public void camelToCapitalizedWords() {
+        assertEquals(St.camelToCapitalizedWords("AbcDef"), "Abc Def");
+        assertEquals(St.camelToCapitalizedWords("abcDef"), "Abc Def");
+        assertEquals(St.camelToCapitalizedWords("abc"), "Abc");
     }
 }

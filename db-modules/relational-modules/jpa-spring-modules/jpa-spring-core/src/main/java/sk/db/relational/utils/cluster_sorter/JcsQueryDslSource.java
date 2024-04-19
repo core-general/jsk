@@ -25,7 +25,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.ComparableExpression;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.querydsl.QPageRequest;
 import sk.db.relational.utils.ReadWriteRepo;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
@@ -80,7 +79,6 @@ public class JcsQueryDslSource<ITEM_ID extends Serializable, ITEM, ORDER_FIELD e
     }
 
 
-    @NotNull
     private JcsList<ITEM> getItemsPrivate(int limit, boolean reverse, GSet<Integer> offset) {
         JcsDynamicPagingHelper helper = JcsDynamicPagingHelper.help(offset.get(), limit);
         BooleanExpression where = this.defaultWhere.get();

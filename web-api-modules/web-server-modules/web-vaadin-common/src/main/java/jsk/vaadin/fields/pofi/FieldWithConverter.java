@@ -23,11 +23,10 @@ package jsk.vaadin.fields.pofi;
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.statics.St;
 
 public interface FieldWithConverter<MODEL> {
-    @NotNull
+
     default Converter<String, MODEL> getConverter() {
         return new Converter<>() {
             @Override

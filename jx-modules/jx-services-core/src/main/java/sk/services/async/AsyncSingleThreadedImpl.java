@@ -20,8 +20,9 @@ package sk.services.async;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.exceptions.NotImplementedException;
+import sk.utils.functional.F0;
 import sk.utils.statics.Cc;
 
 import java.util.List;
@@ -67,6 +68,11 @@ public class AsyncSingleThreadedImpl implements IAsync {
     }
 
     @Override
+    public <T> T coldTaskFJPGet(int threads, F0<T> toRun) {
+        return toRun.get();
+    }
+
+    @Override
     public void stop() {
 
     }
@@ -77,7 +83,7 @@ public class AsyncSingleThreadedImpl implements IAsync {
 
         }
 
-        @NotNull
+
         @Override
         public List<Runnable> shutdownNow() {
             return Cc.l();
@@ -94,12 +100,12 @@ public class AsyncSingleThreadedImpl implements IAsync {
         }
 
         @Override
-        public boolean awaitTermination(long timeout, @NotNull TimeUnit unit) throws InterruptedException {
+        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
             return false;
         }
 
         @Override
-        public void execute(@NotNull Runnable command) {
+        public void execute(Runnable command) {
             command.run();
         }
     }

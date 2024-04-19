@@ -23,23 +23,23 @@ package sk.services.ipgeo;
 import com.maxmind.db.Reader;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.model.CountryResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.except.IExcept;
 import sk.services.http.IHttp;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Io;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.time.ZoneId;
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 public class IpGeoMaxmindExtractor implements IIpGeoExtractor {
     @Inject IExcept except;
     @Inject IHttp http;

@@ -23,8 +23,7 @@ package sk.utils.semver;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
@@ -35,7 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Data
-@Log4j2
+@Slf4j
 public class Semver200Template {
     private final List<Semver200TemplatePart> checkingParts;
 
@@ -61,7 +60,7 @@ public class Semver200Template {
                             }
                         }
 
-                        @NotNull
+
                         private TemplateInnerValuePart getInner(String $) {
                             if ($.contains("-")) {
                                 String[] lr = $.split("-");

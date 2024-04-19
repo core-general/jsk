@@ -22,7 +22,6 @@ package sk.utils.computation.chained;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.computation.chained.values.SomeValue;
 
 import java.util.Collections;
@@ -42,7 +41,7 @@ public class ChainedComputation {
         return createMappedInput(cls);
     }
 
-    @NotNull
+
     @SneakyThrows
     public <IN extends ChainedMappedInput> IN createMappedInput(Class<IN> cls) {
         return cls.getConstructor(ChainedComputation.class).newInstance(this);

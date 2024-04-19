@@ -20,20 +20,20 @@ package sk.utils.tree;
  * #L%
  */
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.functional.O.empty;
 import static sk.utils.tree.TreePath.path;
 
 public class TreeTest extends MockitoTest {
-    private Tree<Boolean, String> n;
+    private Tree<String, Boolean> n;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        n = Tree.<Boolean, String>create()
+        n = Tree.<String, Boolean>create()
                 .setVal(path("a"), true)
                 .setVal(path("a", "b"), true)
                 .setVal(path("a", "b", "c"), false)
@@ -48,18 +48,18 @@ public class TreeTest extends MockitoTest {
     public void testToString() {
         assertEquals(n.toString(),
                 "ROOT\n" +
-                        "|- a\n" +
-                        "   |- b\n" +
-                        "      |- c\n" +
-                        "   |- c\n" +
-                        "|- b\n" +
-                        "   |- b\n" +
-                        "   |- c");
+                "|- a\n" +
+                "   |- b\n" +
+                "      |- c\n" +
+                "   |- c\n" +
+                "|- b\n" +
+                "   |- b\n" +
+                "   |- c");
     }
 
     @Test
     public void testRemove() {
-        n = Tree.<Boolean, String>create()
+        n = Tree.<String, Boolean>create()
                 .setVal(path("a"), true)
                 .setVal(path("a", "b", "c"), false)
                 .setVal(path("a", "b"), null)
@@ -75,7 +75,7 @@ public class TreeTest extends MockitoTest {
 
     @Test
     public void testRemoveAndRemoveNullBranch() {
-        n = Tree.<Boolean, String>create()
+        n = Tree.<String, Boolean>create()
                 .setVal(path("a"), true)
                 .setVal(path("a", "b", "c"), false)
                 .setVal(path("a", "b"), null)

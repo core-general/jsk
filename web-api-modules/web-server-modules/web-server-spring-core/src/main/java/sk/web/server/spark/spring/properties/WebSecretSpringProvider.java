@@ -20,6 +20,7 @@ package sk.web.server.spark.spring.properties;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,6 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.web.auth.WebSecretProvider;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Set;
 

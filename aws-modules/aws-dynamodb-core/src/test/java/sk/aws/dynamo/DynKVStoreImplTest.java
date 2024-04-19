@@ -20,12 +20,12 @@ package sk.aws.dynamo;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.services.kv.keys.KvKeyRaw;
 import sk.utils.statics.Cc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static sk.aws.dynamo.DynKVStoreImpl.toKvKeyWithOtherKey2;
 
 public class DynKVStoreImplTest {

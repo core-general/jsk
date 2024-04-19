@@ -38,7 +38,6 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import lombok.*;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.functional.OneOrBoth;
@@ -194,7 +193,7 @@ public class WebSwaggerGenerator {
         return convertToSchema(getTypeGenericInfoRaw(type), classesForComponents);
     }
 
-    @NotNull
+
     private static Schema<?> convertToSchema(TypeInfoGenericInfoRaw typeGenericInfoRaw,
             Map<Class<?>, ClassInfoGenericInfoRaw> classesForComponents) {
         final SwaggerType tt = typeGenericInfoRaw.getType();
@@ -441,7 +440,7 @@ public class WebSwaggerGenerator {
         public O<OneOrBoth<Class<?>, SwaggerType>> getArrayClassForSchema() {
             if ("array".equals(type)) {
                 Class<?> classO = itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema())).orElse(null);
-                return of(OneOrBoth.both(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
+                return of(OneOrBoth.maybeBoth(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
             } else {
                 return empty();
             }
@@ -450,7 +449,7 @@ public class WebSwaggerGenerator {
         public O<OneOrBoth<Class<?>, SwaggerType>> getMapClassForSchema() {
             if (isMap) {
                 Class<?> classO = itemsRefOrType.flatMap($ -> $.oRight().flatMap($$ -> $$.getClassForSchema())).orElse(null);
-                return of(OneOrBoth.both(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
+                return of(OneOrBoth.maybeBoth(classO, itemsRefOrType.flatMap($ -> $.oRight()).orElse(null)));
             } else {
                 return empty();
             }

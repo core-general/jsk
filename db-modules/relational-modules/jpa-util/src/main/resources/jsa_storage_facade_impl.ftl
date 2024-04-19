@@ -22,14 +22,14 @@
 package ${model.packageName};
 
 import javax.inject.Inject;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import net.bull.javamelody.MonitoredWithSpring;
 
 import sk.utils.functional.*;
 import sk.db.relational.spring.services.impl.*;
 
 @MonitoredWithSpring
-@Log4j2
+@Slf4j
 public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl implements ${model.prefix}StorageFacade {
 <#list model.entites as entity>
     private @Inject ${entity.cls}Repo ${entity.simple}Repo;

@@ -27,21 +27,21 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.Version;
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.ids.IIds;
 import sk.utils.functional.F0E;
 import sk.utils.javafixes.BuilderStringWriter;
 import sk.utils.statics.Ex;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.StringReader;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings("unused")
-@Log4j2
+@Slf4j
 public class Freemarker implements IFree {
     @Inject IIds ids;
     @Inject Optional<TemplateLoader> templateLoader = Optional.empty();

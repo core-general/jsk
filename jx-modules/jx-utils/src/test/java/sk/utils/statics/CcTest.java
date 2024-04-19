@@ -20,14 +20,14 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 import sk.utils.functional.O;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.statics.Cc.*;
 
 public class CcTest extends MockitoTest {
@@ -35,7 +35,7 @@ public class CcTest extends MockitoTest {
     private List<Integer> l;
     private Map<Integer, String> m;
 
-    @Before
+    @BeforeEach
     public void setUpTest() {
         l = new ArrayList<Integer>() {
             {

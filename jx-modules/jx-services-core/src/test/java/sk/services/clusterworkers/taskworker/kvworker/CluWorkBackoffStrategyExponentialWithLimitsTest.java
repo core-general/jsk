@@ -21,14 +21,14 @@ package sk.services.clusterworkers.taskworker.kvworker;
  */
 
 import lombok.val;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.functional.O;
 import sk.utils.ifaces.Identifiable;
 
 import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CluWorkBackoffStrategyExponentialWithLimitsTest {
 

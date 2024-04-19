@@ -20,7 +20,7 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.functional.*;
 import sk.utils.tuples.X2;
 
@@ -168,6 +168,10 @@ public final class Cc/*ColleCtions*/ {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(nexter, 0), false);
     }
 
+    @SafeVarargs
+    public static <T> Stream<T> streamArr(T... arr) {
+        return Stream.of(arr);
+    }
 
     @SafeVarargs
     public static <T> Stream<T> stream(T... arr) {
@@ -242,7 +246,7 @@ public final class Cc/*ColleCtions*/ {
     public static <E> Iterable<E> enumerableToIterable(final Enumeration<E> e) {
         Objects.requireNonNull(e);
         return new Iterable<E>() {
-            @NotNull
+
             @Override
             public Iterator<E> iterator() {
                 return new Iterator<E>() {
@@ -345,6 +349,11 @@ public final class Cc/*ColleCtions*/ {
         return toRet;
     }
 
+    public static <T> Comparator<T> orderingComparatorFromList(List<T> in) {
+        return orderingComparator(ordering(in));
+    }
+
+
     public static <T> Comparator<T> orderingComparator(Map<T, Integer> ordering, boolean nullsUp) {
         return new Comparator<T>() {
             @Override
@@ -436,7 +445,7 @@ public final class Cc/*ColleCtions*/ {
                 .collect(toL());
     }
 
-    public static <T> List<T> fillFun(int listCount, @NotNull F1<Integer, T> defaultValue) {
+    public static <T> List<T> fillFun(int listCount, F1<Integer, T> defaultValue) {
         return IntStream.range(0, listCount)
                 .mapToObj(defaultValue::apply)
                 .collect(toL());

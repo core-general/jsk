@@ -5,26 +5,26 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.9.15</version>
+        <version>jsk.21.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-test</artifactId>
 
-    <version>jsk.17.9.15</version>
+    <version>jsk.21.0.1</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.5.1</version>
+            <version>5.11.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

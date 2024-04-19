@@ -23,7 +23,6 @@ package sk.utils.semver;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
@@ -86,7 +85,7 @@ public class MultiSemver implements Comparable<MultiSemver> {
     }
 
     @Override
-    public int compareTo(@NotNull MultiSemver o) {
+    public int compareTo(MultiSemver o) {
         Boolean thisGOE = this.isGreaterOrEqualThan(o);
         Boolean otherGOE = o.isGreaterOrEqualThan(this);
 

@@ -22,12 +22,12 @@ package sk.utils.javafixes.argparser;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.functional.O;
 
 import java.util.TreeSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.asserts.JskAssert.checkCatchOrFail;
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.of;

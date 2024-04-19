@@ -22,7 +22,7 @@ package jsk.gcl.agent.services;
 
 import jsk.gcl.agent.model.GcaMeta;
 import jsk.gcl.agent.model.GcaUpdateFileProps;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.s3.S3JskClient;
 import sk.services.ICoreServices;
 import sk.services.http.CrcAndSize;
@@ -36,7 +36,7 @@ import sk.utils.statics.Ti;
 
 import java.time.Duration;
 
-@Log4j2
+@Slf4j
 public class GcaFileUpdaterTask {
     private final S3JskClient s3;
     private final ICoreServices core;

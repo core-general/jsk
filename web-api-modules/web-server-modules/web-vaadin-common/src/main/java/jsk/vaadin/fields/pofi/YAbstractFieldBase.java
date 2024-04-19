@@ -32,7 +32,6 @@ import org.vaadin.firitin.components.customfield.VCustomField;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X2;
 
-import javax.validation.ValidationException;
 import java.util.List;
 
 public abstract class YAbstractFieldBase<MODEL,
@@ -124,7 +123,7 @@ public abstract class YAbstractFieldBase<MODEL,
                         )
                 );
             }
-            throw new ValidationException("Wrong format");
+            throw new jakarta.validation.ValidationException("Wrong format");
         } else {
             final MODEL model = modelResult.getOrThrow(s -> new RuntimeException());
             forceInvalid(false);

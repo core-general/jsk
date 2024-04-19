@@ -39,10 +39,12 @@ import com.github.messenger4j.send.message.template.ButtonTemplate;
 import com.github.messenger4j.send.message.template.button.Button;
 import com.github.messenger4j.send.message.template.button.PostbackButton;
 import com.github.messenger4j.webhook.Event;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.outer.api.OutMessengerApi;
 import sk.services.ids.IIds;
 import sk.utils.functional.O;
@@ -51,8 +53,6 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +64,7 @@ import static com.github.messenger4j.send.message.richmedia.RichMediaAsset.Type.
 import static sk.utils.functional.O.of;
 import static sk.utils.functional.O.ofNullable;
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 public class MgcGeneralFbApi implements OutMessengerApi<String, MgcFbSpecial, List<String>, MessageResponse> {
     @Inject Messenger bot;

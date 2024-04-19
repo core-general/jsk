@@ -20,10 +20,9 @@ package jsk.outer.telegram.mtc.beans.telegram.poling;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.kv.IKvLimitedStore;
 import sk.services.kv.keys.KvSimpleKeyWithName;
-
-import javax.inject.Inject;
 
 import static sk.utils.functional.O.of;
 

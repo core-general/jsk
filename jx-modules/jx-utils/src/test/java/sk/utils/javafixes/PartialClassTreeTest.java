@@ -20,12 +20,12 @@ package sk.utils.javafixes;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.CharConversionException;
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PartialClassTreeTest {
     PartialClassTree pct = new PartialClassTree();

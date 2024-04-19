@@ -23,11 +23,16 @@ package sk.services.async;
 import lombok.SneakyThrows;
 import lombok.val;
 import sk.utils.functional.F0;
+import sk.utils.functional.F1;
 import sk.utils.functional.R;
 import sk.utils.statics.Ex;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -50,6 +55,13 @@ public interface IAsync extends ISleep {
 
     IScheduledExecutorService newDedicatedScheduledExecutor(String name);
 
+    default Thread runNamedThread(String name, R task, boolean daemon) {
+        Thread thread = new Thread(task, "JfgElnAntibodiesProviderImpl");
+        thread.setDaemon(true);
+        thread.start();
+        return thread;
+    }
+
     default void coldTaskFJPRun(int threads, R toRun) {
         coldTaskFJPGet(threads, () -> {
             toRun.run();
@@ -64,23 +76,57 @@ public interface IAsync extends ISleep {
         });
     }
 
-    default <T> T coldTaskFJPGet(int threads, F0<T> toRun) {
-        final ForkJoinPool forkJoinPool = new ForkJoinPool(threads);
-        try {
-            return forkJoinPool.submit(toRun::apply).join();
-        } finally {
-            forkJoinPool.shutdown();
-        }
-    }
+    <T> T coldTaskFJPGet(int threads, F0<T> toRun);
 
     default <T> T coldTaskFJPGet(F0<T> toRun) {
         return Ex.toRuntime(() -> coldTaskFJP().call(toRun::apply).get());
     }
 
     default CompletableFuture<Void> runAsyncDontWait(List<R> toRun) {
+        return runAsyncDontWait(toRun, this::runBuf);
+    }
+
+    default <U> CompletableFuture<List<U>> supplyAsyncDontWait(List<F0<U>> toRun) {
+        return supplyAsyncDontWait(toRun, this::supplyBuf);
+    }
+
+    default <U> List<CompletableFuture<U>> supplyToList(List<F0<U>> toRun) {
+        return toRun.stream()
+                .map(this::supplyBuf)
+                .toList();
+    }
+
+    default CompletableFuture<Void> runAsyncDontWait(List<R> toRun, int threadCount) {
+        return runAsyncDontWait(toRun, run -> runFix(run, threadCount));
+    }
+
+    default <U> CompletableFuture<List<U>> supplyAsyncDontWait(List<F0<U>> toRun, int threadCount) {
+        return supplyAsyncDontWait(toRun, run -> supplyFix(run, threadCount));
+    }
+
+    default <U> List<CompletableFuture<U>> supplyToList(List<F0<U>> toRun, int threadCount) {
+        return toRun.stream()
+                .map(run -> supplyFix(run, threadCount))
+                .toList();
+    }
+
+    default CompletableFuture<Void> runAsyncDontWait(List<R> toRun, F1<R, CompletableFuture<Void>> runner) {
         return allOf(toRun.stream()
-                .map(this::runBuf)
+                .map(runner)
                 .toArray(CompletableFuture[]::new));
+    }
+
+    default <U> CompletableFuture<List<U>> supplyAsyncDontWait(List<F0<U>> toRun, F1<F0<U>, CompletableFuture<U>> runner) {
+        List<CompletableFuture<U>> completableFutures = supplyToList(toRun, runner);
+
+        return allOf(completableFutures.toArray(CompletableFuture[]::new))
+                .thenApply(unused -> completableFutures.stream().map($ -> $.join()).toList());
+    }
+
+    default <U> List<CompletableFuture<U>> supplyToList(List<F0<U>> toRun, F1<F0<U>, CompletableFuture<U>> runner) {
+        return toRun.stream()
+                .map(runner)
+                .toList();
     }
 
     default CompletableFuture<Void> runBuf(R run) {
@@ -89,6 +135,36 @@ public interface IAsync extends ISleep {
 
     default <U> CompletableFuture<U> supplyBuf(F0<U> run) {
         return CompletableFuture.supplyAsync(run, bufExec().getUnderlying());
+    }
+
+    default CompletableFuture<Void> runFix(R run, int threads) {
+        return CompletableFuture.runAsync(run, fixedExec(threads).getUnderlying());
+    }
+
+    default <U> CompletableFuture<U> supplyFix(F0<U> run, int threads) {
+        return CompletableFuture.supplyAsync(run, fixedExec(threads).getUnderlying());
+    }
+
+    /** Will return first successful or fail if all failed */
+    public default <T> CompletableFuture<T> anyNonFailed(List<CompletableFuture<T>> futures) {
+        if (futures.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+        // Create a new CompletableFuture that will be manually completed
+        CompletableFuture<T> firstSuccessful = new CompletableFuture<>();
+
+        AtomicInteger ai = new AtomicInteger(futures.size());
+        futures.forEach(future -> future.whenComplete((result, ex) -> {
+            if (result != null) {
+                firstSuccessful.complete(result);
+            }
+            // if all failed, then we need to complete exceptionally on the returned future
+            if (ai.decrementAndGet() == 0 && !firstSuccessful.isDone()) {
+                firstSuccessful.completeExceptionally(ex);
+            }
+        }));
+
+        return firstSuccessful;
     }
 
     default <T> List<T> supplyParallel(List<F0<T>> suppliers) {

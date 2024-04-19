@@ -22,8 +22,7 @@ package sk.utils.collections.task_queue.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.collections.task_queue.JtqPTQPriority;
 import sk.utils.collections.task_queue.JtqPriorityTask;
@@ -42,7 +41,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.IntStream;
 
-@Log4j2
+@Slf4j
 @AllArgsConstructor
 public class JtqPriorityTaskQueueImpl<PRIORITY extends JtqPTQPriority> implements JtqPriorityTaskQueue<PRIORITY> {
     private final PriorityBlockingQueue<PTQTaskAndItsCompletion<?>> queue = new PriorityBlockingQueue<>();
@@ -135,7 +134,7 @@ public class JtqPriorityTaskQueueImpl<PRIORITY extends JtqPTQPriority> implement
         ZonedDateTime addedAt;
 
         @Override
-        public int compareTo(@NotNull PTQTaskAndItsCompletion<?> o) {
+        public int compareTo(PTQTaskAndItsCompletion<?> o) {
             return Fu.compare(this.task, o.task);
         }
 

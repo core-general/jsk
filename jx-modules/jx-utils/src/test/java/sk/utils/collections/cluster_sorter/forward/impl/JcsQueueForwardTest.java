@@ -20,13 +20,13 @@ package sk.utils.collections.cluster_sorter.forward.impl;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractQueueTest;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType;
 import sk.utils.statics.Cc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.collections.cluster_sorter.forward.model.JcsEForwardType.FORWARD;
 
 public class JcsQueueForwardTest extends JcsAbstractQueueTest<JcsEForwardType, JcsQueueForward<Integer, ?>> {

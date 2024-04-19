@@ -23,7 +23,9 @@ package sk.web.server.filters.standard;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.nodeinfo.model.IBeanInfo;
@@ -33,12 +35,10 @@ import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.params.WebDdosParams;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Log4j2
+@Slf4j
 public class WebDdosFilter implements WebServerFilter, IBeanInfoSubscriber<Map<String, String>> {
     public static final int PRIORITY = WebDefaultHeadersFilter.PRIORITY + PRIORITY_STEP;
 

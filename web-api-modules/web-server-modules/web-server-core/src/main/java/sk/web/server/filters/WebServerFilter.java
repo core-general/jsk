@@ -20,7 +20,7 @@ package sk.web.server.filters;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.web.renders.WebFilterOutput;
 
 /**
@@ -34,7 +34,7 @@ public interface WebServerFilter extends Comparable<WebServerFilter> {
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext);
 
     @Override
-    default int compareTo(@NotNull WebServerFilter o) {
+    default int compareTo(WebServerFilter o) {
         return getFilterPriority() - o.getFilterPriority();
     }
 }

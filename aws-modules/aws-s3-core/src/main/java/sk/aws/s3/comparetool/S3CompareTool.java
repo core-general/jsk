@@ -20,10 +20,11 @@ package sk.aws.s3.comparetool;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.s3.S3ItemMeta;
 import sk.aws.s3.S3JskClient;
@@ -47,14 +48,13 @@ import sk.utils.statics.St;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 
-import javax.inject.Inject;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {

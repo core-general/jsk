@@ -20,6 +20,7 @@ package sk.outer.api.ios.signin;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.outer.api.ios.OutGeneralIosRequester;
@@ -28,8 +29,6 @@ import sk.services.json.IJson;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
-
-import javax.inject.Inject;
 
 //https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple
 @NoArgsConstructor

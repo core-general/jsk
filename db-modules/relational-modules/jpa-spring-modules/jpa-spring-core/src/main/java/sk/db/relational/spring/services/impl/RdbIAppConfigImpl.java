@@ -21,6 +21,7 @@ package sk.db.relational.spring.services.impl;
  */
 
 
+import jakarta.inject.Inject;
 import sk.db.relational.model.JpaAppProperties;
 import sk.db.relational.spring.services.dao.repo.JpaAppPropertiesRepo;
 import sk.services.appconf.ConfigCoreImpl;
@@ -28,8 +29,6 @@ import sk.services.appconf.model.ConfigUnit;
 import sk.services.appconf.model.ConfigUnitKey;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
-
-import javax.inject.Inject;
 
 @SuppressWarnings("unused")
 public class RdbIAppConfigImpl extends ConfigCoreImpl {

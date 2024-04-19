@@ -20,9 +20,9 @@ package sk.services.kv;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
 import sk.services.json.IJson;
 import sk.services.kv.keys.KvKey;
 import sk.services.kv.keys.KvKeyWithDefault;
@@ -35,7 +35,6 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.tuples.X1;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +139,7 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
         }
     }
 
-    @NotNull
+
     private KvVersionedItemAll<String> toVersionedAll(KvKey key, KvAllValues<String> newValueProvider) {
         return new KvVersionedItemAll<>(new KvKeyWithDefault() {
             @Override

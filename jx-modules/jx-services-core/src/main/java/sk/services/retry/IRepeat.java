@@ -20,8 +20,7 @@ package sk.services.retry;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import sk.services.async.IExecutorService;
 import sk.services.retry.utils.BatchRepeatResult;
 import sk.services.retry.utils.IdCallable;
@@ -42,11 +41,11 @@ public interface IRepeat {
 
     //region F0
     <T> T repeat(
-            @NotNull F0<T> toRun,
-            @Nullable F0<T> onFail,
+            F0<T> toRun,
+            F0<T> onFail,
             int count,
             long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+            Set<Class<? extends Throwable>> allowedExceptions
     );
 
     default <T> T repeat(
@@ -76,11 +75,11 @@ public interface IRepeat {
     //region R
     @SuppressWarnings("SameReturnValue")
     default void repeat(
-            @NotNull R toRun,
-            @Nullable R onFail,
+            R toRun,
+            R onFail,
             int count,
             long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+            Set<Class<? extends Throwable>> allowedExceptions
     ) {
         repeat(
                 () -> {
@@ -115,11 +114,11 @@ public interface IRepeat {
 
     //region F0E
     <T> T repeatE(
-            @NotNull F0E<T> toRun,
-            @Nullable F0<T> onFail,
+            F0E<T> toRun,
+            F0<T> onFail,
             int count,
             long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+            Set<Class<? extends Throwable>> allowedExceptions
     ) throws Exception;
 
     default <T> T repeatE(
@@ -149,11 +148,11 @@ public interface IRepeat {
     //region RE
     @SuppressWarnings("SameReturnValue")
     default void repeatE(
-            @NotNull RE toRun,
-            @Nullable R onFail,
+            RE toRun,
+            R onFail,
             int count,
             long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> allowedExceptions
+            Set<Class<? extends Throwable>> allowedExceptions
     ) throws Exception {
         repeatE(
                 () -> {

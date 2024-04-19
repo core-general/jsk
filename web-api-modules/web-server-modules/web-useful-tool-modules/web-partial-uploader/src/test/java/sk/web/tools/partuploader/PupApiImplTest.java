@@ -23,9 +23,7 @@ package sk.web.tools.partuploader;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.services.async.ISizedSemaphore;
 import sk.services.async.ISizedSemaphoreImpl;
 import sk.services.kv.IKvLocal4Test;
@@ -47,15 +45,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static sk.services.ICore4Test.services;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static sk.services.CoreServicesRaw.services;
 import static sk.utils.asserts.JskAssert.checkCatchOrFail;
 
 public class PupApiImplTest {
     IRepeat repeat = new RepeatImpl(services().async()) {
         @Override
-        public <T> T repeatE(@NotNull F0E<T> toRun, @Nullable F0<T> onFail, int retryCount, long sleepBetweenTries,
-                @NotNull Set<Class<? extends Throwable>> okExceptions) throws Exception {
+        public <T> T repeatE(F0E<T> toRun, F0<T> onFail, int retryCount, long sleepBetweenTries,
+                Set<Class<? extends Throwable>> okExceptions) throws Exception {
             return toRun.get();
         }
     };

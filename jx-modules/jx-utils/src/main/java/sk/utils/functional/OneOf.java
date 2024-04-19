@@ -99,7 +99,7 @@ public class OneOf<L, R> {
     }
 
     public <T> T collect(F1<? super L, T> lFunc, F1<? super R, T> rFunc) {
-        return oLeft().map(lFunc).or(() -> oRight().map(rFunc)).get();
+        return oLeft().map(lFunc).or(() -> oRight().map(rFunc)).orElse(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -139,6 +139,13 @@ public class OneOf<L, R> {
         if (isRight()) {
             rFunc.accept(right);
         }
+    }
+
+    public L leftOrThrow() {
+        if (isRight() && right instanceof Exception e) {
+            throw new RuntimeException(e);
+        }
+        return left();
     }
 
     public L left() {

@@ -20,16 +20,15 @@ package sk.utils.async;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public class IAsyncUtil {
-    public static void throwableProcessing(@NotNull Runnable command, boolean throwHere) {
+    public static void throwableProcessing(Runnable command, boolean throwHere) {
         try {
             command.run();
         } catch (Throwable oom) {
@@ -52,7 +51,7 @@ public class IAsyncUtil {
             try {
                 handler.uncaughtException(Thread.currentThread(), oom);
             } catch (Throwable e) {
-                log.error(e);
+                log.error("", e);
             }
         }
 

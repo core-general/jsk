@@ -20,7 +20,7 @@ package sk.utils.collections.task_queue;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.ifaces.IdentifiableString;
 
 public interface JtqPriorityTask<PRIORITY extends JtqPTQPriority, OUT>
@@ -30,7 +30,7 @@ public interface JtqPriorityTask<PRIORITY extends JtqPTQPriority, OUT>
     OUT process();
 
     @Override
-    default int compareTo(@NotNull JtqPriorityTask o) {
+    default int compareTo(JtqPriorityTask o) {
         return Integer.compare(this.getPriority().ordinal(), o.getPriority().ordinal());
     }
 }

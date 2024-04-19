@@ -40,6 +40,11 @@ public class MgcTelegramFileRequest extends AbstractMultipartRequest<MgcTelegram
         return fileName;
     }
 
+    @Override
+    protected String getDefaultContentType() {
+        return "application/octet-stream";
+    }
+
 
     @Override
     protected String getFileParamName() {

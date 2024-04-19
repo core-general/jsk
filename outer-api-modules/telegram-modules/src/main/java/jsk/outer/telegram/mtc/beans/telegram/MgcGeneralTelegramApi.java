@@ -29,7 +29,7 @@ import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.*;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.outer.api.OutMessengerApi;
 import sk.services.ratelimits.IRateLimiter;
 import sk.utils.functional.F0;
@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
-@Log4j2
+@Slf4j
 public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
     @Getter protected final TelegramBot bot;
     @Getter protected final IRateLimiter globalRateLimiter;

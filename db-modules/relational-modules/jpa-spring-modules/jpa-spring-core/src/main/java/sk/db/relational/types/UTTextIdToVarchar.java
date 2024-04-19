@@ -22,10 +22,14 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.DynamicParameterizedType;
+import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import sk.utils.functional.F1;
+import sk.utils.functional.O;
 import sk.utils.ids.IdBase;
+import sk.utils.statics.Cc;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -37,7 +41,8 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
-public class UTTextIdToVarchar implements UserType<Object>, ParameterizedType {
+public class UTTextIdToVarchar
+        implements UserType<Object>, ParameterizedType, DynamicParameterizedType, EnhancedUserType<Object> {
     public final static String type = "sk.db.relational.types.UTTextIdToVarchar";
     @SuppressWarnings("WeakerAccess") public static final String param = "targetType";
 
@@ -46,9 +51,9 @@ public class UTTextIdToVarchar implements UserType<Object>, ParameterizedType {
 
     @Override
     public void setParameterValues(Properties parameters) {
-        String className = parameters.getProperty(param);
         try {
-            idClass = Class.forName(className);
+            idClass = UtUtils.getType(parameters, param);
+
             Constructor<?> constructor = idClass.getDeclaredConstructor(String.class);
             constructor.setAccessible(true);
             creator = string -> {
@@ -62,10 +67,10 @@ public class UTTextIdToVarchar implements UserType<Object>, ParameterizedType {
                 }
                 return null;
             };
-        } catch (ClassNotFoundException e) {
-            throw new HibernateException("Class not found ", e);
         } catch (NoSuchMethodException e) {
-            throw new HibernateException("Class doesnt have string constructor ", e);
+            throw new HibernateException(
+                    "Class doesnt have string constructor " + Cc.joinMap(parameters.entrySet().stream().collect(Cc.toMEntry())),
+                    e);
         }
     }
 
@@ -133,5 +138,20 @@ public class UTTextIdToVarchar implements UserType<Object>, ParameterizedType {
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
         return cached;
+    }
+
+    @Override
+    public String toSqlLiteral(Object value) {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public String toString(Object value) throws HibernateException {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public Object fromStringValue(CharSequence sequence) throws HibernateException {
+        return O.ofNull(sequence).map($ -> creator.apply($.toString())).orElse(null);
     }
 }

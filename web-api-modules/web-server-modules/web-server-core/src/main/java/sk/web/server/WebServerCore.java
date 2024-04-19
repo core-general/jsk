@@ -20,10 +20,11 @@ package sk.web.server;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.services.bean.IServiceLocator;
 import sk.services.bytes.IBytes;
@@ -65,7 +66,6 @@ import sk.web.server.params.WebExceptionParams;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
 
-import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -81,7 +81,7 @@ import static sk.utils.functional.O.*;
 import static sk.utils.statics.St.*;
 import static sk.web.renders.WebRenderType.JSON;
 
-@Log4j2
+@Slf4j
 public class WebServerCore<API>
         implements IBeanInfoSubscriber<WebServerCore.WebServerShortInfo>, AppStopListener {
 

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>relational-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.9.15</version>
+        <version>jsk.21.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -40,7 +40,7 @@
                         <dependency>
                             <groupId>com.querydsl</groupId>
                             <artifactId>querydsl-apt</artifactId>
-                            <version>5.0.0</version>
+                            <version>5.1.0</version>
                             <classifier>jakarta</classifier>
                         </dependency>
                     </dependencies>

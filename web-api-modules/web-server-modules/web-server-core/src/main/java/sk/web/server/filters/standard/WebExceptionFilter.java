@@ -20,7 +20,8 @@ package sk.web.server.filters.standard;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.exceptions.JskProblemException;
 import sk.web.exceptions.JskProblemExceptionWithHttpCode;
@@ -31,9 +32,7 @@ import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebExceptionParams;
 
-import javax.inject.Inject;
-
-@Log4j2
+@Slf4j
 public class WebExceptionFilter implements WebServerFilter {
     public static final int PRIORITY = WebIdempotenceFilter.PRIORITY + PRIORITY_STEP;
 

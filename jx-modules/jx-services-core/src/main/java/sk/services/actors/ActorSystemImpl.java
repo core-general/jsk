@@ -20,6 +20,7 @@ package sk.services.actors;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.Data;
 import sk.services.async.IAsync;
 import sk.services.ids.IIds;
@@ -35,7 +36,6 @@ import sk.utils.tree.TreePath;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X3;
 
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -51,7 +51,7 @@ public class ActorSystemImpl implements ActorSystem {
     private @Inject IIds ids;
     private @Inject IAsync async;
     private final List<ActorSystemExecutor> executors;
-    private final Tree<PrivateActor, String> actorTree;
+    private final Tree<String, PrivateActor> actorTree;
     private final Map<ActorId, PrivateActor> actors = new ConcurrentHashMap<>();
     private final Map<ActorId, ActorSystemExecutor> distinctThreadActors = new ConcurrentHashMap<>();
 
@@ -181,7 +181,7 @@ public class ActorSystemImpl implements ActorSystem {
                     if (msg != null) {
                         processor.accept(msg);
                     }
-                } catch (InterruptedException ignored) { }
+                } catch (InterruptedException ignored) {}
             }, "ActorSystemExecutor-" + id, true);
             thread.start();
         }

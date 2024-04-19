@@ -20,6 +20,7 @@ package sk.services.shutdown;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.Getter;
 import sk.services.async.IAsync;
 import sk.services.boot.IBoot;
@@ -28,7 +29,6 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 

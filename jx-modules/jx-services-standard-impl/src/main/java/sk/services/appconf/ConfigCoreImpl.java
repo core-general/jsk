@@ -22,7 +22,9 @@ package sk.services.appconf;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.appconf.model.ConfigUnit;
 import sk.services.appconf.model.ConfigUnitKey;
 import sk.services.appconf.model.NeedsConfig;
@@ -30,8 +32,6 @@ import sk.services.json.IJson;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unused"})
-@Log4j2
+@Slf4j
 public abstract class ConfigCoreImpl implements IConfig {
     @Inject IJson json;
     @Inject Optional<List<NeedsConfig>> configurables;

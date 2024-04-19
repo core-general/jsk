@@ -20,9 +20,9 @@ package sk.db.relational.spring.proprties;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 

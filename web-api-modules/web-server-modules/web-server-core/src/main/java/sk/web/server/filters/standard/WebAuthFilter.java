@@ -20,6 +20,7 @@ package sk.web.server.filters.standard;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.exceptions.JskProblem;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
@@ -31,8 +32,6 @@ import sk.web.renders.WebFilterOutput;
 import sk.web.server.context.WebRequestInnerContext;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
-
-import javax.inject.Inject;
 
 public class WebAuthFilter implements WebServerFilter {
     public static final int PRIORITY = WebShutdownFilter.PRIORITY + PRIORITY_STEP;

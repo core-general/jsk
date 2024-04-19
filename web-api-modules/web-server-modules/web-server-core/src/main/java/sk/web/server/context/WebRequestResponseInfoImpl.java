@@ -20,6 +20,7 @@ package sk.web.server.context;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.free.IFree;
 import sk.services.json.IJson;
 import sk.services.time.ITime;
@@ -32,8 +33,6 @@ import sk.web.renders.WebFilterOutput;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.model.WebRequestFinishInfo;
 import sk.web.server.model.WebRequestStartInfo;
-
-import javax.inject.Inject;
 
 public class WebRequestResponseInfoImpl implements WebRequestResponseInfo {
     private static final WebRequestVariable WEB_REQUEST_INFO = () -> "_JSK_WEB_REQUEST_INFO";

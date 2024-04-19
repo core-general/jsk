@@ -21,7 +21,7 @@ package sk.utils.paging;
  */
 
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.functional.O;
 import sk.utils.functional.P1;
 import sk.utils.functional.R;
@@ -56,7 +56,7 @@ public class RingPicker<T> implements Iterable<T> {
         this(lst, 0);
     }
 
-    private RingPicker(@NotNull List<T> lst, int index) {
+    private RingPicker(List<T> lst, int index) {
         this.lst = lst;
         this.index = index;
     }
@@ -147,7 +147,7 @@ public class RingPicker<T> implements Iterable<T> {
         return lst.isEmpty();
     }
 
-    @NotNull
+
     @Override
     public Iterator<T> iterator() {
         X1<Boolean> first = X.x(true);

@@ -20,6 +20,8 @@ package sk.services.mapping;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
 import org.modelmapper.AbstractConverter;
 import org.modelmapper.Conditions;
@@ -30,8 +32,6 @@ import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoZonedDateTime;

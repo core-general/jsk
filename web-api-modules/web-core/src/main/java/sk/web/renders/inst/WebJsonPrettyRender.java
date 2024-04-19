@@ -20,9 +20,8 @@ package sk.web.renders.inst;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.json.IJson;
-
-import javax.inject.Inject;
 
 public class WebJsonPrettyRender extends WebByteRenderBase {
     @Inject IJson json;

@@ -21,7 +21,6 @@ package sk.services.async;
  */
 
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,26 +38,26 @@ abstract class ExecutorServiceWrapper implements ExecutorService {
 
     public boolean isTerminated() {return executor.isTerminated();}
 
-    public boolean awaitTermination(long timeout, @NotNull TimeUnit unit)
+    public boolean awaitTermination(long timeout, TimeUnit unit)
             throws InterruptedException {return executor.awaitTermination(timeout, unit);}
 
-    public <T> Future<T> submit(@NotNull Callable<T> task) {return executor.submit(task);}
+    public <T> Future<T> submit(Callable<T> task) {return executor.submit(task);}
 
-    public <T> Future<T> submit(@NotNull Runnable task, T result) {return executor.submit(task, result);}
+    public <T> Future<T> submit(Runnable task, T result) {return executor.submit(task, result);}
 
-    public Future<?> submit(@NotNull Runnable task) {return executor.submit(task);}
+    public Future<?> submit(Runnable task) {return executor.submit(task);}
 
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks)
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
             throws InterruptedException {return executor.invokeAll(tasks);}
 
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {return executor.invokeAll(tasks, timeout, unit);}
 
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks)
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {return executor.invokeAny(tasks);}
 
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {return executor.invokeAny(tasks, timeout, unit);}
 
-    public void execute(@NotNull Runnable command) {executor.execute(command);}
+    public void execute(Runnable command) {executor.execute(command);}
 }

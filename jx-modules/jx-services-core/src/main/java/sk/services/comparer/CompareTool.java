@@ -20,9 +20,10 @@ package sk.services.comparer;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.AsyncSingleThreadedImpl;
 import sk.services.async.IAsync;
 import sk.services.comparer.model.CompareResult;
@@ -37,13 +38,12 @@ import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
-import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.Future;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Log4j2
+@Slf4j
 public class CompareTool<T extends Identifiable<String>, I> {
     protected @Inject Optional<IAsync> async = Optional.of(new AsyncSingleThreadedImpl());
 

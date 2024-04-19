@@ -22,8 +22,12 @@ package sk.services.bean;
 
 import sk.utils.functional.O;
 
+import java.util.List;
+
 public interface IServiceLocator {
     <K> O<K> getService(Class<K> cls);
+
+    <K> List<K> getServices(Class<K> cls);
 
     <K> O<K> injectServicesInto(K someObject);
 }

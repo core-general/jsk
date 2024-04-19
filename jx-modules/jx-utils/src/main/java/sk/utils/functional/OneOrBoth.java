@@ -31,7 +31,18 @@ public class OneOrBoth<L, R> {
 
     public static <L, R> OneOrBoth<L, R> right(R value) {return new OneOrBoth<>(null, value);}
 
-    public static <L, R> OneOrBoth<L, R> both(L left, R right) {return new OneOrBoth<>(left, right);}
+    public static <L, R> OneOrBoth<L, R> mustBoth(L left, R right) {
+        if (left == null) {
+            throw new IllegalArgumentException("mustBoth is invoked, but left is null");
+        }
+        if (right == null) {
+            throw new IllegalArgumentException("mustBoth is invoked, but right is null");
+        }
+
+        return new OneOrBoth<>(left, right);
+    }
+
+    public static <L, R> OneOrBoth<L, R> maybeBoth(L left, R right) {return new OneOrBoth<>(left, right);}
 
     public static <L, R> OneOrBoth<L, R> one(OneOf<L, R> val) {
         return new OneOrBoth<>(val.oLeft().orElse(null), val.oRight().orElse(null));

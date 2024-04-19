@@ -20,16 +20,26 @@ package sk.spring.services;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.AbstractApplicationContext;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
-@Log4j2
+@Slf4j
 public class ServiceLocator4SpringImpl implements IServiceLocator {
+    public static volatile IServiceLocator instance;
+
     @Inject AbstractApplicationContext context;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
 
     @Override
     public <K> O<K> getService(Class<K> cls) {
@@ -39,6 +49,11 @@ public class ServiceLocator4SpringImpl implements IServiceLocator {
             log.error("", e);
             return O.empty();
         }
+    }
+
+    @Override
+    public <K> List<K> getServices(Class<K> cls) {
+        return new ArrayList<>(context.getBeansOfType(cls).values());
     }
 
     @Override

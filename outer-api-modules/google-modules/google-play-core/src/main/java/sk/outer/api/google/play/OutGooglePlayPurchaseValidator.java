@@ -29,18 +29,18 @@ import com.google.api.services.androidpublisher.model.ProductPurchase;
 import com.google.api.services.androidpublisher.model.SubscriptionPurchase;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.json.IJson;
 import sk.utils.functional.OneOf;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 
 import static com.google.auth.oauth2.GoogleCredentials.fromStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Log4j2
+@Slf4j
 public class OutGooglePlayPurchaseValidator {
     private HttpTransport transport;
     private GsonFactory gsonFactory;

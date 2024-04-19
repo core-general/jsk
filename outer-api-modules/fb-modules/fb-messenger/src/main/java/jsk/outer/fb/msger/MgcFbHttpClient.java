@@ -21,6 +21,7 @@ package jsk.outer.fb.msger;
  */
 
 import com.github.messenger4j.spi.MessengerHttpClient;
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.http.IHttp;
@@ -28,7 +29,6 @@ import sk.services.http.model.CoreHttpResponse;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ma;
 
-import javax.inject.Inject;
 import java.io.IOException;
 
 @AllArgsConstructor

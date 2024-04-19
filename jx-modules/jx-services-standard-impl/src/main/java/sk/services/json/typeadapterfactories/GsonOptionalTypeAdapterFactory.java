@@ -26,7 +26,7 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.functional.C2;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Log4j2
+@Slf4j
 public class GsonOptionalTypeAdapterFactory implements TypeAdapterFactory {
     final ConcurrentHashMap<Class<?>, List<OFieldGetterSetter>> optionalFieldsChecker = new ConcurrentHashMap<>();
 

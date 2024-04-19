@@ -20,10 +20,10 @@ package sk.services.clusterworkers.taskworker.kvworker;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluOnOffKvKey;
@@ -47,7 +47,6 @@ import sk.utils.tuples.X;
 import sk.utils.tuples.X1;
 import sk.utils.tuples.X2;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -55,7 +54,7 @@ import java.util.function.Function;
 import static sk.utils.functional.OneOf.right;
 
 @SuppressWarnings("Convert2MethodRef")
-@Log4j2
+@Slf4j
 public class CluKvSplitTaskWorker<CUSTOM_META, TASK_INPUT extends Identifiable<String>, RESULT,
         CONFIG extends CluKvSplitTaskWorker.IConf<CUSTOM_META, TASK_INPUT, RESULT>>
         extends CluSplitTaskWorker<CUSTOM_META, RESULT, CONFIG> {
@@ -257,14 +256,14 @@ public class CluKvSplitTaskWorker<CUSTOM_META, TASK_INPUT extends Identifiable<S
         return config.getRawValueConverter().convertBack(json.to(fullWork));
     }
 
-    @NotNull
+
     private TypeWrap<CluWorkMetaInfo<CUSTOM_META>> getMetaType(Class<?> metaClass) {
         return (TypeWrap<CluWorkMetaInfo<CUSTOM_META>>)
                 TypeWrap.getHolder(CluWorkMetaInfo.class, metaClass);
     }
 
     @SuppressWarnings("unchecked")
-    @NotNull
+
     private CONFIG wrapConfig(CONFIG config) {
         CluOnOffKvKey onOffKey = new CluOnOffKvKey(name);
         IConf<CUSTOM_META, TASK_INPUT, RESULT> iConf = new IConf<CUSTOM_META, TASK_INPUT, RESULT>() {

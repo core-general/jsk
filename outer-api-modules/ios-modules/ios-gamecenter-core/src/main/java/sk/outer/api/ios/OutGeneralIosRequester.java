@@ -23,6 +23,7 @@ package sk.outer.api.ios;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.http.IHttp;
@@ -34,7 +35,6 @@ import sk.utils.functional.OneOf;
 import sk.utils.functional.Op1;
 import sk.utils.statics.Cc;
 
-import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;

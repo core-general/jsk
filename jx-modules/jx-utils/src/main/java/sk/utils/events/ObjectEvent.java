@@ -20,7 +20,7 @@ package sk.utils.events;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.functional.C1;
 
 import java.util.Iterator;
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by kivan on 8/28/15
  */
-@Log4j2
+@Slf4j
 public class ObjectEvent<T> {
     private final ConcurrentMap<String, C1<T>> listeners = new ConcurrentHashMap<>();
     private final boolean removeOnException;

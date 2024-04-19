@@ -22,9 +22,12 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.DynamicParameterizedType;
+import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import sk.utils.functional.F1;
+import sk.utils.functional.O;
 import sk.utils.ids.IdUuid;
 
 import java.io.Serializable;
@@ -38,7 +41,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @SuppressWarnings({"unused"})
-public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType {
+public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType, DynamicParameterizedType, EnhancedUserType<Object> {
     public final static String type = "sk.db.relational.types.UTUuidIdToUuid";
     public static final String param = "targetType";
 
@@ -47,9 +50,8 @@ public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType {
 
     @Override
     public void setParameterValues(Properties parameters) {
-        String enumClassName = parameters.getProperty(param);
         try {
-            idClass = Class.forName(enumClassName);
+            idClass = UtUtils.getType(parameters, param);
             Constructor<?> constructor = idClass.getConstructor(UUID.class);
             creator = uuid -> {
                 if (uuid == null) {
@@ -62,8 +64,6 @@ public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType {
                 }
                 return null;
             };
-        } catch (ClassNotFoundException e) {
-            throw new HibernateException("Enum class not found ", e);
         } catch (NoSuchMethodException e) {
             throw new HibernateException("Class doesnt have uuid constructor ", e);
         }
@@ -132,5 +132,20 @@ public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType {
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
         return cached;
+    }
+
+    @Override
+    public String toSqlLiteral(Object value) {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public String toString(Object value) throws HibernateException {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public Object fromStringValue(CharSequence sequence) throws HibernateException {
+        return O.ofNull(sequence).map($ -> creator.apply(UUID.fromString($.toString()))).orElse(null);
     }
 }

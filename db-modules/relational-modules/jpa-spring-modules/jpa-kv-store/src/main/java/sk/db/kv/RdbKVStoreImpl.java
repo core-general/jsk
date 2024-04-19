@@ -21,11 +21,11 @@ package sk.db.kv;
  */
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import jakarta.inject.Inject;
 import jakarta.persistence.OptimisticLockException;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
@@ -42,7 +42,6 @@ import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 
-import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ import java.util.stream.Collectors;
 import static sk.db.kv.QJpaKVItem.jpaKVItem;
 import static sk.db.kv.QJpaKVItemWithRaw.jpaKVItemWithRaw;
 
-@Log4j2
+@Slf4j
 public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore {
     @Inject NamedParameterJdbcOperations jdbcQuery;
     @Inject LocalContainerEntityManagerFactoryBean factory;
@@ -249,7 +248,7 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
         log.error("new OptimisticLockException(\"Can't delete all\")");
     }
 
-    @NotNull
+
     private KvVersionedItem<String> getOrCreateNew(KvKeyWithDefault key, KVItemId id) {
         return getRawVersioned(key).orElseGet(() -> {
             trySaveNewString(key, key.getDefaultValue());

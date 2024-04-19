@@ -27,14 +27,14 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.vaadin.firitin.components.button.VButton;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
 import sk.utils.functional.C1;
 import sk.utils.functional.R;
 
 @Getter(AccessLevel.PROTECTED)
-@Log4j2
+@Slf4j
 public abstract class YBindedBufferedButtonField<T> extends YBindedBufferedField<T> {
     @Setter private String saveButtonText;
     @Setter private String revertButtonText;

@@ -22,7 +22,6 @@ package sk.aws.s3;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.ifaces.Identifiable;
 
 import java.util.Comparator;
@@ -40,7 +39,7 @@ public class S3ItemMeta implements Comparable<S3ItemMeta>, Identifiable<String> 
     boolean failed;
 
     @Override
-    public int compareTo(@NotNull S3ItemMeta o) {
+    public int compareTo(S3ItemMeta o) {
         return COMPARING.compare(this, o);
     }
 

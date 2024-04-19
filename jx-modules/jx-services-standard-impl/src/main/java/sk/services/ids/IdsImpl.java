@@ -21,14 +21,14 @@ package sk.services.ids;
  */
 
 import com.fasterxml.uuid.Generators;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import sk.services.bytes.IBytes;
 import sk.services.rand.SecureRandImpl;
 import sk.services.time.ITime;
 import sk.utils.statics.Im;
 import sk.utils.statics.St;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
@@ -79,8 +79,8 @@ public class IdsImpl implements IIds {
     }
 
     @Override
-    public UUID text2Uuid(String val) {
-        return bytes.crcAny(val.getBytes(St.UTF8), 16).asUUID();
+    public UUID byte2Uuid(byte[] val) {
+        return UUID.nameUUIDFromBytes(val);
     }
 
     @Override

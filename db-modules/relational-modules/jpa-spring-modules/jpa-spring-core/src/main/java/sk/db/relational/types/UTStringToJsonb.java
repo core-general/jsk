@@ -22,7 +22,9 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.UserType;
+import sk.utils.functional.O;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -32,7 +34,7 @@ import java.sql.Types;
 import java.util.Objects;
 
 @SuppressWarnings("unused")
-public class UTStringToJsonb implements UserType<Object> {
+public class UTStringToJsonb implements UserType<Object>, EnhancedUserType<Object> {
     public static final String type = "sk.db.relational.types.UTStringToJsonb";
 
     @Override
@@ -97,5 +99,20 @@ public class UTStringToJsonb implements UserType<Object> {
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
         return cached;
+    }
+
+    @Override
+    public String toSqlLiteral(Object value) {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public String toString(Object value) throws HibernateException {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public Object fromStringValue(CharSequence sequence) throws HibernateException {
+        return O.ofNull(sequence).map($ -> $.toString()).orElse(null);
     }
 }

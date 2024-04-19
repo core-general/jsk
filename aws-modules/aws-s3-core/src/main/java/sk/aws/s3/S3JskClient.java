@@ -20,8 +20,10 @@ package sk.aws.s3;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
 import sk.services.http.IHttp;
@@ -42,8 +44,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +55,7 @@ import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNullable;
 
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 public class S3JskClient {
     @Inject S3Properties conf;

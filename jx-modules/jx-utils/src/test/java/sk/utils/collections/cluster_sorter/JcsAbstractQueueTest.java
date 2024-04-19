@@ -20,9 +20,9 @@ package sk.utils.collections.cluster_sorter;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.abstr.JcsIQueue;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.statics.Cc;
@@ -31,8 +31,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public abstract class JcsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JcsIQueue<Integer, EXPAND_DIRECTION, ?>> {
     protected QUEUE queue;
@@ -41,7 +41,7 @@ public abstract class JcsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JcsIQ
 
     protected abstract EXPAND_DIRECTION getForwardDirection();
 
-    @Before
+    @BeforeEach
     public void init() {
         queue = initQueue();
         queue.addAllRespectConsumed(Cc.l(
@@ -65,7 +65,7 @@ public abstract class JcsAbstractQueueTest<EXPAND_DIRECTION, QUEUE extends JcsIQ
                     (Iterator<JcsItem<Integer, EXPAND_DIRECTION, ?>>) (Object) queue.getDirectionIterators()
                             .get(getForwardDirection());
             for (JcsItem<Integer, EXPAND_DIRECTION, ?> item : new Iterable<JcsItem<Integer, EXPAND_DIRECTION, ?>>() {
-                @NotNull
+
                 @Override
                 public Iterator<JcsItem<Integer, EXPAND_DIRECTION, ?>> iterator() {
                     return iterator;

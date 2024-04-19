@@ -20,7 +20,7 @@ package sk.utils.collections.cluster_sorter.backward;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
 import sk.utils.collections.cluster_sorter.backward.impl.JcsSorterBack;
 import sk.utils.statics.Cc;
@@ -28,7 +28,7 @@ import sk.utils.tuples.X2;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JcsSorterBackBatchTest extends JcsSorterBackGeneralTest {
     @Test

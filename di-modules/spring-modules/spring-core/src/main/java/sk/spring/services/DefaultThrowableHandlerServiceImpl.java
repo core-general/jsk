@@ -20,22 +20,22 @@ package sk.spring.services;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.spring.utils.DefaultThrowableHandler;
 import sk.utils.functional.O;
 import sk.utils.javafixes.PartialClassTree;
 import sk.utils.statics.Cc;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Log4j2
+@Slf4j
 public class DefaultThrowableHandlerServiceImpl {
     private @Inject List<DefaultThrowableHandler<?>> handlers;
 

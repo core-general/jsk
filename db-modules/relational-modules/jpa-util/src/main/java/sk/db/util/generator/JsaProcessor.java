@@ -39,20 +39,20 @@ import java.util.ListIterator;
 import java.util.stream.Collectors;
 
 public class JsaProcessor {
-    public static JsaFullEntityModel process(JsaRawSqlInfo fullData) {
+    public static JsaFullEntityModel process(String prefix, JsaRawSqlInfo fullData) {
         final List<JsaEnumEntityModel> enums = fullData.enums().stream()
                 .map($ -> new JsaEnumEntityModel($.getEnumTypeName(), St.snakeToCamelCase($.getEnumTypeName()), $.getMembers()))
                 .toList();
 
         final List<JsaEntityModel> tables = fullData.tables().stream()
-                .map($ -> toModel($))
+                .map($ -> toModel(prefix, $))
                 .collect(Cc.toL());
 
         return new JsaFullEntityModel(enums, tables);
     }
 
-    private static JsaEntityModel toModel(JsaTableInfo table) {
-        JsaNaming naming = new JsaNaming(table.getTableName(), 2);
+    private static JsaEntityModel toModel(String prefix, JsaTableInfo table) {
+        JsaNaming naming = new JsaNaming(prefix, table.getTableName(), 2);
 
         final String iface = naming.getName(0, true);
         final String idClass = iface + "Id";
@@ -63,17 +63,17 @@ public class JsaProcessor {
                 iface,
                 naming.getName(1, false),
                 naming.getSchema(),
-                possibleCompositeField(table, idClass),
+                possibleCompositeField(prefix, table, idClass),
                 table.getFields().stream()
-                        .map($ -> createField(table, $, idClass))
+                        .map($ -> createField(prefix, table, $, idClass))
                         .collect(Cc.toL())
         );
     }
 
-    private static O<JsaEntityCompositeKey> possibleCompositeField(JsaTableInfo table, String idClass) {
+    private static O<JsaEntityCompositeKey> possibleCompositeField(String prefix, JsaTableInfo table, String idClass) {
         if (table.isMultiColumnPrimaryKey()) {
             final List<JsaEntityField> collect = table.getFields().stream().filter($ -> $.isId())
-                    .map($ -> createField(table, $, idClass))
+                    .map($ -> createField(prefix, table, $, idClass))
                     .collect(Collectors.toList());
 
             final ListIterator<JsaTableColumn> itToDelete = table.getFields().listIterator();
@@ -97,7 +97,7 @@ public class JsaProcessor {
         }
     }
 
-    private static JsaEntityField createField(JsaTableInfo table, JsaTableColumn column, String idClass) {
+    private static JsaEntityField createField(String prefix, JsaTableInfo table, JsaTableColumn column, String idClass) {
         final JsaEntityFieldInfo fieldType = JsaEntityFieldInfo.fromTableColumn(table, column);
         final Class javaType = column.getType().getJavaType();
         String mainType = javaType == byte[].class ? "byte[]" : javaType.getName();
@@ -122,7 +122,7 @@ public class JsaProcessor {
             JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.RELATION_IN_FILE);
             String foreignTable = meta.getParams().get(0);
 
-            JsaNaming naming = new JsaNaming(foreignTable, 2);
+            JsaNaming naming = new JsaNaming(prefix, foreignTable, 1);
 
             mainType = naming.getName(0, true) + "Id";
             relationType = naming.getNameJpa(0, true);
@@ -133,7 +133,7 @@ public class JsaProcessor {
         }
 
         return new JsaEntityField(
-                new JsaNaming(column.getColumnName(), 1).getName(0, false),
+                new JsaNaming("", column.getColumnName(), 1).getName(0, false),
                 column.getColumnName(),
                 mainType,
                 idType,
@@ -150,12 +150,15 @@ public class JsaProcessor {
         private List<String> nameSequence;
         private List<String> nameSequence4Jpa;
 
-        public JsaNaming(String tableName, int minSize) {
+        public JsaNaming(String prefix, String tableName, int minSize) {
             nameSequence = Cc.l(tableName.split("_")).stream()
                     .filter(St::isNotNullOrEmpty)
                     .collect(Collectors.toList());
+            if (St.isNotNullOrEmpty(prefix)) {
+                nameSequence.add(0, St.capFirst(prefix));
+            }
             if (nameSequence.size() < minSize) {
-                Ex.thRow(nameSequence.size() + " < 2 for " + tableName);
+                Ex.thRow(nameSequence.size() + " < " + minSize + " for " + tableName);
             }
 
             nameSequence4Jpa = new ArrayList<>(nameSequence);

@@ -20,12 +20,11 @@ package sk.web.client;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.exceptions.JskProblem;
 import sk.services.except.IExcept;
 import sk.services.json.IJson;
 import sk.utils.functional.OneOf;
-
-import javax.inject.Inject;
 
 public abstract class WebClientResultHandlerBase implements WebClientResultHandler<JskProblem> {
     protected @Inject IJson json;

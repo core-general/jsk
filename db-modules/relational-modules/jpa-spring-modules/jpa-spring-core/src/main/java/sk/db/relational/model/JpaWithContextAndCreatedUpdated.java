@@ -26,6 +26,8 @@ import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sk.services.time.ITime;
+import sk.spring.services.ServiceLocator4SpringImpl;
 
 import java.time.ZonedDateTime;
 
@@ -37,7 +39,9 @@ public abstract class JpaWithContextAndCreatedUpdated extends JpaWithContext {
     @PrePersist
     @PreUpdate
     public void prePersist() {
-        ZonedDateTime now = ctx.times().nowZ();
+        //until hibenrate fixes Tuplizer stuff we do it the bad way
+        //https://javadoc.io/doc/org.hibernate.orm/hibernate-core-jakarta/latest/org/hibernate/metamodel/spi/ManagedTypeRepresentationStrategy.html
+        ZonedDateTime now = ServiceLocator4SpringImpl.instance.getService(ITime.class).get().nowZ();
         if (getCreatedAt() == null) {
             setCreatedAt(now);
         }

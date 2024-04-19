@@ -21,7 +21,7 @@ package sk.utils.statics;
  */
 
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.functional.O;
 
 import javax.imageio.IIOImage;
@@ -34,9 +34,12 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.*;
+import java.util.Arrays;
 
-@Log4j2
+@Slf4j
 public final class Im/*ages*/ {
     public static O<BufferedImage> readImage(String file) {
         return readImage(new File(file));
@@ -61,6 +64,37 @@ public final class Im/*ages*/ {
             return O.empty();
         }
     }
+
+    public static BufferedImage resize(BufferedImage img, int newW, int newH) {
+        Image tmp = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+        BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = dimg.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        return dimg;
+    }
+
+    /**
+     * @param im
+     * @param blurSize some value between 2-20 depending on the input image, try a few variants
+     * @return
+     */
+    private static BufferedImage blur(BufferedImage im, int blurSize) {
+        int radius = blurSize;
+        int size = radius * radius + 1;
+        float weight = 1.0f / (size * size);
+        float[] data = new float[size * size];
+
+        Arrays.fill(data, weight);
+        Kernel kernel = new Kernel(size, size, data);
+        ConvolveOp op = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+        final BufferedImage bi = op.filter(im, null);
+        final BufferedImage subimage = bi.getSubimage(size / 2, size / 2, bi.getWidth() - size, bi.getHeight() - size);
+        return resize(subimage, im.getWidth(), im.getHeight());
+    }
+
 
 
     //region JPEG

@@ -20,7 +20,7 @@ package net.bull.javamelody.internal.model;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import net.bull.javamelody.internal.common.Parameters;
 
 import java.io.*;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-@Log4j2
+@Slf4j
 public class MelRemoteCollectorPatch {
     public List<Serializable> getRemoteOrLoadLocal(URL url, RemoteCall remoteCall, Collector collector,
             String applicationPath)

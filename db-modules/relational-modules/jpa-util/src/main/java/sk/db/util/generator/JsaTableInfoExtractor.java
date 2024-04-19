@@ -41,13 +41,13 @@ import static java.util.stream.Collectors.*;
 
 public class JsaTableInfoExtractor {
     public static JsaRawSqlInfo extractTableInfo(String fullSqlCode) {
-        String sqlCode = Cc.stream(fullSqlCode.split("\n"))
+        String sqlCode = Cc.streamArr(fullSqlCode.split("\n"))
                 .map(String::trim)
                 .filter($ -> !$.startsWith("--"))
                 .collect(joining("\n"));
 
         Map<X2<String, String>, Map<JsaMetaType, JsaMetaInfo>> tableFieldsToMetaInfos =
-                Cc.stream(fullSqlCode.split("\n"))
+                Cc.streamArr(fullSqlCode.split("\n"))
                         .map(String::trim)
                         .filter($ -> $.startsWith("--  @") || $.startsWith("-- @") || $.startsWith("--@"))
                         .map($ -> St.subLF($, "@").trim())
@@ -61,17 +61,18 @@ public class JsaTableInfoExtractor {
                         .collect(groupingBy($ -> $.i1, mapping($ -> $.i2, toMap(x -> x.getType(), x -> x))));
 
 
-        List<JsaRawEnumTypeInfo> enums = Cc.stream(sqlCode.split(";"))
+        List<JsaRawEnumTypeInfo> enums = Cc.streamArr(sqlCode.split(";"))
                 .map(String::trim)
                 .filter(sqlStatement -> !sqlStatement.startsWith("--")
-                        && sqlStatement.toUpperCase().contains("CREATE TYPE") && sqlStatement.toUpperCase().contains("AS ENUM"))
+                                        && sqlStatement.toUpperCase().contains("CREATE TYPE") &&
+                                        sqlStatement.toUpperCase().contains("AS ENUM"))
                 .map(sql -> parseEnum(sql))
                 .collect(toList());
 
-        List<JsaTableInfo> tables = Cc.stream(sqlCode.split(";"))
+        List<JsaTableInfo> tables = Cc.streamArr(sqlCode.split(";"))
                 .map(String::trim)
                 .filter(sqlStatement -> !sqlStatement.startsWith("--")
-                        && sqlStatement.toUpperCase().contains("CREATE TABLE"))
+                                        && sqlStatement.toUpperCase().contains("CREATE TABLE"))
                 .map(sql -> {
                     return (CreateTable) Ex.toRuntime(() -> CCJSqlParserUtil.parse(sql));
                 })

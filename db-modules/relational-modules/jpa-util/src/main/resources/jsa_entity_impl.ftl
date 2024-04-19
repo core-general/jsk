@@ -44,7 +44,7 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
         <#case "ID">
             @Id
             @Column(name = "${field.columnName}")
-            @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+            @Type(${field.converterType}.class)
             ${field.mainType} ${field.fieldName};
             <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
                 @ManyToOne(fetch = FetchType.LAZY)
@@ -71,32 +71,33 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             <#break>
         <#case "ENUM">
             @Column(name = "${field.columnName}")
-            @Type(value = UTEnumToString.class, parameters = {@Parameter(name = UTEnumToString.param, value = ${field.mainType}.type)})
+            @Type(UTEnumToString.class)
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "PG_ENUM">
             @Column(name = "${field.columnName}")
-            @Type(value = UtPgEnumToEnumUserType.class, parameters = {@Parameter(name = UtPgEnumToEnumUserType.param, value = ${field.mainType}.type)})
+            @Type(UtPgEnumToEnumUserType.class)
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "ZDT">
             @Column(name = "${field.columnName}")
-            @Type(value = ${field.converterType}.class
+            @Type(${field.converterType}.class)
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "JSONB">
             @Column(name = "${field.columnName}")
-            @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+            @Type(${field.converterType}.class)
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "VERSION">
             @Version
+            @Column(name = "${field.columnName}")
             ${field.mainType} ${field.fieldName};
             <#break>
         <#case "OTHER">
             <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
                 @Column(name = "${field.columnName}")
-                @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+                @Type(${field.converterType}.class)
                 ${field.mainType} ${field.fieldName};
                 @ManyToOne(fetch = FetchType.LAZY)
                 @JoinColumn(name = "${field.columnName}", insertable = false, updatable = false)

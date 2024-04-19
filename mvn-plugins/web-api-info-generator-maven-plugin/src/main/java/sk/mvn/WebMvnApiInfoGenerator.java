@@ -41,8 +41,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import sk.mvn.model.*;
 import sk.services.json.JGsonImpl;
 import sk.services.nodeinfo.model.ApiBuildInfo;
@@ -277,7 +275,7 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
         return new ApiClassUtil(new JGsonImpl().init());
     }
 
-    @NotNull
+
     private Map<String, ApiMethodModel> getApiMethodModel(ApiClassUtil apiUtil, ClassOrInterfaceDeclaration apiDesc) {
         O<String> clsPath = getWebPathValue(apiDesc.getAnnotations());
 
@@ -343,7 +341,7 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
                 .findAny().orElse(true);
     }
 
-    @NotNull
+
     private O<String> getWebPathValue(NodeList<AnnotationExpr> annotations) {
         String val = annotations.stream()
                 .filter($ -> equal($.getName().asString(), WebPath.class.getSimpleName()))
@@ -363,7 +361,6 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
         return St.isNullOrEmpty(val) ? empty() : of(val);
     }
 
-    @Nullable
     private CompilationUnit compile(String apiClassContents) {
         ParseResult<CompilationUnit> res = new JavaParser().parse(apiClassContents);
         CompilationUnit cc = null;

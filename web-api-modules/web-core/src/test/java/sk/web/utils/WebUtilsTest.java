@@ -21,7 +21,7 @@ package sk.web.utils;
  */
 
 import lombok.Getter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.statics.Cc;
 
 import java.lang.reflect.Method;
@@ -29,8 +29,8 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.web.utils.WebUtils.dtoTypeProcessorOrFilter;
 import static sk.web.utils.WebUtils.simplify;
 

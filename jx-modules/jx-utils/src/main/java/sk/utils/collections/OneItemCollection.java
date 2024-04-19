@@ -20,7 +20,7 @@ package sk.utils.collections;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.statics.Fu;
 
 import java.util.Collection;
@@ -56,7 +56,7 @@ public class OneItemCollection<T> implements Collection<T> {
         return equal(item, o);
     }
 
-    @NotNull
+
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
@@ -79,15 +79,15 @@ public class OneItemCollection<T> implements Collection<T> {
         };
     }
 
-    @NotNull
+
     @Override
     public Object[] toArray() {
         return item == null ? new Object[0] : new Object[]{item};
     }
 
-    @NotNull
+
     @Override
-    public <T1> T1[] toArray(@NotNull T1[] a) {
+    public <T1> T1[] toArray(T1[] a) {
         if (a.length == 0) {
             return (T1[]) (item == null ? new Object[]{} : new Object[]{item});
         } else {
@@ -112,7 +112,7 @@ public class OneItemCollection<T> implements Collection<T> {
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         if (c.size() == 0 && size() == 0) {
             return true;
         }
@@ -120,7 +120,7 @@ public class OneItemCollection<T> implements Collection<T> {
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends T> c) {
+    public boolean addAll(Collection<? extends T> c) {
         for (T t : c) {
             item = t;
             return true;
@@ -129,7 +129,7 @@ public class OneItemCollection<T> implements Collection<T> {
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
+    public boolean removeAll(Collection<?> c) {
         for (Object item : c) {
             if (equal(item, this.item)) {
                 this.item = null;
@@ -140,7 +140,7 @@ public class OneItemCollection<T> implements Collection<T> {
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
+    public boolean retainAll(Collection<?> c) {
         boolean anyMatch = c.stream().anyMatch($ -> Fu.equal($, item));
         if (!anyMatch) {
             item = null;

@@ -20,9 +20,8 @@ package sk.web.renders.inst;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.bytes.IBytes;
-
-import javax.inject.Inject;
 
 public class WebB64Render extends WebByteRenderBase {
     @Inject IBytes bytes;

@@ -23,7 +23,7 @@ package jsk.gcl.deployer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 import sk.services.ICoreServices;
 import sk.services.async.IAsync;
 import sk.services.http.IHttp;
@@ -58,7 +58,7 @@ public class GcdDeployCheckerMain {
         java.security.Security.setProperty("networkaddress.cache.ttl", "0");
         java.security.Security.setProperty("networkaddress.cache.negative.ttl", "0");
         prop = ArgParser.parse(___, ARGS.URLS);
-        ICoreServices core = new ICore4Test();
+        ICoreServices core = new CoreServicesRaw();
         http = core.http();
         async = core.async();
         times = core.times();

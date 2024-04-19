@@ -20,7 +20,7 @@ package sk.utils.async;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.utils.async.cancel.CancelGSetter;
 import sk.utils.functional.C1;
 import sk.utils.functional.C2;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
-@Log4j2
+@Slf4j
 public class ForeverThreadWithFinish extends Thread {
     private final AtomicBoolean finished = new AtomicBoolean(false);
     private final AtomicBoolean completed = new AtomicBoolean(false);

@@ -20,14 +20,13 @@ package sk.spring.services;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sk.services.nodeinfo.IIpProvider;
 import sk.spring.config.params.IpProviderParams;
 import sk.utils.functional.O;
-
-import javax.inject.Inject;
 
 @Getter
 @AllArgsConstructor

@@ -45,7 +45,11 @@ public class TreePath<X> {
 
     @SuppressWarnings("unchecked")
     public static <X> TreePath<X> path(X... path) {
-        return path.length == 0 ? emptyPath() : new TreePath<>(Arrays.asList(path));
+        return path(Arrays.asList(path));
+    }
+
+    public static <X> TreePath<X> path(List<X> path) {
+        return path.size() == 0 ? emptyPath() : new TreePath<>(path);
     }
 
     private TreePath(List<X> pth) {

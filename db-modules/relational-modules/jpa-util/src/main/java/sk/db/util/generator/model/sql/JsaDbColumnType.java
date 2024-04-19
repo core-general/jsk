@@ -40,10 +40,12 @@ public enum JsaDbColumnType {
     UUID("UUID", UUID.class, of(UTUuidIdToUuid.class)),
 
     TEXT("TEXT", String.class, of(UTTextIdToVarchar.class)),
+    VARCHAR("VARCHAR", String.class, of(UTTextIdToVarchar.class)),
 
     INT1("INTEGER", Integer.class, of(UTIntIdToInt.class)),
     INT2("INT", Integer.class, of(UTIntIdToInt.class)),
     INT3("INT4", Integer.class, of(UTIntIdToInt.class)),
+    INT4("SMALLINT", Integer.class, of(UTIntIdToInt.class)),
 
     BIGINT1("BIGINT", Long.class, of(UTLongIdToBigInt.class)),
     BIGINT2("INT8", Long.class, of(UTLongIdToBigInt.class)),

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>google-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.17.9.15</version>
+        <version>jsk.21.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.17.9.15</version>
+            <version>jsk.21.0.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.17.9.15</version>
+            <version>jsk.21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>1.16.0</version>
+            <version>1.23.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-androidpublisher</artifactId>
-            <version>v3-rev20221108-2.0.0</version>
+            <version>v3-rev20240418-2.0.0</version>
         </dependency>
     </dependencies>
 

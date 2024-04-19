@@ -33,60 +33,61 @@ import java.util.Map;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @EqualsAndHashCode
-public class Tree<V, N> {
+public class Tree<K, V> {
     @Getter
-    TreeNode<V, N> root;
+    TreeNode<K, V> root;
     V nullValue;
 
-    public static <V, N> Tree<V, N> create(V nullValue, F0<Map<N, TreeNode<V, N>>> sup) {
+    public static <K, V> Tree<K, V> create(V nullValue, F0<Map<K, TreeNode<K, V>>> sup) {
         return new Tree<>(nullValue, sup);
     }
 
     @SuppressWarnings("Convert2MethodRef")
-    public static <V, N> Tree<V, N> create(V nullValue) {
+    public static <K, V> Tree<K, V> create(V nullValue) {
         return create(nullValue, () -> new HashMap<>());
     }
 
-    public static <V, N> Tree<V, N> create() {
+    public static <K, V> Tree<K, V> create() {
         return create(null);
     }
 
-    private Tree(V nv, F0<Map<N, TreeNode<V, N>>> sup) {
+    private Tree(V nv, F0<Map<K, TreeNode<K, V>>> sup) {
         root = TreeNode.rootNode(sup);
         nullValue = nv;
     }
 
-    public Tree<V, N> setVal(TreePath<N> p, V value) {
+    public Tree<K, V> setVal(TreePath<K> p, V value) {
         getRoot().setRelativeValue(p, value);
         return this;
     }
 
-    public Tree<V, N> setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value) {
+    public Tree<K, V> setValBetween(TreePath<K> parent, TreePath<K> child, K newNodeId, V value) {
         getRoot().setValBetween(parent, child, newNodeId, value);
         return this;
     }
 
-    public V getVal(TreePath<N> p) {
+    public V getVal(TreePath<K> p) {
         return getRoot().getValue(p).orElse(nullValue);
     }
 
-    public V removeNode(TreePath<N> path) {
+    public V removeNode(TreePath<K> path) {
         return getRoot().removeNode(path, false).orElse(nullValue);
     }
 
-    public V removeNodeClearBranchWithNulls(TreePath<N> path) {
+    public V removeNodeClearBranchWithNulls(TreePath<K> path) {
         return getRoot().removeNode(path, true).orElse(nullValue);
     }
 
-    public O<TreeNode<V, N>> getNode(TreePath<N> p) {
+    public O<TreeNode<K, V>> getNode(TreePath<K> p) {
+        //todo fix the issue that it doesn't return empty if there is no such path
         return getRoot().getNodeOfLastExistingParent(p);
     }
 
-    public void setNewParent(TreePath<N> newParent, TreePath<N> oldPath) {
-        final TreeNode<V, N> newParentNode = getNode(newParent).get();
-        final TreeNode<V, N> oldParent = getNode(oldPath.getParent()).get();
+    public void setNewParent(TreePath<K> newParent, TreePath<K> oldPath) {
+        final TreeNode<K, V> newParentNode = getNode(newParent).get();
+        final TreeNode<K, V> oldParent = getNode(oldPath.getParent()).get();
 
-        final TreeNode<V, N> nodeToRelink = oldParent.getChildMap().remove(oldPath.getLeaf());
+        final TreeNode<K, V> nodeToRelink = oldParent.getChildMap().remove(oldPath.getLeaf());
         newParentNode.getChildMap().put(nodeToRelink.getName(), nodeToRelink);
     }
 

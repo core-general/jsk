@@ -24,7 +24,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import sk.exceptions.NotImplementedException;
 import sk.utils.statics.Ma;
 import sk.utils.statics.St;
@@ -210,7 +209,7 @@ public class LDouble implements Comparable<LDouble> {
     }
 
     @Override
-    public int compareTo(@NotNull LDouble o) {
+    public int compareTo(LDouble o) {
         return Double.compare(toDouble(), o.toDouble());
     }
 }

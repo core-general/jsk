@@ -22,8 +22,13 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.EnumType;
+import org.hibernate.type.spi.TypeConfiguration;
+import org.hibernate.usertype.DynamicParameterizedType;
+import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
+import sk.utils.functional.O;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -35,18 +40,31 @@ import java.util.Properties;
 /**
  * This class is used to convert postgresql enums to java enums
  */
-public class UtPgEnumToEnumUserType implements UserType<Object>, ParameterizedType {
+@SuppressWarnings("removal")
+public class UtPgEnumToEnumUserType implements UserType<Object>, DynamicParameterizedType, ParameterizedType,
+                                               EnhancedUserType<Object> {
     public final static String type = "sk.db.relational.types.UtPgEnumToEnumUserType";
     public static final String param = "targetType";
 
     private Class<Enum> enumClass;
+    private EnumType enumType = new EnumType();
 
+    {
+        enumType.setTypeConfiguration(new TypeConfiguration());
+    }
 
     public void setParameterValues(Properties parameters) {
         String claz = parameters.getProperty(param);
         try {
             synchronized (this) {
-                enumClass = (Class<Enum>) Class.forName(claz);
+                if (claz == null) {
+                    //auto mode
+                    enumType.setParameterValues(parameters);
+                    enumClass = enumType.returnedClass();
+                } else {
+                    enumClass = (Class<Enum>) Class.forName(claz);
+                }
+
                 if (!enumClass.isEnum()) {
                     throw new RuntimeException(enumClass.getName() + " is not enum!");
                 }
@@ -128,5 +146,20 @@ public class UtPgEnumToEnumUserType implements UserType<Object>, ParameterizedTy
 
     public String toXMLString(Object value) {
         return ((Enum) value).name();
+    }
+
+    @Override
+    public String toSqlLiteral(Object value) {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public String toString(Object value) throws HibernateException {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public Object fromStringValue(CharSequence sequence) throws HibernateException {
+        return O.ofNull(sequence).map($ -> Enum.valueOf(enumClass, ($.toString()))).orElse(null);
     }
 }

@@ -82,6 +82,10 @@ public class BothOrNone<L, R> {
 
     public boolean isBoth() {return left != null && right != null;}
 
+    public Both<L, R> getBoth() {
+        return Both.both(left, right);
+    }
+
     public L left() {
         return ofNull(left).get();
     }

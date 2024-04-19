@@ -20,10 +20,10 @@ package jsk.spark;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import jsk.spark.testmodel.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -48,6 +48,7 @@ import sk.spring.services.AppProfileImpl;
 import sk.spring.utils.DefaultThrowableHandler;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
+import sk.utils.logging.JskLoggingLogback;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
 import sk.utils.tuples.X2;
@@ -71,7 +72,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import web.config.WebCoreConfig;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -87,11 +87,11 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static sk.utils.functional.O.of;
 import static sk.utils.functional.O.ofNull;
 
-@Log4j2
+
 public class WebSparkTest {
     public static void main(String[] args) {
         final SpringApp<SpringAppEntryPoint> rSpringApp = SpringApp.createWithWelcomeAndLogAndInit(
-                "Hello!", "tst_logger", new WebJettyEntryPoint(), Config.class);
+                "Hello!", new JskLoggingLogback("tst_logger"), new WebJettyEntryPoint(), Config.class);
 
         Io.endlessReadFromKeyboard("exit", in -> {});
     }
@@ -255,7 +255,7 @@ public class WebSparkTest {
 
                 @Override
                 public void process(OutOfMemoryError throwable, Thread t) {
-                    log.error("OUT OF MEMORY WUUUUT!", throwable);
+                    //lolog.error("OUT OF MEMORY WUUUUT!", throwable);
                 }
             };
         }

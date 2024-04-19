@@ -20,8 +20,10 @@ package sk.web.server.spark.spring;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.mvn.ApiClassUtil;
 import sk.services.ids.IIds;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
@@ -39,14 +41,12 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.tuples.X;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     @Inject IIds ids;
     @Inject ITime times;

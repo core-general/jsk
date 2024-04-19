@@ -21,7 +21,6 @@ package sk.utils.async.locks;
  */
 
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -47,7 +46,7 @@ public class JLockDecorator implements JLock {
     }
 
     @Override
-    public boolean tryLock(long time, @NotNull TimeUnit unit) throws InterruptedException {
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
         return lock.tryLock(time, unit);
     }
 
@@ -56,7 +55,7 @@ public class JLockDecorator implements JLock {
         lock.unlock();
     }
 
-    @NotNull
+
     @Override
     public Condition newCondition() {
         return lock.newCondition();

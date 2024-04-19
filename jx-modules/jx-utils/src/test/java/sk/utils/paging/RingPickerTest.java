@@ -20,12 +20,12 @@ package sk.utils.paging;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RingPickerTest extends MockitoTest {
     @Test

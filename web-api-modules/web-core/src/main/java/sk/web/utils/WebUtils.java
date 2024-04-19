@@ -20,7 +20,7 @@ package sk.web.utils;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.mvn.model.ApiDtoClassModel;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -57,7 +57,7 @@ public final class WebUtils {
                 "/") : "");
     }
 
-    @NotNull
+
     public static String getMethodApiPath(String rootPrefix, String methodName, O<String> realPath, boolean appendMethodName) {
         String methodPrefix = (
                 rootPrefix

@@ -21,10 +21,13 @@ package sk.services.rescache;
  */
 
 import sk.utils.functional.O;
+import sk.utils.tree.Tree;
 
 @SuppressWarnings("unused")
 public interface IResCache {
     O<String> getResource(String resourcePath);
 
     O<byte[]> getResourceBytes(String resourcePath);
+
+    O<Tree<String, byte[]>> getResourcesInFolder(String folderInResources);
 }

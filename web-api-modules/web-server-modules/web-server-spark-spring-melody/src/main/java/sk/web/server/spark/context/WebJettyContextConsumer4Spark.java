@@ -20,7 +20,8 @@ package sk.web.server.spark.context;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.RuntimeIOException;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -62,7 +63,6 @@ import spark.Service;
 import spark.servlet.SparkApplication;
 import spark.servlet.SparkFilter;
 
-import javax.inject.Inject;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -83,7 +83,7 @@ import static sk.utils.statics.Io.streamToBytes;
 import static sk.utils.statics.St.bytesToS;
 
 @Order(1)
-@Log4j2
+@Slf4j
 public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, SparkApplication {
     @Inject WebServerParams conf;
     @Inject WebAdditionalParams additional;
@@ -286,7 +286,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             return throwOnBadRequestData(() -> {
                 HttpServletRequest rawRequest = request.raw();
                 return rawRequest.getContentType() != null
-                        && rawRequest.getContentType().startsWith("multipart/form-data");
+                       && rawRequest.getContentType().startsWith("multipart/form-data");
             });
         }
 
@@ -481,8 +481,8 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                             }
                         } catch (Exception e) {
                             log.error("Can't deserialize " + St.raze(v, 100) + " as json object for redirect. Path: " + path +
-                                    ". Error message : " +
-                                    e.getMessage());
+                                      ". Error message : " +
+                                      e.getMessage());
                         }
                     });
                 }
@@ -542,7 +542,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                                 if (size != bytes.length) {
                                     return except.throwByDescription(
                                             "Data is not uploaded fully: expected size:" + size + " != obtained size:" +
-                                                    bytes.length);
+                                            bytes.length);
                                 }
                                 return ofNull(bytes);
                             }).orElse(null);

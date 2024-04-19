@@ -20,10 +20,9 @@ package sk.db.relational.spring.services.impl;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import sk.db.relational.model.ImportantLogId;
 import sk.db.relational.model.JpaImportantLog;
 import sk.db.relational.spring.services.RdbTransactionWrapperRequiresNew;
@@ -37,11 +36,10 @@ import sk.services.log.ILogType;
 import sk.spring.services.CoreServices;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
 import java.util.Map;
 
 @SuppressWarnings("unused")
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 public class RdbILogImpl implements ILog {
     @Inject JpaImportantLogRepo impoLog;
@@ -86,7 +84,7 @@ public class RdbILogImpl implements ILog {
         }
     }
 
-    private JpaImportantLog createImportantLog(boolean randomId, @NotNull String category, @Nullable String type,
+    private JpaImportantLog createImportantLog(boolean randomId, String category, String type,
             Map<String, Object> info) {
         return new JpaImportantLog(
                 new ImportantLogId(randomId ? ids.shortId() : ids.text2Uuid(category + type + info)),

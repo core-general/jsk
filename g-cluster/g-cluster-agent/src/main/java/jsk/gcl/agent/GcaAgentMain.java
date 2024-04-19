@@ -25,12 +25,12 @@ import jsk.gcl.agent.model.GcaUpdateFileProps;
 import jsk.gcl.agent.services.GcaFileUpdaterTask;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsPlainPropertiesImpl;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.s3.S3JskClient;
 import sk.aws.s3.S3Properties;
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 import sk.services.ICoreServices;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
@@ -54,13 +54,13 @@ import static sk.utils.statics.Cc.ts;
  * 2. In config file there should be at least configuration for agent jar
  * 3. Also there should be at least one config payload
  */
-@Log4j2
+@Slf4j
 public class GcaAgentMain {
     public final static String configFile = "/tmp/jsk_agent_config.json";
 
     static S3JskClient s3Client;
 
-    static final ICoreServices core = new ICore4Test();
+    static final ICoreServices core = new CoreServicesRaw();
 
     List<GcaFileUpdaterTask> payloadUpdaters;
 

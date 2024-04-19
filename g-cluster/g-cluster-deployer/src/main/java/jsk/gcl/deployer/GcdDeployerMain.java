@@ -28,7 +28,7 @@ import sk.aws.AwsPlainPropertiesImpl;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.s3.S3JskClient;
 import sk.aws.s3.S3Properties;
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 import sk.services.ICoreServices;
 import sk.services.http.CrcAndSize;
 import sk.utils.collections.DequeWithLimit;
@@ -53,7 +53,7 @@ import static sk.utils.functional.O.of;
 import static sk.utils.statics.Cc.ts;
 
 public class GcdDeployerMain {
-    final static ICoreServices core = new ICore4Test();
+    final static ICoreServices core = new CoreServicesRaw();
 
     public static void main(String[] ___) {
         final ArgParser<ARGS> args = ArgParser.parse(___, ARGS.FILE_IN);

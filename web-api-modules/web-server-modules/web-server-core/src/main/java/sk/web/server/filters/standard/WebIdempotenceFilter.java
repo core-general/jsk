@@ -21,7 +21,8 @@ package sk.web.server.filters.standard;
  */
 
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.services.idempotence.IIdempProvider;
 import sk.services.idempotence.IdempLockResult;
@@ -39,12 +40,11 @@ import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.params.WebIdempotenceParams;
 
-import javax.inject.Inject;
 import java.util.Optional;
 
 import static sk.utils.javafixes.TypeWrap.simple;
 
-@Log4j2
+@Slf4j
 public class WebIdempotenceFilter implements WebServerFilter {
     public static final int PRIORITY = WebDdosFilter.PRIORITY + PRIORITY_STEP;
 

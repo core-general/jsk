@@ -20,7 +20,7 @@ package sk.web.server.spark;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpGenerator;
 import org.eclipse.jetty.server.*;
@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@Log4j2
+@Slf4j
 public class WebJettyServerStarter implements AppStopListener {
     WebServerParams params;
     List<WebJettyContextConsumer> contextConsumers;
@@ -95,7 +95,7 @@ public class WebJettyServerStarter implements AppStopListener {
         try {
             jetty.stop();
         } catch (Exception e) {
-            log.error(e);
+            log.error("", e);
         }
     }
 

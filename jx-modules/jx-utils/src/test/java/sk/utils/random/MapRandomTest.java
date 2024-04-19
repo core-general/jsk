@@ -20,14 +20,14 @@ package sk.utils.random;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 import sk.utils.paging.RingPicker;
 import sk.utils.statics.Cc;
 
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.random.MapRandom.rnd;
 
 public class MapRandomTest extends MockitoTest {

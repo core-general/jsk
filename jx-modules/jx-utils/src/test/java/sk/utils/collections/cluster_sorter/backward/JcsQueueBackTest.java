@@ -20,8 +20,8 @@ package sk.utils.collections.cluster_sorter.backward;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractQueueTest;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.backward.impl.JcsQueueBack;
@@ -32,7 +32,7 @@ import sk.utils.statics.Cc;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JcsQueueBackTest extends JcsAbstractQueueTest<JcsEBackType, JcsQueueBack<Integer, ?>> {
     @Override
@@ -153,7 +153,7 @@ public class JcsQueueBackTest extends JcsAbstractQueueTest<JcsEBackType, JcsQueu
         assertEquals("1,1,2,3,5", format(queue.getBackItems()));
     }
 
-    @NotNull
+
     private String format(List<? extends JcsItem<Integer, JcsEBackType, ?>> items) {
         return Cc.join(items.stream().map($ -> $.getItem() + ""));
     }

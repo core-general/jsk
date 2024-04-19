@@ -20,6 +20,7 @@ package sk.web.client;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.bean.IServiceLocator;
@@ -49,7 +50,6 @@ import sk.web.infogatherer.WebMethodInfo;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;

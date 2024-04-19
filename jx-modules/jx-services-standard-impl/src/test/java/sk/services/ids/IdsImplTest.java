@@ -20,9 +20,9 @@ package sk.services.ids;
  * #L%
  */
 
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 
 public class IdsImplTest {
-    static ICore4Test ic4t = new ICore4Test();
+    static CoreServicesRaw ic4t = new CoreServicesRaw();
     static IIds ids = ic4t.ids();
 }

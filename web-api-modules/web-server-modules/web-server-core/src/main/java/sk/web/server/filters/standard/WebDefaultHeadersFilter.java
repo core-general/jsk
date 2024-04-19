@@ -20,6 +20,7 @@ package sk.web.server.filters.standard;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.nodeinfo.INodeInfo;
 import sk.services.time.ITime;
 import sk.utils.statics.St;
@@ -29,8 +30,6 @@ import sk.web.server.context.WebRequestInnerContext;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.params.WebAdditionalParams;
-
-import javax.inject.Inject;
 
 public class WebDefaultHeadersFilter implements WebServerFilter {
     public static final int PRIORITY = WebRequestLoggingFilter.PRIORITY + PRIORITY_STEP;

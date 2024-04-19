@@ -72,7 +72,7 @@ public class JsaTableInfo {
                     return new JsaTableColumn(fieldName,
                             JsaDbColumnType.parse(clmn.getColDataType().getDataType().toUpperCase(), enums, shouldBePgEnum),
                             determinePrimaryKey(table, clmn),
-                            containInColumnSpec(clmn, Cc.l("NOT", "NULL")),
+                            !containInColumnSpec(clmn, Cc.l("NOT", "NULL")),
                             foreignKey,
                             O.ofNull(meta)
                     );
@@ -82,10 +82,10 @@ public class JsaTableInfo {
 
     private boolean determinePrimaryKey(CreateTable table, ColumnDefinition def) {
         return containInColumnSpec(def, Cc.l("PRIMARY", "KEY")) ||
-                O.ofNull(table.getIndexes()).stream()
-                        .flatMap($ -> $.stream())
-                        .filter($ -> "PRIMARY KEY".equalsIgnoreCase($.getType()))
-                        .anyMatch($ -> $.getColumnsNames().contains(def.getColumnName()));
+               O.ofNull(table.getIndexes()).stream()
+                       .flatMap($ -> $.stream())
+                       .filter($ -> "PRIMARY KEY".equalsIgnoreCase($.getType()))
+                       .anyMatch($ -> $.getColumnsNames().contains(def.getColumnName()));
     }
 
     private O<JsaForeignKey> determineForeignKey(CreateTable table, ColumnDefinition def) {
@@ -103,7 +103,7 @@ public class JsaTableInfo {
 
     private boolean containInColumnSpec(ColumnDefinition $, List<String> items) {
         return $.getColumnSpecs() != null
-                && $.getColumnSpecs().stream().map(x -> x.toUpperCase()).collect(Cc.toS())
-                .containsAll(items);
+               && $.getColumnSpecs().stream().map(x -> x.toUpperCase()).collect(Cc.toS())
+                       .containsAll(items);
     }
 }

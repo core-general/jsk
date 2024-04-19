@@ -20,13 +20,13 @@ package sk.aws.dynamo.extensions;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.services.time.ITime;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import javax.inject.Inject;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;

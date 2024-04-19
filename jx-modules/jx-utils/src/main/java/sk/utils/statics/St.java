@@ -24,6 +24,7 @@ import lombok.experimental.Accessors;
 import sk.exceptions.NotImplementedException;
 import sk.utils.functional.*;
 
+import java.awt.*;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -90,6 +91,10 @@ public final class St/*rings*/ {
 
     public static String capFirst(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public static String lowFirst(String str) {
+        return str.substring(0, 1).toLowerCase() + str.substring(1);
     }
 
     public static int count(String string, String toCount) {
@@ -184,6 +189,20 @@ public final class St/*rings*/ {
         return St.capFirst(snakeToCamelPattern
                 .matcher(snakeCase)
                 .replaceAll(m -> m.group(1).toUpperCase()).replace("_", ""));
+    }
+
+    private static final Pattern camelSplitPattern = Pattern.compile("([a-z])([A-Z]+)");
+
+    public static String camelToSnake(String camelCase) {
+        return St.lowFirst(camelSplitPattern
+                .matcher(camelCase)
+                .replaceAll(m -> m.group(1) + "_" + m.group(2).toLowerCase()));
+    }
+
+    public static String camelToCapitalizedWords(String camelCase) {
+        return St.capFirst(camelSplitPattern
+                .matcher(camelCase)
+                .replaceAll(m -> m.group(1) + " " + m.group(2).toUpperCase()));
     }
     //endregion
 
@@ -428,6 +447,41 @@ public final class St/*rings*/ {
 
     public static byte[] hexToBytes(String hexString) {
         return HexFormat.of().parseHex(hexString);
+    }
+
+    public static String toHex(Color color, boolean withAlpha) {
+        final String hexColorAlphaFirst = Integer.toHexString(color.getRGB());
+        if (withAlpha) {
+            return "#" + hexColorAlphaFirst.substring(hexColorAlphaFirst.length() - 6) + hexColorAlphaFirst.substring(0, 2);
+        } else {
+            return "#" + hexColorAlphaFirst.substring(2);
+        }
+    }
+
+    public static Color fromHex(String hexColor) {
+        if (hexColor.startsWith("#")) {
+            hexColor = hexColor.substring(1);
+        }
+
+        int alpha = 255; // default alpha value
+        int red, green, blue;
+
+        if (hexColor.length() == 8) {
+            // With alpha
+            alpha = Integer.parseInt(hexColor.substring(0, 2), 16);
+            red = Integer.parseInt(hexColor.substring(2, 4), 16);
+            green = Integer.parseInt(hexColor.substring(4, 6), 16);
+            blue = Integer.parseInt(hexColor.substring(6, 8), 16);
+        } else if (hexColor.length() == 6) {
+            // Without alpha
+            red = Integer.parseInt(hexColor.substring(0, 2), 16);
+            green = Integer.parseInt(hexColor.substring(2, 4), 16);
+            blue = Integer.parseInt(hexColor.substring(4, 6), 16);
+        } else {
+            throw new IllegalArgumentException("Invalid hex color format");
+        }
+
+        return new Color(red, green, blue, alpha);
     }
 
     public static String streamToS(InputStream is) {

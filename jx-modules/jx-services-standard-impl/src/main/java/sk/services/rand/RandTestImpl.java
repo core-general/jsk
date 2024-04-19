@@ -21,7 +21,6 @@ package sk.services.rand;
  */
 
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import sk.utils.functional.F0;
 import sk.utils.paging.RingPicker;
 
@@ -49,7 +48,7 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
 
 
     @Override
-    public void setIntSequence(@Nullable List<Integer> randomSequence) {
+    public void setIntSequence(List<Integer> randomSequence) {
         if (randomSequence == null || randomSequence.size() == 0) {
             intSequence.set(null);
         } else {
@@ -58,7 +57,7 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
     }
 
     @Override
-    public void setDoubleSequence(@Nullable List<Double> randomSequence) {
+    public void setDoubleSequence(List<Double> randomSequence) {
         if (randomSequence == null || randomSequence.size() == 0) {
             doubleSequence.set(null);
         } else {
@@ -67,7 +66,7 @@ public class RandTestImpl extends RandImpl implements IRandSetter {
     }
 
     @Override
-    public void setStringSequence(@Nullable List<String> randomSequence) {
+    public void setStringSequence(List<String> randomSequence) {
         if (randomSequence == null || randomSequence.size() == 0) {
             stringSequence.set(null);
         } else {

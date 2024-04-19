@@ -20,7 +20,8 @@ package sk.web.server.filters.standard;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.utils.functional.O;
 import sk.web.exceptions.IWebExcept;
@@ -30,9 +31,7 @@ import sk.web.server.context.WebRequestVariable;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 
-import javax.inject.Inject;
-
-@Log4j2
+@Slf4j
 public class WebRequestLoggingFilter implements WebServerFilter {
     public static final WebRequestVariable WEB_FORCE_LOG = () -> "_JSK_FORCE_REQUEST_LOG";
     public static final int PRIORITY = 0;
@@ -50,7 +49,7 @@ public class WebRequestLoggingFilter implements WebServerFilter {
         O<WebFilterOutput> oWr = O.empty();
         try {
             if (requestContext.allowAuxiliaryFunction(WEB_FORCE_LOG)) {
-                log.debug(() -> reqRespInfo.getRequestInfo(requestContext));
+                if (log.isDebugEnabled()) {log.debug(reqRespInfo.getRequestInfo(requestContext));}
             }
             WebFilterOutput webReply = requestContext.getNextInChain().invokeNext();
             oWr = O.of(WebFilterOutput.rendered(
@@ -64,7 +63,7 @@ public class WebRequestLoggingFilter implements WebServerFilter {
         } finally {
             if (requestContext.allowAuxiliaryFunction(WEB_FORCE_LOG)) {
                 O<WebFilterOutput> finalOWr = oWr;
-                log.debug(() -> reqRespInfo.getResponseInfo(requestContext, finalOWr));
+                if (log.isDebugEnabled()) {log.debug(reqRespInfo.getResponseInfo(requestContext, finalOWr));}
             }
         }
     }

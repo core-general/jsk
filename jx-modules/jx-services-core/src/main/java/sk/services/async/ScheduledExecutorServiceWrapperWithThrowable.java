@@ -20,7 +20,7 @@ package sk.services.async;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.async.IAsyncUtil;
 
 import java.util.Collection;
@@ -33,66 +33,66 @@ public class ScheduledExecutorServiceWrapperWithThrowable extends ScheduledExecu
     }
 
     @Override
-    public @NotNull ScheduledFuture<?> schedule(@NotNull Runnable command, long delay, @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
         return super.schedule(() -> IAsyncUtil.throwableProcessing(command, false), delay, unit);
     }
 
     @Override
-    public @NotNull <V> ScheduledFuture<V> schedule(@NotNull Callable<V> callable, long delay, @NotNull TimeUnit unit) {
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
         return super.schedule(() -> IAsyncUtil.throwableProcessing(callable, false), delay, unit);
     }
 
     @Override
-    public @NotNull ScheduledFuture<?> scheduleAtFixedRate(@NotNull Runnable command, long initialDelay, long period,
-            @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period,
+            TimeUnit unit) {
         return super.scheduleAtFixedRate(() -> IAsyncUtil.throwableProcessing(command, false), initialDelay, period, unit);
     }
 
     @Override
-    public @NotNull ScheduledFuture<?> scheduleWithFixedDelay(@NotNull Runnable command, long initialDelay, long delay,
-            @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay,
+            TimeUnit unit) {
         return super.scheduleWithFixedDelay(() -> IAsyncUtil.throwableProcessing(command, false), initialDelay, delay, unit);
     }
 
     @Override
-    public <T> Future<T> submit(@NotNull Callable<T> task) {
+    public <T> Future<T> submit(Callable<T> task) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, false));
     }
 
     @Override
-    public <T> Future<T> submit(@NotNull Runnable task, T result) {
+    public <T> Future<T> submit(Runnable task, T result) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, false), result);
     }
 
     @Override
-    public Future<?> submit(@NotNull Runnable task) {
+    public Future<?> submit(Runnable task) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, false));
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         return super.invokeAll(IAsyncUtil.toThrowableTasks(tasks, false));
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
         return super.invokeAll(IAsyncUtil.toThrowableTasks(tasks, false), timeout, unit);
     }
 
     @Override
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         return super.invokeAny(IAsyncUtil.toThrowableTasks(tasks, false));
     }
 
     @Override
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return super.invokeAny(IAsyncUtil.toThrowableTasks(tasks, false), timeout, unit);
     }
 
     @Override
-    public void execute(@NotNull Runnable command) {
+    public void execute(Runnable command) {
         super.execute(() -> IAsyncUtil.throwableProcessing(command, false));
     }
 }

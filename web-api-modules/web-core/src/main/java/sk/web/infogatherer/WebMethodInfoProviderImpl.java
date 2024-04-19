@@ -20,6 +20,7 @@ package sk.web.infogatherer;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.mvn.ApiClassUtil;
@@ -34,7 +35,6 @@ import sk.web.annotations.type.WebGET;
 import sk.web.annotations.type.WebMethod;
 import sk.web.annotations.type.WebPOST;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;

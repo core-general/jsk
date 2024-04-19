@@ -20,32 +20,13 @@ package jsk.spark.testmodel;
  * #L%
  */
 
-import jsk.spark.TestApiSwaggerTest3;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import sk.mvn.ApiClassUtil;
-import sk.services.except.IExcept;
-import sk.services.json.JGsonImpl;
-import sk.utils.functional.O;
-import sk.utils.statics.Io;
-import sk.web.infogatherer.WebMethodInfoProviderImpl;
-import sk.web.swagger.WebSwaggerGenerator;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class SomeClass5 {
     String xx;
-
-    public static void main(String[] args) {
-        WebSwaggerGenerator wsg = new WebSwaggerGenerator(
-                new WebMethodInfoProviderImpl(new IExcept() {},
-                        new ApiClassUtil(new JGsonImpl().init(),
-                                O.of("/home/kivan/projects/Actual/jsk/core-general-jsk-new/z-module-4-experiments-only/target" +
-                                        "/classes"),
-                                s -> Io.sRead(s).oString())));
-        final String s = wsg.generateSwaggerSpec(TestApiSwaggerTest3.class, O.empty());
-        int i = 0;
-    }
 }

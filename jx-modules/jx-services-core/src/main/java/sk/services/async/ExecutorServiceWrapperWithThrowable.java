@@ -20,7 +20,7 @@ package sk.services.async;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.async.IAsyncUtil;
 
 import java.util.Collection;
@@ -33,44 +33,44 @@ public class ExecutorServiceWrapperWithThrowable extends ExecutorServiceWrapper 
     }
 
     @Override
-    public <T> Future<T> submit(@NotNull Callable<T> task) {
+    public <T> Future<T> submit(Callable<T> task) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, true));
     }
 
     @Override
-    public <T> Future<T> submit(@NotNull Runnable task, T result) {
+    public <T> Future<T> submit(Runnable task, T result) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, true), result);
     }
 
     @Override
-    public Future<?> submit(@NotNull Runnable task) {
+    public Future<?> submit(Runnable task) {
         return super.submit(() -> IAsyncUtil.throwableProcessing(task, true));
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         return super.invokeAll(IAsyncUtil.toThrowableTasks(tasks, true));
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
         return super.invokeAll(IAsyncUtil.toThrowableTasks(tasks, true), timeout, unit);
     }
 
     @Override
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         return super.invokeAny(IAsyncUtil.toThrowableTasks(tasks, true));
     }
 
     @Override
-    public <T> T invokeAny(@NotNull Collection<? extends Callable<T>> tasks, long timeout, @NotNull TimeUnit unit)
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return super.invokeAny(IAsyncUtil.toThrowableTasks(tasks, true), timeout, unit);
     }
 
     @Override
-    public void execute(@NotNull Runnable command) {
+    public void execute(Runnable command) {
         super.execute(() -> IAsyncUtil.throwableProcessing(command, true));
     }
 }

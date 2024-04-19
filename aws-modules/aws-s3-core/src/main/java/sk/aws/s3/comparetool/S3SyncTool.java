@@ -20,10 +20,11 @@ package sk.aws.s3.comparetool;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.s3.S3ItemMeta;
 import sk.aws.s3.S3JskClient;
 import sk.aws.s3.comparetool.model.S3CompareInput;
@@ -43,13 +44,12 @@ import sk.utils.statics.*;
 import sk.utils.tuples.X1;
 import sk.utils.tuples.X2;
 
-import javax.inject.Inject;
 import java.util.List;
 
 import static sk.utils.statics.Cc.join;
 import static sk.utils.statics.Cc.stream;
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 public class S3SyncTool extends CompareTool<S3ItemMeta, S3CompareMeta> {

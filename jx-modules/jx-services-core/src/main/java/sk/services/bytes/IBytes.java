@@ -26,6 +26,8 @@ import sk.utils.collections.ByteArrKey;
 import sk.utils.functional.O;
 import sk.utils.javafixes.Base62;
 import sk.utils.statics.*;
+import sk.utils.tree.Tree;
+import sk.utils.tree.TreePath;
 
 import java.io.*;
 import java.net.URLDecoder;
@@ -242,11 +244,35 @@ public interface IBytes {
     }
 
     default O<Map<String, byte[]>> unZipArchive(byte[] archive) {
+        if (archive.length == 0) {
+            return O.empty();
+        }
         return unZipArchive(new ByteArrayInputStream(archive));
     }
 
     default O<Map<String, byte[]>> unZipArchive(byte[] archive, String password) {
+        if (archive.length == 0) {
+            return O.empty();
+        }
         return unZipArchive(new ByteArrayInputStream(archive), password);
+    }
+
+    default O<Tree<String, byte[]>> unZipArchiveTree(byte[] archive) {
+        return unzipTreeInternal(unZipArchive(archive));
+    }
+
+    default O<Tree<String, byte[]>> unZipArchiveTree(byte[] archive, String password) {
+        return unzipTreeInternal(unZipArchive(archive, password));
+    }
+
+    private static O<Tree<String, byte[]>> unzipTreeInternal(O<Map<String, byte[]>> oRes) {
+        return oRes.map(res -> {
+            Tree<String, byte[]> tree = Tree.create();
+            res.forEach((k, v) -> {
+                tree.setVal(TreePath.path(k.split("/")), v);
+            });
+            return tree;
+        });
     }
 
     O<Map<String, byte[]>> unZipArchive(InputStream is);

@@ -20,10 +20,10 @@ package sk.utils.tree;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.tree.TreePath.path;
 
 public class TreePathTest extends MockitoTest {

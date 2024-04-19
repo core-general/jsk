@@ -42,74 +42,74 @@ import static sk.utils.tree.TreePath.path;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 @Data
-public class TreeNode<V, N> {
+public class TreeNode<K, V> {
     V value;
-    @Getter N name;
-    Map<N, TreeNode<V, N>> childMap;
-    F0<Map<N, TreeNode<V, N>>> childCreator;
+    @Getter K name;
+    Map<K, TreeNode<K, V>> childMap;
+    F0<Map<K, TreeNode<K, V>>> childCreator;
 
     //region Creators
-    private static <V, N> TreeNode<V, N> create(N name, F0<Map<N, TreeNode<V, N>>> childCreator) {
+    private static <K, V> TreeNode<K, V> create(K name, F0<Map<K, TreeNode<K, V>>> childCreator) {
         Objects.requireNonNull(name);
         return new TreeNode<>(name, childCreator);
     }
 
     @SuppressWarnings("Convert2MethodRef")
-    private static <V, N> TreeNode<V, N> create(N name) {
+    private static <K, V> TreeNode<K, V> create(K name) {
         Objects.requireNonNull(name);
         return create(name, () -> new HashMap<>());
     }
 
-    static <V, N> TreeNode<V, N> rootNode(F0<Map<N, TreeNode<V, N>>> childCreator) {
+    static <K, V> TreeNode<K, V> rootNode(F0<Map<K, TreeNode<K, V>>> childCreator) {
         return new TreeNode<>(null, childCreator);
     }
 
-    private TreeNode(N name, F0<Map<N, TreeNode<V, N>>> childCreator) {
+    private TreeNode(K name, F0<Map<K, TreeNode<K, V>>> childCreator) {
         this.childCreator = childCreator;
         this.childMap = childCreator.get();
         this.name = name;
     }
 
-    private TreeNode(N name, F0<Map<N, TreeNode<V, N>>> childCreator, V value) {
+    private TreeNode(K name, F0<Map<K, TreeNode<K, V>>> childCreator, V value) {
         this.childCreator = childCreator;
         this.childMap = childCreator.get();
         this.name = name;
         this.value = value;
     }
 
-    static <V, N> P1<TreeNode<V, N>> notRoot() {
+    static <K, V> P1<TreeNode<K, V>> notRoot() {
         return input -> !(input.getName() == null);
     }
     //endregion
 
     //region Get/Set
-    public TreeNode<V, N> setRelativeValue(TreePath<N> p, V value) {
+    public TreeNode<K, V> setRelativeValue(TreePath<K> p, V value) {
         setRelativeValue(p, value, 0);
         return this;
     }
 
-    public TreeNode<V, N> setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value) {
+    public TreeNode<K, V> setValBetween(TreePath<K> parent, TreePath<K> child, K newNodeId, V value) {
         setValBetween(parent, child, newNodeId, value, 0);
         return this;
     }
 
-    public TreeNode<V, N> setNodeValue(V value) {
+    public TreeNode<K, V> setNodeValue(V value) {
         return setRelativeValue(emptyPath(), value);
     }
 
-    public O<V> removeNode(TreePath<N> p, boolean clearNullBranch) {
+    public O<V> removeNode(TreePath<K> p, boolean clearNullBranch) {
         return removeNode(p, this, 0, clearNullBranch);
     }
 
-    public O<V> getValueOfLastExistingParent(TreePath<N> p) {
+    public O<V> getValueOfLastExistingParent(TreePath<K> p) {
         return getValueOfLastExistingParent(p, 0);
     }
 
-    public O<TreeNode<V, N>> getNodeOfLastExistingParent(TreePath<N> p) {
+    public O<TreeNode<K, V>> getNodeOfLastExistingParent(TreePath<K> p) {
         return getNodeOfLastExistingParent(p, this, 0);
     }
 
-    public O<V> getValue(TreePath<N> p) {
+    public O<V> getValue(TreePath<K> p) {
         return getValue(p, 0);
     }
 
@@ -117,7 +117,7 @@ public class TreeNode<V, N> {
         return ofNullable(value);
     }
 
-    public List<TreePath<N>> getAllLeafs() {
+    public List<TreePath<K>> getAllLeafs() {
         return processLeafs((path, pNode) -> path);
     }
 
@@ -139,7 +139,7 @@ public class TreeNode<V, N> {
         return countNodes(true, true, notRoot());
     }
 
-    private int countNodes(final boolean includeLeafs, final boolean includeNodes, final P1<TreeNode<V, N>> filter) {
+    private int countNodes(final boolean includeLeafs, final boolean includeNodes, final P1<TreeNode<K, V>> filter) {
         X1<Integer> count = X.x(0);
         runAll((p, n) -> {
             if (filter.test(n) && ((n.isLeaf() && includeLeafs) || (!n.isLeaf() && includeNodes))) {
@@ -151,25 +151,25 @@ public class TreeNode<V, N> {
     //endregion
 
     @SuppressWarnings("unchecked")
-    public <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, Y> nodeProcessor) {
+    public <Y> List<Y> processAll(F2<TreePath<K>, TreeNode<K, V>, Y> nodeProcessor) {
         return processAll(
                 (nTreePath, vnTreeNode) -> new TreeTraverseContinuator<>(nodeProcessor.apply(nTreePath, vnTreeNode), true),
                 path());
     }
 
-    public <Y> List<Y> processAllByContinue(F2<TreePath<N>, TreeNode<V, N>, TreeTraverseContinuator<Y>> nodeProcessor) {
+    public <Y> List<Y> processAllByContinue(F2<TreePath<K>, TreeNode<K, V>, TreeTraverseContinuator<Y>> nodeProcessor) {
         return processAll(nodeProcessor, path());
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public <Y> List<Y> runAll(C2<TreePath<N>, TreeNode<V, N>> nodeRunner) {
+    public <Y> List<Y> runAll(C2<TreePath<K>, TreeNode<K, V>> nodeRunner) {
         return processAll((a, b) -> {
             nodeRunner.accept(a, b);
             return null;
         });
     }
 
-    public <Y> List<Y> processLeafs(final F2<TreePath<N>, TreeNode<V, N>, Y> leafProcessor) {
+    public <Y> List<Y> processLeafs(final F2<TreePath<K>, TreeNode<K, V>, Y> leafProcessor) {
         return processAll((xTreePath, pxTreeNode) -> pxTreeNode.isLeaf() ? leafProcessor.apply(xTreePath, pxTreeNode) : null);
     }
 
@@ -177,7 +177,7 @@ public class TreeNode<V, N> {
      * @return null values are filtered
      */
     @SuppressWarnings("unchecked")
-    protected <Y> List<Y> processAll(F2<TreePath<N>, TreeNode<V, N>, TreeTraverseContinuator<Y>> processor, TreePath<N> path) {
+    protected <Y> List<Y> processAll(F2<TreePath<K>, TreeNode<K, V>, TreeTraverseContinuator<Y>> processor, TreePath<K> path) {
         List<Y> xes = Cc.l();
         TreeTraverseContinuator<Y> val = processor.apply(path, this);
         if (val.value() != null) {
@@ -192,13 +192,13 @@ public class TreeNode<V, N> {
         return xes;
     }
 
-    protected O<V> removeNode(TreePath<N> toRemove, TreeNode<V, N> parent, int index, boolean clearNullBranch) {
+    protected O<V> removeNode(TreePath<K> toRemove, TreeNode<K, V> parent, int index, boolean clearNullBranch) {
         if (toRemove.getSize() < index) {
             return empty();
         }
 
         if (toRemove.getSize() > index) {
-            TreeNode<V, N> pNode = childMap.get(toRemove.getAt(index));
+            TreeNode<K, V> pNode = childMap.get(toRemove.getAt(index));
             if (pNode != null) {
                 O<V> remove = pNode.removeNode(toRemove, this, index + 1, clearNullBranch);
                 if (clearNullBranch && value == null && isLeaf() && parent != null) {
@@ -218,11 +218,11 @@ public class TreeNode<V, N> {
         }
     }
 
-    protected void removeChild(N name) {
+    protected void removeChild(K name) {
         childMap.remove(name);
     }
 
-    protected O<V> getValue(TreePath<N> path, int index) {
+    protected O<V> getValue(TreePath<K> path, int index) {
         if (path.getSize() < index) {
             return empty();
         }
@@ -232,13 +232,13 @@ public class TreeNode<V, N> {
                : getValue();
     }
 
-    protected void setRelativeValue(TreePath<N> path, V value, int index) {
+    protected void setRelativeValue(TreePath<K> path, V value, int index) {
         if (path.getSize() < index) {
             return;
         }
 
         if (path.getSize() > index) {
-            N pathPart = path.getAt(index);
+            K pathPart = path.getAt(index);
             childMap.computeIfAbsent(pathPart, n -> TreeNode.create(n, childCreator))
                     .setRelativeValue(path, value, index + 1);
         } else {
@@ -247,29 +247,29 @@ public class TreeNode<V, N> {
     }
 
 
-    public void setValBetween(TreePath<N> parent, TreePath<N> child, N newNodeId, V value, int index) {
+    public void setValBetween(TreePath<K> parent, TreePath<K> child, K newNodeId, V value, int index) {
         if (!parent.isParentOf(child)) {
             throw new RuntimeException(parent + " is not parent for " + child);
         }
         if (parent.getSize() > index) {
-            N pathPart = parent.getAt(index);
+            K pathPart = parent.getAt(index);
             childMap.get(pathPart).setValBetween(parent, child, newNodeId, value, index + 1);
         }
         if (parent.getSize() == index) {
-            final N oldChild = child.getLeaf();
-            final TreeNode<V, N> oldChildNode = childMap.remove(oldChild);
-            final TreeNode<V, N> newNode = new TreeNode<>(newNodeId, childCreator, value);
+            final K oldChild = child.getLeaf();
+            final TreeNode<K, V> oldChildNode = childMap.remove(oldChild);
+            final TreeNode<K, V> newNode = new TreeNode<>(newNodeId, childCreator, value);
             childMap.put(newNodeId, newNode);
             newNode.getChildMap().put(oldChild, oldChildNode);
         }
     }
 
     @SuppressWarnings("SameParameterValue")
-    protected O<V> getValueOfLastExistingParent(TreePath<N> path, int counter) {
+    protected O<V> getValueOfLastExistingParent(TreePath<K> path, int counter) {
         return getNodeOfLastExistingParent(path, this, counter).map($ -> $.value);
     }
 
-    protected O<TreeNode<V, N>> getNodeOfLastExistingParent(TreePath<N> path, TreeNode<V, N> parent, int index) {
+    protected O<TreeNode<K, V>> getNodeOfLastExistingParent(TreePath<K> path, TreeNode<K, V> parent, int index) {
         if (path.getSize() < index) {
             return empty();
         }

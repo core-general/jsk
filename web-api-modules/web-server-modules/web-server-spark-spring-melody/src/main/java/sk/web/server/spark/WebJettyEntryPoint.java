@@ -20,9 +20,8 @@ package sk.web.server.spark;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.spring.SpringAppEntryPoint;
-
-import javax.inject.Inject;
 
 public class WebJettyEntryPoint implements SpringAppEntryPoint {
     @Inject WebJettyServerStarter server;

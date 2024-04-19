@@ -20,11 +20,11 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.test.MockitoTest;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static sk.utils.statics.Ex.*;
 
 public class ExTest extends MockitoTest {

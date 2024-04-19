@@ -20,10 +20,10 @@ package sk.utils.javafixes;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.statics.St;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.javafixes.Base62.decodeStr;
 import static sk.utils.javafixes.Base62.encodeStr;
 

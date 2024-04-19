@@ -20,14 +20,14 @@ package sk.services.log;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.json.IJson;
 
-import javax.inject.Inject;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 public class ILogConsoleImpl implements ILog {
     @Inject private IJson json;

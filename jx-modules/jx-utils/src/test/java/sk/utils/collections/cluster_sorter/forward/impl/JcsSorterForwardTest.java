@@ -22,7 +22,7 @@ package sk.utils.collections.cluster_sorter.forward.impl;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractCsTest;
 import sk.utils.collections.cluster_sorter.abstr.JcsASorter;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JcsSorterForwardTest extends JcsAbstractCsTest<JcsAbstractCsTest.JcsTestSource> {
     @Override

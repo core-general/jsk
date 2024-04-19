@@ -20,7 +20,8 @@ package sk.web.server.spark.melodycollector;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.boot.IBoot;
 import sk.services.http.IHttp;
@@ -30,9 +31,7 @@ import sk.utils.async.GuaranteedOneTimeTask;
 import sk.utils.functional.O;
 import sk.web.server.params.WebServerParams;
 
-import javax.inject.Inject;
-
-@Log4j2
+@Slf4j
 public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
 
     @Inject private INodeInfo nodeInfo;
@@ -85,7 +84,7 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
             }
             return null;
         }).exceptionally(e -> {
-            log.error(e);
+            log.error("", e);
             return null;
         });
     }

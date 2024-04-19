@@ -22,8 +22,7 @@ package sk.utils.collections.cluster_sorter.backward;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.JcsAbstractCsTest;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsItem;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
@@ -39,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.collections.cluster_sorter.JcsAbstractCsTest.JcsTestBackSource;
 import static sk.utils.collections.cluster_sorter.backward.model.JcsEBackType.BACKWARD;
 import static sk.utils.collections.cluster_sorter.backward.model.JcsEBackType.FORWARD;
@@ -110,7 +109,7 @@ public abstract class JcsSorterBackGeneralTest extends JcsAbstractCsTest<JcsTest
         return formatWithType(queue, BACKWARD, reverseBack);
     }
 
-    @NotNull
+
     private String formatWithType(JcsIQueueBack<String, JcsTestBackSource> queue, JcsEBackType format, boolean reverseBack) {
         List<JcsItem<String, JcsEBackType, JcsTestBackSource>> items = Cc.list(queue.getDirectionIterators().get(format));
         if (format == BACKWARD && reverseBack) {

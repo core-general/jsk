@@ -22,10 +22,13 @@ package sk.utils.statics;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.SneakyThrows;
 import sk.utils.files.FileList;
 import sk.utils.functional.*;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -67,6 +70,22 @@ public final class Io/*Input/Output*/ {
         }
     }
 
+    public static String getNextLineFromKeyboard() {
+        try (Scanner in = new Scanner(System.in)) {
+            return in.nextLine().trim();
+        }
+    }
+
+    @SneakyThrows
+    public static void streamPump(InputStream in, OutputStream out, int bufferSize) {
+        byte[] read_buf = new byte[bufferSize];
+        int read_len = 0;
+
+        while ((read_len = in.read(read_buf)) > 0) {
+            out.write(read_buf, 0, read_len);
+        }
+    }
+
     public static byte[] streamToBytes(InputStream is) {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             byte[] buf = new byte[4 * 1024];
@@ -81,6 +100,23 @@ public final class Io/*Input/Output*/ {
 
     public static InputStream bytesToStream(byte[] in) {
         return new ByteArrayInputStream(in);
+    }
+
+    public static boolean isWWWAvailable() {
+        return isWWWAvailable(5000);
+    }
+
+    public static boolean isWWWAvailable(int millis) {
+        try {
+            URL url = new URL("https://google.com");
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.setConnectTimeout(millis);
+            urlConnection.connect();
+            urlConnection.getInputStream().close();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     //region Read
@@ -213,6 +249,10 @@ public final class Io/*Input/Output*/ {
             });
         }
 
+        public <A> A lineStreamNoExc(F1<Stream<String>, A> consumer) {
+            return lineStreamMap(either -> consumer.apply(either.left()));
+        }
+
         public O<List<String>> oLines() {
             return lineStreamMap(either -> either.map($ -> $.collect(Cc.toL()), $ -> $)).oLeft();
         }
@@ -279,7 +319,8 @@ public final class Io/*Input/Output*/ {
             try (BufferedWriter bwr = newBufferedWriter($, Charset.forName(charSet), WRITE, CREATE,
                     TRUNCATE_EXISTING)) {
                 writer.accept(new PlainWriter(bwr));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
 
@@ -289,7 +330,8 @@ public final class Io/*Input/Output*/ {
         withCreatedPath(path, $ -> {
             try (OutputStream output = newOutputStream(Paths.get(path), WRITE, CREATE, APPEND)) {
                 writer.accept(new BinaryWriter(output));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
     }
@@ -298,7 +340,8 @@ public final class Io/*Input/Output*/ {
         withCreatedPath(path, $ -> {
             try (OutputStream output = newOutputStream($, WRITE, CREATE, TRUNCATE_EXISTING)) {
                 writer.accept(new BinaryWriter(output));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         });
     }
@@ -337,29 +380,102 @@ public final class Io/*Input/Output*/ {
 
     @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
     public static boolean copy(String from, String to, boolean copyAttributes) {
-        try {
-            new File(to).getParentFile().mkdirs();
-            return copyAttributes
-                   ? Files.copy(new File(from).toPath(), new File(to).toPath(), StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.COPY_ATTRIBUTES) != null
-                   : Files.copy(new File(from).toPath(), new File(to).toPath(),
-                           StandardCopyOption.REPLACE_EXISTING) != null
-                    ;
-        } catch (IOException e) {
-            return false;
+        File source = new File(from);
+        if (source.isDirectory()) {
+            return copyDirectory(from, to, copyAttributes);
+        } else {
+            return copyFile(from, to, copyAttributes);
         }
     }
 
     @SuppressWarnings("ConstantConditions")
     public static boolean move(String from, String to) {
+        return move(from, to, false);
+    }
+
+    public static boolean move(String from, String to, boolean moveAttributes) {
+        Path sourcePath = Paths.get(from);
+        Path targetPath = Paths.get(to).toAbsolutePath();
+
         try {
-            return Files.move(new File(from).toPath(), new File(to).toPath(), StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE) != null;
+            if (Files.isDirectory(sourcePath)) {
+                walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        moveFile(file, targetPath.resolve(sourcePath.relativize(file)), moveAttributes);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } else {
+                moveFile(sourcePath, targetPath, moveAttributes);
+            }
+            return true;
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
 
+    private static void moveFile(Path source, Path target, boolean moveAttributes) {
+        try {
+            // Ensure the parent directory of the target file exists
+            Files.createDirectories(target.getParent());
+
+            // Move file or directory
+            if (moveAttributes) {
+                Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } else {
+                Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean copyFile(String from, String to, boolean copyAttributes) {
+        try {
+            new File(to).getParentFile().mkdirs(); // Ensure the parent directory exists
+            CopyOption[] co = copyAttributes
+                              ? new CopyOption[]{StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES}
+                              : new CopyOption[]{StandardCopyOption.REPLACE_EXISTING};
+            Files.copy(new File(from).toPath(), new File(to).toPath(), co);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean copyDirectory(String from, String to, boolean copyAttributes) {
+        File sourceDir = new File(from);
+        File targetDir = new File(to);
+
+        // Create target directory if it doesn't exist
+        if (!targetDir.exists()) {
+            targetDir.mkdirs();
+        }
+
+        // Copy each file/directory recursively
+        String[] files = sourceDir.list();
+        if (files != null) {
+            for (String file : files) {
+                File srcFile = new File(sourceDir, file);
+                File destFile = new File(targetDir, file);
+
+                if (srcFile.isDirectory()) {
+                    // Recursively copy the directory
+                    copyDirectory(srcFile.getAbsolutePath(), destFile.getAbsolutePath(), copyAttributes);
+                } else {
+                    // Copy the file
+                    copyFile(srcFile.getAbsolutePath(), destFile.getAbsolutePath(), copyAttributes);
+                }
+            }
+        }
+        return true; // Return true if everything was copied successfully
+    }
 
     @AllArgsConstructor
     public static class PlainWriter {
@@ -382,18 +498,31 @@ public final class Io/*Input/Output*/ {
             }
             return this;
         }
+
+        public synchronized PlainWriter appendThreadSafe(String text) {
+            return append(text);
+        }
+
+        public synchronized PlainWriter appendLineThreadSafe(String text) {
+            return appendLine(text);
+        }
     }
 
     @AllArgsConstructor
     public static class BinaryWriter {
         OutputStream bw;
 
-        public void append(byte[] bytes) {
+        public BinaryWriter append(byte[] bytes) {
             try {
                 bw.write(bytes);
             } catch (IOException e) {
                 Ex.thRow(e);
             }
+            return this;
+        }
+
+        public synchronized BinaryWriter appendThreadSafe(byte[] bytes) {
+            return append(bytes);
         }
     }
     //endregion
@@ -434,6 +563,10 @@ public final class Io/*Input/Output*/ {
     //endregion
 
     //region Execute script + services
+    public static ExecuteInfo executeAndFail(String command) {
+        return execute(command).failIfNotOk();
+    }
+
     public static ExecuteInfo execute(String command) {
         ProcessBuilder ps = command.contains("|")
                             ? new ProcessBuilder("/bin/sh", "-c", command)
@@ -495,6 +628,15 @@ public final class Io/*Input/Output*/ {
         List<String> commands;
         int code;
         String output;
+
+        public ExecuteInfo failIfNotOk() {
+            if (code != 0) {
+                throw new RuntimeException(
+                        "ERROR executing:'%s' OUTPUT:'%s'".formatted(Cc.join(commands), output)
+                );
+            }
+            return this;
+        }
     }
 
     public enum ServiceStatus {ACTIVE, INACTIVE, OTHER, NO_STATUS}

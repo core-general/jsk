@@ -25,7 +25,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
-import org.jetbrains.annotations.Nullable;
 import sk.services.http.model.CoreHttpResponse;
 import sk.services.http.model.IHttpConf;
 import sk.utils.functional.F1;
@@ -113,10 +112,10 @@ public interface IHttp {
     @Getter
     abstract class HttpBuilder<T extends HttpBuilder> {
         @Setter(AccessLevel.PRIVATE) F1<T, OneOf<CoreHttpResponse, Exception>> requester;
-        String url;
-        @Nullable String login = null;
-        @Nullable String password = null;
-        @Nullable Map<String, String> headers = null;
+        String url = null;
+        String login = null;
+        String password = null;
+        Map<String, String> headers = null;
         int tryCount = 1;
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
@@ -132,6 +131,21 @@ public interface IHttp {
                 headers = new HashMap<>();
             }
             return headers;
+        }
+
+        public T timeout(O<Duration> tmout) {
+            timeout = tmout;
+            return getThis();
+        }
+
+        public T timeout(Duration tmout) {
+            timeout = O.ofNull(tmout);
+            return getThis();
+        }
+
+        public T timeout(long ms) {
+            timeout = O.of(Duration.ofMillis(ms));
+            return getThis();
         }
 
         public OneOf<String, Exception> go() {
@@ -211,7 +225,7 @@ public interface IHttp {
     @Getter
     class HttpFormBuilder extends HttpPostBuilder<HttpFormBuilder> {
         @Setter(AccessLevel.PRIVATE) F1<HttpFormBuilder, OneOf<CoreHttpResponse, Exception>> requester;
-        @Nullable Map<String, String> parameters = null;
+        Map<String, String> parameters = null;
 
         private HttpFormBuilder(String url, F1<HttpFormBuilder, OneOf<CoreHttpResponse, Exception>> requester) {
             super(url, requester);
@@ -240,8 +254,8 @@ public interface IHttp {
     @Getter
     class HttpMultipartBuilder extends HttpPostBuilder<HttpMultipartBuilder> {
         @Setter(AccessLevel.PRIVATE) F1<HttpMultipartBuilder, OneOf<CoreHttpResponse, Exception>> requester;
-        @Nullable Map<String, String> parameters = null;
-        @Nullable Map<String, byte[]> rawParameters = null;
+        Map<String, String> parameters = null;
+        Map<String, byte[]> rawParameters = null;
 
         private HttpMultipartBuilder(String url, F1<HttpMultipartBuilder, OneOf<CoreHttpResponse, Exception>> requester) {
             super(url, requester);

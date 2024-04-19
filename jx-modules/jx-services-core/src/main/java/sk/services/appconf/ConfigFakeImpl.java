@@ -20,13 +20,13 @@ package sk.services.appconf;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.NotImplementedException;
 import sk.services.appconf.model.ConfigUnit;
 import sk.utils.javafixes.TypeWrap;
 
 @SuppressWarnings({"unused", "unchecked"})
-@Log4j2
+@Slf4j
 public abstract class ConfigFakeImpl implements IConfig {
     @Override
     public <T> T getAsObject(ConfigUnit item, Class<T> cls) {

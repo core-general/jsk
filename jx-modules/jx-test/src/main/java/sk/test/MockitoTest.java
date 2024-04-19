@@ -20,21 +20,21 @@ package sk.test;
  * #L%
  */
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public abstract class MockitoTest {
     private AutoCloseable closeableTest;
 
-    @Before
+    @BeforeEach
     public void initMockitoTest() {
         closeableTest = MockitoAnnotations.openMocks(this);
         Mockito.validateMockitoUsage();
     }
 
-    @After
+    @AfterEach
     public void destroyMockitoTest() throws Exception {
         closeableTest.close();
     }

@@ -20,13 +20,12 @@ package sk.web.server.filters.standard;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.context.WebContextHolder;
 import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.additional.WebUserActionLoggingFilter;
-
-import javax.inject.Inject;
 
 public class WebContextExplicatorFilter implements WebServerFilter {
     public static final int PRIORITY = WebUserActionLoggingFilter.PRIORITY - PRIORITY_STEP;

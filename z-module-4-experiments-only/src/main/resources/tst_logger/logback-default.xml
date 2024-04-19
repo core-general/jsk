@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Swiss Knife
+  %%
+  Copyright (C) 2019 - 2020 Core General
+  %%
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  #L%
+  -->
+
+<configuration>
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %6.6level [%15.15thread] %cyan(%-35.35logger{34}) : %m%n%ex
+            </Pattern>
+        </layout>
+    </appender>
+    <logger name="javamelody">
+        <level value="error"/>
+    </logger>
+    <logger name="net.bull">
+        <level value="info"/>
+    </logger>
+    <logger name="org.springframework">
+        <level value="info"/>
+    </logger>
+    <logger name="org.eclipse.jetty">
+        <level value="info"/>
+    </logger>
+    <logger name="org.eclipse.jetty.util.log">
+        <level value="warn"/>
+    </logger>
+    <logger name="org.eclipse.jetty.server.session">
+        <level value="warn"/>
+    </logger>
+    <logger name="org.eclipse.jetty.server.handler">
+        <level value="warn"/>
+    </logger>
+    <logger name="org.eclipse.jetty.server.AbstractConnector">
+        <level value="warn"/>
+    </logger>
+    <logger name="spark.route">
+        <level value="debug"/>
+    </logger>
+    <logger name="sk">
+        <level value="debug"/>
+    </logger>
+    <logger name="jsk">
+        <level value="debug"/>
+    </logger>
+    <root level="info">
+        <appender-ref ref="Console"/>
+    </root>
+</configuration>

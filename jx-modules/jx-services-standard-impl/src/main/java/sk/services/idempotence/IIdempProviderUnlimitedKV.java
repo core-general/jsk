@@ -20,7 +20,8 @@ package sk.services.idempotence;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
+import jakarta.inject.Inject;
 import sk.services.bytes.IBytes;
 import sk.services.except.IExcept;
 import sk.services.json.IJson;
@@ -35,7 +36,6 @@ import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -108,7 +108,7 @@ public class IIdempProviderUnlimitedKV implements IIdempProvider {
         kv.clearValue(key(key));
     }
 
-    @NotNull
+
     private IdempKey key(String key) {
         return new IdempKey(key);
     }

@@ -23,7 +23,6 @@ package sk.utils.collections.cluster_sorter.abstr.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
 import sk.utils.collections.cluster_sorter.abstr.JcsISource;
 
 import java.util.Comparator;
@@ -43,7 +42,7 @@ public class JcsItem<ITEM, EXPAND_DIRECTION, SOURCE extends JcsISource<ITEM>>
     private EXPAND_DIRECTION expandDirection;
 
     @Override
-    public int compareTo(@NotNull JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> o) {
+    public int compareTo(JcsItem<ITEM, EXPAND_DIRECTION, SOURCE> o) {
         return comparator.compare(item, o.item);
     }
 

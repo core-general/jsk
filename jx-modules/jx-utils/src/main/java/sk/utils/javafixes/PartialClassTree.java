@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class PartialClassTree {
-    private Tree<Class<?>, String> tree = Tree.create();
+    private Tree<String, Class<?>> tree = Tree.create();
 
     private <A extends Class<?>, B extends Class<?>> ClsCompare compareClasses(A t1, B t2) {
         if (t1 == t2) {

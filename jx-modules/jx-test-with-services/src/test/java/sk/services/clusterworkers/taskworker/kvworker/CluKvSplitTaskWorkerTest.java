@@ -22,8 +22,8 @@ package sk.services.clusterworkers.taskworker.kvworker;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Spy;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.taskworker.model.CluTaskBatchResult;
@@ -44,7 +44,7 @@ import sk.utils.tuples.X;
 import java.time.Duration;
 import java.util.stream.Collectors;
 
-import static sk.services.ICore4Test.services;
+import static sk.services.CoreServicesRaw.services;
 import static sk.utils.asserts.JskAssert.checkEquals;
 
 public class CluKvSplitTaskWorkerTest {
@@ -56,7 +56,7 @@ public class CluKvSplitTaskWorkerTest {
             services().async(), services().times(), services().ids(), services().json(),
             store);
 
-    @Before
+    @BeforeEach
     public void before() {
 
     }

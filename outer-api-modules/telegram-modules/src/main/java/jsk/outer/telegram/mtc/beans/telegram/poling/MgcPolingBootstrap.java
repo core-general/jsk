@@ -24,21 +24,21 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.GetUpdates;
 import com.pengrad.telegrambot.response.GetUpdatesResponse;
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.boot.IBoot;
 import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.functional.C1;
 import sk.utils.statics.Ti;
 
-import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparing;
 
-@Log4j2
+@Slf4j
 public class MgcPolingBootstrap implements IBoot {
     @Inject IAsync async;
 

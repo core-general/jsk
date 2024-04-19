@@ -20,6 +20,8 @@ package sk.aws.ecs;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import sk.aws.AwsUtilityHelper;
 import sk.services.bytes.IBytes;
 import sk.services.json.IJson;
@@ -37,8 +39,6 @@ import software.amazon.awssdk.services.ecr.model.ListImagesRequest;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.*;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;

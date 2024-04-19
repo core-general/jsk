@@ -21,7 +21,7 @@ package sk.utils.computation.chained;
  */
 
 import lombok.ToString;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.computation.chained.values.MappedComputedValue;
 import sk.utils.computation.chained.values.SimpleComputedValue;
 import sk.utils.computation.chained.values.SomeValue;
@@ -33,8 +33,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ChainedComputationTest {
     @Test

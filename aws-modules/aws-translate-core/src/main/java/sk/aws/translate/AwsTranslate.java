@@ -20,8 +20,10 @@ package sk.aws.translate;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
 import sk.services.translate.*;
 import sk.services.translate.AwsLangRecoResult.AwsLangRecoItem;
@@ -34,14 +36,12 @@ import software.amazon.awssdk.services.translate.TranslateClient;
 import software.amazon.awssdk.services.translate.model.TranslateTextRequest;
 import software.amazon.awssdk.services.translate.model.TranslateTextResponse;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
-@Log4j2
+@Slf4j
 public class AwsTranslate implements ITranslate {
     public static final AwsLangRecoItem DEFAULT_ENGLISH = new AwsLangRecoItem(LangType.English, 1f);
 

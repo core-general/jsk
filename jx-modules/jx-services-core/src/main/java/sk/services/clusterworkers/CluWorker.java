@@ -20,8 +20,8 @@ package sk.services.clusterworkers;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.async.IAsync;
 import sk.services.async.ScheduledExecutorServiceWrapperWithThrowable;
 import sk.services.clusterworkers.model.CluDelay;
@@ -32,13 +32,12 @@ import sk.utils.async.ForeverThreadWithFinish;
 import sk.utils.functional.*;
 import sk.utils.statics.Cc;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Log4j2
+@Slf4j
 public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG extends CluMessage> {
     @Inject protected IAsync async;
     @Inject protected ITime times;
@@ -110,7 +109,9 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
     protected void setState(STATE newState) {
         inLock(() -> {
             this.state = newState;
-            log.debug(() -> name + " - State changed to:" + this.state);
+            if (log.isDebugEnabled()) {
+                log.debug(name + " - State changed to:" + this.state);
+            }
         });
     }
 
@@ -119,7 +120,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
     }
 
     @SuppressWarnings("Convert2MethodRef")
-    @NotNull
+
     private <MM extends MSG> CluScheduler<STATE, MM> privateAddScheduler(String schedulerName, O<Set<STATE>> allowedStates,
             F0<O<MM>> processor, CluDelay periodDelay, boolean dedicatedThread) {
         CluScheduler<STATE, MM> scheduler =

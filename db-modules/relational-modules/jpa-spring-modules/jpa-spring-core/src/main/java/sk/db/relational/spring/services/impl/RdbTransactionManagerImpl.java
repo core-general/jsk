@@ -20,6 +20,7 @@ package sk.db.relational.spring.services.impl;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import jakarta.persistence.OptimisticLockException;
 import lombok.NoArgsConstructor;
 import org.hibernate.StaleObjectStateException;
@@ -34,7 +35,6 @@ import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.tuples.*;
 
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

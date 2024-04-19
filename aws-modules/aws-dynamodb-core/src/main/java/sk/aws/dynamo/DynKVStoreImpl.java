@@ -20,7 +20,8 @@ package sk.aws.dynamo;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
 import sk.services.ids.IIds;
@@ -42,7 +43,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.stream.Collectors.joining;
 import static sk.utils.statics.St.endWith;
 
-@Log4j2
+@Slf4j
 public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedStore {
     //@Inject DynamoDbEnhancedClient dynaHighLvl;
     //@Inject DynamoDbClient dynaLowLvl;

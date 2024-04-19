@@ -20,10 +20,10 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.functional.O;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MaTest {
     @Test

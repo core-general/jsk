@@ -20,7 +20,7 @@ package sk.spring.config;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.services.async.AsyncImpl;
@@ -59,7 +59,7 @@ import sk.spring.services.ServiceLocator4SpringImpl;
 import sk.spring.utils.DefaultThrowableHandler;
 
 @Configuration
-@Log4j2
+@Slf4j
 public class SpringCoreConfig {
     @Bean
     public ITime times() {return new TimeUtcImpl();}

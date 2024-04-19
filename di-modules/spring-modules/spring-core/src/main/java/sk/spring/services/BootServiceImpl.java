@@ -20,7 +20,8 @@ package sk.spring.services;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
@@ -28,11 +29,10 @@ import sk.services.boot.IBoot;
 import sk.services.time.ITime;
 import sk.utils.statics.Ti;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
-@Log4j2
+@Slf4j
 @Order(10)
 public class BootServiceImpl implements ApplicationListener<ContextRefreshedEvent> {
     @Inject List<IBoot> boots = new ArrayList<>();

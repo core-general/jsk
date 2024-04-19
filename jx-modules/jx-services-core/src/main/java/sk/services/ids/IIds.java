@@ -20,6 +20,8 @@ package sk.services.ids;
  * #L%
  */
 
+import sk.utils.statics.St;
+
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -50,7 +52,11 @@ public interface IIds {
     //endregion
 
     //region Unique id by text generator
-    UUID text2Uuid(String val);
+    default UUID text2Uuid(String val) {
+        return byte2Uuid(St.utf8(val));
+    }
+
+    UUID byte2Uuid(byte[] val);
 
     default String unique(String val) {
         return unique(val.getBytes(StandardCharsets.UTF_8));

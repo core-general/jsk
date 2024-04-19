@@ -20,7 +20,7 @@ package sk.services.clusterworkers.taskworker.kvworker;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.clusterworkers.taskworker.model.CluWorkMetaInfo;
 import sk.services.kv.KvAllValues;
 import sk.utils.functional.Converter;
@@ -37,7 +37,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 class CluWorkHelper<CUSTOM_META, TASK_INPUT extends Identifiable<String>, RESULT> {
     private String taskId;
     CluWorkMetaInfo<CUSTOM_META> meta;

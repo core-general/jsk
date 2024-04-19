@@ -20,7 +20,7 @@ package sk.services.clusterworkers;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.clusterworkers.model.CluDelay;
 import sk.services.clusterworkers.model.CluMessage;
 import sk.services.clusterworkers.model.CluState;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("WeakerAccess")
-@Log4j2
+@Slf4j
 public class CluScheduler<STATE extends Enum<STATE> & CluState<STATE>, MESSAGE extends CluMessage> {
     private final R taskRestarter;
     private ScheduledFuture<?> currentTask;

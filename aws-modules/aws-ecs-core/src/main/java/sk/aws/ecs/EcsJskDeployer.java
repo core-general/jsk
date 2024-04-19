@@ -25,6 +25,7 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerHost;
 import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
 import com.spotify.docker.client.messages.RegistryAuth;
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import sk.services.bytes.IBytes;
@@ -38,7 +39,6 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;

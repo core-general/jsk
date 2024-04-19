@@ -20,12 +20,12 @@ package sk.spring.config;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import sk.spring.config.params.BaseSpringParamConfig;
 
 @Configuration
-@Log4j2
+@Slf4j
 @Import({BaseSpringParamConfig.class, SpringCoreConfig.class})
 public class SpringCoreConfigWithProperties {}

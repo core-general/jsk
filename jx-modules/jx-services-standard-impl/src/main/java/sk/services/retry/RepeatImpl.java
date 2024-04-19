@@ -20,10 +20,9 @@ package sk.services.retry;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import sk.services.async.IExecutorService;
 import sk.services.async.ISleep;
 import sk.services.retry.utils.BatchRepeatResult;
@@ -37,7 +36,6 @@ import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -55,9 +53,9 @@ public class RepeatImpl implements IRepeat {
     protected @Inject ISleep sleep;
 
     @Override
-    public <T> T repeat(@NotNull F0<T> toRun, @Nullable F0<T> onFail,
+    public <T> T repeat(F0<T> toRun, F0<T> onFail,
             int retryCount, long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> okExceptions) {
+            Set<Class<? extends Throwable>> okExceptions) {
 
         RuntimeException exception = null;
         while (retryCount > 0) {
@@ -80,8 +78,8 @@ public class RepeatImpl implements IRepeat {
     }
 
     @Override
-    public <T> T repeatE(@NotNull F0E<T> toRun, @Nullable F0<T> onFail, int retryCount, long sleepBetweenTries,
-            @NotNull Set<Class<? extends Throwable>> okExceptions) throws Exception {
+    public <T> T repeatE(F0E<T> toRun, F0<T> onFail, int retryCount, long sleepBetweenTries,
+            Set<Class<? extends Throwable>> okExceptions) throws Exception {
 
         Exception exception = null;
         while (retryCount > 0) {
@@ -155,11 +153,11 @@ public class RepeatImpl implements IRepeat {
                 (o, o2) -> o)));
     }
 
-    private <T> T tryThrow(@Nullable Supplier<T> onFail, @NotNull RuntimeException exception) throws RuntimeException {
+    private <T> T tryThrow(Supplier<T> onFail, RuntimeException exception) throws RuntimeException {
         return O.ofNullable(onFail).map(Supplier::get).orElseThrow(() -> exception);
     }
 
-    private <T> T tryThrowE(@Nullable Supplier<T> onFail, @NotNull Exception exception) throws Exception {
+    private <T> T tryThrowE(Supplier<T> onFail, Exception exception) throws Exception {
         return O.ofNullable(onFail).map(Supplier::get).orElseThrow(() -> exception);
     }
 }

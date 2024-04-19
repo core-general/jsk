@@ -22,13 +22,12 @@ package sk.math.data.estimate;
 
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.analysis.DifferentiableMultivariateVectorFunction;
 import org.apache.commons.math3.analysis.MultivariateMatrixFunction;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.optimization.PointVectorValuePair;
 import org.apache.commons.math3.optimization.general.LevenbergMarquardtOptimizer;
-import org.jetbrains.annotations.NotNull;
 import sk.math.data.MDataSet;
 import sk.math.data.estimate.global.MGlobalOptimizer;
 import sk.math.data.estimate.global.MGlobalRandomParamsOptimization;
@@ -44,7 +43,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.stream.DoubleStream;
 
 
-@Log4j2
+@Slf4j
 public class MLeastSquareFuncEstimator {
     @SneakyThrows
     public static <T extends MFuncProto> O<MOptimizeInfo<T>>
@@ -146,7 +145,7 @@ public class MLeastSquareFuncEstimator {
         }
     }
 
-    @NotNull
+
     private static <T extends MFuncProto> O<MOptimizeInfo<T>> getOptimizeInfoO(MDataSet data, T protoFunc, double[] point,
             double[] valueRef) {
         double[] doubles = new double[data.getY().length];

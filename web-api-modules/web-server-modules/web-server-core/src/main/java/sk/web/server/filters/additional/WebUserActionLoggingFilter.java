@@ -20,9 +20,10 @@ package sk.web.server.filters.additional;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.bytes.IBytes;
 import sk.services.json.IJson;
 import sk.services.kv.IKvUnlimitedStore;
@@ -47,7 +48,6 @@ import sk.web.server.model.WebRequestFinishInfo;
 import sk.web.server.model.WebRequestStartInfo;
 import sk.web.server.params.WebUserActionLoggerParams;
 
-import javax.inject.Inject;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +55,7 @@ import java.util.Optional;
 import static sk.utils.functional.O.*;
 import static sk.utils.statics.Ti.yyyyMMddHHmmssSSS;
 
-@Log4j2
+@Slf4j
 public abstract class WebUserActionLoggingFilter implements WebServerFilter, WebUserHistoryProvider {
     public static final int PRIORITY = WebRequestLoggingFilter.PRIORITY - PRIORITY_STEP;
 

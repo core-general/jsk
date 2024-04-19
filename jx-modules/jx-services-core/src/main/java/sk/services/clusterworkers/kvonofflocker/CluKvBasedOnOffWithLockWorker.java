@@ -20,9 +20,10 @@ package sk.services.clusterworkers.kvonofflocker;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.NotImplementedException;
 import sk.services.async.IAsync;
 import sk.services.clusterworkers.CluOnOffWithLockWorker;
@@ -37,10 +38,8 @@ import sk.utils.functional.C1;
 import sk.utils.functional.Gett;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
-
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-@Log4j2
+@Slf4j
 public class CluKvBasedOnOffWithLockWorker<CONFIG extends CluKvBasedOnOffWithLockWorker.IConf>
         extends CluOnOffWithLockWorker<CONFIG> {
     protected @Inject IKvLimitedStore kv;

@@ -20,10 +20,10 @@ package sk.services.http;
  * #L%
  */
 
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 
 public class HttpImplWithIsolatedServices extends HttpImpl {
     public HttpImplWithIsolatedServices() {
-        super(new ICore4Test());
+        super(new CoreServicesRaw());
     }
 }

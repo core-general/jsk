@@ -20,6 +20,7 @@ package sk.aws.dynamo;
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension;
@@ -30,7 +31,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 @RequiredArgsConstructor

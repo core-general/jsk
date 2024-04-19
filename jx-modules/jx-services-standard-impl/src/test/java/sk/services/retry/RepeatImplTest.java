@@ -20,7 +20,7 @@ package sk.services.retry;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import sk.services.async.ISleep;
@@ -29,7 +29,7 @@ import sk.utils.statics.Cc;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RepeatImplTest extends MockitoTest {
     @InjectMocks RepeatImpl repeat;

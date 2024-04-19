@@ -21,6 +21,7 @@ package sk.services.json;
  */
 
 import com.google.gson.*;
+import lombok.SneakyThrows;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
@@ -28,6 +29,7 @@ import sk.utils.statics.Ti;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.time.*;
 import java.util.Optional;
 import java.util.UUID;
@@ -179,6 +181,19 @@ public class GsonDefaultSerDes extends GsonSerDesList {
             @Override
             public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
                 return context.serialize(bytes.enc64(src));
+            }
+        });
+        add(new GsonSerDes<URL>(URL.class) {
+            @Override
+            @SneakyThrows
+            public URL deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                return new URL(json.getAsString());
+            }
+
+            @Override
+            public JsonElement serialize(URL src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.toString());
             }
         });
     }

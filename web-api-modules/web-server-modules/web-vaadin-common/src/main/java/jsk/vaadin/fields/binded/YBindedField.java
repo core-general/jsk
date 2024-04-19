@@ -20,10 +20,7 @@ package jsk.vaadin.fields.binded;
  * #L%
  */
 
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.data.binder.*;
 import com.vaadin.flow.data.converter.Converter;
 import com.vaadin.flow.data.converter.ConverterFactory;
@@ -33,8 +30,7 @@ import jsk.vaadin.fields.FieldWithGeneratedValue;
 import jsk.vaadin.fields.pofi.HasBinder;
 import jsk.vaadin.fields.pofi.YAbstractFieldBase;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.vaadin.firitin.components.customfield.VCustomField;
 import sk.utils.functional.C2;
 import sk.utils.functional.F0;
@@ -53,7 +49,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 public abstract class YBindedField<OUTER_MODEL> extends VCustomField<OUTER_MODEL>
         implements FieldWithGeneratedValue<OUTER_MODEL> {
     protected __Binder<OUTER_MODEL> binder;
@@ -111,7 +107,7 @@ public abstract class YBindedField<OUTER_MODEL> extends VCustomField<OUTER_MODEL
         super.onAttach(attachEvent);
     }
 
-    @NotNull
+
     @SneakyThrows
     protected OUTER_MODEL createEmptyModelInstance() {
         return cls.getConstructor().newInstance();
@@ -231,7 +227,8 @@ public abstract class YBindedField<OUTER_MODEL> extends VCustomField<OUTER_MODEL
 
     protected void autoInitFieldsIfNeeded() {
         //auto field initialization
-        Re.getAllNonStaticFields(this.getClass()).stream().filter($ -> AbstractField.class.isAssignableFrom($.getType()))
+        Re.getAllNonStaticFields(this.getClass()).stream()
+                .filter($ -> AbstractField.class.isAssignableFrom($.getType()))
                 .filter($ -> {
                     //check that the field is not inited yet
                     final F1<Object, Object> getter = Re.getter($);
@@ -245,6 +242,9 @@ public abstract class YBindedField<OUTER_MODEL> extends VCustomField<OUTER_MODEL
                     }
                     try {
                         Object newInstance = $.getType().getConstructor().newInstance();
+                        if (newInstance instanceof HasLabel hl) {
+                            hl.setLabel($.getName());
+                        }
                         setter.get().accept(this, newInstance);
                     } catch (Exception e) {
                         throw new RuntimeException(

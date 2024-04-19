@@ -20,9 +20,10 @@ package sk.web.tools.partuploader;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblemException;
 import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
@@ -46,7 +47,6 @@ import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
 import sk.web.tools.partuploader.api.*;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -54,7 +54,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 public abstract class PupApiImpl<META, FINISH>
         implements PupPublicApi<META, FINISH>, Identifiable<String> {
     @Inject IKvUnlimitedStore metaStore;

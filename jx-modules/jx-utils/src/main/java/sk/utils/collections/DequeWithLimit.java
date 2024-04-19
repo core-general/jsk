@@ -20,7 +20,7 @@ package sk.utils.collections;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -48,26 +48,26 @@ public class DequeWithLimit<T> {
 
     }
 
-    public void addFirst(@NotNull T t) {
+    public void addFirst(T t) {
         deque.addFirst(t);
         while (deque.size() > maxSize) {
             deque.removeLast();
         }
     }
 
-    public void addLast(@NotNull T t) {
+    public void addLast(T t) {
         deque.addLast(t);
         while (deque.size() > maxSize) {
             deque.removeFirst();
         }
     }
 
-    public boolean add(@NotNull T t) {
+    public boolean add(T t) {
         addLast(t);
         return true;
     }
 
-    public void push(@NotNull T t) {
+    public void push(T t) {
         addFirst(t);
     }
 

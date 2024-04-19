@@ -20,14 +20,13 @@ package sk.outer.api.ios.purchases;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import sk.outer.api.ios.OutGeneralIosRequester;
 import sk.outer.api.ios.purchases.iossub.model.StatusResponse;
 import sk.services.http.IHttp;
 import sk.services.ids.IIds;
 import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
-
-import javax.inject.Inject;
 
 public class OutIosSubscriptionGatherer extends OutGeneralIosRequester<StatusResponse> {
     @Inject IHttp http;

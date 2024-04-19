@@ -20,14 +20,13 @@ package sk.services.shutdown;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sk.services.json.IJson;
 import sk.utils.functional.O;
 import sk.utils.statics.Io;
-
-import javax.inject.Inject;
 
 
 /**

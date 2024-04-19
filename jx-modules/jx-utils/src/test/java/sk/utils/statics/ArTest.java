@@ -20,23 +20,23 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ArTest {
 
     @Test
     public void mapAllTest() {
-        Assert.assertArrayEquals(
+        Assertions.assertArrayEquals(
                 Ar.mapAll(doubles -> doubles[0] + doubles[1], true, new double[]{1, 2, 3}, new double[]{2, 3, 4}),
                 new double[]{3, 5, 7}, 0.001);
 
 
-        Assert.assertArrayEquals(
+        Assertions.assertArrayEquals(
                 Ar.mapAll(doubles -> doubles[0] + doubles[1], false, new double[]{1, 2, 3}, new double[]{2, 3}),
                 new double[]{3, 5, 3}, 0.001);
 
-        Assert.assertThrows(RuntimeException.class,
+        Assertions.assertThrows(RuntimeException.class,
                 () -> Ar.mapAll(doubles -> doubles[0] + doubles[1], true, new double[]{1, 2, 3}, new double[]{2, 3}));
     }
 
@@ -46,6 +46,6 @@ public class ArTest {
         final byte[] bytes = Ar.intToByteArray(arr);
         final int[] arr2 = Ar.byteToIntArray(bytes);
 
-        Assert.assertArrayEquals(arr, arr2);
+        Assertions.assertArrayEquals(arr, arr2);
     }
 }

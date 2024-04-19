@@ -24,7 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -33,7 +33,7 @@ import sk.utils.statics.Ex;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JGsonImplTest {
     IJson json = new JGsonImpl().init();

@@ -20,7 +20,7 @@ package sk.utils.javafixes.argparser;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
@@ -44,7 +44,7 @@ public interface ArgParserConfig<T extends ArgParserConfig<T>> extends Comparabl
     }
 
     @Override
-    default int compareTo(@NotNull T o) {
+    default int compareTo(T o) {
         return Comparator
                 .<T, String>comparing(k1 -> k1.isRequired() ? "0" : "1")
                 .thenComparing(k1 -> k1.getCommandPrefix()

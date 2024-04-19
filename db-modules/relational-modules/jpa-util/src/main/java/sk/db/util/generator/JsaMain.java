@@ -24,25 +24,26 @@ import sk.db.util.generator.model.JsaFileInfo;
 import sk.db.util.generator.model.entity.JsaFullEntityModel;
 import sk.db.util.generator.model.sql.JsaRawSqlInfo;
 import sk.utils.functional.C1;
+import sk.utils.functional.O;
 import sk.utils.statics.Io;
 import sk.utils.statics.St;
 
 public class JsaMain {
-    public void start(String sqlCode, C1<JsaFileInfo> fileProcessor, String schemaName) {
+    public void start(String sqlCode, C1<JsaFileInfo> fileProcessor, String schemaName, O<String> explicitPrefix) {
         final JsaRawSqlInfo tables = JsaTableInfoExtractor.extractTableInfo(sqlCode);
-        final JsaFullEntityModel models = JsaProcessor.process(tables);
+        final JsaFullEntityModel models = JsaProcessor.process(explicitPrefix.orElse(null), tables);
         JsaExporter.export(fileProcessor, models, schemaName);
     }
 
-    public static void startFileBased(String pathToSqlFile, String fileExportPath, String schemaName) {
+    public static void startFileBased(String pathToSqlFile, String fileExportPath, String schemaName, O<String> explicitPrefix) {
         new JsaMain().start(
                 Io.sRead(pathToSqlFile).string(),
                 info -> Io.reWrite(St.endWith(fileExportPath, "/") + St.notStartWith(info.getFilePrefix(), "/"),
                         w -> w.append(info.getContents())),
-                schemaName);
+                schemaName, explicitPrefix);
     }
 
     public static void main(String[] args) {
-        startFileBased(args[0], args[1], args[2]);
+        startFileBased(args[0], args[1], args[2], args.length > 3 ? O.of(args[3]) : O.empty());
     }
 }

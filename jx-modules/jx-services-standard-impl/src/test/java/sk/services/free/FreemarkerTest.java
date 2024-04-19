@@ -20,17 +20,17 @@ package sk.services.free;
  * #L%
  */
 
-import org.junit.Test;
-import sk.services.ICore4Test;
+import org.junit.jupiter.api.Test;
+import sk.services.CoreServicesRaw;
 import sk.utils.statics.Cc;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FreemarkerTest {
 
     @Test
     public void processByText() {
-        ICore4Test icore = new ICore4Test();
+        CoreServicesRaw icore = new CoreServicesRaw();
         Freemarker free = (Freemarker) icore.free();
 
         final String templateText1 = "${abc}1";

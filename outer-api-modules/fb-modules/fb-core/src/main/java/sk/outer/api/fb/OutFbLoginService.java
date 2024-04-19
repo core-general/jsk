@@ -24,15 +24,14 @@ import facebook4j.Facebook;
 import facebook4j.FacebookFactory;
 import facebook4j.User;
 import facebook4j.auth.AccessToken;
-import lombok.extern.log4j.Log4j2;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.utils.functional.O;
 import sk.utils.statics.Ex;
 
-import javax.annotation.PostConstruct;
 
-
-@Log4j2
+@Slf4j
 public class OutFbLoginService {
     private FacebookFactory facebookFactory;
 

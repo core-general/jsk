@@ -47,7 +47,7 @@ public record JsaEntityFieldInfo(JsaEntityFieldType type, JsaEntityRelationType 
             type = ZDT;
         } else if (field.getType() == JsaDbColumnType.JSON) {
             type = JSONB;
-        } else if (field.getColumnName().equalsIgnoreCase("version")) {
+        } else if (field.getColumnName().equalsIgnoreCase("version") || field.getColumnName().equalsIgnoreCase("row_version")) {
             type = VERSION;
         }
 

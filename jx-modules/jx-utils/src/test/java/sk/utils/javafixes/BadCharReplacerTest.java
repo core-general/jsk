@@ -20,8 +20,8 @@ package sk.utils.javafixes;
  * #L%
  */
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import sk.utils.statics.St;
 
 public class BadCharReplacerTest {
@@ -30,20 +30,20 @@ public class BadCharReplacerTest {
     public void bitSetReplacer() {
         final BadCharReplacer badCharReplacer = BadCharReplacer.bitSetReplacer(St.engENGDig + "❗");
         final String s = badCharReplacer.replaceChars("💎💎a🧿aa❗B☎B11❗", "🧿x");
-        Assert.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
+        Assertions.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
     }
 
     @Test
     public void arrReplacer() {
         final BadCharReplacer badCharReplacer = BadCharReplacer.arrReplacer(St.engENGDig + "❗");
         final String s = badCharReplacer.replaceChars("💎💎a🧿aa❗B☎B11❗", "🧿x");
-        Assert.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
+        Assertions.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
     }
 
     @Test
     public void hashSetReplacer() {
         final BadCharReplacer badCharReplacer = BadCharReplacer.hashSetReplacer(St.engENGDig + "❗");
         final String s = badCharReplacer.replaceChars("💎💎a🧿aa❗B☎B11❗", "🧿x");
-        Assert.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
+        Assertions.assertEquals(s, "🧿x🧿xa🧿xaa❗B🧿xB11❗");
     }
 }

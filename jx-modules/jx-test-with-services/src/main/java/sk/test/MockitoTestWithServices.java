@@ -21,7 +21,7 @@ package sk.test;
  */
 
 import org.mockito.Spy;
-import sk.services.ICore4Test;
+import sk.services.CoreServicesRaw;
 import sk.services.ICoreServices;
 import sk.services.async.IAsync;
 import sk.services.async.ISizedSemaphore;
@@ -61,6 +61,6 @@ public class MockitoTestWithServices extends MockitoTest {
     @Spy protected IExcept except = coreServices.except();
 
     protected ICoreServices createCoreServices() {
-        return coreServices == null ? ICore4Test.services() : coreServices;
+        return coreServices == null ? CoreServicesRaw.services() : coreServices;
     }
 }

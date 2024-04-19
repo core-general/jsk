@@ -20,13 +20,14 @@ package sk.services.async;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+
+import jakarta.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
+import sk.utils.functional.F0;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
 import sk.utils.statics.Cc;
 
-import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,7 +36,7 @@ import java.util.concurrent.ForkJoinPool;
 import static java.lang.Runtime.getRuntime;
 import static java.util.concurrent.Executors.*;
 
-@Log4j2
+@Slf4j
 public class AsyncImpl implements IAsync {
     private final ConcurrentMap<String, Long> nameIterator = new ConcurrentHashMap<>();
 
@@ -52,6 +53,7 @@ public class AsyncImpl implements IAsync {
     private final Map<String, IScheduledExecutorService> dedicatedSchedulerExecutors = new ConcurrentHashMap<>();
     private final IExecutorService coldTaskFJP = new IExecutorServiceImpl(
             new ForkJoinPool(O.ofNullable(System.getProperty("AsyncImpl.coldTaskFJPSize")).map(Integer::parseInt).orElse(75)));
+    private final Map<Integer, ForkJoinPool> coldTaskExecutors = new ConcurrentHashMap<>();
 
     @Override
     public IExecutorService fixedExec() {
@@ -95,7 +97,11 @@ public class AsyncImpl implements IAsync {
         }, () -> createScheduledExecutorService(name));
     }
 
-    @NotNull
+    @Override
+    public <T> T coldTaskFJPGet(int threads, F0<T> toRun) {
+        return coldTaskExecutors.computeIfAbsent(threads, ForkJoinPool::new).submit(toRun::apply).join();
+    }
+    
     private IScheduledExecutorService createScheduledExecutorService(String name) {
         return new IScheduledExecutorServiceImpl(
                 newScheduledThreadPool(1, r -> getDaemon(r::run, "ScheduledDedicatedExecutor-" + name)));
@@ -117,5 +123,6 @@ public class AsyncImpl implements IAsync {
         sc.getUnderlying().shutdownNow();
         fixPerCore.values().forEach($ -> $.getUnderlying().shutdown());
         dedicatedSchedulerExecutors.values().forEach($ -> $.getUnderlying().shutdown());
+        coldTaskExecutors.values().forEach(ForkJoinPool::shutdownNow);
     }
 }

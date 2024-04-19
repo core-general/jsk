@@ -24,8 +24,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.services.http.IHttp;
 import sk.services.http.model.CoreHttpResponse;
@@ -35,12 +37,10 @@ import sk.services.time.ITime;
 import sk.utils.functional.O;
 import sk.utils.statics.Ex;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.Base64;
 
 
-@Log4j2
+@Slf4j
 public class OutGooglePlayLoginService {
     @Inject private IJson json;
     @Inject private ITime times;
@@ -76,12 +76,12 @@ public class OutGooglePlayLoginService {
             final CoreHttpResponse response = http.get(url).goResponseAndThrow();
             final String result = response.newAsString();
             if (response.code() != 200) {
-                log.error(() -> "Bad status: code=" + response.code() + " response=" + response);
+                log.error("Bad status: code=" + response.code() + " response=" + response);
                 return O.empty();
             }
             return O.of(json.from(result, OutSimpleUserInfo.class));
         } catch (Exception e) {
-            log.error(() -> "Can't get " + url, e);
+            log.error("Can't get " + url, e);
         }
 
         return O.empty();

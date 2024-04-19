@@ -20,6 +20,7 @@ package sk.spring.services;
  * #L%
  */
 
+import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,8 +43,6 @@ import sk.services.rand.IRand;
 import sk.services.rescache.IResCache;
 import sk.services.retry.IRepeat;
 import sk.services.time.ITime;
-
-import javax.inject.Inject;
 
 @SuppressWarnings({"unused"})
 @Getter

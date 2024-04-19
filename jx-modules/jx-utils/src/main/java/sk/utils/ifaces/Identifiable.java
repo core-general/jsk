@@ -20,6 +20,10 @@ package sk.utils.ifaces;
  * #L%
  */
 
+import sk.utils.statics.Cc;
+
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 public interface Identifiable<T> {
@@ -27,5 +31,9 @@ public interface Identifiable<T> {
 
     default String toStringer() {
         return Objects.toString(getId());
+    }
+
+    public static <ID, T extends Identifiable<ID>> Map<ID, T> getMapping(Collection<T> items) {
+        return items.stream().collect(Cc.toM($ -> $.getId(), $ -> $));
     }
 }

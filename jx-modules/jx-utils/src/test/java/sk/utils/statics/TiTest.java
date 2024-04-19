@@ -20,13 +20,13 @@ package sk.utils.statics;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static sk.utils.statics.Ti.isSequence;
 
 public class TiTest {

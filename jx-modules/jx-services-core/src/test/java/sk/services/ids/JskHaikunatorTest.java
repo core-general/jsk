@@ -20,7 +20,7 @@ package sk.services.ids;
  * #L%
  */
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.services.time.ITime;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -29,7 +29,7 @@ import sk.utils.statics.Ti;
 import java.time.ZoneId;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.services.ids.JskHaikunator.LongAndShortHaikunator;
 import static sk.services.ids.JskHaikunator.defaultHaikunators;
 

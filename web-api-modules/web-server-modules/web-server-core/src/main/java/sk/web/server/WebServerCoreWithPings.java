@@ -20,7 +20,8 @@ package sk.web.server;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
 import sk.services.free.IFree;
@@ -47,7 +48,6 @@ import sk.web.server.filters.WebServerFilterNext;
 import sk.web.utils.WebApiMethod;
 import sk.web.utils.WebUtils;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -55,7 +55,7 @@ import java.util.TreeSet;
 import static sk.web.WebMethodType.GET;
 import static sk.web.WebMethodType.POST_FORM;
 
-@Log4j2
+@Slf4j
 public class WebServerCoreWithPings<T> extends WebServerCore<T> {
     @Inject WebJsonPrettyRender jsonRender;
     @Inject WebRawStringRender rawRender;

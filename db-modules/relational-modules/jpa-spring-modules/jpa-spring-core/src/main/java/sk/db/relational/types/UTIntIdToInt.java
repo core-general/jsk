@@ -22,10 +22,14 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.DynamicParameterizedType;
+import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import sk.utils.functional.F1;
-import sk.utils.ids.IdBase;
+import sk.utils.functional.O;
+import sk.utils.ids.IdInt;
+import sk.utils.statics.Ma;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -37,7 +41,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 @SuppressWarnings({"unused"})
-public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
+public class UTIntIdToInt implements UserType<Object>, ParameterizedType, DynamicParameterizedType, EnhancedUserType<Object> {
     public final static String type = "sk.db.relational.types.UTIntIdToInt";
     public static final String param = "targetType";
 
@@ -46,28 +50,24 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
 
     @Override
     public void setParameterValues(Properties parameters) {
-        String enumClassName = parameters.getProperty(param);
         try {
-            idClass = Class.forName(enumClassName);
+            idClass = UtUtils.getType(parameters, param);
             Constructor<?> constructor = idClass.getConstructor(Integer.class);
-            creator = uuid -> {
-                if (uuid == null) {
+            creator = inti -> {
+                if (inti == null) {
                     return null;
                 }
                 try {
-                    return constructor.newInstance(uuid);
+                    return constructor.newInstance(inti);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return null;
             };
-        } catch (ClassNotFoundException e) {
-            throw new HibernateException("Enum class not found ", e);
         } catch (NoSuchMethodException e) {
-            throw new HibernateException("Class doesnt have int constructor ", e);
+            throw new HibernateException("Class doesnt have uuid constructor ", e);
         }
     }
-
 
     @Override
     public int getSqlType() {
@@ -82,7 +82,7 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
     @Override
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
-        Integer uuid = rs.getInt(names);
+        Integer uuid = (Integer) rs.getObject(names);
         return creator.apply(uuid);
     }
 
@@ -92,8 +92,8 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
         if (value == null) {
             st.setNull(index, Types.INTEGER);
         } else {
-            IdBase<Integer> ldt = (IdBase<Integer>) value;
-            st.setInt(index, ldt.getId());
+            IdInt ldt = (IdInt) value;
+            st.setObject(index, ldt.getId(), Types.INTEGER);
         }
     }
 
@@ -132,5 +132,20 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType {
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
         return cached;
+    }
+
+    @Override
+    public String toSqlLiteral(Object value) {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public String toString(Object value) throws HibernateException {
+        return O.ofNull(value).map($ -> $.toString()).orElse(null);
+    }
+
+    @Override
+    public Object fromStringValue(CharSequence sequence) throws HibernateException {
+        return O.ofNull(sequence).map($ -> Ma.pi($.toString())).orElse(null);
     }
 }

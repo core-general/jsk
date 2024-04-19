@@ -24,7 +24,6 @@ import com.querydsl.core.types.Order;
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import sk.services.ICoreServices;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsSourceId;
@@ -83,7 +82,7 @@ public class JcsSqlSource<ITEM> implements JcsIBackSource<ITEM> {
         return true;
     }
 
-    @NotNull
+
     private JcsList<ITEM> getItemsPrivate(int limit, JcsEBackType direction) {
         String request = createSql(limit, direction);
         List<ITEM> finalItems = entityManager.createNativeQuery(request, cls).getResultList();

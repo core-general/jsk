@@ -46,7 +46,7 @@ public class ${model.embeddedClassName} implements Serializable {
 
 <#list model.keys as field>
     @Column(name = "${field.columnName}")
-    @Type(value = ${field.converterType}.class, parameters = {@Parameter(name = ${field.converterType}.param, value = ${field.mainType}.type)})
+    @Type(${field.converterType}.class)
     ${field.mainType} ${field.fieldName};
 </#list>
 }

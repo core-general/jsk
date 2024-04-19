@@ -21,7 +21,7 @@ package sk.utils.collections.cluster_sorter;
  */
 
 import lombok.Getter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import sk.utils.collections.cluster_sorter.abstr.JcsASorter;
 import sk.utils.collections.cluster_sorter.abstr.JcsASource;
 import sk.utils.collections.cluster_sorter.abstr.model.JcsList;
@@ -36,7 +36,7 @@ import sk.utils.tuples.X2;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public abstract class JcsAbstractCsTest<T extends JcsAbstractCsTest.JcsTestSource> {
     protected final String E/*XPANDABLE*/ = "💼";

@@ -20,12 +20,12 @@ package sk.outer.api.ios.gamecenter;
  * #L%
  */
 
-import lombok.extern.log4j.Log4j2;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import sk.outer.api.OutSimpleUserInfo;
 import sk.services.bytes.IBytes;
 import sk.utils.functional.O;
 
-import javax.inject.Inject;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -34,7 +34,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
 
-@Log4j2
+@Slf4j
 public class OutIosGameCenterLoginService {
     @Inject IBytes bytes;
 
@@ -43,12 +43,12 @@ public class OutIosGameCenterLoginService {
         return getPublicKey(publicKeyURL).flatMap(publicKeyCertificate -> {
             // Verify with the appropriate signing authority that the public key is signed by Apple.
             if (!verifyPublicKey(publicKeyCertificate)) {
-                log.error(() -> "Failed to verify public key");
+                log.error("Failed to verify public key");
                 return O.empty();
             }
 
             if (!verifySignature(signature, publicKeyCertificate, playerID, bundleId, timestamp, salt)) {
-                log.error(() -> "Failed to verify signature");
+                log.error("Failed to verify signature");
                 return O.empty();
             }
 
@@ -64,7 +64,7 @@ public class OutIosGameCenterLoginService {
                             getInputStream());
             return O.ofNullable(cert);
         } catch (Exception e) {
-            log.error(() -> "Error getting public key: " + e.getMessage());
+            log.error("Error getting public key: " + e.getMessage());
             return O.empty();
         }
     }
@@ -95,7 +95,7 @@ public class OutIosGameCenterLoginService {
             sig.update(dataBuffer.array());
             return sig.verify(signatureBytes);
         } catch (Exception e) {
-            log.error(() -> "Error verifying signature: " + e.getMessage());
+            log.error("Error verifying signature: " + e.getMessage());
             return false;
         }
     }

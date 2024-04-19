@@ -20,9 +20,9 @@ package sk.outer.graph.nodes;
  * #L%
  */
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import sk.outer.graph.MgcHistoryProvider;
 import sk.outer.graph.MgcModelUtils;
 import sk.outer.graph.edges.MgcMetaEdge;
@@ -57,7 +57,7 @@ public class MgcGraphTest {
     final String rootId = "test.graph";
     MgcGraphExecutor<Ctx, GType> ge;
 
-    @Before
+    @BeforeEach
     public void init() {
         ge = new MgcGraphExecutor<>(
                 new MgcParser<Ctx, GType>(GType.class).parse(rootId, Io.getResource("graphs/" + rootId).get(),
@@ -113,8 +113,9 @@ public class MgcGraphTest {
             String in = kk.i1();
             String out = kk.i2();
             final MgcListenerResults result = onUserInput(ge, in);
-            Assert.assertEquals("Problem on input: " + in, out,
-                    O.ofNull(result).map($ -> $.getNewNodeInfoMustExist().getNewNodeText()).orElse(""));
+            Assertions.assertEquals(out,
+                    O.ofNull(result).map($ -> $.getNewNodeInfoMustExist().getNewNodeText()).orElse(""),
+                    "Problem on input: " + in);
         });
     }
 

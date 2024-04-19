@@ -27,12 +27,15 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.TypeRef;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import sk.services.bean.IServiceLocator;
 import sk.services.bytes.IBytes;
+import sk.services.json.typeadapterfactories.GsonIdBaseTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.GsonOptionalTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.GsonPostProcessTypeAdapterFactory;
 import sk.services.json.typeadapterfactories.recordadapter.RecordTypeAdapterFactory;
@@ -45,8 +48,6 @@ import sk.utils.statics.Re;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
@@ -55,7 +56,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Slf4j
 @NoArgsConstructor
 @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType", "rawtypes"})
 public class JGsonImpl implements IJson {
@@ -111,6 +112,15 @@ public class JGsonImpl implements IJson {
         //region Optionals
         {
             final GsonOptionalTypeAdapterFactory factory = new GsonOptionalTypeAdapterFactory();
+            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
+            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
+        }
+        //endregion
+
+        //region IdBase
+        {
+            final GsonIdBaseTypeAdapterFactory factory = new GsonIdBaseTypeAdapterFactory();
             gsonBuilderConcrete.registerTypeAdapterFactory(factory);
             gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
             gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);

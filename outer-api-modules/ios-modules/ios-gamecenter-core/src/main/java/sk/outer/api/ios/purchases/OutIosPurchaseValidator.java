@@ -21,22 +21,21 @@ package sk.outer.api.ios.purchases;
  */
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.inject.Inject;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import sk.services.bytes.IBytes;
 import sk.services.http.IHttp;
 import sk.services.json.IJson;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Log4j2
+@Slf4j
 public class OutIosPurchaseValidator {
     @Inject IJson json;
     @Inject IBytes crypt;
@@ -110,7 +109,7 @@ public class OutIosPurchaseValidator {
         }
     }
 
-    @NotNull
+
     private String iosToJson(String in) {
         String replace = in.replace("\" = \"", "\" : \"").replace("\";", "\",");
         return replace.substring(0, replace.lastIndexOf(',')) + "}";

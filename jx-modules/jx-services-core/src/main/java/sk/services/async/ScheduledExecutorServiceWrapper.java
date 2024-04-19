@@ -20,7 +20,7 @@ package sk.services.async;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
+
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,29 +32,29 @@ abstract class ScheduledExecutorServiceWrapper extends ExecutorServiceWrapper im
         super(executor);
     }
 
-    @NotNull
+
     @Override
-    public ScheduledFuture<?> schedule(@NotNull Runnable command, long delay, @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
         return ((ScheduledExecutorService) executor).schedule(command, delay, unit);
     }
 
-    @NotNull
+
     @Override
-    public <V> ScheduledFuture<V> schedule(@NotNull Callable<V> callable, long delay, @NotNull TimeUnit unit) {
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
         return ((ScheduledExecutorService) executor).schedule(callable, delay, unit);
     }
 
-    @NotNull
+
     @Override
-    public ScheduledFuture<?> scheduleAtFixedRate(@NotNull Runnable command, long initialDelay, long period,
-            @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period,
+            TimeUnit unit) {
         return ((ScheduledExecutorService) executor).scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 
-    @NotNull
+
     @Override
-    public ScheduledFuture<?> scheduleWithFixedDelay(@NotNull Runnable command, long initialDelay, long delay,
-            @NotNull TimeUnit unit) {
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay,
+            TimeUnit unit) {
         return ((ScheduledExecutorService) executor).scheduleWithFixedDelay(command, initialDelay, delay, unit);
     }
 }
