@@ -48,7 +48,8 @@ import sk.services.rescache.IResCache;
 import sk.services.rescache.ResCacheImpl;
 import sk.services.retry.IRepeat;
 import sk.services.retry.RepeatImpl;
-import sk.services.shutdown.AppStopService;
+import sk.services.shutdown.AppStopBoot;
+import sk.services.shutdown.AppStopState;
 import sk.services.shutdown.NodeRestartStorageImpl;
 import sk.services.time.ITime;
 import sk.services.time.TimeUtcImpl;
@@ -91,7 +92,10 @@ public class SpringCoreConfig {
     public IRepeat repeat() {return new RepeatImpl();}
 
     @Bean
-    public AppStopService AppStopService() {return new AppStopService();}
+    public AppStopBoot AppStopService() {return new AppStopBoot();}
+
+    @Bean
+    public AppStopState AppStopState() {return new AppStopState();}
 
     @Bean
     public NodeRestartStorageImpl NodeRestartStorageImpl() {return new NodeRestartStorageImpl();}

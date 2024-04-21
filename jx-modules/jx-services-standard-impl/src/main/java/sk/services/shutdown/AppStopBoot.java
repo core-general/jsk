@@ -21,7 +21,6 @@ package sk.services.shutdown;
  */
 
 import jakarta.inject.Inject;
-import lombok.Getter;
 import sk.services.async.IAsync;
 import sk.services.boot.IBoot;
 import sk.services.log.ILog;
@@ -34,17 +33,17 @@ import java.util.Optional;
 
 import static sk.services.log.ILogCatDefault.DEFAULT;
 
-public class AppStopService implements IBoot {
+public class AppStopBoot implements IBoot {
     @Inject Optional<List<AppStopListener>> toExit = Optional.empty();
     @Inject IAsync async;
     @Inject ILog log;
+    @Inject AppStopState state;
 
-    @Getter private volatile boolean stopped = false;
 
     @Override
     public void run() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            stopped = true;
+            state.stop();
             O.of(toExit).stream().flatMap($ -> $.stream()).forEach($ -> {
                 try {
                     $.onStop();

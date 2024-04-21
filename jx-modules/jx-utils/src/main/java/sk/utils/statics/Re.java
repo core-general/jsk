@@ -61,6 +61,15 @@ public final class Re/*flections*/ {
         }
     }
 
+    public static <T extends Enum<T>> O<T> findInEnumIgnoreCase(Class<T> enumCls, String txt) {
+        String lowerCase = txt.toLowerCase();
+        return findInEnum(enumCls, txt).or(() -> {
+            return O.of(Cc.stream(enumCls.getEnumConstants())
+                    .filter($ -> Fu.equal(lowerCase.toLowerCase(), $.name().toLowerCase()))
+                    .findAny());
+        });
+    }
+
     public static <T extends Enum<T> & IdentifiableString> O<T> findInEnumById(String text, Class<T> cls) {
         return O.of(Cc.stream(cls.getEnumConstants())
                 .filter($ -> Fu.equal(text.trim().toLowerCase(), $.getId().toLowerCase()))
@@ -131,8 +140,8 @@ public final class Re/*flections*/ {
                     field.setAccessible(true);
                 } catch (Exception exception) {
                     throw new RuntimeException("Failed making field '" + field.getDeclaringClass().getName() + "#"
-                            + field.getName() + "' accessible; either change its visibility or write a custom "
-                            + "TypeAdapter for its declaring type", exception);
+                                               + field.getName() + "' accessible; either change its visibility or write a custom "
+                                               + "TypeAdapter for its declaring type", exception);
                 }
             }
 

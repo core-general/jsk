@@ -32,7 +32,7 @@ import sk.services.nodeinfo.INodeInfo;
 import sk.services.nodeinfo.model.ApiBuildInfo;
 import sk.services.nodeinfo.model.IServerInfo;
 import sk.services.shutdown.AppStopListener;
-import sk.services.shutdown.AppStopService;
+import sk.services.shutdown.AppStopState;
 import sk.services.shutdown.INodeRestartStorage;
 import sk.services.time.ITime;
 import sk.utils.functional.F0;
@@ -52,7 +52,7 @@ public class WebServerNodeInfo implements INodeInfo, AppStopListener {
     @Inject ITime times;
     @Inject ApiClassUtil clsUtil;
     @Inject INodeRestartStorage nodeRestartStorage;
-    @Inject AppStopService appStop;
+    @Inject AppStopState appStop;
     @Inject Optional<IIpProvider> ipProvider = Optional.empty();
 
     @Getter String nodeId;

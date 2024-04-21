@@ -29,6 +29,7 @@ import org.apache.maven.project.MavenProject;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
+import sk.utils.statics.St;
 
 import java.io.File;
 import java.util.List;
@@ -59,6 +60,9 @@ public class SpringMvnPropertiesGenerator extends AbstractMojo {
             final String parentPath = new File(parentFolder).getAbsolutePath();
             Io.visitEachFile(parentFolder, file -> {
                 String ff = file.getAbsolutePath().replace(parentPath, "");
+                if (St.isNullOrEmpty(ff)) {
+                    return;
+                }
 
                 String name = ff.charAt(0) == '/' ? ff.substring(1) : ff;
                 getLog().info("Processing file:" + name);

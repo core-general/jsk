@@ -513,8 +513,9 @@ public class WebServerCore<API>
             return fromString(paramName, nullAllowed, Long::parseLong, onlyBody);
         } else if (type == UUID.class) {
             return fromString(paramName, nullAllowed, UUID::fromString, onlyBody);
-        } else if (type instanceof Class && ((Class<?>) type).isEnum()) {
-            return fromString(paramName, nullAllowed, s -> Re.findInEnum((Class<? extends Enum>) type, s).get(), onlyBody);
+        } else if (type instanceof Class c && c.isEnum()) {
+            return fromString(paramName, nullAllowed, s -> Re.findInEnumIgnoreCase(c, s).get(),
+                    onlyBody);
         } else if (type == byte[].class) {
             return w -> (onlyBody ? w.getBody() : w.getParamAsBytes(paramName))
                     .orElseGet(() -> (byte[]) NON_NULL_CHECK.apply(paramName, nullAllowed).get());
