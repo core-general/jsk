@@ -29,6 +29,8 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Fu;
 
+import java.util.Arrays;
+
 
 @Data
 public class AppProfileImpl<T extends IAppProfileType> implements IAppProfile<T> {
@@ -42,14 +44,12 @@ public class AppProfileImpl<T extends IAppProfileType> implements IAppProfile<T>
         }
         String profile = O
                 .ofNullable(System.getProperty("spring.profiles.active"))
-                .or(() -> Cc.stream(cls.getEnumConstants())
-                        .filter(IAppProfileType::isForDefaultTesting)
-                        .map(IAppProfileType::name)
-                        .findFirst())
-                .orElseThrow(() -> new RuntimeException("Unknown profile"));
+                .orElseThrow(() -> new RuntimeException(
+                        "Profile should be explicitly set with 'spring.profiles.active'. Available profiles:%s"
+                                .formatted(Arrays.toString(cls.getEnumConstants()))));
 
         value = Cc.stream(cls.getEnumConstants())
-                .filter($ -> Fu.equal(profile.toLowerCase(), $.toLowerCase()))
+                .filter($ -> Fu.equalIgnoreCase(profile, $.name()))
                 .findFirst()
                 .orElseGet(() -> Ex.thRow(profile + " is unknown"));
     }

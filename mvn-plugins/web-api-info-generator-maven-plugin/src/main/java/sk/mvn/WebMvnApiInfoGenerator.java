@@ -61,7 +61,7 @@ import static sk.utils.functional.O.*;
 import static sk.utils.statics.Fu.equal;
 import static sk.web.utils.WebUtils.*;
 
-@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, threadSafe = true)
 public class WebMvnApiInfoGenerator extends AbstractMojo {
     private MavenProject project = null;
 
@@ -157,26 +157,28 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
     }
 
     private void processApiClass(ApiClassUtil util, List<String> compileSourceRoots, String outPath, String apiCls) {
-        //1 find source
-        String apiClassContents = findApiClassContents(apiCls, compileSourceRoots)
-                .orElseGet(() -> error("Can't find api class " + apiCls + " in paths: " + Cc.join(compileSourceRoots)));
-        //2 compile it
-        CompilationUnit cc = compile(apiClassContents);
+        synchronized (apiCls.intern()) {
+            //1 find source
+            String apiClassContents = findApiClassContents(apiCls, compileSourceRoots)
+                    .orElseGet(() -> error("Can't find api class " + apiCls + " in paths: " + Cc.join(compileSourceRoots)));
+            //2 compile it
+            CompilationUnit cc = compile(apiClassContents);
 
-        //3 gather all needed information to data structures
-        Objects.requireNonNull(cc);
-        ClassOrInterfaceDeclaration apiDesc = cc.getInterfaceByName(St.subLL(apiCls, "."))
-                .orElseGet(() -> error("Can't find interface:" + apiCls));
+            //3 gather all needed information to data structures
+            Objects.requireNonNull(cc);
+            ClassOrInterfaceDeclaration apiDesc = cc.getInterfaceByName(St.subLL(apiCls, "."))
+                    .orElseGet(() -> error("Can't find interface:" + apiCls));
 
-        Map<String, ApiMethodModel> methods = getApiMethodModel(util, apiDesc);
-        Map<String, ApiDtoClassModel> classes = getApiClassesModel(compileSourceRoots, methods.values());
+            Map<String, ApiMethodModel> methods = getApiMethodModel(util, apiDesc);
+            Map<String, ApiDtoClassModel> classes = getApiClassesModel(compileSourceRoots, methods.values());
 
-        ApiClassModel apiClassModel = new ApiClassModel(apiCls,
-                getJavadocNoParams(apiDesc.getJavadoc()),
-                methods, classes);
+            ApiClassModel apiClassModel = new ApiClassModel(apiCls,
+                    getJavadocNoParams(apiDesc.getJavadoc()),
+                    methods, classes);
 
-        //4 write them into the model file
-        util.saveApiClassToResources(outPath, apiClassModel);
+            //4 write them into the model file
+            util.saveApiClassToResources(outPath, apiClassModel);
+        }
     }
 
     private Map<String, ApiDtoClassModel> getApiClassesModel(List<String> compileSourceRoots,

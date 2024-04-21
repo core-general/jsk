@@ -33,7 +33,7 @@ import sk.utils.statics.Io;
 import java.io.File;
 import java.util.List;
 
-@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, threadSafe = true)
 public class SpringMvnPropertiesGenerator extends AbstractMojo {
     /**
      * Property path to scan for properties

@@ -29,7 +29,8 @@ import sk.utils.statics.Io;
 import java.util.List;
 
 public class PropertyMetaService {
-    public static void savePropertyNames(String pathPrefix, String propertyPathPrefix, List<String> properties) {
+
+    public static synchronized void savePropertyNames(String pathPrefix, String propertyPathPrefix, List<String> properties) {
         IJson json = new JGsonImpl().init();
         final String to = json.to(new PropertyMeta(propertyPathPrefix, properties), true);
         Io.reWrite(pathPrefix + "/__jsk_util/properties/props4spring.json", w -> w.append(to));

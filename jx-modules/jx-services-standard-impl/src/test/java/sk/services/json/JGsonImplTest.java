@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
+import sk.utils.semver.Semver200;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 
@@ -37,6 +38,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JGsonImplTest {
     IJson json = new JGsonImpl().init();
+
+    @Test
+    public void testDefaultSerializers() {
+        //region Semver
+        {
+            Semver200 in = Semver200.create(1, 2, 3);
+            String out = json.to(in);
+            assertEquals("\"1.2.3\"", out);
+            assertEquals(in, json.from(out, Semver200.class));
+            assertEquals(in, json.from("1.2.3", Semver200.class));//gson automatically converts to "\"1.2.3\""
+        }
+        //endregion
+    }
 
     @Test
     public void testNullDeserialization() {

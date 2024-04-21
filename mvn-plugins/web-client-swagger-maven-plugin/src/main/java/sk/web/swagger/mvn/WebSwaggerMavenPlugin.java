@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class WebSwaggerMavenPlugin extends AbstractMojo {
     @Parameter String[] apiClasses;
     @Parameter String[] generators = new String[0];
@@ -78,23 +78,25 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
                 .collect(Collectors.toList());
 
         fileContents.forEach((k, v) -> {
-            Io.reWrite(k, w -> w.append(v.i1()));
-            for (X2<WebSwaggerMavenGeneratorTypes, String> generator : generators) {
+            synchronized (k.intern()) {
+                Io.reWrite(k, w -> w.append(v.i1()));
+                for (X2<WebSwaggerMavenGeneratorTypes, String> generator : generators) {
 
-                Io.deleteIfExists(St.endWith(generator.i2(), "/") + v.i2().getSimpleName());
-                final String pckg = v.i2().getName().replace("." + v.i2().getSimpleName(), "");
-                final List<String> params = Cc.l("generate",
-                        "-i", k,
-                        "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
-                        "-g", generator.i1().getGeneratorName(),
-                        "--global-property", "skipFormModel=false"
-                );
+                    Io.deleteIfExists(St.endWith(generator.i2(), "/") + v.i2().getSimpleName());
+                    final String pckg = v.i2().getName().replace("." + v.i2().getSimpleName(), "");
+                    final List<String> params = Cc.l("generate",
+                            "-i", k,
+                            "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
+                            "-g", generator.i1().getGeneratorName(),
+                            "--global-property", "skipFormModel=false"
+                    );
 
-                params.add("--additional-properties=pubName=" + v.i2().getSimpleName());
+                    params.add("--additional-properties=pubName=" + v.i2().getSimpleName());
 
-                generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
+                    generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
 
-                OpenAPIGenerator.main(params.toArray(new String[0]));
+                    OpenAPIGenerator.main(params.toArray(new String[0]));
+                }
             }
         });
     }

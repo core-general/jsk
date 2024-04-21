@@ -25,12 +25,16 @@ import lombok.SneakyThrows;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
+import sk.utils.semver.Semver200;
+import sk.utils.statics.Ma;
 import sk.utils.statics.Ti;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.time.*;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -193,6 +197,25 @@ public class GsonDefaultSerDes extends GsonSerDesList {
 
             @Override
             public JsonElement serialize(URL src, Type typeOfSrc, JsonSerializationContext context) {
+                return context.serialize(src.toString());
+            }
+        });
+        add(new GsonSerDes<Semver200>(Semver200.class) {
+            @Override
+            @SneakyThrows
+            public Semver200 deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                String asString = json.getAsString();
+                int[] split = Arrays.stream(asString.split("\\.")).mapToInt(value -> Ma.pi(value)).toArray();
+                if (split.length < 3) {
+                    throw new InvalidParameterException(
+                            "Semver200 should have strictly 3 numbers delimited by two '.':" + asString);
+                }
+                return Semver200.create(split[0], split[1], split[2]);
+            }
+
+            @Override
+            public JsonElement serialize(Semver200 src, Type typeOfSrc, JsonSerializationContext context) {
                 return context.serialize(src.toString());
             }
         });

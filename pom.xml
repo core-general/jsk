@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.0.1</version>
+    <version>jsk.21.0.2</version>
 
     <modules>
         <module>jx-modules</module>
@@ -123,6 +123,7 @@
                 <version>3.1.2</version>
                 <configuration>
                     <parallel>all</parallel>
+                    <printSummary>true</printSummary>
                     <useUnlimitedThreads>true</useUnlimitedThreads>
                 </configuration>
             </plugin>
