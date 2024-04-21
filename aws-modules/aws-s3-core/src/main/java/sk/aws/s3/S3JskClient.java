@@ -26,6 +26,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
+import sk.services.bytes.IBytes;
+import sk.services.http.CrcAndSize;
 import sk.services.http.IHttp;
 import sk.services.http.model.CoreHttpResponse;
 import sk.services.rand.IRand;
@@ -44,7 +46,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,18 +61,21 @@ import static sk.utils.functional.O.ofNullable;
 @NoArgsConstructor
 public class S3JskClient {
     @Inject S3Properties conf;
+
     @Inject IAsync async;
     @Inject IRepeat repeat;
     @Inject IRand rand;
     @Inject IHttp http;
     @Inject AwsUtilityHelper helper;
+    @Inject IBytes bytes;
 
-    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http) {
+    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http, IBytes bytes) {
         this.conf = conf;
         this.async = async;
         this.helper = helper;
         this.repeat = repeat;
         this.http = http;
+        this.bytes = bytes;
     }
 
     private S3Client s3;
@@ -323,10 +328,26 @@ public class S3JskClient {
                 .build();
 
         try (InputStream stream = s3.getObject(builder)) {
-            return ofNullable(Io.streamToBytes(stream));
+            return ofNullable(Io.streamPump(stream));
         } catch (Exception e) {
         }
         return empty();
+    }
+
+    public CrcAndSize downloadAsLocalFile(PathWithBase s3Path, String pcPath) {
+        GetObjectRequest getObjReq = GetObjectRequest.builder().bucket(s3Path.getBase()).key(s3Path.getPathNoSlash()).build();
+        return repeat.repeat(() -> {
+            try {
+                new File(pcPath).getParentFile().mkdirs();
+
+                try (var in = new BufferedInputStream(s3.getObject(getObjReq));
+                     var out = new BufferedOutputStream(new FileOutputStream(pcPath))) {
+                    return bytes.crc32(in, out, 8 * 1024, Io.NONE);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, 10, 500);
     }
 
     public O<S3ItemMeta> getMeta(PathWithBase base, String pathFromRoot, boolean mustBePublic) {

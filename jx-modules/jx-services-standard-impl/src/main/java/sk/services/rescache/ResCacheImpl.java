@@ -65,7 +65,7 @@ public class ResCacheImpl implements IResCache {
             for (FileObject file : files) {
                 tree.setVal(TreePath.path(
                                 St.notStartWith(St.sub(file.getURL().toString()).leftFirst(folderInResources).get(), "/").split("/")),
-                        Io.streamToBytes(file.getContent().getInputStream()));
+                        Io.streamPump(file.getContent().getInputStream()));
             }
             return tree.getRoot().getLeafCount() == 0 ? O.empty() : O.of(tree);
         } catch (Exception e) {

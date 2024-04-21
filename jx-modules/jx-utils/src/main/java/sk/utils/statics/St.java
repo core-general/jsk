@@ -489,7 +489,7 @@ public final class St/*rings*/ {
     }
 
     public static String streamToS(InputStream is, String charSet) {
-        return bytesToS(Io.streamToBytes(is), charSet);
+        return bytesToS(Io.streamPump(is), charSet);
     }
 
     //endregion

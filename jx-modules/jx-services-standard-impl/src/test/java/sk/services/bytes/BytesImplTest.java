@@ -22,10 +22,14 @@ package sk.services.bytes;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import sk.services.http.CrcAndSize;
 import sk.services.rand.RandImpl;
 import sk.test.MockitoTest;
+import sk.utils.statics.Io;
 import sk.utils.statics.St;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
 
@@ -62,5 +66,14 @@ public class BytesImplTest extends MockitoTest {
                     .orElseThrow(() -> new RuntimeException("Wrong: " + crc + val));
             assertEquals(s, val, "Wrong: " + crc + val);
         });
+    }
+
+    @Test
+    public void crc32Stream() {
+        byte[] buf = {1, 2, 3, 4, 5};
+        InputStream is = new ByteArrayInputStream(buf);
+        CrcAndSize crcAndSize = bytes.crc32(is, 2, Io.NONE);
+        long l = bytes.crc32(buf);
+        assertEquals(new CrcAndSize(l, buf.length), crcAndSize);
     }
 }

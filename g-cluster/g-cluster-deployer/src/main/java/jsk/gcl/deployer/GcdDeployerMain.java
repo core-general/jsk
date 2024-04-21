@@ -76,7 +76,7 @@ public class GcdDeployerMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes()
         ).init();
 
         process(s3Client, args);

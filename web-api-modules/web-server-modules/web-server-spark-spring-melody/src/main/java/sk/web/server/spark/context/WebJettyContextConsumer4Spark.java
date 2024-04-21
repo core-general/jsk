@@ -79,7 +79,7 @@ import java.util.stream.Collectors;
 
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNull;
-import static sk.utils.statics.Io.streamToBytes;
+import static sk.utils.statics.Io.streamPump;
 import static sk.utils.statics.St.bytesToS;
 
 @Order(1)
@@ -535,7 +535,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                                 long size = p.getSize();
                                 byte[] bytes = new byte[0];
                                 try {
-                                    bytes = streamToBytes(p.getInputStream());
+                                    bytes = streamPump(p.getInputStream());
                                 } catch (IOException e) {
                                     return empty();
                                 }

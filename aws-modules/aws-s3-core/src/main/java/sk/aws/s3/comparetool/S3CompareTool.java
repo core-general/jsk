@@ -91,7 +91,7 @@ public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             public AwsCredentials getCredentials() {
                 return in.getProps().getCredentials();
             }
-        }, async.get(), helper, repeat, http).init();
+        }, async.get(), helper, repeat, http, bytes).init();
     }
 
     final F2<S3JskClient, S3CompareInput, List<S3ListObject>> getResponse =

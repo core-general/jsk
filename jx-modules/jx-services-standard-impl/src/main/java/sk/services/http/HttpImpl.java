@@ -260,7 +260,7 @@ public class HttpImpl implements IHttp {
         byte[] bytes = resp.body();
         if (waitForGzip && resp.headers().allValues("Content-Encoding").contains("gzip")) {
             try (var stream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
-                bytes = Io.streamToBytes(stream);
+                bytes = Io.streamPump(stream);
             } catch (IOException e) {}
         }
         return bytes;

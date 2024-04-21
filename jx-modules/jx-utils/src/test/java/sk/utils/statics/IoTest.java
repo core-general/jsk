@@ -38,7 +38,7 @@ public class IoTest {
 
         final InputStream stream = Io.bytesToStream(bytes);
 
-        final byte[] bytes1 = Io.streamToBytes(stream);
+        final byte[] bytes1 = Io.streamPump(stream);
         assertArrayEquals(bytes, bytes1);
     }
 }

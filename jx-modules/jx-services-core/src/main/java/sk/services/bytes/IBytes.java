@@ -20,6 +20,7 @@ package sk.services.bytes;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import sk.services.http.CrcAndSize;
 import sk.services.http.EtagAndSize;
 import sk.utils.collections.ByteArrKey;
@@ -63,6 +64,44 @@ public interface IBytes {
     }
 
     //region CRC
+    @SneakyThrows
+    default CrcAndSize crc32(InputStream inputStream, int bufferSize, Io.StreamPumpInterceptor also) {
+        return crc32(inputStream, Io.NONE(), bufferSize, also);
+    }
+
+    @SneakyThrows
+    default CrcAndSize crc32(InputStream is, OutputStream os, int bufferSize, Io.StreamPumpInterceptor also) {
+        Checksum checksum = new CRC32();
+
+        long fullLength = Io.streamPumpLength(
+                is,
+                os,
+                bufferSize,
+                (buffer, size) -> checksum.update(buffer, 0, size));
+
+        return new CrcAndSize(checksum.getValue(), fullLength);
+    }
+
+
+    default EtagAndSize calcEtagAndSize(byte[] data) {
+        return new EtagAndSize(St.bytesToHex(md5(data)), data.length);
+    }
+
+    default CrcAndSize calcCrcAndSize(byte[] data) {
+        return calcCrcAndSize(new ByteArrayInputStream(data), 64 * 1024);
+    }
+
+    default CrcAndSize calcCrcAndSize(InputStream is, int buffer) {
+        return crc32(is, Io.NONE(), buffer, Io.NONE);
+    }
+
+    @SneakyThrows
+    default CrcAndSize calcCrcAndSize(File file) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return crc32(fis, Io.NONE(), 16 * 1024, Io.NONE);
+        }
+    }
+
     default long crc32(byte[] bytes) {
         return crc32(bytes, 0, bytes.length);
     }
@@ -141,13 +180,6 @@ public interface IBytes {
     }
     //endregion
 
-    default EtagAndSize calcEtagAndSize(byte[] data) {
-        return new EtagAndSize(St.bytesToHex(md5(data)), data.length);
-    }
-
-    default CrcAndSize calcCrcAndSize(byte[] data) {
-        return new CrcAndSize(crc32(data), data.length);
-    }
 
     //region Base64/62
     default String enc64(byte[] bytes) {
@@ -335,7 +367,7 @@ public interface IBytes {
         }
 
         try (final GZIPInputStream gzipInput = new GZIPInputStream(new ByteArrayInputStream(data));) {
-            return Io.streamToBytes(gzipInput);
+            return Io.streamPump(gzipInput);
         } catch (IOException e) {
             throw new RuntimeException("Error while decompression!", e);
         }

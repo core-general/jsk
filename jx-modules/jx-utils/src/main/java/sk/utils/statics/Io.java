@@ -76,31 +76,6 @@ public final class Io/*Input/Output*/ {
         }
     }
 
-    @SneakyThrows
-    public static void streamPump(InputStream in, OutputStream out, int bufferSize) {
-        byte[] read_buf = new byte[bufferSize];
-        int read_len = 0;
-
-        while ((read_len = in.read(read_buf)) > 0) {
-            out.write(read_buf, 0, read_len);
-        }
-    }
-
-    public static byte[] streamToBytes(InputStream is) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            byte[] buf = new byte[4 * 1024];
-            for (int n = is.read(buf); n != -1; n = is.read(buf)) {
-                os.write(buf, 0, n);
-            }
-            return os.toByteArray();
-        } catch (IOException e) {
-            return Ex.thRow(e);
-        }
-    }
-
-    public static InputStream bytesToStream(byte[] in) {
-        return new ByteArrayInputStream(in);
-    }
 
     public static boolean isWWWAvailable() {
         return isWWWAvailable(5000);
@@ -118,6 +93,58 @@ public final class Io/*Input/Output*/ {
             return false;
         }
     }
+
+
+    //region Input/Output streams. StreamPump
+    @SneakyThrows
+    public static void streamPump(InputStream in, OutputStream out, int bufferSize, StreamPumpInterceptor also) {
+        byte[] read_buf = new byte[bufferSize];
+        int read_len;
+
+        while ((read_len = in.read(read_buf)) > 0) {
+            out.write(read_buf, 0, read_len);
+            also.intercept(read_buf, read_len);
+        }
+    }
+
+    @SneakyThrows
+    public static long streamPumpLength(InputStream in, OutputStream out, int bufferSize, StreamPumpInterceptor also) {
+        long[] fullLength = new long[1];
+        streamPump(in, out, bufferSize, also.andThen((buffer, size) -> fullLength[0] += size));
+        return fullLength[0];
+    }
+
+    public static byte[] streamPump(InputStream is) {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            streamPump(is, os, 8 * 1024, NONE);
+            return os.toByteArray();
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
+    }
+
+    public static InputStream bytesToStream(byte[] in) {
+        return new ByteArrayInputStream(in);
+    }
+
+    public static StreamPumpInterceptor NONE = (buffer, size) -> {};
+
+    public static OutputStream NONE() {
+        return OutputStream.nullOutputStream();
+    }
+
+    @FunctionalInterface
+    public interface StreamPumpInterceptor {
+        public void intercept(byte[] buffer, int size);
+
+        public default StreamPumpInterceptor andThen(StreamPumpInterceptor after) {
+            return (buffer, size) -> {
+                intercept(buffer, size);
+                after.intercept(buffer, size);
+            };
+        }
+    }
+    //endregion
 
     //region Read
     public static FileList fileToStructure(String path) {
@@ -181,7 +208,7 @@ public final class Io/*Input/Output*/ {
     public static O<byte[]> getResourceBytes(String resource) {
         return getResourceStream(resource).flatMap($ -> {
             try {
-                return ofNullable(streamToBytes($));
+                return ofNullable(streamPump($));
             } catch (Exception e) {
                 return empty();
             }

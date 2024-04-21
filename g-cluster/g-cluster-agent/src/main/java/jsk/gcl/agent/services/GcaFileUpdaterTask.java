@@ -34,6 +34,8 @@ import sk.utils.statics.Io;
 import sk.utils.statics.St;
 import sk.utils.statics.Ti;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 
 @Slf4j
@@ -79,7 +81,8 @@ public class GcaFileUpdaterTask {
         prepareCurrentFileMetaIfExist();
 
         final GcaMeta meta = core.json()
-                .from(new String(getFileFromS3(conf.metaFileBucket(), conf.metaFilePathInBucket()), St.UTF8), GcaMeta.class);
+                .from(new String(s3.getFromS3(new PathWithBase(conf.metaFileBucket(), conf.metaFilePathInBucket())).get(),
+                        St.UTF8), GcaMeta.class);
         if (!Fu.equal(meta.currentFile().crcAndSize(), currentFileMeta.orElse(null))) {
             update(meta);
         }
@@ -91,9 +94,11 @@ public class GcaFileUpdaterTask {
         synchronized (GcaFileUpdaterTask.class) {
             log.info("\n\nUpdating file: \n%s\n\n%s\n".formatted(core.json().to(meta.currentFile(), true),
                     core.json().to(conf, true)));
-            final byte[] data = getFileFromS3(meta.currentFile().bucket(), meta.currentFile().pathInBucket());
-            Io.reWriteBin(conf.localFilePath(), w -> w.append(data));
-            updateCurrentFileMeta(data);
+
+            currentFileMeta = O.of(
+                    s3.downloadAsLocalFile(
+                            new PathWithBase(meta.currentFile().bucket(), meta.currentFile().pathInBucket()),
+                            conf.localFilePath()));
             log.info("File updated: restarting service \"" + conf.serviceToReboot().orElse("NONE") + "\"...\n\n");
             restartServiceIfNeeded(true);
         }
@@ -101,15 +106,15 @@ public class GcaFileUpdaterTask {
 
     private void prepareCurrentFileMetaIfExist() {
         if (currentFileMeta.isEmpty()) {
-            final O<byte[]> data = Io.bRead(conf.localFilePath()).oBytes();
-            if (data.isPresent()) {
-                updateCurrentFileMeta(data.get());
+            O<InputStream> ois = Io.bRead(conf.localFilePath()).oIs();
+            if (ois.isPresent()) {
+                try (InputStream is = ois.get()) {
+                    currentFileMeta = O.of(core.bytes().crc32(is, Io.NONE(), 16 * 1024, Io.NONE));
+                } catch (IOException e) {
+                    currentFileMeta = O.empty();
+                }
             }
         }
-    }
-
-    private void updateCurrentFileMeta(byte[] bytes) {
-        currentFileMeta = O.of(core.bytes().calcCrcAndSize(bytes));
     }
 
     private void restartServiceIfNeeded(boolean forceRestart) {
@@ -143,9 +148,5 @@ public class GcaFileUpdaterTask {
             }
 
         });
-    }
-
-    private byte[] getFileFromS3(String bucket, String pathInBucket) {
-        return s3.getFromS3(new PathWithBase(bucket, pathInBucket)).get();
     }
 }

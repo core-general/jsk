@@ -86,7 +86,7 @@ public class GcaAgentMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes()
         ).init();
 
         new GcaAgentMain().run(arguments);
