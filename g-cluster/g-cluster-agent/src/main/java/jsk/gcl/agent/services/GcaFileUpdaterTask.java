@@ -25,6 +25,7 @@ import jsk.gcl.agent.model.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import sk.aws.s3.S3JskClient;
 import sk.services.ICoreServices;
@@ -58,6 +59,7 @@ public class GcaFileUpdaterTask {
         this.ftf = startBgThread ? O.of(createThreadAndStart()) : O.empty();
     }
 
+    @SneakyThrows
     private void runOnce() {
         O<GcaMetaItem> betterVersion = isCloudVersionHigherThanOurWhichIsNotBadOnOurSide();
         if (betterVersion.isPresent()) {
@@ -76,6 +78,9 @@ public class GcaFileUpdaterTask {
                 if (isRollingUpdate) {
                     log.debug("Download finished, but rolling update and need to wait for service to start and unlock...");
                     waitUntilRollingUpdateFinishedAndUnLock();
+                } else {
+                    log.debug("Download finished, no rolling update, just marking version as good");
+                    storage.setCurrentVersionIsOk();
                 }
             }
         } else {
@@ -120,8 +125,8 @@ public class GcaFileUpdaterTask {
         s3.putPublicNoUrl(conf.getS3LockPathFile(),
                 core.json().to(new GcaLockCls(GcaAgentMain.nodeId, core.times().nowZ())).getBytes(St.UTF8),
                 false, empty(), empty(), Cc.m("Cache-Control", "no-store"));
-        Ti.sleep(5 * Ti.second);
         log.debug("Lock file put, waiting 5 seconds...");
+        Ti.sleep(5 * Ti.second);
         if (Fu.equal( //if lock is successfull
                 s3.getObjectFromS3(conf.getS3LockPathFile(), GcaLockCls.class).map($ -> $.nodeId).orElse(null),
                 GcaAgentMain.nodeId
@@ -152,7 +157,7 @@ public class GcaFileUpdaterTask {
             log.trace("Sleeping: " + sleepTime);
             Ti.sleep(sleepTime);
             runOnce();
-        }, conf.getInternalFileName() + "__updater", true, (e, f) -> log.error("", e));
+        }, conf.localFilePath(), true, (e, f) -> log.error("", e));
         ftf.start();
         return ftf;
     }

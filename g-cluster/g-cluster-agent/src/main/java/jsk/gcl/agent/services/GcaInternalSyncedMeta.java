@@ -21,37 +21,59 @@ package jsk.gcl.agent.services;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import sk.services.json.IJson;
 import sk.utils.async.locks.JLock;
 import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.C1;
+import sk.utils.functional.O;
 import sk.utils.statics.Fu;
 import sk.utils.statics.Io;
 
+import java.io.Serializable;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class GcaInternalSyncedMeta<T> {
-    private volatile T object;
-    private final IJson json;
-    private final String filePath;
-    private final JLock lock = new JLockDecorator(new ReentrantLock());
+    protected volatile T object;
+    protected final IJson json;
+    protected final String filePath;
+    protected final Class<T> cls;
+    protected final JLock lock = new JLockDecorator(new ReentrantLock());
 
+    /**
+     * If T will be serializable, it will work faster! Otherwise JSON approach is used
+     */
     public GcaInternalSyncedMeta(IJson json, String filePath, Class<T> cls, T defaultValue) {
         this.json = json;
         this.filePath = filePath;
-        object = Io.sRead(filePath).oString().map($ -> json.from($, cls)).orElse(defaultValue);
+        this.cls = cls;
+        object = loadFromDisc(filePath).map($ -> json.from($, cls)).orElse(defaultValue);
+        flushCurrentToDisc();
     }
 
     public void readOrUpdateObject(C1<T> updater) throws Exception {
         Exception[] exc = new Exception[1];
         lock.runInLock(() -> {
-            T oldValue = object;
+            T oldValue = switch (object) {
+                case Serializable s -> {
+                    try {
+                        yield (T) SerializationUtils.clone(s);
+                    } catch (Exception e) {
+                        log.error("Probably not serializable!", e);
+                        yield json.from(json.to(object), cls);
+                    }
+                }
+                default -> json.from(json.to(object), cls);
+            };
             try {
                 updater.accept(object);
                 beforeSave(object);
                 if (Fu.notEqual(object, oldValue)) {
+                    log.debug("Objects are different, saving to disc");
                     flushCurrentToDisc();
+                } else {
+                    log.debug("Objects are equal, skip saving to disc");
                 }
             } catch (Exception e) {
                 object = oldValue;
@@ -67,7 +89,15 @@ public class GcaInternalSyncedMeta<T> {
     private void flushCurrentToDisc() {
         String text = json.to(object);
         log.debug("Saving meta file[%d]: %s".formatted(text.length(), filePath));
+        saveToDisc(filePath, text);
+    }
+
+    protected void saveToDisc(String filePath, String text) {
         Io.reWrite(filePath, w -> w.append(text));
+    }
+
+    protected O<String> loadFromDisc(String filePath) {
+        return Io.sRead(filePath).oString();
     }
 
     protected void beforeSave(T updatedObject) {}

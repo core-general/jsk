@@ -24,10 +24,15 @@
               class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss.SSS} %6.6level [%15.15thread] %cyan(%-35.35logger{34}) : %m%n%ex
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %6.6level [%30.30thread] %cyan(%-35.35logger{34}) : %m%n%ex
             </Pattern>
         </layout>
     </appender>
+
+    <logger name="software.amazon">
+        <level value="error"/>
+    </logger>
+
     <root level="debug">
         <appender-ref ref="Console"/>
     </root>

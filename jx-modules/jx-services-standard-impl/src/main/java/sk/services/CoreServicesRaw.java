@@ -63,8 +63,8 @@ public class CoreServicesRaw implements ICoreServices {
     private IBytes bytes = new BytesImpl();
 
     private IRand rand = new RandTestImpl();
-    private IIds ids = new IdsImpl(new SecureRandImpl(), bytes).init();
     private ITimeSetter times = new UtcSettableTimeUtilImpl();
+    private IIds ids = new IdsImpl(new SecureRandImpl(), bytes, times).init();
     private IJson json = new JGsonImpl(O.empty(), times, bytes).init();
     private ILog iLog = new ILogConsoleImpl(json);
 

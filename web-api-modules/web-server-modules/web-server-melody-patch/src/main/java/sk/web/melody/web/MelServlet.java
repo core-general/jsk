@@ -52,7 +52,7 @@ public class MelServlet extends HttpServlet {
         final RepeatImpl repeat = new RepeatImpl(async);
         final TimeUtcImpl times = new TimeUtcImpl();
         final IBytes bytes = new BytesImpl();
-        final IIds ids = new IdsImpl(new SecureRandImpl(), bytes);
+        final IIds ids = new IdsImpl(new SecureRandImpl(), bytes, times);
         final HttpImpl http = new HttpImpl(repeat, times, async, ids, bytes);
         cleanerTask = new MelCleanTask(async, http);
         cleanerTask.start();

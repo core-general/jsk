@@ -76,12 +76,12 @@ public class GcaFileStorage {
                 super.close();
                 try (FileInputStream is = new FileInputStream(newFile)) {
                     CrcAndSize crcAndSize = bytes.crc32(is, Io.NONE(), 16 * 1024, Io.NONE);
-                    log.debug("Caclulated CrcAndSize of new file:" + crcAndSize);
+                    log.debug("Calculated CrcAndSize of new file:" + crcAndSize);
                     meta.readOrUpdateObject(versions -> {
                         VersionInfo newVersion = new VersionInfo(version, newFile, VersionStatus.UNKNOWN, crcAndSize);
                         versions.getVersions().add(newVersion);
                         versions.setCurrentActual(O.of(newVersion));
-                        log.debug("New version state:\n" + versions);
+                        log.debug("New version state on save:\n" + versions);
                         copyToActual(newVersion);
                     });
                 }
@@ -97,7 +97,7 @@ public class GcaFileStorage {
             setStatusToCurrentVersion(versions, VersionStatus.GOOD);
             versions.setLastGoodVersion(versions.getCurrentActual());
             ver[0] = versions.getCurrentActual().get().getVersion();
-            log.debug("New version state:\n" + versions);
+            log.debug("New version state on OK:\n" + versions);
         });
         return ver[0];
     }
@@ -113,7 +113,7 @@ public class GcaFileStorage {
             if (lastGoodVersion.isEmpty()) {
                 throw new RuntimeException("No good versions found!");
             }
-            log.debug("New version state:\n" + versions);
+            log.debug("New version state on BAD:\n" + versions);
             copyToActual(lastGoodVersion.get());
             ver[0] = lastGoodVersion.get().getVersion();
         });
@@ -154,7 +154,9 @@ public class GcaFileStorage {
                         && Fu.notEqual($, newVersions.getLastGoodVersion().orElse(null)))
                 .collect(Collectors.toSet());
 
-        log.debug("Deleting: %s".formatted(toDelete.stream().map($ -> $.toString()).collect(Collectors.joining("||"))));
+        if (toDelete.size() > 0) {
+            log.debug("Deleting: %s".formatted(toDelete.stream().map($ -> $.toString()).collect(Collectors.joining("||"))));
+        }
 
         newVersions.setVersions(
                 newVersions.getVersions().stream().filter($ -> !toDelete.contains($)).collect(Cc.toL()));
@@ -165,7 +167,7 @@ public class GcaFileStorage {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static final class Versions {
+    public static final class Versions implements Serializable {
         O<VersionInfo> lastGoodVersion = O.empty();
         O<VersionInfo> currentActual = O.empty();
         List<VersionInfo> versions = Cc.l();
@@ -183,7 +185,7 @@ public class GcaFileStorage {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static final class VersionInfo {
+    public static final class VersionInfo implements Serializable {
         private GcaVersionId version;
         private String pathToContents;
         private VersionStatus versionType;

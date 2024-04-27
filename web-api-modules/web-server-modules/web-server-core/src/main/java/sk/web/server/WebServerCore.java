@@ -286,7 +286,10 @@ public class WebServerCore<API>
 
     @Override
     public long waitBeforeStopMs() {
-        return 100;
+        //it's needed to allow users to stop using this node gently, if you don't need it, just use smaller value in children
+        log.info("""
+                Web server is stoping, we need to sleep 10 seconds before shutdown. If you don't need it, please override waitBeforeStopMs method""");
+        return 10_000;
     }
 
     @Override

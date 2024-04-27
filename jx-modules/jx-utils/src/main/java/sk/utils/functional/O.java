@@ -20,6 +20,7 @@ package sk.utils.functional;
  * #L%
  */
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,7 +36,7 @@ import java.util.stream.Stream;
  * @param <T>
  */
 @SuppressWarnings("unused")
-public final class O<T> {
+public final class O<T> implements Serializable {
     /**
      * Common instance for {@code empty()}.
      */

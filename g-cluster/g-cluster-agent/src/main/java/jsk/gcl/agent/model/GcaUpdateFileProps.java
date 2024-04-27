@@ -35,12 +35,12 @@ import java.time.Duration;
 @EqualsAndHashCode
 
 public final class GcaUpdateFileProps {
-    private final String metaFileBucket;
-    private final String metaFilePathInBucket;
-    private final String localFilePath;
-    private final O<String> serviceToReboot;
-    private final O<Duration> recheckDuration;
-    private final GcaRollingUpdateConfig rollingUpdate;
+    private String metaFileBucket;
+    private String metaFilePathInBucket;
+    private String localFilePath;
+    private O<String> serviceToReboot;
+    private O<Duration> recheckDuration;
+    private GcaRollingUpdateConfig rollingUpdate;
 
     public O<String> getFileExtension() {
         return localFilePath.contains(".") ? O.of(St.subLL(localFilePath(), ".")) : O.empty();

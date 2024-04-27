@@ -45,9 +45,10 @@ public class IdsImpl implements IIds {
     @Inject ITime times;
     LongAndShortHaikunator haikunator;
 
-    public IdsImpl(SecureRandImpl random, IBytes bytes) {
+    public IdsImpl(SecureRandImpl random, IBytes bytes, ITime times) {
         this.random = random;
         this.bytes = bytes;
+        this.times = times;
         init();
     }
 
