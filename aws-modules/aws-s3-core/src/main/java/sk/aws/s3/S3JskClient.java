@@ -23,6 +23,7 @@ package sk.aws.s3;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
 import sk.services.async.IAsync;
@@ -30,6 +31,7 @@ import sk.services.bytes.IBytes;
 import sk.services.http.CrcAndSize;
 import sk.services.http.IHttp;
 import sk.services.http.model.CoreHttpResponse;
+import sk.services.json.IJson;
 import sk.services.rand.IRand;
 import sk.services.retry.IRepeat;
 import sk.utils.async.AtomicNotifier;
@@ -37,10 +39,8 @@ import sk.utils.files.PathWithBase;
 import sk.utils.functional.C1;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Ex;
-import sk.utils.statics.Io;
-import sk.utils.statics.Ma;
+import sk.utils.javafixes.TypeWrap;
+import sk.utils.statics.*;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
@@ -62,6 +62,7 @@ import static sk.utils.functional.O.ofNullable;
 public class S3JskClient {
     @Inject S3Properties conf;
 
+    @Inject IJson json;
     @Inject IAsync async;
     @Inject IRepeat repeat;
     @Inject IRand rand;
@@ -69,13 +70,15 @@ public class S3JskClient {
     @Inject AwsUtilityHelper helper;
     @Inject IBytes bytes;
 
-    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http, IBytes bytes) {
+    public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http, IBytes bytes,
+            IJson json) {
         this.conf = conf;
         this.async = async;
         this.helper = helper;
         this.repeat = repeat;
         this.http = http;
         this.bytes = bytes;
+        this.json = json;
     }
 
     private S3Client s3;
@@ -334,14 +337,27 @@ public class S3JskClient {
         return empty();
     }
 
+    public <T> O<T> getObjectFromS3(PathWithBase path, TypeWrap<T> type) {
+        return getFromS3(path).map($ -> json.from(new String($, St.UTF8), type));
+    }
+
+    public <T> O<T> getObjectFromS3(PathWithBase path, Class<T> type) {
+        return getObjectFromS3(path, TypeWrap.simple(type));
+    }
+
+    @SneakyThrows
     public CrcAndSize downloadAsLocalFile(PathWithBase s3Path, String pcPath) {
+        new File(pcPath).getParentFile().mkdirs();
+        return downloadToStream(s3Path, new FileOutputStream(pcPath));
+    }
+
+    public CrcAndSize downloadToStream(PathWithBase s3Path, OutputStream os) {
         GetObjectRequest getObjReq = GetObjectRequest.builder().bucket(s3Path.getBase()).key(s3Path.getPathNoSlash()).build();
         return repeat.repeat(() -> {
             try {
-                new File(pcPath).getParentFile().mkdirs();
 
                 try (var in = new BufferedInputStream(s3.getObject(getObjReq));
-                     var out = new BufferedOutputStream(new FileOutputStream(pcPath))) {
+                     var out = new BufferedOutputStream(os)) {
                     return bytes.crc32(in, out, 8 * 1024, Io.NONE);
                 }
             } catch (IOException e) {

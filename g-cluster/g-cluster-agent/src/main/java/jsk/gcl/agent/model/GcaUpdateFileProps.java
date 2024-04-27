@@ -20,11 +20,62 @@ package jsk.gcl.agent.model;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import sk.utils.files.PathWithBase;
 import sk.utils.functional.O;
+import sk.utils.statics.St;
 
+import java.io.File;
 import java.time.Duration;
 
-public record GcaUpdateFileProps(String metaFileBucket, String metaFilePathInBucket, String localFilePath,
-                                 O<String> serviceToReboot,
-                                 O<Duration> recheckDuration) {
+@AllArgsConstructor
+@EqualsAndHashCode
+
+public final class GcaUpdateFileProps {
+    private final String metaFileBucket;
+    private final String metaFilePathInBucket;
+    private final String localFilePath;
+    private final O<String> serviceToReboot;
+    private final O<Duration> recheckDuration;
+    private final GcaRollingUpdateConfig rollingUpdate;
+
+    public O<String> getFileExtension() {
+        return localFilePath.contains(".") ? O.of(St.subLL(localFilePath(), ".")) : O.empty();
+    }
+
+    public String getInternalFsPath() {
+        return St.endWith(new File(localFilePath()).getParentFile().getAbsolutePath(), "/") + ".internal_fs/";
+    }
+
+    public PathWithBase getS3LockPathFile() {
+        return new PathWithBase(metaFileBucket, metaFilePathInBucket).getParent().get().addToPath("lock.json");
+    }
+
+    public PathWithBase getPathToMetaFile() {return new PathWithBase(metaFileBucket, metaFilePathInBucket);}
+
+    public String getInternalFileName() {
+        return St.subLL(localFilePath, "/");
+    }
+
+    public String localFilePath() {return localFilePath;}
+
+    public O<String> serviceToReboot() {return serviceToReboot;}
+
+    public O<Duration> recheckDuration() {return recheckDuration;}
+
+    public GcaRollingUpdateConfig getRollingUpdate() {
+        return rollingUpdate == null ? new GcaRollingUpdateConfig(false, "", 0) : rollingUpdate;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GcaRollingUpdateConfig {
+        boolean enabled;
+        String url;
+        long okAfterMs;
+    }
 }

@@ -76,7 +76,7 @@ public class GcdDeployerMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json()
         ).init();
 
         process(s3Client, args);
@@ -98,9 +98,13 @@ public class GcdDeployerMain {
 
         final String fileName = new File(a.getRequiredArg(ARGS.FILE_IN)).getName();
 
+
+        PathWithBase pathOfVersionsFolder = new PathWithBase(a.getRequiredArg(ARGS.META_BUCKET), a.getRequiredArg(ARGS.META_PATH))
+                .getParent().get()
+                .addToPath("versions");
         PathWithBase newPayloadUrl = encodeAndUpload(mainPayload,
-                s3Client, a.getRequiredArg(ARGS.MAIN_FILE_BUCKET),
-                St.endWith(a.getRequiredArg(ARGS.MAIN_FILE_FOLDER_PATH), "/") + core.times().now() + "-" + fileName);
+                s3Client, a.getRequiredArg(ARGS.META_BUCKET),
+                pathOfVersionsFolder.getPathWithSlash() + core.times().now() + "-" + fileName);
 
 
         final PathWithBase metaPath = new PathWithBase(a.getRequiredArg(ARGS.META_BUCKET), a.getRequiredArg(ARGS.META_PATH));
@@ -142,9 +146,6 @@ public class GcdDeployerMain {
 
         META_BUCKET(of(ts("-s3-meta-bucket")), true, "S3 meta file bucket"),
         META_PATH(of(ts("-s3-meta-path")), true, "S3 meta file path"),
-
-        MAIN_FILE_BUCKET(of(ts("-s3-main-bucket")), true, "S3 main file bucket"),
-        MAIN_FILE_FOLDER_PATH(of(ts("-s3-main-folder-path")), true, "S3 main folder path"),
 
         ;
 

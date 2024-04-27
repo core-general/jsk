@@ -38,6 +38,7 @@ import sk.utils.functional.OneOf;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 import sk.utils.statics.Io;
+import sk.utils.statics.Ma;
 import sk.utils.tuples.X;
 
 import java.io.ByteArrayInputStream;
@@ -300,6 +301,11 @@ public class HttpImpl implements IHttp {
         @Override
         public int code() {
             return code;
+        }
+
+        @Override
+        public boolean is2XX() {
+            return Ma.inside(code(), 200, 299);
         }
 
         @Override

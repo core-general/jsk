@@ -33,6 +33,8 @@ public interface CoreHttpResponse {
 
     int code();
 
+    boolean is2XX();
+
     String cacheAsString();
 
     String newAsString();

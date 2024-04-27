@@ -40,4 +40,17 @@ public class PathWithBaseTest {
         assertEquals("a/b/c/d/e/f/g", (pwb = pwb.addToPath("/g")).getPathNoSlash());
         assertEquals("a/b/c/d/e/f/g/h/", (pwb = pwb.addToPath("h")).getPathWithSlash());
     }
+
+    @Test
+    public void getParent() {
+        assertEquals(new PathWithBase("A").getParent(), O.empty());
+        assertEquals(new PathWithBase("A", "").getParent(), O.empty());
+        assertEquals(new PathWithBase("A", "/").getParent(), O.empty());
+        assertEquals(new PathWithBase("A", "B").getParent(), O.of(new PathWithBase("A")));
+        assertEquals(new PathWithBase("A", "/B").getParent(), O.of(new PathWithBase("A")));
+        assertEquals(new PathWithBase("A", "B/").getParent(), O.of(new PathWithBase("A")));
+        assertEquals(new PathWithBase("A", "B/C").getParent(), O.of(new PathWithBase("A", "B")));
+        assertEquals(new PathWithBase("A", "B/C/").getParent(), O.of(new PathWithBase("A", "B")));
+        assertEquals(new PathWithBase("A", "B/C/D").getParent(), O.of(new PathWithBase("A", "B/C")));
+    }
 }

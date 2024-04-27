@@ -46,7 +46,8 @@ public class PathWithBase {
     }
 
     public PathWithBase(String base, String... path) {
-        this(base, path.length == 0 ? O.empty() : O.of(Cc.join("/", Arrays.asList(path))));
+        this(base, path.length == 0 ? O.empty()
+                                    : O.of(Cc.join("/", Arrays.asList(path), s -> St.notStartWith(St.notEndWith(s, "/"), "/"))));
     }
 
     public String getPathWithSlash() {
@@ -71,6 +72,29 @@ public class PathWithBase {
                 getInnerPathNoSlash().map(currentPath -> currentPath + startWith(pathSuffix, "/"))
                         .or(() -> O.of(notStartWith(pathSuffix, "/")))
         );
+    }
+
+    public O<PathWithBase> getParent() {
+        if (path.isEmpty()) {
+            return O.empty();
+        }
+        String pth = path.get().trim();
+        if (pth.isEmpty()) {
+            return O.empty();
+        }
+        if (!pth.contains("/")) {
+            return O.of(new PathWithBase(base));
+        }
+
+        String parentPath = subRL(pth, "/").trim();
+        if (parentPath.isEmpty()) {
+            return O.empty();
+        }
+
+        return O.of(new PathWithBase(
+                base,
+                O.of(parentPath)
+        ));
     }
 
     public PathWithBase replacePath(String pathSuffix) {

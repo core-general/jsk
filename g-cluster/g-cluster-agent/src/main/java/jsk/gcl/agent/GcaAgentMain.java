@@ -20,6 +20,7 @@ package jsk.gcl.agent;
  * #L%
  */
 
+import jsk.gcl.agent.model.GcaNodeId;
 import jsk.gcl.agent.model.GcaProperties;
 import jsk.gcl.agent.model.GcaUpdateFileProps;
 import jsk.gcl.agent.services.GcaFileUpdaterTask;
@@ -45,6 +46,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.TreeSet;
 
+import static jsk.gcl.agent.model.GcaUpdateFileProps.GcaRollingUpdateConfig;
 import static sk.utils.functional.O.of;
 import static sk.utils.statics.Cc.ts;
 
@@ -56,11 +58,11 @@ import static sk.utils.statics.Cc.ts;
  */
 @Slf4j
 public class GcaAgentMain {
+    static final ICoreServices core = new CoreServicesRaw();
     public final static String configFile = "/tmp/jsk_agent_config.json";
+    public final static GcaNodeId nodeId = new GcaNodeId(core.ids().timedHaiku());
 
     static S3JskClient s3Client;
-
-    static final ICoreServices core = new CoreServicesRaw();
 
     List<GcaFileUpdaterTask> payloadUpdaters;
 
@@ -86,7 +88,7 @@ public class GcaAgentMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json()
         ).init();
 
         new GcaAgentMain().run(arguments);
@@ -96,7 +98,7 @@ public class GcaAgentMain {
         //one time execution to force load meta for config. No bg thread is created
         new GcaFileUpdaterTask(s3Client, core,
                 new GcaUpdateFileProps(args.getRequiredArg(ARGS.META_BUCKET), args.getRequiredArg(ARGS.META_PATH),
-                        configFile, O.empty(), O.empty()), false);
+                        configFile, O.empty(), O.empty(), new GcaRollingUpdateConfig(false, "", 0l)), false);
 
         //now config must exist
         final GcaProperties configs = core.json().from(Io.sRead(configFile).string(), GcaProperties.class);

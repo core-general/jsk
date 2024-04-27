@@ -452,12 +452,11 @@ public final class Io/*Input/Output*/ {
             // Ensure the parent directory of the target file exists
             Files.createDirectories(target.getParent());
 
-            // Move file or directory
-            if (moveAttributes) {
-                Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } else {
-                Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-            }
+            CopyOption[] co = moveAttributes
+                              ? new CopyOption[]{StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE,
+                                                 StandardCopyOption.COPY_ATTRIBUTES}
+                              : new CopyOption[]{StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE};
+            Files.move(source, target, co);
         } catch (IOException e) {
             e.printStackTrace();
         }

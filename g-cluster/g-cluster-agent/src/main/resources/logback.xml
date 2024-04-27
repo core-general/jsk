@@ -3,7 +3,7 @@
   #%L
   Swiss Knife
   %%
-  Copyright (C) 2019 - 2022 Core General
+  Copyright (C) 2019 - 2020 Core General
   %%
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,18 +19,16 @@
   #L%
   -->
 
-<Configuration status="WARN" shutdownHook="disable">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p [%t] %c{1}: %m%n"/>
-        </Console>
-    </Appenders>
-    <Loggers>
-        <Logger name="jsk" level="info"/>
-        <Logger name="sk" level="info"/>
-
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-        </Root>
-    </Loggers>
-</Configuration>
+<configuration>
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %6.6level [%15.15thread] %cyan(%-35.35logger{34}) : %m%n%ex
+            </Pattern>
+        </layout>
+    </appender>
+    <root level="debug">
+        <appender-ref ref="Console"/>
+    </root>
+</configuration>
