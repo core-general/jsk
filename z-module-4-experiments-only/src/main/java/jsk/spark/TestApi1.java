@@ -23,6 +23,7 @@ package jsk.spark;
 import jsk.spark.testmodel.SomeClass1;
 import jsk.spark.testmodel.SomeClass2;
 import jsk.spark.testmodel.SomeEnum;
+import sk.utils.functional.O;
 import sk.web.annotations.*;
 import sk.web.annotations.type.WebGET;
 import sk.web.annotations.type.WebPOST;
@@ -111,4 +112,12 @@ public interface TestApi1 {
     @WebPOST
     @WebRender(WebRenderType.RAW_STRING)
     String testParamsToObjectMergerPost(@WebParamsToObject SomeClass2 someCls2);
+
+    @WebGET
+    @WebRender(WebRenderType.RAW_STRING)
+    String startEnvironment(O<Integer> port);
+
+    @WebGET
+    @WebRender(WebRenderType.RAW_STRING)
+    String stopEnvironment();
 }

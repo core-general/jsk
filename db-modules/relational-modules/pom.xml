@@ -5,18 +5,19 @@
     <parent>
         <artifactId>db-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.9</version>
+        <version>jsk.21.0.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>relational-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.0.9</version>
+    <version>jsk.21.0.10</version>
 
     <modules>
         <module>jpa-util</module>
         <module>migration-modules</module>
         <module>jpa-spring-modules</module>
+        <module>jpa-hibernate-core</module>
     </modules>
 
     <dependencyManagement>

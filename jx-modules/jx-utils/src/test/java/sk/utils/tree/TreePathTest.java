@@ -21,12 +21,12 @@ package sk.utils.tree;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.tree.TreePath.path;
 
-public class TreePathTest extends MockitoTest {
+public class TreePathTest extends JskMockitoTest {
 
     @Test
     public void testMerge() {

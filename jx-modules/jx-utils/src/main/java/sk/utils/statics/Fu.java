@@ -21,10 +21,7 @@ package sk.utils.statics;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import sk.utils.functional.C1;
-import sk.utils.functional.O;
-import sk.utils.functional.R;
-import sk.utils.functional.RE;
+import sk.utils.functional.*;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -46,6 +43,11 @@ public final class Fu/*nctions*/ {
 
     @SuppressWarnings("WeakerAccess")
     public static <T> C1<T> emptyC() {
+        return t -> {
+        };
+    }
+
+    public static <T> C1E<T> emptyCE() {
         return t -> {
         };
     }

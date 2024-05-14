@@ -21,11 +21,11 @@ package sk.utils.functional;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OneOfTest extends MockitoTest {
+public class OneOfTest extends JskMockitoTest {
     @Test
     public void general() {
         OneOf<String, Object> left = OneOf.left("");

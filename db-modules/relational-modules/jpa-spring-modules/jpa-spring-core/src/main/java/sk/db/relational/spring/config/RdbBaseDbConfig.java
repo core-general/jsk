@@ -20,8 +20,6 @@ package sk.db.relational.spring.config;
  * #L%
  */
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -29,16 +27,19 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import sk.db.relational.spring.TransactionalNamedParameterJdbcTemplate;
-import sk.db.relational.spring.proprties.RdbProperties;
 import sk.db.relational.spring.services.EntityManagerProviderImpl;
 import sk.db.relational.spring.services.RdbIterator;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
 import sk.db.relational.spring.services.impl.RdbTransactionWrapperImpl;
 import sk.db.relational.utils.RdbIntegratorProvider4Context;
+import sk.db.relational.utils.RdbProperties;
+import sk.db.relational.utils.RdbUtil;
+import sk.db.relational.utils.RdbWithChangedPort;
 import sk.spring.services.CoreServices;
 
 import javax.sql.DataSource;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 
 @SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection", "SpringFacetCodeInspection"})
@@ -46,46 +47,9 @@ import java.util.Properties;
 public class RdbBaseDbConfig {
     public static final String _CTX = "__JSK_INJECTOR__";
 
-    //@Bean
-    //public DataSource mpDataSource(RdbProperties conf) {
-    //    ComboPooledDataSource cpds = new ComboPooledDataSource();
-    //    try {
-    //        cpds.setDriverClass(conf.getDriver());
-    //    } catch (java.beans.PropertyVetoException e) {
-    //        System.err.println("Cannot find driver:" + conf.getDriver());
-    //        System.exit(1);
-    //    }
-    //    cpds.setJdbcUrl(conf.getUrl());
-    //    cpds.setUser(conf.getUser());
-    //    cpds.setPassword(conf.getPass());
-    //    cpds.setMaxPoolSize(conf.getMaxPoolSize());
-    //    cpds.setCheckoutTimeout();
-    //
-    //    Properties properties = cpds.getProperties();
-    //    properties.put("stringtype", "unspecified");
-    //    cpds.setProperties(properties);
-    //
-    //    return cpds;
-    //}
-
     @Bean
-    public DataSource mpDataSource(RdbProperties conf) {
-        HikariConfig cpds = new HikariConfig();
-        try {
-            cpds.setDriverClassName(conf.getDriver());
-        } catch (Exception e) {
-            System.err.println("Cannot find driver:" + conf.getDriver());
-            System.exit(1);
-        }
-        cpds.setJdbcUrl(conf.getUrl());
-        cpds.setUsername(conf.getUser());
-        cpds.setPassword(conf.getPass());
-        cpds.setMaximumPoolSize(conf.getMaxPoolSize());
-        cpds.setConnectionTimeout(30_000);
-
-        cpds.addDataSourceProperty("stringtype", "unspecified");
-
-        return new HikariDataSource(cpds);
+    public DataSource mpDataSource(RdbProperties conf, Optional<RdbWithChangedPort> changedPort) {
+        return RdbUtil.createDatasource(conf, changedPort);
     }
 
     @Bean

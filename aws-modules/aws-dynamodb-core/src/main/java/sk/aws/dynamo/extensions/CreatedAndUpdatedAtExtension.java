@@ -21,6 +21,8 @@ package sk.aws.dynamo.extensions;
  */
 
 import jakarta.inject.Inject;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import sk.services.time.ITime;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
@@ -31,6 +33,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreatedAndUpdatedAtExtension implements DynamoDbEnhancedClientExtension {
     @Inject ITime times;
 

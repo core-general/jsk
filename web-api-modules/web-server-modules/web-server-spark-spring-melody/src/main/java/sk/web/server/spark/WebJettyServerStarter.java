@@ -56,7 +56,9 @@ public class WebJettyServerStarter implements AppStopListener {
         System.setProperty("org.eclipse.jetty.server.Request.maxFormKeys", "250");
         System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", "" + params.getFormLimit());
 
-        jetty = new Server(params.getPort());
+        jetty = new Server(
+                params.getPort()
+        );
         for (Connector connector : jetty.getConnectors()) {
             params.getIdleTimeout().ifPresent(((AbstractConnector) connector)::setIdleTimeout);
             for (ConnectionFactory connectionFactory : connector.getConnectionFactories()) {
@@ -78,6 +80,8 @@ public class WebJettyServerStarter implements AppStopListener {
         } catch (Exception e) {
             Ex.thRow(e);
         }
+
+        log.info("Jetty started on port:" + params.getPort());
 
         context.getServletHandler().getServlets()[0].getRegistration().setMultipartConfig(
                 new MultipartConfigElement("/tmp/srv-mp", params.getFormLimit(), params.getFormLimit(), 0));

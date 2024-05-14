@@ -23,6 +23,7 @@ package sk.utils.async.locks;
 import sk.utils.functional.Gett;
 import sk.utils.functional.O;
 import sk.utils.functional.R;
+import sk.utils.functional.RE;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +41,17 @@ public interface JLock extends Lock {
         getInLock(() -> {
             toRun.run();
             return null;
+        });
+    }
+
+    public default void runInLockRE(RE toRun) {
+        getInLock(() -> {
+            try {
+                toRun.run();
+                return null;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 

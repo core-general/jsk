@@ -21,12 +21,14 @@ package sk.math.data;
  */
 
 import lombok.Getter;
+import sk.utils.functional.O;
 import sk.utils.minmax.MinMaxAvg;
 import sk.utils.statics.Ar;
 import sk.utils.statics.Cc;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
@@ -38,6 +40,7 @@ public class MDataSet {
     private String nameY;
     double[] y;
     double[][] x;
+    O<Color> color = O.empty();
 
     public MDataSet(MDataSet base, MDataSet... datasets) {
         var baseY = DoubleStream.of(base.getY());
@@ -88,6 +91,10 @@ public class MDataSet {
         this.x = x;
     }
 
+    public MDataSet(String name, String nameY, String[] nameX, double[] y, double[] x) {
+        this(name, nameY, nameX, y, Arrays.stream(x).mapToObj($ -> new double[]{$}).toArray(double[][]::new));
+    }
+
     public MDataSet(double[] y) {
         this("NONAME", "Y", "X", y, Ar.getValuesIncrementedBy1(y.length));
     }
@@ -108,6 +115,11 @@ public class MDataSet {
         for (int i = 0; i < y.length; i++) {
             consumer.consume(x[i], y[i]);
         }
+    }
+
+    public MDataSet withColor(Color c) {
+        this.color = O.of(c);
+        return this;
     }
 
     public X2<MinMaxAvg[], MinMaxAvg> getLimits() {

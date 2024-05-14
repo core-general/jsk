@@ -21,10 +21,11 @@ package sk.spring.services;
  */
 
 import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 import lombok.Data;
+import org.springframework.core.env.ConfigurableEnvironment;
 import sk.services.profile.IAppProfile;
 import sk.services.profile.IAppProfileType;
-import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Fu;
@@ -37,16 +38,22 @@ public class AppProfileImpl<T extends IAppProfileType> implements IAppProfile<T>
     private final Class<T> cls;
     private T value;
 
+    @Inject ConfigurableEnvironment env;
+
     @PostConstruct
-    public void init() {
+    public void init() throws RuntimeException {
         if (!cls.isEnum()) {
             Ex.thRow(cls + " is not enum");
         }
-        String profile = O
-                .ofNullable(System.getProperty("spring.profiles.active"))
-                .orElseThrow(() -> new RuntimeException(
-                        "Profile should be explicitly set with 'spring.profiles.active'. Available profiles:%s"
-                                .formatted(Arrays.toString(cls.getEnumConstants()))));
+        String[] activeProfiles = env.getActiveProfiles();
+        if (activeProfiles.length != 1) {
+            throw new RuntimeException(
+                    "Profile should be explicitly set and it should be only one with 'spring.profiles.active' (or with " +
+                    "ConfigurableEnvironment redefinition). Available profiles:%s"
+                            .formatted(Arrays.toString(cls.getEnumConstants())));
+        }
+
+        String profile = activeProfiles[0];
 
         value = Cc.stream(cls.getEnumConstants())
                 .filter($ -> Fu.equalIgnoreCase(profile, $.name()))

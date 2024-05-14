@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>jsk</groupId>
+        <artifactId>jx-test-modules</artifactId>
+        <version>jsk.21.0.10</version>
+    </parent>
+
+    <artifactId>jx-test-landscape-modules</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>jx-test-landscape-core</module>
+        <module>jx-test-landscape-testcontainers</module>
+        <module>jx-test-landscape-testcontainers-localstack</module>
+        <module>jx-test-landscape-testcontainers-pg</module>
+    </modules>
+
+    <properties>
+        <testcontainers.version>1.19.7</testcontainers.version>
+    </properties>
+
+
+</project>

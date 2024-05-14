@@ -108,6 +108,11 @@ public class ArgParser<T extends Enum<T> & ArgParserConfig<T>> {
         return "\n" + Cc.join("\n", confs.stream().map($ -> $.asString())) + "\n\n";
     }
 
+    @Override
+    public String toString() {
+        return Cc.joinMap(finalValues);
+    }
+
     @Data
     private class ProcessedConfig {
         boolean usedNoArgParam = false;

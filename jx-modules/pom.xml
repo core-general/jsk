@@ -5,24 +5,23 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.9</version>
+        <version>jsk.21.0.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-modules</artifactId>
-    <version>jsk.21.0.9</version>
+    <version>jsk.21.0.10</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>jx-utils</module>
         <module>jx-services-core</module>
         <module>jx-services-standard-impl</module>
-        <module>jx-test</module>
-        <module>jx-test-with-services</module>
         <module>jx-ip-geo-maxmind</module>
         <module>jx-system-info</module>
         <module>jx-probability-algs</module>
         <module>jx-model-mapper</module>
         <module>jx-logging</module>
+        <module>jx-test-modules</module>
     </modules>
 </project>

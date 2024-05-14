@@ -44,6 +44,8 @@ import org.codehaus.plexus.logging.console.ConsoleLogger;
 import sk.mvn.model.*;
 import sk.services.json.JGsonImpl;
 import sk.services.nodeinfo.model.ApiBuildInfo;
+import sk.utils.async.locks.JLock;
+import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
@@ -107,11 +109,15 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
      */
     @Parameter String[] basePaths;
 
+    private static final JLock lock = new JLockDecorator();
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        ApiClassUtil util = getApiClassUtil();
-        generateGitVersion(util);
-        generateApiClasses(util);
+        lock.runInLock(() -> {
+            ApiClassUtil util = getApiClassUtil();
+            generateGitVersion(util);
+            generateApiClasses(util);
+        });
     }
 
     private void generateGitVersion(ApiClassUtil util) {

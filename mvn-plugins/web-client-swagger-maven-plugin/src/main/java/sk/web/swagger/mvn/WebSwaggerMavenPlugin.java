@@ -32,6 +32,8 @@ import org.openapitools.codegen.OpenAPIGenerator;
 import sk.mvn.ApiClassUtil;
 import sk.services.except.IExcept;
 import sk.services.json.JGsonImpl;
+import sk.utils.async.locks.JLock;
+import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.O;
 import sk.utils.statics.*;
 import sk.utils.tuples.X;
@@ -48,56 +50,60 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
     @Parameter String[] apiClasses;
     @Parameter String[] generators = new String[0];
 
+    private static final JLock lock = new JLockDecorator();
+
     @Override
     @SneakyThrows
     public void execute() throws MojoExecutionException, MojoFailureException {
-        MavenProject project = (MavenProject) getPluginContext().get("project");
+        lock.runInLockRE(() -> {
+            MavenProject project = (MavenProject) getPluginContext().get("project");
 
-        final String out = St.endWith(project.getRuntimeClasspathElements().get(0), "/");
-        getLog().debug("OUTPATH->" + out);
+            final String out = St.endWith(project.getRuntimeClasspathElements().get(0), "/");
+            getLog().debug("OUTPATH->" + out);
 
-        WebSwaggerGenerator wsg = new WebSwaggerGenerator(
-                new WebMethodInfoProviderImpl(new IExcept() {},
-                        new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString())));
+            WebSwaggerGenerator wsg = new WebSwaggerGenerator(
+                    new WebMethodInfoProviderImpl(new IExcept() {},
+                            new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString())));
 
-        final Map<String, X2<String, Class>> fileContents = Cc.stream(this.apiClasses)
-                .map($1 -> Ex.toRuntime(() -> Class.forName($1)))
-                .map($ -> X.x(out + "__jsk_util/swagger/api_specs/" + $.getSimpleName() + ".json",
-                        X.x(wsg.generateSwaggerSpec($, O.empty()), (Class) $)))
-                .collect(Cc.toMX2());
+            final Map<String, X2<String, Class>> fileContents = Cc.stream(this.apiClasses)
+                    .map($1 -> Ex.toRuntime(() -> Class.forName($1)))
+                    .map($ -> X.x(out + "__jsk_util/swagger/api_specs/" + $.getSimpleName() + ".json",
+                            X.x(wsg.generateSwaggerSpec($, O.empty()), (Class) $)))
+                    .collect(Cc.toMX2());
 
-        final List<X2<WebSwaggerMavenGeneratorTypes, String>> generators = Cc.stream(this.generators)
-                .map($ -> {
-                    final String[] lr = $.split(":");
-                    final WebSwaggerMavenGeneratorTypes type =
-                            Re.findInEnum(WebSwaggerMavenGeneratorTypes.class, lr[0])
-                                    .orElseThrow(() -> new RuntimeException("Can't find generator for: " + lr[0]));
+            final List<X2<WebSwaggerMavenGeneratorTypes, String>> generators = Cc.stream(this.generators)
+                    .map($ -> {
+                        final String[] lr = $.split(":");
+                        final WebSwaggerMavenGeneratorTypes type =
+                                Re.findInEnum(WebSwaggerMavenGeneratorTypes.class, lr[0])
+                                        .orElseThrow(() -> new RuntimeException("Can't find generator for: " + lr[0]));
 
-                    return X.x(type, lr[1]);
-                })
-                .collect(Collectors.toList());
+                        return X.x(type, lr[1]);
+                    })
+                    .collect(Collectors.toList());
 
-        fileContents.forEach((k, v) -> {
-            synchronized (k.intern()) {
-                Io.reWrite(k, w -> w.append(v.i1()));
-                for (X2<WebSwaggerMavenGeneratorTypes, String> generator : generators) {
+            fileContents.forEach((k, v) -> {
+                synchronized (k.intern()) {
+                    Io.reWrite(k, w -> w.append(v.i1()));
+                    for (X2<WebSwaggerMavenGeneratorTypes, String> generator : generators) {
 
-                    Io.deleteIfExists(St.endWith(generator.i2(), "/") + v.i2().getSimpleName());
-                    final String pckg = v.i2().getName().replace("." + v.i2().getSimpleName(), "");
-                    final List<String> params = Cc.l("generate",
-                            "-i", k,
-                            "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
-                            "-g", generator.i1().getGeneratorName(),
-                            "--global-property", "skipFormModel=false"
-                    );
+                        Io.deleteIfExists(St.endWith(generator.i2(), "/") + v.i2().getSimpleName());
+                        final String pckg = v.i2().getName().replace("." + v.i2().getSimpleName(), "");
+                        final List<String> params = Cc.l("generate",
+                                "-i", k,
+                                "-o", St.endWith(generator.i2(), "/") + v.i2().getSimpleName(),
+                                "-g", generator.i1().getGeneratorName(),
+                                "--global-property", "skipFormModel=false"
+                        );
 
-                    params.add("--additional-properties=pubName=" + v.i2().getSimpleName());
+                        params.add("--additional-properties=pubName=" + v.i2().getSimpleName());
 
-                    generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
+                        generator.i1.getTemplatePath().ifPresent(path -> params.addAll(Cc.l("-t", path)));
 
-                    OpenAPIGenerator.main(params.toArray(new String[0]));
+                        OpenAPIGenerator.main(params.toArray(new String[0]));
+                    }
                 }
-            }
+            });
         });
     }
 }

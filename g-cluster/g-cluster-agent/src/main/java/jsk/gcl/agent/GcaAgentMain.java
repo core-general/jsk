@@ -41,6 +41,7 @@ import sk.utils.statics.Io;
 import sk.utils.statics.Ti;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
+import spark.Spark;
 
 import java.net.URI;
 import java.util.List;
@@ -67,6 +68,9 @@ public class GcaAgentMain {
     List<GcaFileUpdaterTask> payloadUpdaters;
 
     public static void main(String[] args) throws Exception {
+        Spark.port(8079);
+        Spark.get("/agent/ping", (request, response) -> "ok");
+
         log.info("Starting agent");
         final ArgParser<ARGS> arguments = ArgParser.parse(args, ARGS.S3_KEY);
 

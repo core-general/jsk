@@ -22,6 +22,7 @@ package sk.services.http;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sk.exceptions.JskProblem;
 import sk.services.ICoreServices;
@@ -267,9 +268,15 @@ public class HttpImpl implements IHttp {
         return bytes;
     }
 
-    private static class RetryException extends RuntimeException {
+    @Getter
+    public static class RetryException extends RuntimeException {
+        int code;
+        CoreHttpResponse resp;
+
         public RetryException(CoreHttpResponse resp) {
             super(resp.code() + " " + resp.newAsString());
+            this.code = resp.code();
+            this.resp = resp;
         }
     }
 

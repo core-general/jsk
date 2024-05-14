@@ -65,7 +65,7 @@ public class WebSparkCoreConfig {
     }
 
     @Bean
-    public WebContextHolder WebContextHolder() { return new WebContextHolder(); }
+    public WebContextHolder WebContextHolder() {return new WebContextHolder();}
 
     @Bean
     public WebJettyContextConsumer4Spark WebJettyContextConsumer4Spark() {
@@ -136,7 +136,7 @@ public class WebSparkCoreConfig {
 
     @Bean
     public WebServerParams WebServerParams() {
-        return new WebServerSpringParams();
+        return new WebServerSpringParams(false);
     }
 
     @Bean
@@ -157,47 +157,47 @@ public class WebSparkCoreConfig {
 
     //region Filters
     @Bean
-    public WebAuthFilter WebAuthFilter() { return new WebAuthFilter(); }
+    public WebAuthFilter WebAuthFilter() {return new WebAuthFilter();}
 
     @Bean
-    public WebDdosFilter WebDdosFilter() { return new WebDdosFilter(); }
+    public WebDdosFilter WebDdosFilter() {return new WebDdosFilter();}
 
     @Bean
-    public WebDefaultHeadersFilter WebDefaultHeadersFilter() { return new WebDefaultHeadersFilter(); }
+    public WebDefaultHeadersFilter WebDefaultHeadersFilter() {return new WebDefaultHeadersFilter();}
 
     @Bean
-    public WebIdempotenceFilter WebIdempotenceFilter() { return new WebIdempotenceFilter(); }
+    public WebIdempotenceFilter WebIdempotenceFilter() {return new WebIdempotenceFilter();}
 
     @Bean
-    public WebRequestLoggingFilter WebRequestLoggingFilter() { return new WebRequestLoggingFilter(); }
+    public WebRequestLoggingFilter WebRequestLoggingFilter() {return new WebRequestLoggingFilter();}
 
     @Bean
-    public WebShutdownFilter WebShutdownFilter() { return new WebShutdownFilter(); }
+    public WebShutdownFilter WebShutdownFilter() {return new WebShutdownFilter();}
 
     @Bean
-    public WebExceptionFilter WebExceptionFilter() { return new WebExceptionFilter(); }
+    public WebExceptionFilter WebExceptionFilter() {return new WebExceptionFilter();}
 
     @Bean
-    public WebRenderFilter WebRenderFilter() { return new WebRenderFilter(); }
+    public WebRenderFilter WebRenderFilter() {return new WebRenderFilter();}
 
     @Bean
-    public WebContextExplicatorFilter WebContextExplicatorFilter() { return new WebContextExplicatorFilter(); }
+    public WebContextExplicatorFilter WebContextExplicatorFilter() {return new WebContextExplicatorFilter();}
     //endregion
 
     //region Renders
     @Bean
-    public WebB64Render WebB64Render() { return new WebB64Render(); }
+    public WebB64Render WebB64Render() {return new WebB64Render();}
 
     @Bean
-    public WebJsonPrettyRender WebJsonPrettyRender() { return new WebJsonPrettyRender(); }
+    public WebJsonPrettyRender WebJsonPrettyRender() {return new WebJsonPrettyRender();}
 
     @Bean
-    public WebJsonRender WebJsonRender() { return new WebJsonRender(); }
+    public WebJsonRender WebJsonRender() {return new WebJsonRender();}
 
     @Bean
-    public WebRawByteRenderZipped WebRawByteRenderZipped() { return new WebRawByteRenderZipped(); }
+    public WebRawByteRenderZipped WebRawByteRenderZipped() {return new WebRawByteRenderZipped();}
 
     @Bean
-    public WebRawStringRender WebRawStringRender() { return new WebRawStringRender(); }
+    public WebRawStringRender WebRawStringRender() {return new WebRawStringRender();}
     //endregion
 }

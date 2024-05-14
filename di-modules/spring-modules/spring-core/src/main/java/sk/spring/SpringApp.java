@@ -24,17 +24,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.StandardEnvironment;
+import sk.services.profile.IAppProfileType;
 import sk.utils.functional.O;
 import sk.utils.logging.JskLogging;
+import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
 import sk.utils.statics.St;
+
+import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
 public class SpringApp<K extends SpringAppEntryPoint> {
 
     @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
     public static <K extends SpringAppEntryPoint> SpringApp<K> createSimple(K processorWillBeAutowired, Class<?> configClass) {
-        return new SpringApp<>(O.empty(), O.empty(), processorWillBeAutowired, configClass);
+        return new SpringApp<>(O.empty(), O.empty(), processorWillBeAutowired, configClass, O.empty());
+    }
+
+    @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
+    public static <K extends SpringAppEntryPoint> SpringApp<K> createSimple(K processorWillBeAutowired, Class<?> configClass,
+            IAppProfileType profile) {
+        return new SpringApp<>(O.empty(), O.empty(), processorWillBeAutowired, configClass, O.of(profile));
     }
 
     /**
@@ -46,7 +57,7 @@ public class SpringApp<K extends SpringAppEntryPoint> {
             K processorWillBeAutowired,
             Class<?> configClass) {
         return new SpringApp<>(O.ofNull(welcomeTextFolderOrFile), O.ofNull(logger),
-                processorWillBeAutowired, configClass);
+                processorWillBeAutowired, configClass, O.empty());
     }
 
 
@@ -54,7 +65,7 @@ public class SpringApp<K extends SpringAppEntryPoint> {
             String welcomeTextFolderOrFile,
             JskLogging logger,
             Class<?> configClass) {
-        return new SpringApp<>(O.ofNull(welcomeTextFolderOrFile), O.ofNull(logger), () -> {}, configClass);
+        return new SpringApp<>(O.ofNull(welcomeTextFolderOrFile), O.ofNull(logger), () -> {}, configClass, O.empty());
     }
 
     public synchronized void closeContext() {
@@ -64,7 +75,7 @@ public class SpringApp<K extends SpringAppEntryPoint> {
     private final AnnotationConfigApplicationContext context;
 
     protected SpringApp(O<String> welcomeTextFolderOrFileOrText, O<JskLogging> oLogger, K processor,
-            Class<?> configClass) {
+            Class<?> configClass, O<IAppProfileType> activeProfile) {
         String profileName = O.ofNull(System.getProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME))
                 .map($ -> {
                     if ($.contains(",")) {
@@ -76,6 +87,10 @@ public class SpringApp<K extends SpringAppEntryPoint> {
         oLogger.ifPresent(logger -> logger.prepare("-" + profileName));
 
         context = new AnnotationConfigApplicationContext();
+        activeProfile.ifPresent($ -> context.setEnvironment(new StandardEnvironment() {
+            @Override
+            protected Set<String> doGetActiveProfiles() {return Cc.s($.name());}
+        }));
         context.setAllowBeanDefinitionOverriding(false);
         context.register(configClass);
         context.refresh();

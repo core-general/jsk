@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import sk.services.async.ISleep;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 import sk.utils.statics.Cc;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RepeatImplTest extends MockitoTest {
+public class RepeatImplTest extends JskMockitoTest {
     @InjectMocks RepeatImpl repeat;
     @Mock ISleep sleep;
 

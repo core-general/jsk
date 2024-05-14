@@ -21,13 +21,13 @@ package sk.utils.paging;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Fu;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RingPickerTest extends MockitoTest {
+public class RingPickerTest extends JskMockitoTest {
     @Test
     public void general() {
         RingPicker<String> cp = RingPicker.createAndRotate(Cc.l("a", "b", "c"), 4);

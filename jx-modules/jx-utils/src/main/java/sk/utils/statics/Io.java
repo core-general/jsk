@@ -27,6 +27,7 @@ import sk.utils.files.FileList;
 import sk.utils.functional.*;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -35,7 +36,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -76,7 +79,6 @@ public final class Io/*Input/Output*/ {
         }
     }
 
-
     public static boolean isWWWAvailable() {
         return isWWWAvailable(5000);
     }
@@ -94,6 +96,23 @@ public final class Io/*Input/Output*/ {
         }
     }
 
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    @SneakyThrows
+    public static AtomicInteger getFreePort(AtomicInteger portStorage) {
+        Objects.requireNonNull(portStorage);
+        int port = portStorage.get();
+        if (port == 0) {
+            synchronized (portStorage) {
+                port = portStorage.get();
+                if (port == 0) {
+                    try (ServerSocket tempSocket = new ServerSocket(0)) {
+                        portStorage.set(tempSocket.getLocalPort());
+                    }
+                }
+            }
+        }
+        return portStorage;
+    }
 
     //region Input/Output streams. StreamPump
     @SneakyThrows

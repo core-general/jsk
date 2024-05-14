@@ -20,6 +20,8 @@ package sk.web.server.params;
  * #L%
  */
 
+import sk.utils.functional.O;
+
 import java.time.Duration;
 
 public interface WebDdosParams {
@@ -38,4 +40,8 @@ public interface WebDdosParams {
     Duration getUserInJailTime();
 
     boolean isDdosCourtEnabled();
+
+    default O<String> getDdosPassingHeader() {
+        return O.empty();
+    }
 }

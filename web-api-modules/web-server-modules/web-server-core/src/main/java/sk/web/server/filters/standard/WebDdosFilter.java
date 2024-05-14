@@ -59,7 +59,10 @@ public class WebDdosFilter implements WebServerFilter, IBeanInfoSubscriber<Map<S
 
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
-        if (conf.isDdosCourtEnabled()) {
+        boolean debugDdosRequest = conf.getDdosPassingHeader()
+                .map($ -> requestContext.getRequestContext().getRequestHeader($).isPresent())
+                .orElse(false);
+        if (conf.isDdosCourtEnabled() && !debugDdosRequest) {
             final String clientIp = requestContext.getRequestContext().getIpInfo().getClientIp();
             if (jail.getIfPresent(clientIp) != null) {
                 log.error("ddoser:" + clientIp + "");

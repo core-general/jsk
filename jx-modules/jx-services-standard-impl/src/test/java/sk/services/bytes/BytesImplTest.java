@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import sk.services.http.CrcAndSize;
 import sk.services.rand.RandImpl;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 import sk.utils.statics.Io;
 import sk.utils.statics.St;
 
@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class BytesImplTest extends MockitoTest {
+public class BytesImplTest extends JskMockitoTest {
     @InjectMocks BytesImpl bytes;
     @InjectMocks RandImpl rnd;
 

@@ -24,12 +24,14 @@ import jakarta.inject.Inject;
 import jsk.spark.testmodel.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import sk.aws.dynamo.DynBeanConfigWithKvStore;
 import sk.aws.dynamo.DynProperties;
 import sk.aws.spring.AwsBeanConfig;
+import sk.services.ICoreServices;
 import sk.services.async.IAsync;
 import sk.services.except.IExcept;
 import sk.services.idempotence.IIdempParameters;
@@ -46,6 +48,9 @@ import sk.spring.config.SpringCoreConfig;
 import sk.spring.config.SpringCoreConfigWithProperties;
 import sk.spring.services.AppProfileImpl;
 import sk.spring.utils.DefaultThrowableHandler;
+import sk.test.land.testcontainers.pg.JskLandPg;
+import sk.test.land.testcontainers.pg.JskLandPgConfig;
+import sk.test.land.testcontainers.pg.JskLandPgWithData;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.logging.JskLoggingLogback;
@@ -64,9 +69,11 @@ import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
 import sk.web.server.params.WebBasicAuthParams;
 import sk.web.server.params.WebIdempotenceParams;
+import sk.web.server.params.WebServerParams;
 import sk.web.server.params.WebUserActionLoggerParams;
 import sk.web.server.spark.WebJettyEntryPoint;
 import sk.web.server.spark.spring.WebSparkCoreConfig;
+import sk.web.server.spark.spring.properties.WebServerSpringParams;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -115,16 +122,6 @@ public class WebSparkTest {
 
         @Override
         public String a(String abc) {
-            //final String join = Cc.join("\n===================================================================\n\n",
-            //        historyProvider.getRenderedUserHistory(abc,
-            //                of(ZonedDateTime.parse("2020-09-17T15:10:00.000Z", ISO_DATE_TIME)),
-            //                of(ZonedDateTime.parse("2021-09-17T16:10:00.000Z", ISO_DATE_TIME)),
-            //                10,
-            //                false),
-            //        x -> St.addTabsLeft(O.ofNull(x.i3())
-            //                .map($ -> Ti.yyyyMMddHHmmssSSS.format($) + "\n").orElse("") + json.to(x.i1(), false) + x.i2(), 2));
-            //System.out.println(join);
-
             final X2<String, String> abcd = ctx.get().getClientIdAndTokenCookie("ABCD");
 
             final List<WebRequestFullInfo> fullUserHistory = historyProvider.getFullUserHistory(abc,
@@ -192,6 +189,29 @@ public class WebSparkTest {
         public String testParamsToObjectMergerPost(SomeClass2 someCls2) {
             return testParamsToObjectMergerGet(someCls2);
         }
+
+
+        @Inject JskLandPgWithData pg;
+
+        @Override
+        @SneakyThrows
+        public String startEnvironment(O<Integer> port) {
+            pg.start();
+            pg.getSql().update("""
+                    create schema if not exists xyz;
+                    create table xyz.test(
+                        name int not null
+                    );
+                    """, Cc.m());
+            return pg.getPgLand().getOutsidePort() + "";
+        }
+
+        @Override
+        @SneakyThrows
+        public String stopEnvironment() {
+            pg.stop();
+            return "OK";
+        }
     }
 
     public static class Api3Impl implements TestApiSwaggerTest3 {
@@ -241,10 +261,26 @@ public class WebSparkTest {
             UserLoggingConfig.class,
             SpringCoreConfig.class,
             WebCoreConfig.class,
-            WebSparkCoreConfig.class,
-            SpringCoreConfigWithProperties.class
+            Config.WebSparkCoreConfigThis.class,
+            SpringCoreConfigWithProperties.class,
+
+            JskLandPgConfig.class
     })
     public static class Config {
+        @Configuration
+        public static class WebSparkCoreConfigThis extends WebSparkCoreConfig {
+            @Override
+            public WebServerParams WebServerParams() {
+                //return new WebServerSpringParams(true);//random port
+                return new WebServerSpringParams(false);
+            }
+        }
+
+        @Bean
+        JskLandPgWithData JskLandPgWithData(ICoreServices core, JskLandPg pg) {
+            return new JskLandPgWithData(core, pg, "tzt");
+        }
+
         @Bean
         DefaultThrowableHandler<OutOfMemoryError> DefaultThrowableHandler1() {
             return new DefaultThrowableHandler<>() {

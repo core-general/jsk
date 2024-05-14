@@ -25,10 +25,15 @@ import lombok.AllArgsConstructor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @AllArgsConstructor
 public class JLockDecorator implements JLock {
     private final Lock lock;
+
+    public JLockDecorator() {
+        this(new ReentrantLock());
+    }
 
     @Override
     public void lock() {

@@ -22,7 +22,7 @@ package sk.utils.statics;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 import sk.utils.functional.O;
 
 import java.util.*;
@@ -30,7 +30,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.statics.Cc.*;
 
-public class CcTest extends MockitoTest {
+public class CcTest extends JskMockitoTest {
 
     private List<Integer> l;
     private Map<Integer, String> m;

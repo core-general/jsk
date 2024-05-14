@@ -25,11 +25,13 @@ import lombok.RequiredArgsConstructor;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension;
 import sk.utils.functional.O;
+import sk.utils.statics.Cc;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 import java.util.List;
 
@@ -45,7 +47,7 @@ public class DynClient {
     O<DynamoDbEnhancedClient> dynaHighLvl;
 
     @PostConstruct
-    DynClient init() {
+    public DynClient init() {
         dynaLowLvl = O.of(configurator.DynamoDbClient(properties, helper));
         dynaHighLvl = O.of(configurator.DynamoDbEnhancedClient(dynaLowLvl.get(), createUpdateExtension, plugins));
 
@@ -64,6 +66,12 @@ public class DynClient {
 
     public void deleteTable(String name) {
         dynaLowLvl.ifPresent($ -> $.deleteTable(DeleteTableRequest.builder().tableName(name).build()));
+    }
+
+    public List<String> getAllTableNames() {
+        return dynaLowLvl.map($ -> $.listTables(ListTablesRequest.builder().build()))
+                .map($ -> $.tableNames())
+                .orElseGet(() -> Cc.l());
     }
 
     public <T> DynTable<T> table(String name, TableSchema<T> schema) {

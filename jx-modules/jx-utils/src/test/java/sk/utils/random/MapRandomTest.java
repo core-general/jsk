@@ -21,7 +21,7 @@ package sk.utils.random;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 import sk.utils.paging.RingPicker;
 import sk.utils.statics.Cc;
 
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static sk.utils.random.MapRandom.rnd;
 
-public class MapRandomTest extends MockitoTest {
+public class MapRandomTest extends JskMockitoTest {
     @Test
     public void general() {
         Iterator<Double> cp = RingPicker.create(Cc.l(0.55d, 0.44d, 0.19d)).iterator();

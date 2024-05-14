@@ -22,6 +22,7 @@ package sk.math.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +30,7 @@ import java.util.Objects;
 
 @AllArgsConstructor
 public class MDataSets {
-    private String name;
+    @Setter private String name;
     private String[] nameX;
     private String nameY;
     @Getter List<MDataSet> datasets;

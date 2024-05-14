@@ -21,13 +21,13 @@ package sk.utils.statics;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static sk.utils.statics.Ex.*;
 
-public class ExTest extends MockitoTest {
+public class ExTest extends JskMockitoTest {
 
     @Test
     public void thRowTest() {

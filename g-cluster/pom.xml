@@ -5,16 +5,17 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.9</version>
+        <version>jsk.21.0.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>jsk.21.0.9</version>
+    <version>jsk.21.0.10</version>
 
     <artifactId>g-cluster</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>g-cluster-agent</module>
         <module>g-cluster-deployer</module>
+        <module>g-cluster-checker</module>
     </modules>
 </project>

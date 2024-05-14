@@ -21,11 +21,11 @@ package sk.utils.functional;
  */
 
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GSetTest extends MockitoTest {
+public class GSetTest extends JskMockitoTest {
     @SuppressWarnings("UnnecessaryLocalVariable")
     @Test
     public void general() {

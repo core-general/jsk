@@ -116,7 +116,7 @@ public class JGraphHelp {
                 datasets.getXName()[0],
                 datasets.getYName(),
                 collection,
-                PlotOrientation.VERTICAL, true, true, true));
+                PlotOrientation.VERTICAL, true, true, true), datasets);
     }
 
     public static JFreeChart scatterPlotX1(MDataSets datasets) {
@@ -133,7 +133,7 @@ public class JGraphHelp {
                 datasets.getXName()[0],
                 datasets.getYName(),
                 collection,
-                PlotOrientation.VERTICAL, true, true, true));
+                PlotOrientation.VERTICAL, true, true, true), datasets);
     }
 
     public static JFreeChart uniPlotX1(MDataSets datasets, boolean[] lines, boolean[] points) {
@@ -150,12 +150,16 @@ public class JGraphHelp {
                 datasets.getXName()[0],
                 datasets.getYName(),
                 collection, lines, points,
-                PlotOrientation.VERTICAL, true, true, true));
+                PlotOrientation.VERTICAL, true, true, true), datasets);
     }
 
 
     public static void debugChart(JFreeChart chart) {
-        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", chart);
+        JGraphHelp.save("/tmp/jfree_debug/" + LocalDateTime.now() + ".png", chart);
+    }
+
+    public static void debugChart(String prefix, JFreeChart chart) {
+        JGraphHelp.save("/tmp/jfree_debug/%s_%s.png".formatted(prefix, LocalDateTime.now()), chart);
     }
 
     public static void debugLineChartX1(double[]... ys) {
@@ -164,7 +168,15 @@ public class JGraphHelp {
 
     public static void debugLineChartX1(List<double[]> ys) {
         AtomicInteger intVal = new AtomicInteger(0);
-        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
+        JGraphHelp.save("/tmp/jfree_debug/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
+                new MDataSets(ys.stream()
+                        .map($ -> new MDataSet("" + intVal.incrementAndGet(), $, Ar.getValuesIncrementedBy1($.length)))
+                        .toList())));
+    }
+
+    public static void debugLineChartX1(String prefix, List<double[]> ys) {
+        AtomicInteger intVal = new AtomicInteger(0);
+        JGraphHelp.save("/tmp/jfree_debug/%s_%s.png".formatted(prefix, LocalDateTime.now()), JGraphHelp.lineChartX1(
                 new MDataSets(ys.stream()
                         .map($ -> new MDataSet("" + intVal.incrementAndGet(), $, Ar.getValuesIncrementedBy1($.length)))
                         .toList())));
@@ -175,7 +187,7 @@ public class JGraphHelp {
     }
 
     public static void debugLineChartXY(List<double[]> ys, List<double[]> xs) {
-        JGraphHelp.save("/tmp/debug_plots/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
+        JGraphHelp.save("/tmp/jfree_debug/" + LocalDateTime.now() + ".png", JGraphHelp.lineChartX1(
                 new MDataSets(Cc.mapEachWithIndex(ys, ($, i) -> new MDataSet($, xs.get(i))))));
     }
 
@@ -197,7 +209,7 @@ public class JGraphHelp {
                     }
                     return new MDataSet(
                             $.getOptimizedFunction().getProtoClass().getSimpleName() +
-                                    String.format(" err=%.2f", $.getSquareRootError()),
+                            String.format(" err=%.2f", $.getSquareRootError()),
                             yy.stream().mapToDouble(y -> y).toArray(),
                             xx.stream().map(x -> new double[]{x}).toArray(double[][]::new)
                     );
@@ -212,10 +224,11 @@ public class JGraphHelp {
         boolean[] dots = new boolean[datasets.size()];
         dots[0] = true;
 
+        MDataSets datasets1 = new MDataSets(datasets);
         return defaultRender(uniPlotX1(
-                new MDataSets(datasets),
+                datasets1,
                 lines, dots
-        ));
+        ), datasets1);
     }
 
     public static <T extends MFuncProto> JFreeChart functionAndDataSets(MDataSet dataset,
@@ -227,11 +240,14 @@ public class JGraphHelp {
                 functions.stream().map($ -> functionProducer.apply(dataset, (Class<T>) $).get()).toArray(MOptimizeInfo[]::new));
     }
 
-    private static JFreeChart defaultRender(JFreeChart chart) {
+    private static JFreeChart defaultRender(JFreeChart chart, MDataSets data) {
         try {
             var render = (AbstractRenderer) chart.getXYPlot().getRenderer();
             render.setAutoPopulateSeriesStroke(false);
             render.setDefaultStroke(new BasicStroke(4));
+            Cc.eachWithIndex(data.getDatasets(), (ds, i) -> {
+                ds.getColor().ifPresent(clr -> render.setSeriesPaint(i, clr));
+            });
             return chart;
         } catch (Exception e) {
             return chart;

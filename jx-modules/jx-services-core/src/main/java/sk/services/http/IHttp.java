@@ -224,7 +224,6 @@ public interface IHttp {
     @Accessors(fluent = true, chain = true)
     @Getter
     class HttpFormBuilder extends HttpPostBuilder<HttpFormBuilder> {
-        @Setter(AccessLevel.PRIVATE) F1<HttpFormBuilder, OneOf<CoreHttpResponse, Exception>> requester;
         Map<String, String> parameters = null;
 
         private HttpFormBuilder(String url, F1<HttpFormBuilder, OneOf<CoreHttpResponse, Exception>> requester) {
@@ -253,7 +252,6 @@ public interface IHttp {
     @Accessors(fluent = true, chain = true)
     @Getter
     class HttpMultipartBuilder extends HttpPostBuilder<HttpMultipartBuilder> {
-        @Setter(AccessLevel.PRIVATE) F1<HttpMultipartBuilder, OneOf<CoreHttpResponse, Exception>> requester;
         Map<String, String> parameters = null;
         Map<String, byte[]> rawParameters = null;
 
@@ -289,7 +287,6 @@ public interface IHttp {
     @Accessors(fluent = true, chain = true)
     @Getter
     class HttpBodyBuilder extends HttpPostBuilder<HttpBodyBuilder> {
-        @Setter(AccessLevel.PRIVATE) F1<HttpBodyBuilder, OneOf<CoreHttpResponse, Exception>> requester;
         OneOf<String, byte[]> body;
 
         private HttpBodyBuilder(String url, F1<HttpBodyBuilder, OneOf<CoreHttpResponse, Exception>> requester) {

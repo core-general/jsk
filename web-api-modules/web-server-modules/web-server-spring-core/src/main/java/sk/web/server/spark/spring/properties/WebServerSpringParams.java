@@ -23,36 +23,50 @@ package sk.web.server.spark.spring.properties;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import sk.utils.functional.O;
+import sk.utils.statics.Io;
 import sk.web.server.params.WebServerParams;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class WebServerSpringParams implements WebServerParams {
-    @Getter
-    @Value("${web_server_port}")
-    private int port;
+    private final boolean randomPort;
+    @Value("${web_server_port:0}")
+    private volatile int port;
 
     @Getter
     @Value("${web_server_formlimit:1000000}")
-    private long formLimit;
+    private volatile long formLimit;
 
     @Value("${web_server_static_files_location:#{null}}")
-    private String staticFilesLocation;
+    private volatile String staticFilesLocation;
 
     @Value("${web_server_idle_timeout:#{null}}")
-    private Long idleTimeout;
+    private volatile Long idleTimeout;
 
     @Value("${web_server_shutdown_wait:#{null}}")
-    private Long shutdownWait;
+    private volatile Long shutdownWait;
 
     @Value("${web_server_token_timeout_sec:#{null}}")
-    private Integer tokenTimeoutSec;
+    private volatile Integer tokenTimeoutSec;
 
     @Value("${web_server_token_in_cookies:#{false}}")
     @Getter
-    private boolean useCookiesForToken;
+    private volatile boolean useCookiesForToken;
+
+    private final AtomicInteger portStorage = new AtomicInteger();
 
     @Override
     public O<Long> getIdleTimeout() {
         return O.ofNull(idleTimeout);
+    }
+
+    public WebServerSpringParams(boolean randomPort) {
+        this.randomPort = randomPort;
+    }
+
+    @Override
+    public int getPort() {
+        return port == 0 || randomPort ? port = Io.getFreePort(portStorage).get() : port;
     }
 
     @Override

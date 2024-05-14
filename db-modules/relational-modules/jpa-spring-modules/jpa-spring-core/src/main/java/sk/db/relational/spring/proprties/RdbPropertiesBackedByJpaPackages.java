@@ -21,6 +21,7 @@ package sk.db.relational.spring.proprties;
  */
 
 import jakarta.inject.Inject;
+import sk.db.relational.utils.RdbProperties;
 import sk.utils.functional.O;
 
 import java.util.List;

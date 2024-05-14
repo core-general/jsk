@@ -93,7 +93,8 @@ public class GcdDeployerMain {
      * 8. Upload meta
      */
     private static void process(S3JskClient s3Client, ArgParser<ARGS> a) {
-        final byte[] mainPayload = Io.bRead(a.getRequiredArg(ARGS.FILE_IN)).bytes();
+        final byte[] mainPayload = Io.bRead(a.getRequiredArg(ARGS.FILE_IN)).oBytes()
+                .orElseThrow(() -> new RuntimeException("Need this file:" + a.getRequiredArg(ARGS.FILE_IN)));
         final CrcAndSize newCrcAndSize = core.bytes().calcCrcAndSize(mainPayload);
 
         final String fileName = new File(a.getRequiredArg(ARGS.FILE_IN)).getName();

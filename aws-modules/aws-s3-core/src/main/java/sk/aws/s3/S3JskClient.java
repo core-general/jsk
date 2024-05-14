@@ -107,6 +107,14 @@ public class S3JskClient {
         return this;
     }
 
+    public List<String> getBuckets() {
+        return s3.listBuckets().buckets().stream().map(Bucket::name).sorted().toList();
+    }
+
+    public void deleteBucket(String bucket) {
+        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket).build());
+    }
+
     /**
      * Puts data to S3 and returns nothing
      */

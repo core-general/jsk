@@ -22,13 +22,13 @@ package sk.utils.tree;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import sk.test.MockitoTest;
+import sk.test.JskMockitoTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static sk.utils.functional.O.empty;
 import static sk.utils.tree.TreePath.path;
 
-public class TreeTest extends MockitoTest {
+public class TreeTest extends JskMockitoTest {
     private Tree<String, Boolean> n;
 
     @BeforeEach

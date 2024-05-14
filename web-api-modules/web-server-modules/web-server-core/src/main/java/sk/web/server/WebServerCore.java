@@ -288,8 +288,8 @@ public class WebServerCore<API>
     public long waitBeforeStopMs() {
         //it's needed to allow users to stop using this node gently, if you don't need it, just use smaller value in children
         log.info("""
-                Web server is stoping, we need to sleep 10 seconds before shutdown. If you don't need it, please override waitBeforeStopMs method""");
-        return 10_000;
+                Web server is stoping, we need to sleep 1000 ms before shutdown. If you don't need it, please override waitBeforeStopMs method""");
+        return 1000;
     }
 
     @Override
@@ -469,14 +469,7 @@ public class WebServerCore<API>
                     getOneParameter(nt.getName(), nt.getType().getType(), false, onlyBody, nt.isMerging());
             cachedInvokers.put(nt.getName(), oneParameter);
         }
-        return (param, webRequestContext) -> {
-            //try {
-            return cachedInvokers.get(param).apply(webRequestContext);
-            //} catch (Exception e) {
-            //    return Ex.thRow("Can't process parameter: " + param + " all parameters: " + Cc.join(cachedInvokers.keySet()),
-            //    e);
-            //}
-        };
+        return (param, webRequestContext) -> cachedInvokers.get(param).apply(webRequestContext);
     }
 
     private F1<WebRequestReadableOuterContext, Object> getOneParameter(String paramName, Type type, boolean nullAllowed,
