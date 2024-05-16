@@ -5,13 +5,13 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.10</version>
+        <version>jsk.21.0.17</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.0.10</version>
+    <version>jsk.21.0.17</version>
     <properties>
         <aws-version>2.25.31</aws-version>
     </properties>

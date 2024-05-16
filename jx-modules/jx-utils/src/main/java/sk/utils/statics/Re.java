@@ -100,13 +100,14 @@ public final class Re/*flections*/ {
     private static final ConcurrentMap<Class<?>, O<Type[]>> parentParams = new ConcurrentHashMap<>();
 
     public static O<Type[]> getParentParameters(Class<?> curClass) {
-        return parentParams.computeIfAbsent(curClass, (cls) -> O.ofNull(cls.getGenericSuperclass())
-                .flatMap($ -> $ instanceof ParameterizedType
-                              ? O.ofNull(((ParameterizedType) $).getActualTypeArguments())
-                              : O.empty())
-                .or(() -> cls.getSuperclass() != null
-                          ? getParentParameters(cls.getSuperclass())
-                          : O.<Type[]>empty()));
+        O<Type[]> result = parentParams.get(curClass);
+        if (result != null) {
+            return result;
+        }
+
+        result = computeParentParameters(curClass);
+        parentParams.putIfAbsent(curClass, result);
+        return result;
     }
 
     //region fields
@@ -227,6 +228,17 @@ public final class Re/*flections*/ {
 
         return fields;
     }
+
+    private static O<Type[]> computeParentParameters(Class<?> curClass) {
+        return O.ofNull(curClass.getGenericSuperclass())
+                .flatMap($ -> $ instanceof ParameterizedType
+                              ? O.ofNull(((ParameterizedType) $).getActualTypeArguments())
+                              : O.empty())
+                .or(() -> curClass.getSuperclass() != null
+                          ? getParentParameters(curClass.getSuperclass())
+                          : O.<Type[]>empty());
+    }
+
 
     private Re() {
     }

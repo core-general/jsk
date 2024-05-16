@@ -20,8 +20,8 @@ package sk.spring.plugins;
  * #L%
  */
 
+import sk.services.CoreServicesRaw;
 import sk.services.json.IJson;
-import sk.services.json.JGsonImpl;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Io;
@@ -31,7 +31,7 @@ import java.util.List;
 public class PropertyMetaService {
 
     public static synchronized void savePropertyNames(String pathPrefix, String propertyPathPrefix, List<String> properties) {
-        IJson json = new JGsonImpl().init();
+        IJson json = CoreServicesRaw.services().json();
         final String to = json.to(new PropertyMeta(propertyPathPrefix, properties), true);
         Io.reWrite(pathPrefix + "/__jsk_util/properties/props4spring.json", w -> w.append(to));
     }
@@ -40,7 +40,7 @@ public class PropertyMetaService {
         final String properties = Io.getResource("__jsk_util/properties/props4spring.json")
                 .orElseThrow(() -> new RuntimeException(
                         "Can't find property meta file in:__jsk_util/properties/props4spring.json"));
-        IJson json = new JGsonImpl().init();
+        IJson json = CoreServicesRaw.services().json();
         return O.of(json.from(properties, TypeWrap.simple(PropertyMeta.class)));
     }
 }

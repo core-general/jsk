@@ -51,4 +51,7 @@ public abstract class JskSpringTest<T> implements SpringAppEntryPoint {
     public abstract Class<T> getRootConfig();
 
     public abstract IAppProfileType getProfile();
+
+    @Override
+    public void run() {}
 }

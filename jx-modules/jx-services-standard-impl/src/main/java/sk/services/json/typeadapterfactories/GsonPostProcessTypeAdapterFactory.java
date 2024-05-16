@@ -29,6 +29,7 @@ import com.google.gson.stream.JsonWriter;
 import lombok.AllArgsConstructor;
 import sk.services.bean.IServiceLocator;
 import sk.services.json.IJsonInitialized;
+import sk.services.json.IJsonInstanceProps;
 import sk.utils.functional.O;
 
 import java.io.IOException;
@@ -44,6 +45,9 @@ public class GsonPostProcessTypeAdapterFactory implements TypeAdapterFactory {
         return new TypeAdapter<T>() {
             @Override
             public void write(JsonWriter out, T value) throws IOException {
+                if (value instanceof IJsonInitialized init) {
+                    init.beforeSerialize(O.of(locator), new IJsonInstanceProps(gson.serializeNulls()));
+                }
                 delegateAdapter.write(out, value);
             }
 
@@ -54,7 +58,7 @@ public class GsonPostProcessTypeAdapterFactory implements TypeAdapterFactory {
                     return null;
                 }
                 if (obj instanceof IJsonInitialized init) {
-                    init.initAfterJsonDeserialize(O.of(locator));
+                    init.afterDeserialize(O.of(locator), new IJsonInstanceProps(gson.serializeNulls()));
                 }
                 return obj;
             }

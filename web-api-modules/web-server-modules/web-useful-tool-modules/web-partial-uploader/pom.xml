@@ -5,7 +5,7 @@
     <parent>
         <artifactId>web-useful-tool-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.10</version>
+        <version>jsk.21.0.17</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-core</artifactId>
-            <version>jsk.21.0.10</version>
+            <version>jsk.21.0.17</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-with-services</artifactId>
-            <version>jsk.21.0.10</version>
+            <version>jsk.21.0.17</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

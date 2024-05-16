@@ -25,10 +25,9 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import lombok.AllArgsConstructor;
-import sk.services.bytes.BytesImpl;
+import sk.services.CoreServicesRaw;
 import sk.services.bytes.IBytes;
 import sk.services.json.IJson;
-import sk.services.json.JGsonImpl;
 import sk.utils.javafixes.TypeWrap;
 
 import java.lang.reflect.Type;
@@ -36,8 +35,8 @@ import java.lang.reflect.Type;
 @AllArgsConstructor
 public class JwsJsonAdapter implements JsonDeserializer {
     //todo replace with inject
-    private static final IJson json = new JGsonImpl().init();
-    private static final IBytes bytes = new BytesImpl();
+    private static final IJson json = CoreServicesRaw.services().json();
+    private static final IBytes bytes = CoreServicesRaw.services().bytes();
 
     @Override
     public Object deserialize(JsonElement jj, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

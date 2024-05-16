@@ -30,8 +30,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.openapitools.codegen.OpenAPIGenerator;
 import sk.mvn.ApiClassUtil;
+import sk.services.CoreServicesRaw;
 import sk.services.except.IExcept;
-import sk.services.json.JGsonImpl;
 import sk.utils.async.locks.JLock;
 import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.O;
@@ -63,7 +63,7 @@ public class WebSwaggerMavenPlugin extends AbstractMojo {
 
             WebSwaggerGenerator wsg = new WebSwaggerGenerator(
                     new WebMethodInfoProviderImpl(new IExcept() {},
-                            new ApiClassUtil(new JGsonImpl().init(), O.of(out), s -> Io.sRead(s).oString())));
+                            new ApiClassUtil(CoreServicesRaw.services().json(), O.of(out), s -> Io.sRead(s).oString())));
 
             final Map<String, X2<String, Class>> fileContents = Cc.stream(this.apiClasses)
                     .map($1 -> Ex.toRuntime(() -> Class.forName($1)))

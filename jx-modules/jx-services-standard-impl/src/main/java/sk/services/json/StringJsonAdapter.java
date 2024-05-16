@@ -55,7 +55,7 @@ public class StringJsonAdapter implements TypeAdapterFactory {
         }
     }
     //public static void main(String[] args) {
-    //    IJson js = new JGsonImpl().init();
+    //    IJson json = CoreServicesRaw.services().json();
     //
     //    String json = """
     //            {

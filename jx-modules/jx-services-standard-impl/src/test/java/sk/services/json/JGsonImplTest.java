@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
+import sk.services.CoreServicesRaw;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 import sk.utils.semver.Semver200;
@@ -34,10 +35,12 @@ import sk.utils.statics.Ex;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JGsonImplTest {
-    IJson json = new JGsonImpl().init();
+    IJson json = CoreServicesRaw.services().json();
+    static JGsonImpl jsonWithRunStorage =
+            new JGsonImpl(O.empty(), CoreServicesRaw.services().times(), CoreServicesRaw.services().bytes(), true).init();
 
     @Test
     public void testDefaultSerializers() {
@@ -54,10 +57,24 @@ public class JGsonImplTest {
 
     @Test
     public void testNullDeserialization() {
-        final InitTester from = json.from("""
-                {"a":5,"b":6,"str":null}
-                """, InitTester.class);
-        assertEquals(from, new InitTester(1, 2, Optional.empty()));
+        String testJsonWithNull = """
+                {"a":5,"b":6,"str":null}""";
+        String testJsonNoNull = """
+                {"a":5,"b":6}""";
+        {
+            InitTester from = json.from(testJsonWithNull, InitTester.class);
+            assertEquals(from, new InitTester(1, 2, Optional.empty()));
+            assertEquals("""
+                    {"a":1,"b":2}""", json.to(from));
+        }
+
+        {
+            InitTesterSerializeNulls fromWithNulls = json.fromWithNulls(testJsonWithNull, InitTesterSerializeNulls.class);
+            assertEquals(fromWithNulls, new InitTesterSerializeNulls(1, 2, Optional.empty()));
+            assertEquals("""
+                    {"a":1,"b":2,"str":null}""", json.toWithNulls(fromWithNulls));
+            assertThrows(AssertionError.class, () -> json.to(fromWithNulls, false, false));
+        }
     }
 
     @Test
@@ -83,6 +100,14 @@ public class JGsonImplTest {
         assertEquals(tester.str, O.empty());
         tester = json.from(json.to(new OptionalTester(O.of("123"))), OptionalTester.class);
         assertEquals(tester.str, O.of("123"));
+    }
+
+    @Test
+    public void testWithNull() {
+        assertEquals("""
+                {"str":"1","strNull":null}""", json.to(new WithNullTester("1", null), false, true));
+        assertEquals("""
+                {"str":"1"}""", json.to(new WithNullTester("1", null), false, false));
     }
 
 
@@ -141,6 +166,15 @@ public class JGsonImplTest {
     }
 
 
+    @Test
+    void runStorage() {
+        String withNulls = jsonWithRunStorage.toWithNulls(new RunStorageTester());
+        RunStorageTester from = jsonWithRunStorage.fromWithNulls(withNulls, RunStorageTester.class);
+
+        assertThrows(AssertionError.class, () -> jsonWithRunStorage.to(new RunStorageTester()));
+        assertThrows(AssertionError.class, () -> jsonWithRunStorage.from(withNulls, RunStorageTester.class));
+    }
+
     @NoArgsConstructor
     @AllArgsConstructor
     @Data
@@ -150,8 +184,31 @@ public class JGsonImplTest {
         Optional<String> str;
 
         @Override
-        public void initAfterJsonDeserialize(O<IServiceLocator> serviceProvider) {
+        public void afterDeserialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps) {
             assertEquals(serviceProvider, O.empty());
+            assertFalse(runProps.serializeNulls());
+            a = 1;
+            b = 2;
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class InitTesterSerializeNulls implements IJsonInitialized {
+        private int a = 5;
+        private int b = 6;
+        Optional<String> str;
+
+        @Override
+        public void beforeSerialize(O<IServiceLocator> of, IJsonInstanceProps runProps) {
+            assertTrue(runProps.serializeNulls());
+        }
+
+        @Override
+        public void afterDeserialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps) {
+            assertEquals(serviceProvider, O.empty());
+            assertTrue(runProps.serializeNulls());
             a = 1;
             b = 2;
         }
@@ -167,6 +224,14 @@ public class JGsonImplTest {
     @AllArgsConstructor
     public static class OptionalTester {
         private O<String> str;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WithNullTester {
+        private String str;
+        private String strNull;
     }
 
     public static class BadPolymorphismTest {
@@ -194,6 +259,20 @@ public class JGsonImplTest {
                 super(a);
                 this.c = c;
             }
+        }
+    }
+
+    public static class RunStorageTester implements IJsonInitialized {
+        @Override
+        public void beforeSerialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps) {
+            assertTrue(runProps.serializeNulls());
+            assertTrue(jsonWithRunStorage.getCurrentInvocationProps().get().serializeNulls());
+        }
+
+        @Override
+        public void afterDeserialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps) {
+            assertTrue(runProps.serializeNulls());
+            assertTrue(jsonWithRunStorage.getCurrentInvocationProps().get().serializeNulls());
         }
     }
 }

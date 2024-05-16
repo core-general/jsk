@@ -21,6 +21,7 @@ package sk.services.json;
  */
 
 import sk.utils.functional.F1;
+import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 
@@ -29,22 +30,44 @@ import java.io.InputStream;
 @SuppressWarnings("unused")
 public interface IJson extends IJsonPolymorphReader {
     default <T> String to(T object) {
-        return to(object, false);
+        return to(object, false, false);
     }
 
-    <T> String to(T object, boolean pretty);
+    default <T> String toPretty(T object) {
+        return to(object, true, false);
+    }
+
+    default <T> String toWithNulls(T object) {
+        return to(object, false, true);
+    }
+
+    default <T> String to(T object, boolean pretty) {
+        return to(object, pretty, false);
+    }
+
+    <T> String to(T object, boolean pretty, boolean serializeNulls);
 
     <T> T from(String json, Class<T> cls);
 
-    <T> T from(InputStream json, Class<T> cls);
+    <T> T fromWithNulls(String objInJson, Class<T> cls);
 
     <T> T from(String json, TypeWrap<T> type);
 
+    <T> T fromWithNulls(String objInJson, TypeWrap<T> type);
+
+    <T> T from(InputStream json, Class<T> cls);
+
     <T> T from(InputStream json, TypeWrap<T> type);
+
+    boolean validate(String possibleJson);
+
+    boolean validateWithNulls(String possibleJson);
 
     <T> String beautify(String smallJson);
 
-    boolean validate(String possibleJson);
+    String beautifyWithNulls(String smallJson);
+
+    O<IJsonInstanceProps> getCurrentInvocationProps();
 
     <T> OneOf<T, Exception> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt);
 

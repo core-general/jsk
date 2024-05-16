@@ -42,7 +42,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import sk.mvn.model.*;
-import sk.services.json.JGsonImpl;
+import sk.services.CoreServicesRaw;
 import sk.services.nodeinfo.model.ApiBuildInfo;
 import sk.utils.async.locks.JLock;
 import sk.utils.async.locks.JLockDecorator;
@@ -280,7 +280,7 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
     }
 
     protected ApiClassUtil getApiClassUtil() {
-        return new ApiClassUtil(new JGsonImpl().init());
+        return new ApiClassUtil(CoreServicesRaw.services().json());
     }
 
 

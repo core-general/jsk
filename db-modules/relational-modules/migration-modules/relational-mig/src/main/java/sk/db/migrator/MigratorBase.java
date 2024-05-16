@@ -22,8 +22,8 @@ package sk.db.migrator;
 
 
 import org.flywaydb.core.Flyway;
+import sk.services.CoreServicesRaw;
 import sk.services.json.IJson;
-import sk.services.json.JGsonImpl;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
@@ -33,7 +33,7 @@ import sk.utils.statics.St;
 import java.util.Map;
 
 public class MigratorBase {
-    protected IJson json = new JGsonImpl().init();
+    protected IJson json = CoreServicesRaw.services().json();
 
     public final void migrate(String[] args) {
         doMigration(generateMigratorModel(args));

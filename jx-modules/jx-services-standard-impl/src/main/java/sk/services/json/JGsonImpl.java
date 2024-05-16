@@ -29,7 +29,6 @@ import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -48,8 +47,8 @@ import sk.utils.statics.Re;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -57,7 +56,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
-@NoArgsConstructor
 @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType", "rawtypes"})
 public class JGsonImpl implements IJson {
 
@@ -66,12 +64,23 @@ public class JGsonImpl implements IJson {
     @Inject IBytes bytes;
     @Inject Optional<IServiceLocator> serviceLocator = Optional.empty();
 
-    private Gson jsonPolymorphic;
-    private Gson jsonPrettyPolymorphic;
     private Gson jsonConcrete;
-    private Gson jsonPrettyConcrete;
+    private Gson jsonPolymorphic;
 
-    public JGsonImpl(O<List<GsonSerDesList>> converters, ITime times, IBytes bytes) {
+    private Gson jsonSerializeNullPolymorphic;
+
+    private Gson jsonPrettyPolymorphic;
+
+    private Gson jsonPrettySerializeNullsPolymorphic;
+
+    private final O<ThreadLocal<IJsonInstanceProps>> tlRunStorage;
+
+    public JGsonImpl(boolean useThreadLocalForRunStorage) {
+        tlRunStorage = useThreadLocalForRunStorage ? O.of(new ThreadLocal<>()) : O.empty();
+    }
+
+    public JGsonImpl(O<List<GsonSerDesList>> converters, ITime times, IBytes bytes, boolean useThreadLocalForRunStorage) {
+        this(useThreadLocalForRunStorage);
         this.converters = converters.toOpt();
         this.times = times;
         this.bytes = bytes;
@@ -79,21 +88,93 @@ public class JGsonImpl implements IJson {
 
     @PostConstruct
     public JGsonImpl init() {
-        GsonBuilder gsonBuilderConcrete = new GsonBuilder();
-        GsonBuilder gsonBuilderPolymorphic = new GsonBuilder();
-        GsonBuilder gsonBuilderPolymorphicPretty = new GsonBuilder();
+        class _Helper {
+            public GsonBuilder cloneBuilder(GsonBuilder builder) {
+                return builder.create().newBuilder();
+            }
+
+            public Gson addPolymorph(Gson nonPolymorph, GsonBuilder target) {
+                return target
+                        .registerTypeHierarchyAdapter(IJsonPolymorph.class, new PolySerDes(() -> nonPolymorph, JGsonImpl.this))
+                        .create();
+            }
+        }
+        _Helper $help = new _Helper();
+
+        GsonBuilder concreteBuilder = new GsonBuilder();
+        GsonBuilder polymorphBuilder = new GsonBuilder();
+
+        GsonBuilder serializeNullsConcreteBuilder = new GsonBuilder();
+        GsonBuilder serializeNullsPolymorphBuilder = new GsonBuilder();
+
+        GsonBuilder prettyConcreteBuilder = new GsonBuilder();
+        GsonBuilder prettyPolymorphBuilder = new GsonBuilder();
+
+        GsonBuilder prettyAndNullConcreteBuilder = new GsonBuilder();
+        GsonBuilder prettyAndNullPolymorphBuilder = new GsonBuilder();
+
         new GsonDefaultSerDes(times, bytes).getSerDesInfoList().forEach($ -> {
-            gsonBuilderConcrete.registerTypeAdapter($.getCls(), $);
-            gsonBuilderPolymorphic.registerTypeAdapter($.getCls(), $);
-            gsonBuilderPolymorphicPretty.registerTypeAdapter($.getCls(), $);
+            concreteBuilder.registerTypeAdapter($.getCls(), $);
+            polymorphBuilder.registerTypeAdapter($.getCls(), $);
+
+            serializeNullsConcreteBuilder.registerTypeAdapter($.getCls(), $);
+            serializeNullsPolymorphBuilder.registerTypeAdapter($.getCls(), $);
+
+            prettyConcreteBuilder.registerTypeAdapter($.getCls(), $);
+            prettyPolymorphBuilder.registerTypeAdapter($.getCls(), $);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapter($.getCls(), $);
+            prettyAndNullPolymorphBuilder.registerTypeAdapter($.getCls(), $);
         });
+
+        //region Optionals
+        {
+            final GsonOptionalTypeAdapterFactory factory = new GsonOptionalTypeAdapterFactory();
+            concreteBuilder.registerTypeAdapterFactory(factory);
+            polymorphBuilder.registerTypeAdapterFactory(factory);
+
+            serializeNullsConcreteBuilder.registerTypeAdapterFactory(factory);
+            serializeNullsPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyAndNullPolymorphBuilder.registerTypeAdapterFactory(factory);
+        }
+        //endregion
+
+        //region IdBase
+        {
+            final GsonIdBaseTypeAdapterFactory factory = new GsonIdBaseTypeAdapterFactory();
+            concreteBuilder.registerTypeAdapterFactory(factory);
+            polymorphBuilder.registerTypeAdapterFactory(factory);
+
+            serializeNullsConcreteBuilder.registerTypeAdapterFactory(factory);
+            serializeNullsPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyAndNullPolymorphBuilder.registerTypeAdapterFactory(factory);
+        }
+        //endregion
 
         //region PostProcess
         {
             final GsonPostProcessTypeAdapterFactory factory = new GsonPostProcessTypeAdapterFactory(serviceLocator);
-            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
+            concreteBuilder.registerTypeAdapterFactory(factory);
+            polymorphBuilder.registerTypeAdapterFactory(factory);
+
+            serializeNullsConcreteBuilder.registerTypeAdapterFactory(factory);
+            serializeNullsPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyAndNullPolymorphBuilder.registerTypeAdapterFactory(factory);
         }
         //endregion
 
@@ -103,96 +184,131 @@ public class JGsonImpl implements IJson {
                     .allowMissingComponentValues()
                     .allowDuplicateComponentValues()
                     .create();
-            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
+            concreteBuilder.registerTypeAdapterFactory(factory);
+            polymorphBuilder.registerTypeAdapterFactory(factory);
+
+            serializeNullsConcreteBuilder.registerTypeAdapterFactory(factory);
+            serializeNullsPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyPolymorphBuilder.registerTypeAdapterFactory(factory);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapterFactory(factory);
+            prettyAndNullPolymorphBuilder.registerTypeAdapterFactory(factory);
         }
         //endregion
 
-        //region Optionals
-        {
-            final GsonOptionalTypeAdapterFactory factory = new GsonOptionalTypeAdapterFactory();
-            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
-        }
-        //endregion
-
-        //region IdBase
-        {
-            final GsonIdBaseTypeAdapterFactory factory = new GsonIdBaseTypeAdapterFactory();
-            gsonBuilderConcrete.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphic.registerTypeAdapterFactory(factory);
-            gsonBuilderPolymorphicPretty.registerTypeAdapterFactory(factory);
-        }
-        //endregion
 
         List<GsonSerDes<?>> adaptClasses = converters
                 .map($ -> $.stream().flatMap(x -> x.getSerDesInfoList().stream()).collect(Cc.toL()))
                 .orElse(Cc.lEmpty());
         adaptClasses.forEach((gsonAdapter) -> {
-            gsonBuilderConcrete.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
-            gsonBuilderPolymorphic.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
-            gsonBuilderPolymorphicPretty.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            gsonAdapter.setSerializerInstance(this);
+            concreteBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            polymorphBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+
+            serializeNullsConcreteBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            serializeNullsPolymorphBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+
+            prettyConcreteBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            prettyPolymorphBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+
+            prettyAndNullConcreteBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
+            prettyAndNullPolymorphBuilder.registerTypeAdapter(gsonAdapter.getCls(), gsonAdapter);
         });
 
-        jsonConcrete = gsonBuilderConcrete.disableHtmlEscaping().create();
-        jsonPolymorphic = gsonBuilderPolymorphic.disableHtmlEscaping()
-                .registerTypeHierarchyAdapter(IJsonPolymorph.class, new PolySerDes(() -> jsonConcrete, this))
-                .create();
-        jsonPrettyConcrete = gsonBuilderConcrete.disableHtmlEscaping().setPrettyPrinting().create();
-        jsonPrettyPolymorphic = gsonBuilderPolymorphicPretty.disableHtmlEscaping().setPrettyPrinting()
-                .registerTypeHierarchyAdapter(IJsonPolymorph.class, new PolySerDes(() -> jsonPrettyConcrete, this))
-                .create();
+        concreteBuilder.disableHtmlEscaping();
+        polymorphBuilder.disableHtmlEscaping();
+
+        serializeNullsConcreteBuilder.disableHtmlEscaping().serializeNulls();
+        serializeNullsPolymorphBuilder.disableHtmlEscaping().serializeNulls();
+
+        prettyConcreteBuilder.disableHtmlEscaping().setPrettyPrinting();
+        prettyPolymorphBuilder.disableHtmlEscaping().setPrettyPrinting();
+
+        prettyAndNullConcreteBuilder.disableHtmlEscaping().serializeNulls().setPrettyPrinting();
+        prettyAndNullPolymorphBuilder.disableHtmlEscaping().serializeNulls().setPrettyPrinting();
+
+
+        jsonConcrete = $help.cloneBuilder(concreteBuilder).create();
+        jsonPolymorphic = $help.addPolymorph(jsonConcrete, $help.cloneBuilder(polymorphBuilder));
+
+        Gson jsonSerializeNullsConcrete = $help.cloneBuilder(serializeNullsConcreteBuilder).create();
+        jsonSerializeNullPolymorphic =
+                $help.addPolymorph(jsonSerializeNullsConcrete, $help.cloneBuilder(serializeNullsPolymorphBuilder));
+
+        Gson jsonPrettyConcrete = $help.cloneBuilder(prettyConcreteBuilder).create();
+        jsonPrettyPolymorphic = $help.addPolymorph(jsonPrettyConcrete, $help.cloneBuilder(prettyPolymorphBuilder));
+
+        Gson jsonPrettySerializeNullsConcrete = $help.cloneBuilder(prettyAndNullConcreteBuilder).create();
+        jsonPrettySerializeNullsPolymorphic =
+                $help.addPolymorph(jsonPrettySerializeNullsConcrete, $help.cloneBuilder(prettyAndNullPolymorphBuilder));
 
         return this;
     }
 
     @Override
-    public <T> String to(T object, boolean pretty) {
-        return pretty ? jsonPrettyPolymorphic.toJson(object) : jsonPolymorphic.toJson(object);
+    public <T> String to(T object, boolean pretty, boolean serializeNulls) {
+        try {
+            Gson selectedGson = pretty && serializeNulls
+                                ? jsonPrettySerializeNullsPolymorphic
+                                : pretty
+                                  ? jsonPrettyPolymorphic
+                                  : serializeNulls
+                                    ? jsonSerializeNullPolymorphic
+                                    : jsonPolymorphic;
+            tlRunStorage.ifPresent($ -> $.set(new IJsonInstanceProps(selectedGson.serializeNulls())));
+
+            return selectedGson.toJson(object);
+        } finally {
+            tlRunStorage.ifPresent($ -> $.remove());
+        }
     }
 
     @Override
     public <T> T from(String objInJson, Class<T> cls) {
-        try {
-            return jsonPolymorphic.fromJson(objInJson, cls);
-        } catch (Exception e) {
-            throw new RuntimeException(St.raze3dots(objInJson, 500), e);
-        }
+        return fromUni(jsonPolymorphic, new ByteArrayInputStream(objInJson.getBytes(St.UTF8)), TypeWrap.simple(cls));
+    }
+
+    @Override
+    public <T> T fromWithNulls(String objInJson, Class<T> cls) {
+        return fromUni(jsonSerializeNullPolymorphic, new ByteArrayInputStream(objInJson.getBytes(St.UTF8)), TypeWrap.simple(cls));
     }
 
     @Override
     public <T> T from(InputStream objInJson, Class<T> cls) {
-        try (InputStreamReader rdr = new InputStreamReader(objInJson)) {
-            return jsonPolymorphic.fromJson(rdr, cls);
-        } catch (Exception e) {
-            throw new RuntimeException(St.raze3dots(St.streamToS(objInJson), 500), e);
-        }
+        return fromUni(jsonPolymorphic, objInJson, TypeWrap.simple(cls));
     }
 
     @Override
     public <T> T from(String objInJson, TypeWrap<T> type) {
-        try {
-            return jsonPolymorphic.fromJson(objInJson, type.getType());
-        } catch (Exception e) {
-            throw new RuntimeException(St.raze3dots(objInJson, 500), e);
-        }
+        return fromUni(jsonPolymorphic, new ByteArrayInputStream(objInJson.getBytes(St.UTF8)), type);
+    }
+
+    @Override
+    public <T> T fromWithNulls(String objInJson, TypeWrap<T> type) {
+        return fromUni(jsonSerializeNullPolymorphic, new ByteArrayInputStream(objInJson.getBytes(St.UTF8)), type);
     }
 
     @Override
     public <T> T from(InputStream objInJson, TypeWrap<T> type) {
-        try (InputStreamReader rdr = new InputStreamReader(objInJson)) {
-            return jsonPolymorphic.fromJson(rdr, type.getType());
-        } catch (Exception e) {
-            throw new RuntimeException(St.raze3dots(St.streamToS(objInJson), 500), e);
-        }
+        return fromUni(jsonPolymorphic, objInJson, type);
     }
 
     @Override
     public boolean validate(String possibleJson) {
         try {
             jsonPolymorphic.fromJson(possibleJson, Object.class);
+            return true;
+        } catch (com.google.gson.JsonSyntaxException ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean validateWithNulls(String possibleJson) {
+        try {
+            jsonSerializeNullPolymorphic.fromJson(possibleJson, Object.class);
             return true;
         } catch (com.google.gson.JsonSyntaxException ex) {
             return false;
@@ -210,6 +326,27 @@ public class JGsonImpl implements IJson {
             return jsonPrettyPolymorphic.toJson(jsonElement.getAsJsonPrimitive());
         }
         return smallJson;
+    }
+
+    @Override
+    public String beautifyWithNulls(String smallJson) {
+        JsonElement jsonElement = JsonParser.parseString(smallJson);
+        if (jsonElement.isJsonArray()) {
+            return jsonPrettySerializeNullsPolymorphic.toJson(jsonElement.getAsJsonArray());
+        } else if (jsonElement.isJsonObject()) {
+            return jsonPrettySerializeNullsPolymorphic.toJson(jsonElement.getAsJsonObject());
+        } else if (jsonElement.isJsonPrimitive()) {
+            return jsonPrettySerializeNullsPolymorphic.toJson(jsonElement.getAsJsonPrimitive());
+        } else if (jsonElement.isJsonNull()) {
+            return jsonPrettySerializeNullsPolymorphic.toJson(jsonElement.getAsJsonNull());
+        }
+        return smallJson;
+    }
+
+    @Override
+    public O<IJsonInstanceProps> getCurrentInvocationProps() {
+        return tlRunStorage.map($ -> O.ofNull($.get()))
+                .orElseThrow(() -> new RuntimeException("Run storage is disabled for your IJson!"));
     }
 
     @Override
@@ -329,6 +466,7 @@ public class JGsonImpl implements IJson {
     }
 
     private O<Class<?>> testClassByParameters100Percent(Set<Class<?>> parentType, F0<String> jsonOfType) {
+        //todo!! Issue here - Null jsonWithNull is not applied, needs to be implemented
         final Map<String, ?> map = jsonConcrete.fromJson(jsonOfType.get(), Map.class);
         final Set<String> parameterNames = map.keySet();
 
@@ -355,6 +493,18 @@ public class JGsonImpl implements IJson {
             return O.of(classes.get(0));
         } else {
             return O.empty();
+        }
+    }
+
+    private <T> T fromUni(Gson gson, InputStream in, TypeWrap<T> type) {
+        JGsonLoggingInputStreamReader rdr = new JGsonLoggingInputStreamReader(in, 50_000);
+        try (rdr) {
+            tlRunStorage.ifPresent($ -> $.set(new IJsonInstanceProps(gson.serializeNulls())));
+            return gson.fromJson(rdr, type.getType());
+        } catch (Exception e) {
+            throw new RuntimeException(rdr.getForLog(), e);
+        } finally {
+            tlRunStorage.ifPresent($ -> $.remove());
         }
     }
 

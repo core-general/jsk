@@ -20,13 +20,13 @@ package jsk.spark;
  * #L%
  */
 
+import sk.services.CoreServicesRaw;
 import sk.services.json.IJson;
-import sk.services.json.JGsonImpl;
 import sk.utils.functional.O;
 
 public class RecordTest {
     public static void main(String[] args) {
-        IJson json = new JGsonImpl().init();
+        IJson json = CoreServicesRaw.services().json();
         X x = new X(4, "6", null);
         final String to = json.to(x);
         final X from = json.from(to, X.class);

@@ -104,7 +104,7 @@ public class SpringCoreConfig {
     public BootServiceImpl BootServiceImpl() {return new BootServiceImpl();}
 
     @Bean
-    public IJson json() {return new JGsonImpl();}
+    public IJson json() {return new JGsonImpl(false);}
 
     @Bean
     public IServiceLocator IServiceProvider() {

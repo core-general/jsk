@@ -23,6 +23,15 @@ package sk.services.json;
 import sk.services.bean.IServiceLocator;
 import sk.utils.functional.O;
 
+/**
+ * IMPORTANT!!! If you created custom converter for a class, then most this class WILL NOT WORK, because e.g.
+ * Gson when using GsonSerDes does not invoke it's factories.
+ *
+ * If you need some processing for classes with converters (e.g. they should know json instance with which properties
+ * is invoking them, you could use IJson.getCurrentInvocationProps() method (it's ThreadLocal based))
+ */
 public interface IJsonInitialized {
-    public void initAfterJsonDeserialize(O<IServiceLocator> serviceProvider);
+    default void beforeSerialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps) {}
+
+    public void afterDeserialize(O<IServiceLocator> serviceProvider, IJsonInstanceProps runProps);
 }
