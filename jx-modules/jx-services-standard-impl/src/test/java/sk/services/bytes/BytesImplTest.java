@@ -25,15 +25,20 @@ import org.mockito.InjectMocks;
 import sk.services.http.CrcAndSize;
 import sk.services.rand.RandImpl;
 import sk.test.JskMockitoTest;
+import sk.utils.functional.O;
+import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
 import sk.utils.statics.St;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class BytesImplTest extends JskMockitoTest {
     @InjectMocks BytesImpl bytes;
@@ -58,13 +63,55 @@ public class BytesImplTest extends JskMockitoTest {
     }
 
     @Test
+    void aes() {
+        List<String> passwords = Cc.l("abc", "lkahjket5ijhh9uNY$*&Y$*@&y4826n4t8n&NY@N&*#$Y@*T8", "H%IUHG*G@&G$(@&$G<AJ31L:");
+        List<String> messages = Cc.l("abc", St.repeat("a", 1000) + St.repeat("b", 1000) + St.repeat("c", 1000), """
+                c40640d4-ef22-4d03-906a-a70c504bab8c,0017271b8b229d7ff41222d45b008aa2
+                0b02e16b-5ff1-4b7a-8435-c881fbb9787b,001a7c6bbc489ad38a8928c129a9a243
+                65aa06f1-9ab4-41e4-b028-3115888be5b7,001ae1ffd67e959e2115ed919545a3a7
+                cb23c157-d402-47b3-a152-4e0b404ed1eb,0035dcfc028d15d20ced46b40e44fb63
+                afeb4332-cbcb-4712-8bbc-bf41e4754b29,0036898e637dec2dc3c74d98b424b8e6
+                f0c5b130-b6f1-457f-95e8-2afec00bd61d,0045236522b3c803ac298f567fe6d4ba
+                dc1aec68-910b-492c-b93c-822f7607b913,0048c1ac046bec46bdf45873c308a7de
+                383f3876-2bba-4ed9-bdb0-453ee85acf9a,0056cd5208d8b231199f0098d47b891b
+                c50ded93-a4d2-4cf5-9184-2a99c6df707a,005d5b98ffdf2ded4031e6c6b3868eac
+                1320e7db-52f5-4c59-b3b8-1913c891dcbd,005ecf64aea4e6c4920d5a628fe6b9e6
+                01a9d026-dcc5-4a93-8f8a-ee90df4ead70,00600b4fc815cda30d824b889197b0df
+                a04d49bc-2f62-4dba-956f-1f5e652c1bfc,006078ed989343155ce0242af7518875
+                37fa558c-bc9f-4072-92ad-5ccbff0e844b,0060dd5434c713851b942666b2ae2076
+                """);
+        for (AesType aesType : AesType.values()) {
+            Cc.eachWithEach(passwords, messages, (p, m) -> {
+                byte[] data = m.getBytes(StandardCharsets.UTF_8);
+                byte[] encrypted = bytes.encryptAes(p, data, aesType);
+                assertNotEquals(data, encrypted);
+                String decrypted = new String(bytes.decryptAes(p, encrypted), StandardCharsets.UTF_8);
+                assertEquals(decrypted, m);
+            });
+        }
+    }
+
+    @Test
     public void decodeCrcEncodedValueTest() {
+        {
+            String s = bytes.decodeCrcEncodedValue("V1342839628", true, w -> w)
+                    .orElseThrow(() -> new RuntimeException("Wrong: V1342839628"));
+            assertEquals(s, "V", "Wrong: V1342839628");
+            assertEquals(O.empty(), bytes.decodeCrcEncodedValue("V1342839628", true, w -> Ex.thRow()));
+        }
         IntStream.range(0, 1_000).parallel().forEach($ -> {
             final String val = rnd.rndString(rnd.rndInt(1, 5), St.engENGDig);
             final long crc = bytes.crc32(val.getBytes(StandardCharsets.UTF_8));
-            final String s = bytes.decodeCrcEncodedValue(crc + val)
-                    .orElseThrow(() -> new RuntimeException("Wrong: " + crc + val));
-            assertEquals(s, val, "Wrong: " + crc + val);
+            {
+                String s = bytes.decodeCrcEncodedValue(crc + val, false, w -> w)
+                        .orElseThrow(() -> new RuntimeException("Wrong: " + crc + val));
+                assertEquals(s, val, "Wrong: " + crc + val);
+            }
+            {
+                String s = bytes.decodeCrcEncodedValue(val + crc, true, w -> w)
+                        .orElseThrow(() -> new RuntimeException("Wrong: " + val + crc));
+                assertEquals(s, val, "Wrong: " + val + crc);
+            }
         });
     }
 

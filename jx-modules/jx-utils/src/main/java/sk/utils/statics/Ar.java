@@ -75,6 +75,14 @@ public class Ar/*rays*/ {
         return ByteBuffer.allocate(4).putInt(value).array();
     }
 
+    public static byte[] copy(byte[] initial, int startIndex, int length) {
+        int lgth = initial.length;
+        int newLength = Math.min(lgth - startIndex, length);
+        byte[] arr = new byte[newLength];
+        System.arraycopy(initial, startIndex, arr, 0, newLength);
+        return arr;
+    }
+
     public static byte[] longToByteArray(long value) {
         return ByteBuffer.allocate(8).putLong(value).array();
     }
@@ -131,4 +139,5 @@ public class Ar/*rays*/ {
 
         return copy;
     }
+
 }

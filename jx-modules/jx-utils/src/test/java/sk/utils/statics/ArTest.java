@@ -41,6 +41,16 @@ public class ArTest {
     }
 
     @Test
+    public void copy() {
+        byte[] b = new byte[]{1, 2, 3, 4, 5, 6};
+        Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, Ar.copy(b, 0, 6));
+        Assertions.assertArrayEquals(new byte[]{4, 5}, Ar.copy(b, 3, 2));
+        Assertions.assertArrayEquals(new byte[]{4, 5, 6}, Ar.copy(b, 3, 3));
+        Assertions.assertArrayEquals(new byte[]{4, 5, 6}, Ar.copy(b, 3, 4));
+        Assertions.assertArrayEquals(new byte[]{6}, Ar.copy(b, 5, 4));
+    }
+
+    @Test
     public void intToByteArray() {
         final int[] arr = {1, 3, 5, 7, 8};
         final byte[] bytes = Ar.intToByteArray(arr);

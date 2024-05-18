@@ -379,6 +379,11 @@ public class JGsonImpl implements IJson {
         }
     }
 
+    @Override
+    public IBytes getIBytes() {
+        return bytes;
+    }
+
     private DocumentContext jsonPathParse(String jsonFull) {
         final Configuration build = Configuration.builder()
                 .jsonProvider(new GsonJsonProvider(jsonPolymorphic))

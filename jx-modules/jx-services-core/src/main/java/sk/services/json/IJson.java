@@ -20,6 +20,8 @@ package sk.services.json;
  * #L%
  */
 
+import sk.services.bytes.AesType;
+import sk.services.bytes.IBytes;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
@@ -69,11 +71,25 @@ public interface IJson extends IJsonPolymorphReader {
 
     O<IJsonInstanceProps> getCurrentInvocationProps();
 
+    default <T> byte[] encryptAesObject(String password, T object, AesType type) {
+        return getIBytes().encryptAes(password, to(object), type);
+    }
+
+    default <T> T decryptAesObject(String password, byte[] encrypted, Class<T> cls) {
+        return from(new String(getIBytes().decryptAes(password, encrypted)), cls);
+    }
+
+    default <T> T decryptAesObject(String password, byte[] encrypted, TypeWrap<T> cls) {
+        return from(new String(getIBytes().decryptAes(password, encrypted)), cls);
+    }
+
     <T> OneOf<T, Exception> jsonPath(String jsonFull, String jsonPath, TypeWrap<T> tt);
 
     <T> OneOf<T, Exception> jsonPath(String jsonFull, F1<JsonPathContext, T> contextProvider);
 
     OneOf<String, Exception> jsonPathToJson(String jsonFull, String pathInJson, boolean pretty);
+
+    IBytes getIBytes();
 
     interface JsonPathContext {
         <T> T read(String path, TypeWrap<T> typeRef);

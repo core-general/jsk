@@ -199,6 +199,13 @@ public final class Cc/*ColleCtions*/ {
         return Collectors.toSet();
     }
 
+
+    public static <K, U>
+    Collector<U, ?, Map<K, U>> toM(F1<? super U, ? extends K> keyMapper) {
+        return Collectors.toMap(keyMapper, u -> u);
+    }
+
+
     public static <T, K, U>
     Collector<T, ?, Map<K, U>> toM(F1<? super T, ? extends K> keyMapper, F1<? super T, ? extends U> valueMapper) {
         return Collectors.toMap(keyMapper, valueMapper);

@@ -24,9 +24,13 @@ import lombok.SneakyThrows;
 import sk.services.http.CrcAndSize;
 import sk.services.http.EtagAndSize;
 import sk.utils.collections.ByteArrKey;
+import sk.utils.functional.F1E;
 import sk.utils.functional.O;
 import sk.utils.javafixes.Base62;
-import sk.utils.statics.*;
+import sk.utils.statics.Cc;
+import sk.utils.statics.Ex;
+import sk.utils.statics.Io;
+import sk.utils.statics.St;
 import sk.utils.tree.Tree;
 import sk.utils.tree.TreePath;
 
@@ -161,23 +165,7 @@ public interface IBytes {
         return new ByteArrKey(Arrays.copyOf(bb.array(), byteCount));
     }
 
-    default O<String> decodeCrcEncodedValue(String encodedValue) {
-        for (int i = 11; i > 0; i--) {
-            try {
-                final String val = encodedValue.substring(0, i);
-                if (Ma.isInt(val)) {
-                    long probableCrc = Ma.pl(val);
-                    String value = encodedValue.substring(i);
-                    long actualCrc = crc32(St.utf8(value));
-                    if (probableCrc == actualCrc) {
-                        return O.of(value);
-                    }
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-        return O.empty();
-    }
+    <T> O<T> decodeCrcEncodedValue(String encodedValue, boolean isFromEnd, F1E<String, T> doWithValue);
     //endregion
 
 
@@ -232,6 +220,19 @@ public interface IBytes {
     }
     //endregion
 
+    //region AES
+    default byte[] encryptAes(String password, String data, AesType type) {
+        return encryptAes(password, data.getBytes(St.UTF8), type);
+    }
+
+    byte[] encryptAes(String password, byte[] data, AesType type);
+
+    default byte[] decryptAes(String password, String data) {
+        return decryptAes(password, data.getBytes(St.UTF8));
+    }
+
+    byte[] decryptAes(String password, byte[] data);
+    //endregion
 
     //endregion
 

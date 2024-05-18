@@ -5,19 +5,19 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.17</version>
+        <version>jsk.21.0.20</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-services-standard-impl</artifactId>
-    <version>jsk.21.0.17</version>
+    <version>jsk.21.0.20</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.21.0.17</version>
+            <version>jsk.21.0.20</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.0.17</version>
+            <version>jsk.21.0.20</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
