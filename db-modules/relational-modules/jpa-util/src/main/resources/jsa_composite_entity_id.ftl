@@ -42,8 +42,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ${model.embeddedClassName} implements Serializable {
-    public final static String type = "${model.packageName}.${model.embeddedClassName}";
-
 <#list model.keys as field>
     @Column(name = "${field.columnName}")
     @Type(${field.converterType}.class)

@@ -21,14 +21,12 @@
 
 package ${model.packageName};
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.bull.javamelody.MonitoredWithSpring;
 
 import sk.utils.functional.*;
 import sk.db.relational.spring.services.impl.*;
 
-@MonitoredWithSpring
 @Slf4j
 public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl implements ${model.prefix}StorageFacade {
 <#list model.entites as entity>
@@ -59,14 +57,12 @@ public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl 
 
 @Override
 protected void saveSingleItem(Object toSave) {
+switch(toSave){
 <#list model.entites as entity>
-    if (toSave instanceof ${entity.cls}) {
-    ${entity.simple}Repo.save((${entity.cls}) toSave);
-    return;
-    }
+    case ${entity.cls} e-> ${entity.simple}Repo.save(e);
 </#list>
-
-throw new RuntimeException("Unknown transactional type: " + toSave.getClass());
+default -> throw new IllegalStateException("Unexpected value: " + toSave.getClass());
+}
 }
 
 }
