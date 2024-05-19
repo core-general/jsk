@@ -23,10 +23,16 @@ package sk.aws.dynamo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.aws.AwsUtilityHelper;
+import sk.aws.AwsWithChangedPort;
 import sk.aws.dynamo.extensions.CreatedAndUpdatedAtExtension;
+import sk.utils.functional.OneOf;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.regions.Region;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 public abstract class DynBeanConfig extends DynConfigurator {
@@ -37,8 +43,26 @@ public abstract class DynBeanConfig extends DynConfigurator {
     @Bean
     public DynClient DynClient(DynProperties properties, AwsUtilityHelper helper,
             CreatedAndUpdatedAtExtension createUpdateExtension,
-            List<DynamoDbEnhancedClientExtension> plugins) {
-        return new DynClient(properties, this, helper, createUpdateExtension, plugins);
+            List<DynamoDbEnhancedClientExtension> plugins,
+            Optional<AwsWithChangedPort> oChangedPort) {
+        DynProperties finalProps = oChangedPort.<DynProperties>map(cp -> new DynProperties() {
+            @Override
+            public String getTablePrefix() {
+                return properties.getTablePrefix();
+            }
+
+            @Override
+            public OneOf<URI, Region> getAddress() {
+                return cp.getAddress(properties);
+            }
+
+            @Override
+            public AwsCredentials getCredentials() {
+                return properties.getCredentials();
+            }
+        }).orElse(properties);
+
+        return new DynClient(finalProps, this, helper, createUpdateExtension, plugins);
     }
 
     @Override

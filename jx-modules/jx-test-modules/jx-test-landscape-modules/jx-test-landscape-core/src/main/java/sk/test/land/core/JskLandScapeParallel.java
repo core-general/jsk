@@ -37,12 +37,12 @@ public class JskLandScapeParallel extends JskLandScape {
 
     @Override
     protected void doInit() throws Exception {
-        doWithAllLands(jskLand -> jskLand.doInit());
+        doWithAllLands(jskLand -> jskLand.start());
     }
 
     @Override
     protected void doShutdown() throws Exception {
-        doWithAllLands(jskLand -> jskLand.doShutdown());
+        doWithAllLands(jskLand -> jskLand.stop());
     }
 
     private void doWithAllLands(C1E<JskLand> landConsumer) {

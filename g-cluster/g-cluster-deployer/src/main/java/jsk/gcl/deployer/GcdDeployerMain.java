@@ -46,6 +46,7 @@ import software.amazon.awssdk.regions.Region;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import static sk.utils.functional.O.empty;
@@ -76,7 +77,7 @@ public class GcdDeployerMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json(), Optional.empty()
         ).init();
 
         process(s3Client, args);

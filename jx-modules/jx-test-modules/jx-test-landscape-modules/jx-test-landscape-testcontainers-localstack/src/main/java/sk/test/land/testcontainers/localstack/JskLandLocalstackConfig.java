@@ -1,4 +1,4 @@
-package sk.test.land.testcontainers.pg;
+package sk.test.land.testcontainers.localstack;
 
 /*-
  * #%L
@@ -22,20 +22,22 @@ package sk.test.land.testcontainers.pg;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.db.relational.utils.RdbWithChangedPort;
+import sk.aws.AwsUtilityHelper;
+import sk.aws.AwsWithChangedPort;
+import sk.services.ICoreServices;
 import sk.utils.statics.Io;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
-public class JskLandPgConfig {
+public class JskLandLocalstackConfig {
     @Bean
-    JskLandPg JskLandPg(RdbWithChangedPort props) {
-        return new JskLandPg(props, "postgres:16.3");
+    JskLandLocalstack JskLandLocalstack(AwsWithChangedPort acp, AwsUtilityHelper awh, ICoreServices core) {
+        return new JskLandLocalstack(acp, "localstack/localstack:3.4.0", awh, core);
     }
 
     @Bean
-    RdbWithChangedPort RdbWithChangedPort() {
+    AwsWithChangedPort AwsWithChangedPort() {
         AtomicInteger ai = new AtomicInteger();
         return () -> Io.getFreePort(ai).get();
     }

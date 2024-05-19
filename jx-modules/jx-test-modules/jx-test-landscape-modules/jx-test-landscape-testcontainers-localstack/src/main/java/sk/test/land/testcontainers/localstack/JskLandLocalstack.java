@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import sk.aws.AwsUtilityHelper;
+import sk.aws.AwsWithChangedPort;
 import sk.aws.dynamo.DynClient;
 import sk.aws.dynamo.DynConfigurator;
 import sk.aws.dynamo.DynProperties;
@@ -48,17 +49,20 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-public class JskLandContainerLocalstack extends JskLandContainer<LocalStackContainer> implements JskLandEmptyStateMixin {
+public class JskLandLocalstack extends JskLandContainer<LocalStackContainer> implements JskLandEmptyStateMixin {
+    private final AwsWithChangedPort acp;
     private final String dockerImgName;
     private final AwsUtilityHelper utilityHelper;
     private final ICoreServices core;
 
-    public JskLandContainerLocalstack(int port, String dockerImgName, AwsUtilityHelper utilityHelper, ICoreServices core) {
-        super(port);
+    public JskLandLocalstack(AwsWithChangedPort acp, String dockerImgName, AwsUtilityHelper utilityHelper, ICoreServices core) {
+        super(acp.getPort());
+        this.acp = acp;
         this.dockerImgName = dockerImgName;
         this.utilityHelper = utilityHelper;
         this.core = core;
@@ -139,9 +143,14 @@ public class JskLandContainerLocalstack extends JskLandContainer<LocalStackConta
             public AwsCredentials getCredentials() {
                 return AwsBasicCredentials.create(container.getAccessKey(), container.getSecretKey());
             }
+
+            @Override
+            public boolean forcePathStyle() {
+                return true;
+            }
         };
         return new S3JskClient(s3Properties, core.async(), utilityHelper, core.repeat(), core.http(), core.bytes(),
-                core.json()).init();
+                core.json(), Optional.of(acp)).init();
     }
 
     protected DynClient initDynamoClient() {
@@ -170,6 +179,6 @@ public class JskLandContainerLocalstack extends JskLandContainer<LocalStackConta
 
     @Override
     public Class<? extends JskLand> getId() {
-        return JskLandContainerLocalstack.class;
+        return JskLandLocalstack.class;
     }
 }

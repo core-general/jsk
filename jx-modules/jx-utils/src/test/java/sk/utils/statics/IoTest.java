@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class IoTest {
-
     @Test
     public void streamToBytes() {
         final int limit = 10_000;
@@ -40,5 +40,21 @@ public class IoTest {
 
         final byte[] bytes1 = Io.streamPump(stream);
         assertArrayEquals(bytes, bytes1);
+    }
+
+    @Test
+    void changePortForUrlTest() {
+        assertEquals("""
+                        jdbc:postgresql://eat-db.cywcsttzyjee.us-east-1.rds.amazonaws.com:69543/eat?ssl=true&sslmode=verify-full&sslfactory=org.postgresql.ssl.SingleCertValidatingFactory&sslfactoryarg=classpath:ead/rds-ca-2019-us-east-1.pem""",
+                Io.changePortForUrl("""
+                                jdbc:postgresql://eat-db.cywcsttzyjee.us-east-1.rds.amazonaws.com:5432/eat?ssl=true&sslmode=verify-full&sslfactory=org.postgresql.ssl.SingleCertValidatingFactory&sslfactoryarg=classpath:ead/rds-ca-2019-us-east-1.pem""",
+                        69543));
+
+        assertEquals("""
+                        jdbc:postgresql://eat-db.cywcsttzyjee.us-east-1.rds.amazonaws.com:69543/eat?ssl=true&sslmode=verify-full&sslfactory=org.postgresql.ssl.SingleCertValidatingFactory&sslfactoryarg=classpath:ead/rds-ca-2019-us-east-1.pem""",
+                Io.changePortForUrl("""
+                                jdbc:postgresql://eat-db.cywcsttzyjee.us-east-1.rds.amazonaws.com/eat?ssl=true&sslmode=verify-full&sslfactory=org.postgresql.ssl.SingleCertValidatingFactory&sslfactoryarg=classpath:ead/rds-ca-2019-us-east-1.pem""",
+                        69543));
+
     }
 }

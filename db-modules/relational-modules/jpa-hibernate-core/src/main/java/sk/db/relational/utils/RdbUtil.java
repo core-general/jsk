@@ -22,7 +22,7 @@ package sk.db.relational.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import sk.utils.statics.St;
+import sk.utils.statics.Io;
 
 import javax.sql.DataSource;
 import java.util.Optional;
@@ -36,7 +36,7 @@ public final class RdbUtil {
             System.err.println("Cannot find driver:" + conf.getDriver());
             System.exit(1);
         }
-        cpds.setJdbcUrl(changedPort.map($ -> changePortForUrl(conf.getUrl(), $.getPort()))
+        cpds.setJdbcUrl(changedPort.map($ -> Io.changePortForUrl(conf.getUrl(), $.getPort()))
                 .orElse(conf.getUrl()));
         cpds.setUsername(conf.getUser());
         cpds.setPassword(conf.getPass());
@@ -46,13 +46,5 @@ public final class RdbUtil {
         cpds.addDataSourceProperty("stringtype", "unspecified");
 
         return new HikariDataSource(cpds);
-    }
-
-    public static String changePortForUrl(String url, int newPort) {
-        String urlWithPort = St.subRF(St.subLF(url, "://"), "/");
-        String template = url.replace(urlWithPort, "%s");
-        return urlWithPort.contains(":")
-               ? template.formatted(St.subRF(urlWithPort, ":") + ":" + newPort)
-               : template.formatted(urlWithPort + ":" + newPort);
     }
 }

@@ -48,14 +48,19 @@ import sk.spring.config.SpringCoreConfig;
 import sk.spring.config.SpringCoreConfigWithProperties;
 import sk.spring.services.AppProfileImpl;
 import sk.spring.utils.DefaultThrowableHandler;
+import sk.test.land.core.JskLandScapeParallel;
+import sk.test.land.testcontainers.localstack.JskLandLocalstack;
+import sk.test.land.testcontainers.localstack.JskLandLocalstackConfig;
 import sk.test.land.testcontainers.pg.JskLandPg;
 import sk.test.land.testcontainers.pg.JskLandPgConfig;
 import sk.test.land.testcontainers.pg.JskLandPgWithData;
+import sk.utils.files.PathWithBase;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.logging.JskLoggingLogback;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Io;
+import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
 import sk.web.server.WebServerCore;
@@ -192,24 +197,32 @@ public class WebSparkTest {
 
 
         @Inject JskLandPgWithData pg;
+        @Inject JskLandLocalstack ls;
 
         @Override
         @SneakyThrows
         public String startEnvironment(O<Integer> port) {
-            pg.start();
-            pg.getSql().update("""
+            int rowUpdated = pg.getSql().update("""
                     create schema if not exists xyz;
                     create table xyz.test(
-                        name int not null
+                        name text not null
                     );
-                    """, Cc.m());
-            return pg.getPgLand().getOutsidePort() + "";
+                    insert  into xyz.test (name) values ('%s');
+                    insert  into xyz.test (name) values ('%s');
+                    """.formatted("a", "b"), Cc.m());
+            ls.getS3Client().newBucketForTest("tst");
+            PathWithBase path = new PathWithBase("tst", "abc.txt");
+            ls.getS3Client().putPublic(path, ("HELLO:" + Math.random()).getBytes(St.UTF8));
+            String fromS3 = ls.getS3Client().getFromS3(path).map($ -> new String($, St.UTF8)).get();
+
+            return pg.getPgLand().getOutsidePort() + " | " + rowUpdated + " | " + ls.getOutsidePort() + " | " + fromS3;
         }
 
         @Override
         @SneakyThrows
         public String stopEnvironment() {
             pg.stop();
+            ls.stop();
             return "OK";
         }
     }
@@ -264,7 +277,8 @@ public class WebSparkTest {
             Config.WebSparkCoreConfigThis.class,
             SpringCoreConfigWithProperties.class,
 
-            JskLandPgConfig.class
+            JskLandPgConfig.class,
+            JskLandLocalstackConfig.class
     })
     public static class Config {
         @Configuration
@@ -277,8 +291,11 @@ public class WebSparkTest {
         }
 
         @Bean
-        JskLandPgWithData JskLandPgWithData(ICoreServices core, JskLandPg pg) {
-            return new JskLandPgWithData(core, pg, "tzt");
+        @SneakyThrows
+        JskLandPgWithData JskLandPgWithData(ICoreServices core, JskLandPg pg, JskLandLocalstack localStack) {
+            JskLandPgWithData tzt = new JskLandPgWithData(core, pg, "tzt");
+            new JskLandScapeParallel(core.async(), Cc.l(localStack, tzt)).start();
+            return tzt;
         }
 
         @Bean
@@ -436,7 +453,7 @@ public class WebSparkTest {
         }
 
         @Bean
-        public WebUserActionLoggingFilter WebUserActionLoggingFilter() {
+        public WebUserActionLoggingFilter WebUserActionLoggingFilter(JskLandPgWithData afterEnv) {
             return new WebUserActionLoggingFilter() {
                 @Override
                 public O<String> getUserIdByToken(String userToken) {

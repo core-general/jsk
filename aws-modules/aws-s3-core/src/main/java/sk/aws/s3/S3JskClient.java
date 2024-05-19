@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import sk.aws.AwsUtilityHelper;
+import sk.aws.AwsWithChangedPort;
 import sk.services.async.IAsync;
 import sk.services.bytes.IBytes;
 import sk.services.http.CrcAndSize;
@@ -39,18 +40,19 @@ import sk.utils.files.PathWithBase;
 import sk.utils.functional.C1;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.*;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.URI;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static sk.utils.functional.O.empty;
@@ -69,9 +71,10 @@ public class S3JskClient {
     @Inject IHttp http;
     @Inject AwsUtilityHelper helper;
     @Inject IBytes bytes;
+    @Inject Optional<AwsWithChangedPort> oChangedPort;
 
     public S3JskClient(S3Properties conf, IAsync async, AwsUtilityHelper helper, IRepeat repeat, IHttp http, IBytes bytes,
-            IJson json) {
+            IJson json, Optional<AwsWithChangedPort> oChangedPort) {
         this.conf = conf;
         this.async = async;
         this.helper = helper;
@@ -79,6 +82,7 @@ public class S3JskClient {
         this.http = http;
         this.bytes = bytes;
         this.json = json;
+        this.oChangedPort = oChangedPort;
     }
 
     private S3Client s3;
@@ -86,7 +90,26 @@ public class S3JskClient {
 
     @PostConstruct
     public S3JskClient init() {
-        s3 = helper.createSync(S3Client::builder, conf);
+        oChangedPort.ifPresent(cp -> {
+            S3Properties actual = conf;
+            conf = new S3Properties() {
+                @Override
+                public OneOf<URI, Region> getAddress() {
+                    return cp.getAddress(actual);
+                }
+
+                @Override
+                public AwsCredentials getCredentials() {
+                    return actual.getCredentials();
+                }
+
+                @Override
+                public boolean forcePathStyle() {
+                    return actual.forcePathStyle();
+                }
+            };
+        });
+        s3 = helper.createSync(() -> S3Client.builder().forcePathStyle(conf.forcePathStyle()), conf);
 
         //region urlGetter
         S3Utilities s3Util = s3.utilities();
@@ -211,6 +234,13 @@ public class S3JskClient {
         s3.putObject(putObjectRequest, RequestBody.fromBytes(body));
     }
 
+
+    public void newBucketForTest(String name) {
+        CreateBucketRequest cbr = CreateBucketRequest.builder()
+                .bucket(name)
+                .build();
+        s3.createBucket(cbr);
+    }
 
     public int deleteByKeys(PathWithBase base, String... keysFromRoot) {
         try {

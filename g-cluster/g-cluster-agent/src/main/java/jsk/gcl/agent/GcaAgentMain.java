@@ -45,6 +45,7 @@ import spark.Spark;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import static jsk.gcl.agent.model.GcaUpdateFileProps.GcaRollingUpdateConfig;
@@ -92,7 +93,7 @@ public class GcaAgentMain {
                         return props.getCredentials();
                     }
                 },
-                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json()
+                core.async(), new AwsUtilityHelper(), core.repeat(), core.http(), core.bytes(), core.json(), Optional.empty()
         ).init();
 
         new GcaAgentMain().run(arguments);

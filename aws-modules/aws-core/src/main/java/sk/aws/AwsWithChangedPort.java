@@ -1,4 +1,4 @@
-package sk.test.land.testcontainers.pg;
+package sk.aws;
 
 /*-
  * #%L
@@ -20,23 +20,25 @@ package sk.test.land.testcontainers.pg;
  * #L%
  */
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import sk.db.relational.utils.RdbWithChangedPort;
+import sk.utils.functional.OneOf;
+import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
+import software.amazon.awssdk.regions.Region;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-@Configuration
-public class JskLandPgConfig {
-    @Bean
-    JskLandPg JskLandPg(RdbWithChangedPort props) {
-        return new JskLandPg(props, "postgres:16.3");
-    }
+public interface AwsWithChangedPort {
+    int getPort();
 
-    @Bean
-    RdbWithChangedPort RdbWithChangedPort() {
-        AtomicInteger ai = new AtomicInteger();
-        return () -> Io.getFreePort(ai).get();
+    public default OneOf<URI, Region> getAddress(AwsProperties actual) {
+        OneOf<URI, Region> addr = actual.getAddress();
+        return addr.map(uri -> {
+            try {
+                return new URI(Io.changePortForUrl(uri.toString(), getPort()));
+            } catch (URISyntaxException e) {
+                return Ex.thRow(e);
+            }
+        }, r -> r);
     }
 }

@@ -22,4 +22,8 @@ package sk.aws.s3;
 
 import sk.aws.AwsProperties;
 
-public interface S3Properties extends AwsProperties {}
+public interface S3Properties extends AwsProperties {
+    default boolean forcePathStyle() {
+        return false;
+    }
+}

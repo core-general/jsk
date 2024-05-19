@@ -52,6 +52,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -91,7 +92,7 @@ public class S3CompareTool extends CompareTool<S3ItemMeta, S3CompareMeta> {
             public AwsCredentials getCredentials() {
                 return in.getProps().getCredentials();
             }
-        }, async.get(), helper, repeat, http, bytes, json).init();
+        }, async.get(), helper, repeat, http, bytes, json, Optional.empty()).init();
     }
 
     final F2<S3JskClient, S3CompareInput, List<S3ListObject>> getResponse =

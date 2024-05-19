@@ -53,8 +53,6 @@ import static sk.utils.statics.St.endWith;
 
 @Slf4j
 public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedStore {
-    //@Inject DynamoDbEnhancedClient dynaHighLvl;
-    //@Inject DynamoDbClient dynaLowLvl;
     @Inject DynClient client;
     @Inject DynProperties conf;
 

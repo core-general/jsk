@@ -96,6 +96,14 @@ public final class Io/*Input/Output*/ {
         }
     }
 
+    public static String changePortForUrl(String url, int newPort) {
+        String urlWithPort = St.subRF(St.subLF(url, "://"), "/");
+        String template = url.replace(urlWithPort, "%s");
+        return urlWithPort.contains(":")
+               ? template.formatted(St.subRF(urlWithPort, ":") + ":" + newPort)
+               : template.formatted(urlWithPort + ":" + newPort);
+    }
+
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     @SneakyThrows
     public static AtomicInteger getFreePort(AtomicInteger portStorage) {
