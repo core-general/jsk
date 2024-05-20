@@ -58,6 +58,7 @@ public class UTLongIdToBigInt implements UserType<Object>, ParameterizedType, Dy
                     return null;
                 }
                 try {
+                    constructor.setAccessible(true);
                     return constructor.newInstance(string);
                 } catch (Exception e) {
                     e.printStackTrace();

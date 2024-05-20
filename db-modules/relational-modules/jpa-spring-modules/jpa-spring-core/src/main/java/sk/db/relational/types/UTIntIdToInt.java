@@ -52,12 +52,13 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType, Dynami
     public void setParameterValues(Properties parameters) {
         try {
             idClass = UtUtils.getType(parameters, param);
-            Constructor<?> constructor = idClass.getConstructor(Integer.class);
+            Constructor<?> constructor = idClass.getDeclaredConstructor(Integer.class);
             creator = inti -> {
                 if (inti == null) {
                     return null;
                 }
                 try {
+                    constructor.setAccessible(true);
                     return constructor.newInstance(inti);
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -74,11 +74,9 @@ import sk.web.server.filters.additional.WebUserHistoryAdditionalDataProvider;
 import sk.web.server.filters.additional.WebUserHistoryProvider;
 import sk.web.server.params.WebBasicAuthParams;
 import sk.web.server.params.WebIdempotenceParams;
-import sk.web.server.params.WebServerParams;
 import sk.web.server.params.WebUserActionLoggerParams;
 import sk.web.server.spark.WebJettyEntryPoint;
 import sk.web.server.spark.spring.WebSparkCoreConfig;
-import sk.web.server.spark.spring.properties.WebServerSpringParams;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -282,13 +280,7 @@ public class WebSparkTest {
     })
     public static class Config {
         @Configuration
-        public static class WebSparkCoreConfigThis extends WebSparkCoreConfig {
-            @Override
-            public WebServerParams WebServerParams() {
-                //return new WebServerSpringParams(true);//random port
-                return new WebServerSpringParams(false);
-            }
-        }
+        public static class WebSparkCoreConfigThis extends WebSparkCoreConfig {}
 
         @Bean
         @SneakyThrows

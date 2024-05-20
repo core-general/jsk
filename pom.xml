@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.0.21</version>
+    <version>jsk.21.0.35</version>
 
     <modules>
         <module>jx-modules</module>
@@ -28,6 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+        <spring.version>6.1.6</spring.version>
     </properties>
 
     <repositories>

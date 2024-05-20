@@ -78,6 +78,15 @@ public class JGsonImplTest {
     }
 
     @Test
+    public void string_clamp() {
+        String jsoned = "\"abc\"";
+        if (jsoned.length() > 1 && jsoned.startsWith("\"") && jsoned.endsWith("\"")) {
+            //if it's json string, then we need to remove surrounding "
+            jsoned = jsoned.substring(1, jsoned.length() - 1);
+        }
+        assertEquals("abc", jsoned);
+    }
+    @Test
     public void testJsonInit() {
         InitTester it = new InitTester();
         final InitTester from = json.from(json.to(it), InitTester.class);

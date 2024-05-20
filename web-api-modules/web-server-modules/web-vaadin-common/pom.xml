@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>web-server-modules</artifactId>
-        <version>jsk.21.0.21</version>
+        <version>jsk.21.0.35</version>
     </parent>
 
     <artifactId>web-vaadin-common</artifactId>
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.21.0.21</version>
+            <version>jsk.21.0.35</version>
         </dependency>
 
         <dependency>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>6.1.6</version>
+            <version>${spring.version}</version>
         </dependency>
 
         <dependency>

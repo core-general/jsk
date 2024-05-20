@@ -23,7 +23,15 @@ package sk.spring.utils;
 import sk.utils.functional.O;
 
 public class Profile {
-    public static O<String> getCurrentProfile() {
-        return O.ofNull(System.getProperty("spring.profiles.active")).map($ -> $.toLowerCase());
+    private static volatile O<String> profile = O.empty();
+
+    public static synchronized O<String> getCurrentProfile() {
+        return profile
+                .or(() -> profile = O.ofNull(System.getProperty("spring.profiles.active"))
+                        .map($ -> $.toLowerCase()));
+    }
+
+    public static synchronized void setProfile(String profile) {
+        Profile.profile = O.of(profile);
     }
 }

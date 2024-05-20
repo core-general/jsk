@@ -121,8 +121,8 @@ public class WebClientFactory {
                 retryCount = idempotence.retryCount();
                 retrySleepMs = idempotence.retrySleepMs();
                 final Map<String, String> whereToPut = idempotence.isParamOrHeader()
-                        ? request.getParams()
-                        : request.getHeaders();
+                                                       ? request.getParams()
+                                                       : request.getHeaders();
                 if (!whereToPut.containsKey(idempotence.paramName())) {
                     whereToPut.put(idempotence.paramName(), ids.shortIdS());
                 }
@@ -173,7 +173,7 @@ public class WebClientFactory {
         if (request.getMethod() == WebMethodType.GET) {
             String encodedURL = request.getParams().entrySet().stream()
                     .map(kv -> kv.getKey() + "=" +
-                            Ex.getIgnore(() -> URLEncoder.encode(kv.getValue(), StandardCharsets.UTF_8.toString())))
+                               Ex.getIgnore(() -> URLEncoder.encode(kv.getValue(), StandardCharsets.UTF_8.toString())))
                     .collect(Collectors.joining("&", request.getFullUrl() + "?", ""));
 
             IHttp.HttpGetBuilder builder = http.get(encodedURL);
@@ -185,7 +185,7 @@ public class WebClientFactory {
 
             return O.of(builder);
         } else if ((request.getMethod() == WebMethodType.POST_MULTI || request.getMethod() == WebMethodType.POST_MULTI_SURE)
-                && (request.getParams().size() > 0 || request.getRaw().size() > 0)) {
+                   && (request.getParams().size() > 0 || request.getRaw().size() > 0)) {
             IHttp.HttpMultipartBuilder builder = http.postMulti(request.getFullUrl());
             builder.headers().putAll(request.getHeaders());
             builder.parameters().putAll(request.getParams());
@@ -310,8 +310,8 @@ public class WebClientFactory {
         } else if (value instanceof byte[]) {
             raw.put(name, (byte[]) value);
         } else if (cls.isPrimitive()
-                || cls == UUID.class || cls == String.class
-                || cls == Integer.class || cls == Long.class || cls == Float.class || cls == Double.class
+                   || cls == UUID.class || cls == String.class
+                   || cls == Integer.class || cls == Long.class || cls == Float.class || cls == Double.class
         ) {
             p.put(name, Objects.toString(value));
         } else if (cls.isEnum()) {
@@ -319,7 +319,12 @@ public class WebClientFactory {
         } else if (value instanceof IdBase) {
             p.put(name, value.toString());
         } else {
-            p.put(name, json.to(value));
+            String jsoned = json.to(value);
+            if (jsoned.length() > 1 && jsoned.startsWith("\"") && jsoned.endsWith("\"")) {
+                //if it's json string, then we need to remove surrounding "
+                jsoned = jsoned.substring(1, jsoned.length() - 1);
+            }
+            p.put(name, jsoned);
         }
     }
 

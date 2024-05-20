@@ -25,7 +25,7 @@ import org.hibernate.usertype.DynamicParameterizedType;
 
 import java.util.Properties;
 
-class UtUtils {
+public class UtUtils {
     @SneakyThrows
     public static Class<?> getType(Properties parameters, String ifNotDynamicThenThisPropertyName) {
         final DynamicParameterizedType.ParameterType reader =

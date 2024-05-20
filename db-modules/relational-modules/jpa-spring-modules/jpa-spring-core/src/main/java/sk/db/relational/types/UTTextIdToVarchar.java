@@ -61,6 +61,7 @@ public class UTTextIdToVarchar
                     return null;
                 }
                 try {
+                    constructor.setAccessible(true);
                     return constructor.newInstance(string);
                 } catch (Exception e) {
                     e.printStackTrace();

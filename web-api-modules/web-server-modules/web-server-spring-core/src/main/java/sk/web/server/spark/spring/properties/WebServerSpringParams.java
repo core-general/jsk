@@ -29,7 +29,6 @@ import sk.web.server.params.WebServerParams;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebServerSpringParams implements WebServerParams {
-    private final boolean randomPort;
     @Value("${web_server_port:0}")
     private volatile int port;
 
@@ -53,20 +52,16 @@ public class WebServerSpringParams implements WebServerParams {
     @Getter
     private volatile boolean useCookiesForToken;
 
-    private final AtomicInteger portStorage = new AtomicInteger();
+    private final AtomicInteger portStorage = new AtomicInteger(0);
 
     @Override
     public O<Long> getIdleTimeout() {
         return O.ofNull(idleTimeout);
     }
 
-    public WebServerSpringParams(boolean randomPort) {
-        this.randomPort = randomPort;
-    }
-
     @Override
-    public int getPort() {
-        return port == 0 || randomPort ? port = Io.getFreePort(portStorage).get() : port;
+    public synchronized int getPort() {
+        return port == 0 ? port = Io.getFreePort(portStorage).get() : port;
     }
 
     @Override

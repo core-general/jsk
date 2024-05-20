@@ -52,12 +52,13 @@ public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType, Dyna
     public void setParameterValues(Properties parameters) {
         try {
             idClass = UtUtils.getType(parameters, param);
-            Constructor<?> constructor = idClass.getConstructor(UUID.class);
+            Constructor<?> constructor = idClass.getDeclaredConstructor(UUID.class);
             creator = uuid -> {
                 if (uuid == null) {
                     return null;
                 }
                 try {
+                    constructor.setAccessible(true);
                     return constructor.newInstance(uuid);
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -90,6 +90,10 @@
         .classField {
 
         }
+
+        a {
+            color: lightblue;
+        }
     </style>
     <title>API for ${prefixPath}</title>
 </head>
@@ -113,7 +117,8 @@
         <#if method.precompiledModel.commentOrNull??>
             <span class="comment">/* ${method.precompiledModel.commentOrNull} */</span><br>
         </#if>
-        <span class="type">${method.precompiledModel.returnInfoOrVoid.typeOrNull} </span>
+        <span class="type">
+            <a href="#${method.precompiledModel.returnInfoOrVoid.typeOrNull}_b">${method.precompiledModel.returnInfoOrVoid.typeOrNull}</a></span>
         <#if method.precompiledModel.returnInfoOrVoid.commentOrNull??>
             <span class="comment">/* Return value comment: ${method.precompiledModel.returnInfoOrVoid.commentOrNull} */</span><br>
         </#if>
@@ -122,7 +127,8 @@
     </p>
     <#list method.precompiledModel.params as param>
         <p class="pParameter">
-            <span class="type">${param.typeOrNull}</span><span class="parameter"> ${param.name} </span>
+            <span class="type"><a href="#${param.typeOrNull}_b">${param.typeOrNull}</a></span><span
+                    class="parameter"> ${param.name} </span>
             <#if param?has_next><span class="keySymb">,</span></#if>
             <#if param.commentOrNull??>
                 <span class="comment">/* ${param.commentOrNull} */</span>
@@ -156,7 +162,7 @@
             <span class="comment">/* ${classModel.commentOrNull} */</span><br>
         </#if>
         <span class="keyWord"><#if classModel.isEnum()>enum <#else>class </#if></span>
-        <span class="methodName type">${classModel.name}</span>
+        <span class="methodName type" id="${classModel.name}_b">${classModel.name}</span>
         <#if classModel.parentTypeOrNull??>
             <span class="keyWord">extends</span>
             <span class="methodName type">${classModel.parentTypeOrNull}</span>
@@ -165,7 +171,7 @@
     </p>
     <#list classModel.fields as field>
         <p class="pClassField">
-            <#if field.typeOrNull??><span class="type">${field.typeOrNull}</span></#if>
+            <#if field.typeOrNull??><span class="type"><a href="#${field.typeOrNull}_b">${field.typeOrNull}</a></span></#if>
             <span class="classField">${field.name}</span>
             <span class="keySymb"><#if field.typeOrNull??>;<#else><#if field?has_next>,</#if></#if></span>
             <#if field.commentOrNull??><span class="comment">/* ${field.commentOrNull} */</span></#if>

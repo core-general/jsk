@@ -59,21 +59,21 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType", "rawtypes"})
 public class JGsonImpl implements IJson {
 
-    @Inject Optional<List<GsonSerDesList>> converters = Optional.empty();
-    @Inject ITime times;
-    @Inject IBytes bytes;
-    @Inject Optional<IServiceLocator> serviceLocator = Optional.empty();
+    protected @Inject Optional<List<GsonSerDesList>> converters = Optional.empty();
+    protected @Inject ITime times;
+    protected @Inject IBytes bytes;
+    protected @Inject Optional<IServiceLocator> serviceLocator = Optional.empty();
 
-    private Gson jsonConcrete;
-    private Gson jsonPolymorphic;
+    protected Gson jsonConcrete;
+    protected Gson jsonPolymorphic;
 
-    private Gson jsonSerializeNullPolymorphic;
+    protected Gson jsonSerializeNullPolymorphic;
 
-    private Gson jsonPrettyPolymorphic;
+    protected Gson jsonPrettyPolymorphic;
 
-    private Gson jsonPrettySerializeNullsPolymorphic;
+    protected Gson jsonPrettySerializeNullsPolymorphic;
 
-    private final O<ThreadLocal<IJsonInstanceProps>> tlRunStorage;
+    protected final O<ThreadLocal<IJsonInstanceProps>> tlRunStorage;
 
     public JGsonImpl(boolean useThreadLocalForRunStorage) {
         tlRunStorage = useThreadLocalForRunStorage ? O.of(new ThreadLocal<>()) : O.empty();
@@ -501,7 +501,7 @@ public class JGsonImpl implements IJson {
         }
     }
 
-    private <T> T fromUni(Gson gson, InputStream in, TypeWrap<T> type) {
+    protected <T> T fromUni(Gson gson, InputStream in, TypeWrap<T> type) {
         JGsonLoggingInputStreamReader rdr = new JGsonLoggingInputStreamReader(in, 50_000);
         try (rdr) {
             tlRunStorage.ifPresent($ -> $.set(new IJsonInstanceProps(gson.serializeNulls())));

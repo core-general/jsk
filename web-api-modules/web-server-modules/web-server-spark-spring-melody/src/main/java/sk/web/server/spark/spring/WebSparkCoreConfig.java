@@ -136,7 +136,7 @@ public class WebSparkCoreConfig {
 
     @Bean
     public WebServerParams WebServerParams() {
-        return new WebServerSpringParams(false);
+        return new WebServerSpringParams();
     }
 
     @Bean
