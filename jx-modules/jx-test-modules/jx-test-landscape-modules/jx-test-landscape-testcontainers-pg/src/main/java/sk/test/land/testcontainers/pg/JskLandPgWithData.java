@@ -29,20 +29,27 @@ import sk.test.land.core.mixins.JskLandEmptyStateMixin;
 import sk.test.land.core.mixins.JskLandStateChangerMixin;
 import sk.utils.functional.O;
 
+import java.util.List;
+
 @Slf4j
 public class JskLandPgWithData extends JskLand
         implements JskLandEmptyStateMixin, JskLandStateChangerMixin<JskLandPgStateChangerAccumulator> {
     private final ICoreServices core;
     @Getter private final JskLandPg pgLand;
     private final String databaseName;
+    private final List<String> relevantSchemas;
+    private final List<String> excludedTables;
 
     @Getter
     protected volatile NamedParameterJdbcOperations sql;
 
-    public JskLandPgWithData(ICoreServices core, JskLandPg pgLand, String databaseName) {
+    public JskLandPgWithData(ICoreServices core, JskLandPg pgLand, String databaseName, List<String> relevantSchemas,
+            List<String> excludedTables) {
         this.core = core;
         this.pgLand = pgLand;
         this.databaseName = databaseName;
+        this.relevantSchemas = relevantSchemas;
+        this.excludedTables = excludedTables;
     }
 
     @Override
@@ -62,7 +69,7 @@ public class JskLandPgWithData extends JskLand
 
     @Override
     public void toEmptyState() {
-        pgLand.clearAllNonPostgresTablesIn(databaseName);
+        pgLand.clearAllNonPostgresTablesIn(databaseName, relevantSchemas, excludedTables);
     }
 
     @Override

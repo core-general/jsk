@@ -20,6 +20,7 @@ package sk.services.bytes;
  * #L%
  */
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import sk.services.http.CrcAndSize;
@@ -33,8 +34,10 @@ import sk.utils.statics.St;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,6 +92,55 @@ public class BytesImplTest extends JskMockitoTest {
                 assertEquals(decrypted, m);
             });
         }
+    }
+
+    @Test
+    void getResourceFolderRecursivelyFolderTest() {
+        //also takes data from jx-util resource folder, it should be configured in maven with additionalClasspathElement
+        Map<String, byte[]> resourceFolderRecursively = bytes.getResourceFolderRecursively("jx-test");
+        Assertions.assertEquals("""
+                jx-test/jx-test-1.txt -> 1
+                jx-test/jx-test-2.txt -> 2
+                jx-test/jx-test-2/jx-test-21.txt -> 21
+                jx-test/jx-test-2/jx-test-22.txt -> 22
+                jx-test/jx-test-2/jx-test-3/jx-test-231.txt -> 231
+                jx-test/jx-test-2/jx-test-3/jx-test-232.txt -> 232
+                jx-test/jx-test-2/jx-test-3/non-jx-test-233.txt -> 233
+                jx-test/jx-test-2/non-jx-test-23.txt -> 23
+                jx-test/jx-test-3.txt -> 3
+                jx-test/jx-test-4.txt -> 4
+                jx-test/jx-test/jx-test-1.txt -> 11
+                jx-test/jx-test/jx-test-2.txt -> 12
+                jx-test/jx-test/jx-test-3.txt -> 33
+                jx-test/jx-test/jx-test-4.txt -> 44
+                jx-test/non-jx-test-3.txt -> 3
+                jx-test/non-jx-test/jx-test-1.txt -> 11
+                jx-test/non-jx-test/jx-test-2.txt -> 22""", Cc.join("\n", resourceFolderRecursively.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map($ -> $.getKey() + " -> " + new String($.getValue()))));
+    }
+
+    @Test
+    public void getResourceFolderRecursivelyJarTest() {
+        URI uri = Io.getResourceUri("jx-test-additional/jx-test.jar").get();
+        String fileName = Io.getFileFromUri(uri);
+        Map<String, byte[]> resourceFolderRecursively =
+                bytes.getResourceFolderRecursively("jx-test",
+                        w -> Cc.l(URI.create("jar:file:" + fileName + "!" + St.startWith(w, "/")).toURL()));
+
+        Assertions.assertEquals("""
+                jx-test-1.txt -> 1
+                jx-test-2.txt -> 2
+                jx-test-2/jx-test-21.txt -> 21
+                jx-test-2/jx-test-22.txt -> 22
+                jx-test-2/jx-test-3/jx-test-231.txt -> 231
+                jx-test-2/jx-test-3/jx-test-232.txt -> 232
+                jx-test-2/jx-test-3/non-jx-test-233.txt -> 233
+                jx-test-2/non-jx-test-23.txt -> 23
+                jx-test/jx-test-1.txt -> 11
+                jx-test/jx-test-2.txt -> 12""", Cc.join("\n", resourceFolderRecursively.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map($ -> $.getKey() + " -> " + new String($.getValue()))));
     }
 
     @Test

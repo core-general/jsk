@@ -20,12 +20,13 @@ package sk.utils.statics;
  * #L%
  */
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
+import java.net.URI;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class IoTest {
     @Test
@@ -56,5 +57,22 @@ public class IoTest {
                                 jdbc:postgresql://eat-db.cywcsttzyjee.us-east-1.rds.amazonaws.com/eat?ssl=true&sslmode=verify-full&sslfactory=org.postgresql.ssl.SingleCertValidatingFactory&sslfactoryarg=classpath:ead/rds-ca-2019-us-east-1.pem""",
                         69543));
 
+    }
+
+    @Test
+    @SneakyThrows
+    void testURIs() {
+        assertEquals("/a/b/c.jar", Io.getFileFromUri(new URI("jar:file:/a/b/c.jar!/_abc/props")));
+        assertEquals("/a/b/c.jar", Io.getFileFromUri(new URI("jar:file:/a/b/c.jar")));
+        assertEquals("/a/b/c.jar", Io.getFileFromUri(new URI("file:/a/b/c.jar")));
+        assertEquals("/a/b/c.jar", Io.getFileFromUri(new URI("/a/b/c.jar")));
+
+        assertTrue(Io.isJarUri(new URI("jar:file:/a/b/c.jar!/_abc/props")));
+        assertTrue(Io.isJarUri(new URI("/a/b/c.jar!/_abc/props")));
+        assertFalse(Io.isJarUri(new URI("/a/b/c.txt")));
+
+        assertEquals("_abc/props", Io.getJarContextPathFromUri(new URI("jar:file:/a/b/c.jar!/_abc/props")));
+        assertEquals("_abc/props", Io.getJarContextPathFromUri(new URI("/a/b/c.jar!/_abc/props")));
+        assertEquals("", Io.getJarContextPathFromUri(new URI("jar:file:/a/b/c.jar")));
     }
 }

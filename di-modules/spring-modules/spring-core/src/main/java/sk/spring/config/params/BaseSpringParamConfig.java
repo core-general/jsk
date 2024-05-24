@@ -30,6 +30,9 @@ import sk.spring.plugins.PropertyMetaService;
 import sk.spring.utils.Profile;
 import sk.utils.statics.St;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.of;
 
@@ -40,15 +43,19 @@ public class BaseSpringParamConfig {
      */
     @Bean
     public static PropertySourcesPlaceholderConfigurer ppc() {
-        final PropertyMeta properties = PropertyMetaService.getPropertyNames().get();
+        final List<PropertyMeta> properties = PropertyMetaService.getPropertyNames();
         final String profile = Profile.getCurrentProfile().orElseGet(() -> "default");
 
-        final String[] commonProperties = properties.getConf().stream()
-                .filter($ -> St.count($.replace(properties.getPropertyPath(), ""), "/") == 0)
+        String[] commonProperties = properties.stream()
+                .flatMap(props -> Arrays.stream(props.getConf().stream()
+                        .filter($ -> St.count($.replace(props.getPropertyPath(), ""), "/") == 0)
+                        .toArray(String[]::new)))
                 .toArray(String[]::new);
 
-        final String[] profileProperties = properties.getConf().stream()
-                .filter($ -> $.contains("/" + profile + "/"))
+        String[] profileProperties = properties.stream()
+                .flatMap(props -> Arrays.stream(props.getConf().stream()
+                        .filter($ -> $.contains("/" + profile + "/"))
+                        .toArray(String[]::new)))
                 .toArray(String[]::new);
 
         PropertySourcesPlaceholderConfigurer ppc = new PropertySourcesPlaceholderConfigurer();

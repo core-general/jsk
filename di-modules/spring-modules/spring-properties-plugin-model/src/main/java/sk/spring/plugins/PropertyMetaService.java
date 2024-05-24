@@ -21,26 +21,31 @@ package sk.spring.plugins;
  */
 
 import sk.services.CoreServicesRaw;
+import sk.services.bytes.BytesImpl;
+import sk.services.bytes.IBytes;
 import sk.services.json.IJson;
-import sk.utils.functional.O;
-import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Io;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PropertyMetaService {
 
-    public static synchronized void savePropertyNames(String pathPrefix, String propertyPathPrefix, List<String> properties) {
+    public static synchronized void savePropertyNames(String pathPrefix, String propertyPathPrefix, List<String> properties,
+            String module) {
         IJson json = CoreServicesRaw.services().json();
         final String to = json.to(new PropertyMeta(propertyPathPrefix, properties), true);
-        Io.reWrite(pathPrefix + "/__jsk_util/properties/props4spring.json", w -> w.append(to));
+        Io.reWrite(pathPrefix + "/__jsk_util/properties/%s/props4spring.json".formatted(module), w -> w.append(to));
     }
 
-    public static O<PropertyMeta> getPropertyNames() {
-        final String properties = Io.getResource("__jsk_util/properties/props4spring.json")
-                .orElseThrow(() -> new RuntimeException(
-                        "Can't find property meta file in:__jsk_util/properties/props4spring.json"));
+    public static List<PropertyMeta> getPropertyNames() {
+        IBytes bytes = new BytesImpl();
         IJson json = CoreServicesRaw.services().json();
-        return O.of(json.from(properties, TypeWrap.simple(PropertyMeta.class)));
+        Map<String, byte[]> files = bytes.getResourceFolderRecursively("__jsk_util/properties");
+        return files.entrySet().stream().filter($ -> $.getKey().endsWith(".json"))
+                .map($ -> json.from(new String($.getValue(), StandardCharsets.UTF_8), PropertyMeta.class))
+                .collect(Collectors.toList());
     }
 }

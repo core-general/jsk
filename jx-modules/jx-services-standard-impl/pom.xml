@@ -5,19 +5,19 @@
     <parent>
         <artifactId>jx-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.0.35</version>
+        <version>jsk.21.1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jx-services-standard-impl</artifactId>
-    <version>jsk.21.0.35</version>
+    <version>jsk.21.1.1</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.21.0.35</version>
+            <version>jsk.21.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -101,8 +101,23 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.0.35</version>
+            <version>jsk.21.1.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!--for BytesImplTest-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${project.basedir}/../jx-utils/src/main/resources</additionalClasspathElement>
+                    </additionalClasspathElements>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -69,6 +69,9 @@ public class GccMain {
                 params.getArg(GccMain.ARGS.MAX_PERIOD_SEC).map(Ma::pi).orElse(60),
                 params.getArg(ARGS.RETRY).map(Ma::pi).orElse(1)
         );
+        while (!activity.finished) {
+            Ti.sleep(5000);
+        }
     }
 
     static class EvaluatingActivity {
@@ -91,11 +94,31 @@ public class GccMain {
             this.maxPeriodSec = maxPeriodSec;
             this.retryCount = retryCount;
 
+            System.out.println();
+            System.out.println("/tmp/g-cluster-checker/%s/NVER.png".formatted(startTime.format(Ti.yyyyMMddHHmmss)));
+            System.out.println();
+
             core.async()
                     .runAsyncDontWait(IntStream.range(0, numOfThreads)
                             .mapToObj((i) -> (R) new GccWorker())
                             .toList())
                     .thenRun(() -> finish());
+
+            //draw periodically
+            core.async().runBuf(() -> {
+                while (!finished) {
+                    try {
+                        activityChangeLock.runInLock(() -> {
+                            draw(false);
+                            System.out.println("Periodic draw finished...events:" + events.size());
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        Ti.sleep(7500);
+                    }
+                }
+            });
         }
 
 
@@ -106,45 +129,50 @@ public class GccMain {
                     finishTime = core.times().nowZ();
                     System.out.println("Finishing activity %s...\n%d events in DB...".formatted(url, events.size()));
                     Ti.sleep(Ti.second);
-                    List<GccHttpEvent> noNverErrors = events.values().parallelStream()
-                            .filter($ -> Fu.equal("NO_NVER", $.getNVer()))
-                            .toList();
-
-                    fullDataProcessing($ -> $.code + "", code -> O.ofNull(Ma.pi(code) == 200
-                                                                          ? Color.GREEN
-                                                                          : Ma.inside(Ma.pi(code), 201, 299)
-                                                                            ? Color.BLUE
-                                                                            : Ma.inside(Ma.pi(code), 400, 499)
-                                                                              ? Color.YELLOW
-                                                                              : Ma.inside(Ma.pi(code), 500, 599)
-                                                                                ? Color.RED
-                                                                                : null), "HTTP_CODES");
-
-                    fullDataProcessing($ -> $.exception.isPresent() + "", code -> O.ofNull(Ma.pb(code) ? Color.RED : Color.GREEN),
-                            "EXCEPTIONS");
-                    fullDataProcessing($ -> $.exception.map($$ -> $$.getMessage()) + "",
-                            code -> O.ofNull(St.isNotNullOrEmpty(code) ? Color.RED : Color.GREEN),
-                            "EXCEPTION_TEXT");
-                    fullDataProcessing($ -> $.timeout + "", code -> O.ofNull(Ma.pb(code) ? Color.RED : Color.GREEN),
-                            "TIMEOUT");
-                    fullDataProcessing($ -> ($.responseTimeMs / 100) * 100 + "",
-                            code -> O.empty(),
-                            "RESPONSE_TIMES");
-                    fullDataProcessing($ -> $.getNVer(),
-                            code -> O.empty(),
-                            "NVER");
-
+                    draw(true);
                     System.out.println("Activity finished");
                 }
             });
         }
 
-        void fullDataProcessing(F1<GccHttpEvent, String> grouping, F1<String, O<Color>> coloring, String name) {
+        private void draw(boolean usefinishTime) {
+            ZonedDateTime timeToCheck = usefinishTime ? finishTime : core.times().nowZ();
+            core.async().runAsyncDontWait(Cc.l(
+                    () -> fullDataProcessing($ -> $.code + "", code -> O.ofNull(Ma.pi(code) == 200
+                                                                                ? Color.GREEN
+                                                                                : Ma.inside(Ma.pi(code), 201, 299)
+                                                                                  ? Color.BLUE
+                                                                                  : Ma.inside(Ma.pi(code), 400, 499)
+                                                                                    ? Color.YELLOW
+                                                                                    : Ma.inside(Ma.pi(code), 500, 599)
+                                                                                      ? Color.RED
+                                                                                      : null), "HTTP_CODES", timeToCheck),
+                    () -> fullDataProcessing($ -> $.exception.isPresent() + "",
+                            code -> O.ofNull(Ma.pb(code) ? Color.RED : Color.GREEN),
+                            "EXCEPTIONS", timeToCheck),
+                    () -> fullDataProcessing($ -> $.exception.map($$ -> $$.getMessage()) + "",
+                            code -> O.ofNull(St.isNotNullOrEmpty(code) ? Color.RED : Color.GREEN),
+                            "EXCEPTION_TEXT", timeToCheck),
+                    () -> fullDataProcessing($ -> $.timeout + "", code -> O.ofNull(Ma.pb(code) ? Color.RED : Color.GREEN),
+                            "TIMEOUT", timeToCheck),
+                    () -> fullDataProcessing($ -> ($.responseTimeMs / 100) * 100 + "",
+                            code -> O.empty(),
+                            "RESPONSE_TIMES", timeToCheck),
+                    () -> fullDataProcessing($ -> $.getNVer(),
+                            code -> O.empty(),
+                            "NVER", timeToCheck)
+            )).join();
+        }
+
+        void fullDataProcessing(F1<GccHttpEvent, String> grouping, F1<String, O<Color>> coloring, String name,
+                ZonedDateTime timeToCheck) {
             Map<String, TreeMap<String, List<GccHttpEvent>>> byCode = groupingBy(grouping);
-            MDataSets datasets = datasets(byCode, coloring);
+            MDataSets datasets = datasets(byCode, coloring, timeToCheck);
             datasets.setName(name);
-            JGraphHelp.save("/tmp/g-cluster-checker/%s/%s.png".formatted(finishTime.format(Ti.yyyyMMddHHmmss), name),
-                    JGraphHelp.lineChartX1(datasets));
+            String file = "/tmp/g-cluster-checker/%s/%s.png.zgc".formatted(startTime.format(Ti.yyyyMMddHHmmss), name);
+            JGraphHelp.save(file, JGraphHelp.lineChartX1(datasets));
+            //done for smooth change in the linux image viewer
+            Io.move(file, file.replace(".zgc", ""));
         }
 
         Map<String, TreeMap<String, List<GccHttpEvent>>> groupingBy(F1<GccHttpEvent, String> grouper) {
@@ -153,15 +181,16 @@ public class GccMain {
                             Collectors.groupingBy($ -> $.getHourMinAndSec(), () -> new TreeMap<>(), Collectors.toList())));
         }
 
-        MDataSets datasets(Map<String, TreeMap<String, List<GccHttpEvent>>> data, F1<String, O<Color>> coloring) {
+        MDataSets datasets(Map<String, TreeMap<String, List<GccHttpEvent>>> data, F1<String, O<Color>> coloring,
+                ZonedDateTime timeToCheck) {
             SortedSet<String> allSortedDates = new TreeSet<>();
             ZonedDateTime current = startTime;
-            while (current.isBefore(finishTime)) {
+            while (current.isBefore(timeToCheck)) {
                 allSortedDates.add(current.format(GROUPING_DATE_FORMAT));
                 current = current.plusSeconds(1);
             }
 
-            List<MDataSet> timeLine = data.entrySet().stream().map(dsTarget -> {
+            List<MDataSet> timeLine = data.entrySet().parallelStream().map(dsTarget -> {
                 MDataSet set = new MDataSet(
                         dsTarget.getKey(),
                         "Count",

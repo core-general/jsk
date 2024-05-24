@@ -35,13 +35,17 @@ import sk.utils.tree.Tree;
 import sk.utils.tree.TreePath;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.*;
 
@@ -49,6 +53,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("unused")
 public interface IBytes {
+
     //region basic algorithms
     default byte[] md5(byte[] bytes) {
         try {
@@ -249,6 +254,11 @@ public interface IBytes {
     //region zip archive
     String ZIP_KEY = "X";
 
+    default List<ZipFileInfo> getZipFileMeta(File file) {
+        return getZipFileMeta(file.toURI());
+    }
+
+    List<ZipFileInfo> getZipFileMeta(URI file);
 
     void zipFileOrFolderTo(File sourceFileOrFolder, File targetFile);
 
@@ -374,4 +384,88 @@ public interface IBytes {
         }
     }
     //endregion
+
+
+    @SneakyThrows
+    default Map<String, byte[]> getResourceFolderRecursively(String resourcePath) {
+        return getResourceFolderRecursively(resourcePath,
+                rp -> Thread.currentThread().getContextClassLoader().resources(rp).toList());
+    }
+
+    @SneakyThrows
+    default Map<String, byte[]> getResourceFolderRecursively(String resourcePath,
+            F1E<String, List<URL>> resourcesProvider) {
+        return getResourceFolderRecursivelyPrivate(resourcePath, resourcesProvider, O.empty());
+    }
+
+    @SneakyThrows
+    private Map<String, byte[]> getResourceFolderRecursivelyPrivate(String resourcePath,
+            F1E<String, List<URL>> resourcesProvider, O<List<ZipFileInfo>> jarContentsIfPresent) {
+        Map<String, byte[]> resourceMap = Cc.m();
+        List<URL> urls = resourcesProvider.apply(resourcePath);
+        for (URL url : urls) {
+            URI uri = url.toURI();
+            boolean isJar = Io.isJarUri(uri);
+            O<List<ZipFileInfo>> pathsInsideJar = isJar
+                                                  ? O.of((jarContentsIfPresent.isPresent()
+                                                          ? jarContentsIfPresent.get()
+                                                          : getZipFileMeta(uri)).stream()
+                    .filter($ -> $.getFilePath()
+                            .startsWith(St.notStartWith(
+                                    resourcePath, "/"))).toList())
+                                                  : O.empty();
+            if (isResourceFolder(resourcePath, url, pathsInsideJar)) {
+                List<Map<String, byte[]>> folderContents =
+                        getFilesFromFolder(resourcePath, url, resourcesProvider, pathsInsideJar);
+                folderContents.forEach($ -> resourceMap.putAll($));
+            } else {
+                byte[] fileContents = Io.streamPump(url.openStream());
+                resourceMap.put(resourcePath, fileContents);
+            }
+        }
+        return resourceMap;
+    }
+
+    private List<Map<String, byte[]>> getFilesFromFolder(String resourcePath, URL url, F1E<String, List<URL>> resourcesProvider,
+            O<List<ZipFileInfo>> pathsInsideJar)
+            throws IOException {
+        if (pathsInsideJar.isPresent()) {
+            return pathsInsideJar.get().stream()
+                    .filter($ -> {
+                        String filePath = $.getFilePath();
+                        filePath = filePath.replace(St.endWith(resourcePath, "/"), "");
+                        return St.isNotNullOrEmpty(filePath)
+                               && (!$.isDirectory() && St.count(filePath, "/") == 0) ||
+                               ($.isDirectory() && St.count(filePath, "/") == 1);
+                    })
+                    .map($ -> getResourceFolderRecursivelyPrivate($.getFilePath(), resourcesProvider, pathsInsideJar))
+                    .toList();
+        } else {
+            return Arrays.stream(new String(Io.streamPump(url.openStream()), StandardCharsets.UTF_8).split("\n"))
+                    .filter(St::isNotNullOrEmpty)
+                    .map($ -> getResourceFolderRecursively(St.endWith(resourcePath, "/") + $, resourcesProvider))
+                    .toList();
+        }
+    }
+
+    private boolean isResourceFolder(String prefix, URL url, O<List<ZipFileInfo>> pathsInsideJar) throws IOException {
+        if (pathsInsideJar.isPresent()) {
+            List<ZipFileInfo> zipFileInfos = pathsInsideJar.get();
+            return zipFileInfos.stream().anyMatch($ -> $.isDirectory());
+        } else {
+
+            byte[] resourceContents = Io.streamPump(url.openStream());
+            if (resourceContents.length > 1000) {
+                return false;
+            } else {
+                String urlContents = new String(resourceContents, StandardCharsets.UTF_8);
+                boolean isFolder = Arrays.stream(urlContents.split("\n"))
+                        .filter(St::isNotNullOrEmpty)
+                        .allMatch($ -> Thread.currentThread().getContextClassLoader().resources(St.endWith(prefix, "/") + $)
+                                               .toList()
+                                               .size() > 0);
+                return isFolder;
+            }
+        }
+    }
 }

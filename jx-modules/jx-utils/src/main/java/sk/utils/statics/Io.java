@@ -28,6 +28,7 @@ import sk.utils.functional.*;
 
 import java.io.*;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -104,6 +105,28 @@ public final class Io/*Input/Output*/ {
                : template.formatted(urlWithPort + ":" + newPort);
     }
 
+    //region URI
+    public static String getFileFromUri(URI uri) throws RuntimeException {
+        String locator = uri.toString();
+        if (!locator.contains("file:") && !locator.startsWith("/")) {
+            throw new RuntimeException("Can't work with non file URI's: " + locator);
+        }
+
+        return St.sub(locator, "file:", "!").get();
+    }
+
+    public static boolean isJarUri(URI uri) throws RuntimeException {
+        String path = uri.toString();
+        return path.startsWith("jar:file:") || path.contains(".jar");
+    }
+
+    public static String getJarContextPathFromUri(URI uri) {
+        String path = uri.toString();
+        return !path.contains("!") ? "" : St.notStartWith(St.subLL(path, "!"), "/");
+    }
+    //endregion
+
+
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     @SneakyThrows
     public static AtomicInteger getFreePort(AtomicInteger portStorage) {
@@ -127,10 +150,11 @@ public final class Io/*Input/Output*/ {
     public static void streamPump(InputStream in, OutputStream out, int bufferSize, StreamPumpInterceptor also) {
         byte[] read_buf = new byte[bufferSize];
         int read_len;
-
-        while ((read_len = in.read(read_buf)) > 0) {
-            out.write(read_buf, 0, read_len);
-            also.intercept(read_buf, read_len);
+        try (out; in) {
+            while ((read_len = in.read(read_buf)) > 0) {
+                out.write(read_buf, 0, read_len);
+                also.intercept(read_buf, read_len);
+            }
         }
     }
 
@@ -249,6 +273,13 @@ public final class Io/*Input/Output*/ {
         return O.ofNullable(Thread.currentThread().getContextClassLoader().getResourceAsStream(resource));
     }
 
+    public static O<URI> getResourceUri(String resource) {
+        try {
+            return O.ofNull(Thread.currentThread().getContextClassLoader().getResource(resource).toURI());
+        } catch (Exception e) {
+            return empty();
+        }
+    }
 
     public static void visitEachFile(String fileOrFolder, C1<File> onFile) {
         visitEachFileWithFinish(fileOrFolder, file -> {
@@ -701,6 +732,7 @@ public final class Io/*Input/Output*/ {
         file.getAbsoluteFile().getParentFile().mkdirs();
         r.accept(file.toPath());
     }
+
 
     private Io() {}
 }

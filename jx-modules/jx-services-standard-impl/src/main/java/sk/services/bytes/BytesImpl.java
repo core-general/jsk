@@ -30,6 +30,7 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.crypto.AESDecrypter;
 import net.lingala.zip4j.crypto.AESEncrypter;
 import net.lingala.zip4j.model.AESExtraDataRecord;
+import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import sk.services.utils.LingalaZipHelper;
@@ -43,8 +44,10 @@ import sk.utils.statics.St;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static net.lingala.zip4j.model.enums.AesKeyStrength.*;
@@ -53,7 +56,6 @@ import static sk.utils.functional.O.empty;
 @SuppressWarnings("unused")
 @Slf4j
 public class BytesImpl implements IBytes {
-
     @Override
     public <T> O<T> decodeCrcEncodedValue(String encodedValue, boolean isFromEnd, F1E<String, T> doWithValue) {
         for (int i = 11; i > 0; i--) {
@@ -111,6 +113,27 @@ public class BytesImpl implements IBytes {
         val toRet = new byte[sizeOfSource];
         getLz4Factory().fastDecompressor().decompress(data, 4, toRet, 0, sizeOfSource);
         return toRet;
+    }
+
+    @SneakyThrows
+    public static void main(String[] args) {
+        //todo delete
+        BytesImpl bi = new BytesImpl();
+        List<ZipFileInfo> zipFileMeta = bi.getZipFileMeta(
+                new URI("file:/home/kivan/projects/Actual/mergeum-backend/projects/builds/main-api-srv-build/target/main-api" +
+                        "-srv-build-1.0.0-jar-with-dependencies.jar!/__jsk_util/properties"));
+        int i = 0;
+    }
+
+    @Override
+    @SneakyThrows
+    public List<ZipFileInfo> getZipFileMeta(URI uri) {
+        String file = Io.getFileFromUri(uri);
+        try (var zp = new ZipFile(file);) {
+            List<FileHeader> fileHeaders = zp.getFileHeaders();
+            return fileHeaders.stream()
+                    .map($ -> (ZipFileInfo) new LingalaBasedZipFileInfo($)).toList();
+        }
     }
 
     @Override
@@ -282,6 +305,42 @@ public class BytesImpl implements IBytes {
                     verifier,
                     data
             );
+        }
+    }
+
+    private static class LingalaBasedZipFileInfo implements ZipFileInfo {
+        private final FileHeader $;
+
+        public LingalaBasedZipFileInfo(FileHeader $) {this.$ = $;}
+
+        @Override
+        public String getFilePath() {
+            return $.getFileName();
+        }
+
+        @Override
+        public long getCrc() {
+            return $.getCrc();
+        }
+
+        @Override
+        public long getCompressedSize() {
+            return $.getCompressedSize();
+        }
+
+        @Override
+        public long getUnCompressedSize() {
+            return $.getUncompressedSize();
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return $.isDirectory();
+        }
+
+        @Override
+        public String toString() {
+            return getFilePath();
         }
     }
 }

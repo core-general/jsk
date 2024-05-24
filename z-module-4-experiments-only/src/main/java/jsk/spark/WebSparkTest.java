@@ -285,7 +285,7 @@ public class WebSparkTest {
         @Bean
         @SneakyThrows
         JskLandPgWithData JskLandPgWithData(ICoreServices core, JskLandPg pg, JskLandLocalstack localStack) {
-            JskLandPgWithData tzt = new JskLandPgWithData(core, pg, "tzt");
+            JskLandPgWithData tzt = new JskLandPgWithData(core, pg, "tzt", Cc.l(), Cc.l());
             new JskLandScapeParallel(core.async(), Cc.l(localStack, tzt)).start();
             return tzt;
         }
@@ -474,7 +474,7 @@ public class WebSparkTest {
 
                 @Override
                 public AwsCredentials getCredentials() {
-                    return AwsBasicCredentials.create("abc", "bcd");
+                    return AwsBasicCredentials.create("test", "test");
                 }
             };
         }

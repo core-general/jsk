@@ -76,9 +76,10 @@ public class SpringMvnPropertiesGenerator extends AbstractMojo {
                         properties.add(name);
                     }
                 });
+                String module = St.subLL(St.subRL(parentPath, "/target"), "/");
+                getLog().info("Output to:" + parentFolder + " -> module:" + module);
 
-                getLog().info("Output to:" + parentFolder);
-                PropertyMetaService.savePropertyNames(parentFolder, propertyPathPrefix, properties);
+                PropertyMetaService.savePropertyNames(parentFolder, propertyPathPrefix, properties, module);
             } catch (DependencyResolutionRequiredException e) {
                 Ex.thRow(e);
             }

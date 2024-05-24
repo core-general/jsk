@@ -34,6 +34,7 @@ import sk.utils.statics.Fu;
 import sk.utils.statics.St;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,27 +59,8 @@ public class JskLandPg extends JskLandContainer<PostgreSQLContainer<?>> {
         return sql.computeIfAbsent(database, key -> new NamedParameterJdbcTemplate(getOrCreateDS(database)));
     }
 
-    public void clearAllNonPostgresTablesIn(String database) {
-        getSql(database).update("""
-                DO $$
-                DECLARE
-                    table_schema text;
-                    table_name text;
-                BEGIN
-                    SET session_replication_role = replica;
-                    FOR table_schema, table_name IN (
-                        SELECT schemaname, tablename
-                        FROM pg_tables
-                        WHERE
-                        schemaname NOT IN ('information_schema', 'pg_catalog')
-                    )
-                    LOOP
-                        EXECUTE format('TRUNCATE TABLE %I.%I CASCADE;', table_schema, table_name);
-                    END LOOP;
-                    SET session_replication_role = DEFAULT;
-                END;
-                $$ LANGUAGE plpgsql;
-                """, Cc.m());
+    public void clearAllNonPostgresTablesIn(String database, List<String> schemas, List<String> excludedTables) {
+        getSql(database).update(prepareDeleteQuery(schemas, excludedTables), Cc.m());
     }
 
     @Override
@@ -152,5 +134,35 @@ public class JskLandPg extends JskLandContainer<PostgreSQLContainer<?>> {
         }, Optional.of(portProvider));
     }
 
-
+    @SuppressWarnings("SqlType")
+    static String prepareDeleteQuery(List<String> schemas, List<String> excludedTables) {
+        String joinedSchemas = Cc.join("','", schemas);
+        String joinedExcludedTables = "AND tablename <> '" + Cc.join("' AND tablename <> '", excludedTables) + "'";
+        //language=sql
+        String deleteQuery = """
+                DO $$
+                DECLARE
+                    table_schema text;
+                    table_name text;
+                BEGIN
+                    SET session_replication_role = replica;
+                    FOR table_schema, table_name IN (
+                        SELECT schemaname, tablename
+                        FROM pg_tables
+                        WHERE
+                        %s
+                        %s
+                    )
+                    LOOP
+                        EXECUTE format('TRUNCATE TABLE %%I.%%I CASCADE;', table_schema, table_name);
+                    END LOOP;
+                    SET session_replication_role = DEFAULT;
+                END;
+                $$ LANGUAGE plpgsql;
+                """.formatted(schemas.isEmpty()
+                              ? "schemaname NOT IN ('information_schema', 'pg_catalog')"
+                              : "schemaname IN ('" + joinedSchemas + "')",
+                excludedTables.isEmpty() ? "" : joinedExcludedTables);
+        return deleteQuery;
+    }
 }
