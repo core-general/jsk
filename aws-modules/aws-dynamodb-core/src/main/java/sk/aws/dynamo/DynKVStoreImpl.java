@@ -182,9 +182,9 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                             null));
                     return OneOf.left(oupdatedValue);
                 } catch (ConditionalCheckFailedException
-                        | ProvisionedThroughputExceededException
-                        | RequestLimitExceededException e) {
-                    async.sleep(500);
+                         | ProvisionedThroughputExceededException
+                         | RequestLimitExceededException e) {
+                    async.sleep(200);
                     continue;
                 } catch (Exception e) {
                     return OneOf.right(e);
@@ -235,7 +235,10 @@ public class DynKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedSto
                 try {
                     table.createTable();
                 } catch (ResourceInUseException tableAlreadyCreatedIgnoreIt) {}
-                async.sleep(2000);
+                int retries = 50;
+                while (!table.isReady() && retries-- > 0) {
+                    async.sleep(200);
+                }
             }
         }
         throw DynamoDbException.builder().message("Table '" + table.tableName() + "' is unavailable").build();

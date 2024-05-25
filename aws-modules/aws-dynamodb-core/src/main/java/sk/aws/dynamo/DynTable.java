@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 
 import java.util.Iterator;
 
@@ -47,6 +48,9 @@ public class DynTable<T> {
 
     O<DynamoDbTable<T>> table;
 
+    public boolean isReady() {
+        return table.map($ -> $.describeTable().table().tableStatus() == TableStatus.ACTIVE).orElse(false);
+    }
 
     public String tableName() {
         return table.map($ -> $.tableName()).orElse("NOT_CONNECTED");

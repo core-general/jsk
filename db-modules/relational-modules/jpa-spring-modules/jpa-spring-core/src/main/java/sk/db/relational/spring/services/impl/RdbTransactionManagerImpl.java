@@ -163,11 +163,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
         return transactionWithSaveUniUni(() -> {
             final Supplier<T> lambda = () -> {
                 T t = howToGet.get();
-                List<Object> saveObjects = toSave.apply(t);
-                if (saveObjects.size() > count) {
-                    throw new RuntimeException("wrong_transactional_save_size_error");
-                }
-                saveObjects.forEach(this::trySave);
+                toSave.apply(t).forEach(this::trySave);
                 return t;
             };
             return forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
