@@ -23,6 +23,7 @@ package sk.db.relational.spring.services.impl;
 import jakarta.inject.Inject;
 import jakarta.persistence.OptimisticLockException;
 import lombok.NoArgsConstructor;
+import org.hibernate.SessionFactory;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -33,6 +34,7 @@ import sk.services.retry.IRepeat;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
+import sk.utils.javafixes.FlushableDetachable;
 import sk.utils.tuples.*;
 
 import java.util.Collection;
@@ -45,6 +47,7 @@ import static sk.utils.statics.Cc.s;
 @SuppressWarnings("unused")
 @NoArgsConstructor
 public abstract class RdbTransactionManagerImpl implements RdbTransactionManager {
+    @Inject SessionFactory sf;
     @Inject EntityManagerProvider em;
     @Inject IRepeat retry;
     @Inject RdbTransactionWrapper trans;
@@ -163,11 +166,33 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
         return transactionWithSaveUniUni(() -> {
             final Supplier<T> lambda = () -> {
                 T t = howToGet.get();
-                toSave.apply(t).forEach(this::trySave);
+                List<Object> apply = toSave.apply(t);
+                apply.forEach(this::tryDetachIfNeeded);
+                apply.forEach(this::trySave);
                 return t;
             };
             return forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
         });
+    }
+
+    private void tryDetachIfNeeded(Object toDetach) {
+        if (toDetach == null) {
+            throw new RuntimeException("must not be null");
+        }
+        if (toDetach instanceof O) {
+            //noinspection unchecked
+            ((O) toDetach).ifPresent(this::tryDetachIfNeeded);
+        } else if (toDetach instanceof Optional) {
+            //noinspection unchecked
+            ((Optional) toDetach).ifPresent(this::tryDetachIfNeeded);
+        } else if (toDetach instanceof Collection) {
+            //noinspection unchecked
+            ((Collection) toDetach).forEach(this::tryDetachIfNeeded);
+        } else {
+            if (toDetach instanceof FlushableDetachable detach && detach.isDetach()) {
+                em.getEntityManager().detach(toDetach);
+            }
+        }
     }
 
     private void trySave(Object toSave) {
@@ -184,10 +209,10 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
             //noinspection unchecked
             ((Collection) toSave).forEach(this::trySave);
         } else {
-            //to ensure that the entity is guaranteed to save, in some cases instances are not saved
-            //see EntityState.getEntityState
-            em.getEntityManager().detach(toSave);
             saveSingleItem(toSave);
+            if (toSave instanceof FlushableDetachable flush && flush.isFlush()) {
+                em.getEntityManager().flush();
+            }
         }
     }
 

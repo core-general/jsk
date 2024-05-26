@@ -22,8 +22,6 @@ package sk.db.relational.types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.EnumType;
-import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.ParameterizedType;
@@ -47,11 +45,6 @@ public class UtPgEnumToEnumUserType implements UserType<Object>, DynamicParamete
     public static final String param = "targetType";
 
     private Class<Enum> enumClass;
-    private EnumType enumType = new EnumType();
-
-    {
-        enumType.setTypeConfiguration(new TypeConfiguration());
-    }
 
     public void setParameterValues(Properties parameters) {
         String claz = parameters.getProperty(param);
@@ -59,8 +52,8 @@ public class UtPgEnumToEnumUserType implements UserType<Object>, DynamicParamete
             synchronized (this) {
                 if (claz == null) {
                     //auto mode
-                    enumType.setParameterValues(parameters);
-                    enumClass = enumType.returnedClass();
+                    enumClass = (Class<Enum>) Class.forName(
+                            (String) parameters.get("org.hibernate.type.ParameterType.returnedClass"));
                 } else {
                     enumClass = (Class<Enum>) Class.forName(claz);
                 }

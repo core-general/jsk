@@ -1,10 +1,10 @@
-package sk.db.relational.model;
+package sk.utils.javafixes;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2024 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,15 @@ package sk.db.relational.model;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * #L%
+ *
+ * To fix Jpa and Hibernate
  */
+public interface FlushableDetachable {
+    public boolean isDetach();
 
-import jakarta.persistence.Transient;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import sk.spring.services.CoreServices;
-import sk.utils.javafixes.FlushableDetachable;
+    public boolean isFlush();
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public abstract class JpaWithContext implements FlushableDetachable {
-    protected transient @Transient CoreServices ctx;
-    protected transient @Transient boolean flush;
-    protected transient @Transient boolean detach;
+    public void setDetach(boolean detach);
+
+    public void setFlush(boolean flush);
 }
