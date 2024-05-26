@@ -148,7 +148,8 @@ public class WebSwaggerGenerator {
                 .addApiResponse("200", new ApiResponse().description("")
                         .content(new Content().addMediaType(responseMediaType,
                                 new MediaType()
-                                        .schema(convertToSchema(method.getMethod().getReturnType(), classesForComponents))))));
+                                        .schema(convertToSchema(method.getMethod().getGenericReturnType(),
+                                                classesForComponents))))));
 
         prepareParameters(method, classesForComponents, op);
 
@@ -281,17 +282,25 @@ public class WebSwaggerGenerator {
                 final TypeInfoGenericInfoRaw typeInfoGenericInfoRaw = Cc.first(collect).get();
                 typeInfoGenericInfoRaw.getType().setOptional(true);
                 return typeInfoGenericInfoRaw;
-            } else if (name.startsWith("java.util.List") || name.startsWith("java.util.Set")) {
+            } else if (name.startsWith("java.util.List") || name.startsWith("java.util.Set")
+                       || name.startsWith("java.util.ArrayList") || name.startsWith("java.util.HashSet")) {
                 final TypeInfoGenericInfoRaw typeInfoGenericInfoRaw = Cc.first(collect).get();
                 cir.setJavaType(typeInfoGenericInfoRaw.getJavaType());
                 cir.setClassName(typeInfoGenericInfoRaw.getClassName());
                 cir.setType(SwaggerType.array(typeInfoGenericInfoRaw.getType()));
-            } else if (name.startsWith("java.util.Map")) {
+            } else if (name.startsWith("java.util.Map") || name.startsWith("java.util.TreeMap") ||
+                       name.startsWith("java.util.HashMap")) {
                 final TypeInfoGenericInfoRaw typeInfoGenericInfoRaw = collect.size() > 1 ? collect.get(1) : collect.get(0);
                 cir.setJavaType(type);
                 cir.setClassName(name);
                 cir.setType(SwaggerType.map(typeInfoGenericInfoRaw.getType()));
             }
+        } else if (Map.class.isAssignableFrom((Class<?>) type)) {
+            return getTypeGenericInfoRaw(((Class) type).getGenericSuperclass());
+        } else if (List.class.isAssignableFrom((Class<?>) type)) {
+            return getTypeGenericInfoRaw(((Class) type).getGenericSuperclass());
+        } else if (Set.class.isAssignableFrom((Class<?>) type)) {
+            return getTypeGenericInfoRaw(((Class) type).getGenericSuperclass());
         } else if (type == String.class) {
             cir.setType(SwaggerType.simple("string"));
         } else if (type == boolean.class) {
@@ -321,7 +330,7 @@ public class WebSwaggerGenerator {
         } else if (type == byte[].class) {
             cir.setType(SwaggerType.binary());
         } else if (type == ZonedDateTime.class || type == LocalDateTime.class ||
-                type == LocalDate.class || type == LocalTime.class) {
+                   type == LocalDate.class || type == LocalTime.class) {
             cir.setType(SwaggerType.simple("string"));
         } else {
             cir.setType(SwaggerType.object(type));

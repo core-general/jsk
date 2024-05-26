@@ -32,6 +32,7 @@ public enum WebSwaggerMavenGeneratorTypes {
     DART_DIO_NEXT("dart-dio-next", O.of("dart-dio-next-mod")),
     TYPE_SCRIPT_JQ("typescript-jquery", O.empty()),
     TYPE_SCRIPT_AXIOS("typescript-axios", O.empty()),
+
     ;
 
     String generatorName;

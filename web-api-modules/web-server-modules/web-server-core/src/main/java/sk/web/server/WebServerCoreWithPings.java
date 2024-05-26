@@ -27,6 +27,9 @@ import sk.services.bytes.IBytes;
 import sk.services.free.IFree;
 import sk.services.nodeinfo.INodeInfo;
 import sk.services.nodeinfo.model.IServerInfo;
+import sk.services.rescache.IResCache;
+import sk.utils.async.locks.JLock;
+import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.C1;
 import sk.utils.functional.F3;
 import sk.utils.functional.O;
@@ -63,6 +66,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
     @Inject INodeInfo nodeInfo;
     @Inject IFree free;
     @Inject IBytes bytes;
+    @Inject IResCache resources;
     @Inject WebContextHolder ctxHolder;
 
     public WebServerCoreWithPings(Class<T> tClass, T impl) {
@@ -127,40 +131,28 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
 
         {
             final String apiInfo = base + "api-info";
-            final WebServerFilterNext apiInfoProcessor =
-                    () -> {
-                        checkBasic();
-                        String htmlCacheTemp = htmlInfoCache;
-                        if (empty.equals(htmlCacheTemp)) {
-                            synchronized (htmlInfoCacheLock) {
-                                htmlCacheTemp = htmlInfoCache;
-                                if (empty.equals(htmlCacheTemp)) {
-                                    htmlInfoCache = htmlCacheTemp = createApiInfo();
-                                }
-                            }
-                        }
-
-                        return WebFilterOutput.rawValue(200, htmlCacheTemp);
-                    };
+            final WebServerFilterNext apiInfoProcessor = () -> {
+                checkBasic();
+                return WebFilterOutput.rawValue(200, htmlInfoCache.getValue());
+            };
             env.addGet(apiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
             env.addPost(apiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
         }
         {
             final String postmanApiInfo = base + "api-info-postman";
+            final WebServerFilterNext apiInfoProcessor = () -> {
+                checkBasic();
+                return WebFilterOutput.rawValue(200, postmanInfoCache.getValue());
+            };
+            env.addGet(postmanApiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
+            env.addPost(postmanApiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
+        }
+        {
+            final String postmanApiInfo = base + "api-info-swagger";
             final WebServerFilterNext apiInfoProcessor =
                     () -> {
                         checkBasic();
-                        String postmanCacheTemp = postmanInfoCache;
-                        if (empty.equals(postmanCacheTemp)) {
-                            synchronized (postmanInfoCacheLock) {
-                                postmanCacheTemp = postmanInfoCache;
-                                if (empty.equals(postmanCacheTemp)) {
-                                    postmanInfoCache = postmanCacheTemp = createPostmanApiInfo();
-                                }
-                            }
-                        }
-
-                        return WebFilterOutput.rawValue(200, postmanCacheTemp);
+                        return WebFilterOutput.rawValue(200, swaggerInfoCache.getValue());
                     };
             env.addGet(postmanApiInfo, processor.apply(GET, apiInfoProcessor, rawRender), O.empty());
             env.addPost(postmanApiInfo, processor.apply(POST_FORM, apiInfoProcessor, rawRender), false, O.empty());
@@ -185,37 +177,70 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
         return Cc.m();
     }
 
-    private final static String empty = "E";
-    private volatile String htmlInfoCache = empty;
-    private final Object htmlInfoCacheLock = new Object();
+    private StringWithLock htmlInfoCache = new StringWithLock() {
+        @Override
+        protected String createNew() {
+            final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
 
-    private String createApiInfo() {
-        final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
+            final String s = free.processHtml("sk/web/server/templates/api_template.html.ftl", Cc.m(
+                    "prefixPath", apiModel.getPrefix(),
+                    "mainComment", apiModel.getCommentOrNull(),
+                    "methodList", apiModel.getMethods(),
+                    "classList", apiModel.getClasses()
+            ));
 
-        final String s = free.processHtml("sk/web/server/templates/api_template.html.ftl", Cc.m(
-                "prefixPath", apiModel.getPrefix(),
-                "mainComment", apiModel.getCommentOrNull(),
-                "methodList", apiModel.getMethods(),
-                "classList", apiModel.getClasses()
-        ));
+            return s.replace("*\n⭐", "<br>");
+        }
+    };
 
-        return s.replace("*\n⭐", "<br>");
-    }
+    private StringWithLock postmanInfoCache = new StringWithLock() {
+        @Override
+        protected String createNew() {
+            final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
 
-    private volatile String postmanInfoCache = empty;
-    private final Object postmanInfoCacheLock = new Object();
+            final String s = free.processHtml("sk/web/server/templates/postman_template.json.ftl", Cc.m(
+                    "server_name", getApiClass().getSimpleName(),
+                    "postman_id", ids.shortIdS(),
+                    "url_var_id", ids.shortIdS(),
+                    "methods", apiModel.getMethods(),
+                    "additionalParams", getAdditionalParams4Postman()
+            ));
 
-    private String createPostmanApiInfo() {
-        final WebClassInfo apiModel = infoProvider.getClassModel(getApiClass(), getBasePath());
+            return s;
+        }
+    };
 
-        final String s = free.processHtml("sk/web/server/templates/postman_template.json.ftl", Cc.m(
-                "server_name", getApiClass().getSimpleName(),
-                "postman_id", ids.shortIdS(),
-                "url_var_id", ids.shortIdS(),
-                "methods", apiModel.getMethods(),
-                "additionalParams", getAdditionalParams4Postman()
-        ));
+    private StringWithLock swaggerInfoCache = new StringWithLock() {
+        @Override
+        protected String createNew() {
+            //this is what is generated via WebSwaggerMavenPlugin
+            O<String> resource = resources.getResource("__jsk_util/swagger/api_specs/" + getApiClass().getSimpleName() + ".json");
+            return resource.orElse("OPENAPI SCHEMA DOES NOT EXIST FOR " + getApiClass().getSimpleName());
+        }
+    };
 
-        return s;
+    private static abstract class StringWithLock {
+        private final static String EMPTY = "E";
+
+        private volatile String target = EMPTY;
+        private final JLock lock = new JLockDecorator();
+
+        protected abstract String createNew();
+
+        public String getValue() {
+            String tmp = target;
+            if (EMPTY.equals(tmp)) {
+                return lock.getInLock(() -> {
+                    String tmp2 = target;
+                    if (EMPTY.equals(tmp2)) {
+                        tmp2 = createNew();
+                    }
+                    target = tmp2;
+                    return tmp2;
+                });
+            } else {
+                return tmp;
+            }
+        }
     }
 }

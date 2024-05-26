@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+@Mojo(name = "CREATE_META", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, threadSafe = true)
 public class WebSwaggerMavenPlugin extends AbstractMojo {
     @Parameter String[] apiClasses;
     @Parameter String[] generators = new String[0];
