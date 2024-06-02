@@ -30,7 +30,7 @@ public interface ${model.model.getIFace()} {
         <#case "COMPOSITE_ID">
             ${field.mainType} get${field.capName()}();
 
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
+        <#--            void set${field.capName()}(${field.mainType} ${field.fieldName});-->
 
             <#list model.model.getCompositeId().get().getCompositeFields() as comp_field>
             <#--                <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">-->
@@ -56,7 +56,7 @@ public interface ${model.model.getIFace()} {
         <#case "OTHER">
             ${field.mainType} get${field.capName()}();
 
-            void set${field.capName()}(${field.mainType} ${field.fieldName});
+    <#--            void set${field.capName()}(${field.mainType} ${field.fieldName});-->
 
     <#--            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">-->
     <#--                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();-->
