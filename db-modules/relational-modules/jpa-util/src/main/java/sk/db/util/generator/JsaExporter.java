@@ -37,8 +37,6 @@ import sk.services.ids.IdsImpl;
 import sk.services.rand.IRand;
 import sk.services.rand.RandImpl;
 import sk.services.rand.SecureRandImpl;
-import sk.services.time.ITime;
-import sk.services.time.TimeUtcImpl;
 import sk.utils.functional.C1;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
@@ -46,8 +44,7 @@ import sk.utils.statics.St;
 public class JsaExporter {
     static IRand rnd = new RandImpl();
     static IBytes bytes = new BytesImpl();
-    static ITime times = new TimeUtcImpl();
-    static IIds ids = new IdsImpl(new SecureRandImpl(), bytes, times);
+    static IIds ids = new IdsImpl(new SecureRandImpl(), bytes);
     static IFree free = new Freemarker();
 
     public static void export(C1<JsaFileInfo> fileProcessor, JsaFullEntityModel entities, String schema) {
@@ -79,18 +76,27 @@ public class JsaExporter {
             ));
             if (entity.isComposite()) {
                 JsaEntityCompositeKey composite = entity.getCompositeId().get();
+                for (JsaEntityField insideCompositeField : composite.getCompositeFields()) {
+                    if (insideCompositeField.isNeedSeparateIdFile()) {
+                        fileProcessor.accept(new JsaFileInfo(
+                                pkgFolder + insideCompositeField.getMainType() + ".java",
+                                free.process("jsa_entity_id.ftl",
+                                        Cc.m("model", new JsaPrimaryKeyOutput(pkg, insideCompositeField)))
+                        ));
+                    }
+                }
+                fileProcessor.accept(new JsaFileInfo(
+                        pkgFolder + entity.getIdField().getMainType() + "JpaImpl.java",
+                        free.process("jsa_composite_entity_id_impl.ftl",
+                                Cc.m("model", new JsaEmbeddedKeyOutput(pkg, composite.getClassName(),
+                                        entity.getCompositeId().get().getCompositeFields())))
+                ));
                 fileProcessor.accept(new JsaFileInfo(
                         pkgFolder + entity.getIdField().getMainType() + ".java",
                         free.process("jsa_composite_entity_id.ftl",
                                 Cc.m("model", new JsaEmbeddedKeyOutput(pkg, composite.getClassName(),
                                         entity.getCompositeId().get().getCompositeFields())))
                 ));
-                for (JsaEntityField insideCompositeField : composite.getCompositeFields()) {
-                    fileProcessor.accept(new JsaFileInfo(
-                            pkgFolder + insideCompositeField.getMainType() + ".java",
-                            free.process("jsa_entity_id.ftl", Cc.m("model", new JsaPrimaryKeyOutput(pkg, insideCompositeField)))
-                    ));
-                }
             } else {
                 fileProcessor.accept(new JsaFileInfo(
                         pkgFolder + entity.getIdField().getMainType() + ".java",

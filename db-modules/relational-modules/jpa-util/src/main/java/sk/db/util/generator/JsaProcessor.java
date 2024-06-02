@@ -103,6 +103,7 @@ public class JsaProcessor {
         String mainType = javaType == byte[].class ? "byte[]" : javaType.getName();
         String idType = null;
         String relationType = null;
+        boolean needSeparateIdFile = true;
 
         if (fieldType.type() == JsaEntityFieldType.ID || fieldType.type() == JsaEntityFieldType.COMPOSITE_ID) {
             idType = mainType;
@@ -130,6 +131,9 @@ public class JsaProcessor {
             JsaMetaInfo meta = column.getMeta().get().get(JsaMetaType.RELATION_OUTSIDE);
             mainType = meta.getParams().get(0);
             relationType = meta.getParams().get(1);
+        } else if (fieldType.type() == JsaEntityFieldType.COMPOSITE_ID && column.getType() != JsaDbColumnType.COMPOSITE_ID) {
+            mainType = idType;
+            needSeparateIdFile = false;
         }
 
         return new JsaEntityField(
@@ -141,7 +145,8 @@ public class JsaProcessor {
                 column.getType().getDefaultConverterToNonStandardObject().map($ -> $.getName()).orElse(null),
                 column.isNullable(),
                 fieldType.type(),
-                fieldType.relation()
+                fieldType.relation(),
+                needSeparateIdFile
         );
     }
 

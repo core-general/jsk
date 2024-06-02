@@ -21,8 +21,30 @@
 <#-- @formatter:off-->
 package ${model.packageName};
 
-public interface ${model.embeddedClassName} {
+import sk.db.relational.types.*;
+import sk.db.relational.model.*;
+
+import lombok.*;
+
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import java.io.Serializable;
+
+import jakarta.persistence.*;
+import java.time.ZonedDateTime;
+import java.util.UUID;
 <#list model.keys as field>
-    ${field.mainType} get${field.capName()}();
+    import ${field.idType};
+</#list>
+
+@Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ${model.embeddedClassName}JpaImpl implements ${model.embeddedClassName}, Serializable {
+<#list model.keys as field>
+    @Column(name = "${field.columnName}")
+    @Type(${field.converterType}.class)
+    ${field.mainType} ${field.fieldName};
 </#list>
 }

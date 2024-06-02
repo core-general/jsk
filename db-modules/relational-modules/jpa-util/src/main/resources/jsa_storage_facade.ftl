@@ -24,9 +24,14 @@ package ${model.packageName};
 import sk.utils.functional.*;
 import sk.db.relational.spring.services.*;
 
+import java.util.Collection;
+import java.util.Map;
+
 public interface ${model.prefix}StorageFacade extends RdbTransactionManager {
 <#list model.entites as entity>
     O<${entity.getIFace()}> get${entity.simple?cap_first}ById(${entity.getIdField().mainType} ${entity.simple}Id);
+
+    Map<${entity.getIdField().mainType},${entity.getIFace()}> getAll${entity.simple?cap_first}ByIds(Collection<? extends ${entity.getIdField().mainType}> ${entity.simple}Ids);
 
     ${entity.getIFace()} new${entity.getIFace()}(
     <#list entity.getFieldForFactory() as field>

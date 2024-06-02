@@ -23,4 +23,4 @@ package ${model.packageName};
 
 import sk.db.relational.utils.ReadWriteRepo;
 
-public interface ${model.model.cls}Repo extends ReadWriteRepo<${model.model.cls}, ${model.model.getIdField().mainType}> {}
+public interface ${model.model.cls}Repo extends ReadWriteRepo<${model.model.cls}, ${model.model.getIdField().getMainTypeOrCompositeType()}> {}

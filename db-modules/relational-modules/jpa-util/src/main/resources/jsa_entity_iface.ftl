@@ -33,9 +33,9 @@ public interface ${model.model.getIFace()} {
             void set${field.capName()}(${field.mainType} ${field.fieldName});
 
             <#list model.model.getCompositeId().get().getCompositeFields() as comp_field>
-                <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">
-                    ${comp_field.relatedType?replace("Jpa", "")} get${comp_field.capName()?replace("Id", "")}();
-                </#if>
+            <#--                <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">-->
+            <#--                    ${comp_field.relatedType?replace("Jpa", "")} get${comp_field.capName()?replace("Id", "")}();-->
+            <#--                </#if>-->
 
                 public ${comp_field.mainType} get${comp_field.fieldName?cap_first}();
             </#list>
@@ -46,9 +46,9 @@ public interface ${model.model.getIFace()} {
 
             void set${field.capName()}(${field.mainType} ${field.fieldName});
 
-            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
-                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();
-            </#if>
+        <#--            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">-->
+        <#--                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();-->
+        <#--            </#if>-->
             <#break>
         <#case "ENUM">
         <#case "ZDT">
@@ -58,9 +58,9 @@ public interface ${model.model.getIFace()} {
 
             void set${field.capName()}(${field.mainType} ${field.fieldName});
 
-            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">
-                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();
-            </#if>
+    <#--            <#if field.relation=="RELATION_IN" || field.relation=="RELATION_OUT">-->
+    <#--                ${field.relatedType?replace("Jpa", "")} get${field.capName()?replace("Id", "")}();-->
+    <#--            </#if>-->
             <#break>
     </#switch>
 </#list>

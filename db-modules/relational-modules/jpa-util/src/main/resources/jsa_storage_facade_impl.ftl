@@ -21,12 +21,18 @@
 
 package ${model.packageName};
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import sk.utils.functional.*;
 import sk.db.relational.spring.services.impl.*;
+import sk.utils.statics.Cc;
 
+import java.util.Collection;
+import java.util.Map;
+
+@Service
 @Slf4j
 public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl implements ${model.prefix}StorageFacade {
 <#list model.entites as entity>
@@ -40,7 +46,12 @@ public class ${model.prefix}StorageFacadeImpl extends RdbTransactionManagerImpl 
     // ------------------------------------------------
     @Override
     public O<${entity.getIFace()}> get${entity.simple?cap_first}ById(${entity.getIdField().mainType} ${entity.simple}Id){
-    return O.of(${entity.simple}Repo.findById(${entity.simple}Id).map($->$));
+    return O.of(${entity.simple}Repo.findById((${entity.getIdField().getMainTypeOrCompositeType()})${entity.simple}Id).map($->$));
+    }
+
+    @Override
+    public Map<${entity.getIdField().mainType},${entity.getIFace()}> getAll${entity.simple?cap_first}ByIds(Collection<? extends ${entity.getIdField().mainType}> ${entity.simple}Ids){
+    return Cc.stream(${entity.simple}Repo.findAllById((Collection<${entity.getIdField().getMainTypeOrCompositeType()}>)${entity.simple}Ids)).collect(Cc.toM($ -> $.get${entity.getIdField().capName()}()));
     }
 
     @Override

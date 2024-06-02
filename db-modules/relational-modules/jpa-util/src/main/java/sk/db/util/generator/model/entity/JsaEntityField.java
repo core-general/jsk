@@ -36,8 +36,13 @@ public class JsaEntityField {
     boolean nullable;
     JsaEntityFieldType category;
     JsaEntityRelationType relation;
+    boolean needSeparateIdFile;
 
     public String capName() {
         return St.capFirst(fieldName);
+    }
+
+    public String getMainTypeOrCompositeType() {
+        return category == JsaEntityFieldType.COMPOSITE_ID ? mainType + "JpaImpl" : mainType;
     }
 }

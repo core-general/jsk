@@ -29,6 +29,7 @@ import sk.db.util.generator.model.sql.metainfo.JsaMetaInfo;
 import sk.db.util.generator.model.sql.metainfo.JsaMetaType;
 import sk.utils.functional.O;
 import sk.utils.statics.Cc;
+import sk.utils.statics.Fu;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 
@@ -54,6 +55,9 @@ public class JsaTableInfo {
                             .keySet().stream()
                             .anyMatch(jsaMetaType -> jsaMetaType == JsaMetaType.PG_ENUM);
 
+                    boolean isVarcharUUID = Fu.equalIgnoreCase("varchar36",
+                            clmn.getColDataType().toString().toLowerCase().replace(" ", "").replace("(", "").replace(")", ""));
+
                     final O<JsaForeignKey> foreignKey = determineForeignKey(table, clmn);
                     Map<JsaMetaType, JsaMetaInfo> meta = tableFieldsToMetaInfos.get(X.x(tableName, fieldName));
                     if (foreignKey.isPresent()) {
@@ -70,7 +74,8 @@ public class JsaTableInfo {
                     }
 
                     return new JsaTableColumn(fieldName,
-                            JsaDbColumnType.parse(clmn.getColDataType().getDataType().toUpperCase(), enums, shouldBePgEnum),
+                            JsaDbColumnType.parse(clmn.getColDataType().getDataType().toUpperCase(), enums, isVarcharUUID,
+                                    shouldBePgEnum),
                             determinePrimaryKey(table, clmn),
                             !containInColumnSpec(clmn, Cc.l("NOT", "NULL")),
                             foreignKey,

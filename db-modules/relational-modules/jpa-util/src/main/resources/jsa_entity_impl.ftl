@@ -54,7 +54,7 @@ public class ${model.model.cls} <#if model.model.hasCreatedAt() || model.model.h
             <#break>
         <#case "COMPOSITE_ID">
             @EmbeddedId
-            ${field.mainType} ${field.fieldName};
+            ${field.mainType}JpaImpl ${field.fieldName};
             <#list model.model.getCompositeId().get().getCompositeFields() as comp_field>
                 <#if comp_field.relation=="RELATION_IN" || comp_field.relation=="RELATION_OUT">
                     @ManyToOne(fetch = FetchType.LAZY)

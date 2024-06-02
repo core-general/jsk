@@ -41,6 +41,7 @@ public enum JsaDbColumnType {
 
     TEXT("TEXT", String.class, of(UTTextIdToVarchar.class)),
     VARCHAR("VARCHAR", String.class, of(UTTextIdToVarchar.class)),
+    VARCHAR_UUID("VARCHAR", UUID.class, of(UTUuidIdToVarchar36.class)),
 
     INT1("INTEGER", Integer.class, of(UTIntIdToInt.class)),
     INT2("INT", Integer.class, of(UTIntIdToInt.class)),
@@ -68,12 +69,15 @@ public enum JsaDbColumnType {
     Class javaType;
     O<Class> defaultConverterToNonStandardObject;
 
-    public static JsaDbColumnType parse(String type, List<JsaRawEnumTypeInfo> enums, boolean pgEnumByMeta) {
+    public static JsaDbColumnType parse(String type, List<JsaRawEnumTypeInfo> enums, boolean shouldBeVarcharUUID,
+            boolean pgEnumByMeta) {
         try {
             if (pgEnumByMeta || enums.stream().anyMatch($ -> $.enumTypeName.trim().equalsIgnoreCase(type))) {
                 return PG_ENUM;
+            }
+            if (shouldBeVarcharUUID) {
+                return VARCHAR_UUID;
             } else {
-
                 return Arrays.stream(values())
                         .filter($ -> Fu.equalIgnoreCase($.getSqlType().trim(), type.trim()))
                         .findFirst()
