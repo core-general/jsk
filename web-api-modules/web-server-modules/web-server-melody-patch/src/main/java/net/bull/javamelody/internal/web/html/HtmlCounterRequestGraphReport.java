@@ -40,11 +40,13 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private final DecimalFormat integerFormat = I18N.createIntegerFormat();
     private List<Counter> counters;
     private Map<String, CounterRequest> requestsById;
+    private final HtmlHitsRequestGraphReport htmlHitsRequestGraphReport;
 
     HtmlCounterRequestGraphReport(Range range, Writer writer) {
         super(writer);
         assert range != null;
         this.range = range;
+        htmlHitsRequestGraphReport = new HtmlHitsRequestGraphReport(range, getWriter());
     }
 
     @Override
@@ -66,7 +68,9 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         // avant mouseover on prend une image qui sera mise en cache
         write("<em><img src='?resource=db.png' id='");
         write(id);
-        write("' alt='graph'/></em>");
+        write("' alt='graph'/>");
+        uniqueByPageAndGraphSequence = htmlHitsRequestGraphReport.addGraphForHits(requestId, uniqueByPageAndGraphSequence);
+        write("</em>");
         if (requestName.length() <= MAX_REQUEST_NAME_LENGTH) {
             // writeDirectly pour ne pas gérer de traductions si le nom contient '#'
             writeDirectly(htmlEncodeRequestName(requestId, requestName));
@@ -144,7 +148,9 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
             writeln("&nbsp;&nbsp;&nbsp;<a href='?format=txt&amp;period="
                     + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
                     + "' title='Dump TXT'>TXT</a>");
-            writeln("</div></td></tr></table>");
+            writeln("</div></td></tr>");
+            htmlHitsRequestGraphReport.addRequestGraphForHitsDetail(collector, graphName);
+            writeln("</table>");
             writeln("</div>");
         }
         if (request != null && request.getStackTrace() != null) {
