@@ -230,11 +230,8 @@ public final class Parameters {
         if (!directory.mkdirs() && !directory.exists()) {
             throw new IOException("JavaMelody directory can't be created: " + directory.getPath());
         }
-        final FileOutputStream output = new FileOutputStream(collectorApplicationsFile);
-        try {
+        try (FileOutputStream output = new FileOutputStream(collectorApplicationsFile)) {
             properties.store(output, "urls of the applications to monitor");
-        } finally {
-            output.close();
         }
     }
 
@@ -313,13 +310,21 @@ public final class Parameters {
                 + transportFormat.getCode();
 
         final String[] urlsArray = value.split(",");
-        final List<URL> urls = new CopyOnWriteArrayList<URL>();
+        final List<URL> urls = new ArrayList<URL>();
         for (final String s : urlsArray) {
             String s2 = s.trim();
+            final String queryString;
+            if (s2.indexOf('?') != -1) {
+                // queryString is not url encoded here to create URL. URL encode it before if needed.
+                queryString = s2.substring(s2.indexOf('?') + 1);
+                s2 = s2.substring(0, s2.indexOf('?'));
+            } else {
+                queryString = null;
+            }
             while (s2.endsWith("/")) {
                 s2 = s2.substring(0, s2.length() - 1);
             }
-            final URL url = new URL(s2 + suffix);
+            final URL url = new URL(s2 + suffix + (queryString == null ? "" : "&" + queryString));
             urls.add(url);
         }
         return urls;

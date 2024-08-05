@@ -17,26 +17,6 @@
  */
 package net.bull.javamelody.internal.web.html;
 
-/*-
- * #%L
- * Swiss Knife
- * %%
- * Copyright (C) 2019 - 2020 Core General
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
-
 import net.bull.javamelody.JdbcWrapper;
 import net.bull.javamelody.internal.common.I18N;
 import net.bull.javamelody.internal.model.*;
@@ -49,13 +29,10 @@ import java.util.*;
 
 /**
  * Rapport html pour le détail d'une requête.
- *
  * @author Emeric Vernat
  */
 class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private static final int MAX_REQUEST_NAME_LENGTH = 5000;
-    private static final String SCRIPT_BEGIN = "<script type='text/javascript'>";
-    private static final String SCRIPT_END = "</script>";
     private static int uniqueByPageAndGraphSequence;
     private final Range range;
     private final DecimalFormat systemErrorFormat = I18N.createPercentFormat();
@@ -63,13 +40,11 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private final DecimalFormat integerFormat = I18N.createIntegerFormat();
     private List<Counter> counters;
     private Map<String, CounterRequest> requestsById;
-    private final HtmlHitsRequestGraphReport htmlHitsRequestGraphReport;
 
     HtmlCounterRequestGraphReport(Range range, Writer writer) {
         super(writer);
         assert range != null;
         this.range = range;
-        htmlHitsRequestGraphReport = new HtmlHitsRequestGraphReport(range, getWriter());
     }
 
     @Override
@@ -80,24 +55,18 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     void writeRequestGraph(String requestId, String requestName) throws IOException {
         incrementUniqueByPageAndGraphSequence();
         // la classe tooltip est configurée dans la css de HtmlReport
-        write("<a class='tooltip' href='?part=graph&amp;graph=");
+        write("<a class='tooltip replaceImage' href='?part=graph&amp;graph=");
         write(requestId);
         write("'");
-        // ce onmouseover sert à charger les graphs par requête un par un et à la demande
-        // sans les charger tous au chargement de la page.
-        // le onmouseover se désactive après chargement pour ne pas recharger une image déjà chargée
-        write(" onmouseover=\"document.getElementById('");
         final String id = "id" + uniqueByPageAndGraphSequence;
-        write(id);
-        write("').src='?graph=");
+        write(" data-img-id='" + id + "'");
+        write(" data-img-src='?graph=");
         write(requestId);
-        write("&amp;width=100&amp;height=50'; this.onmouseover=null;\" >");
+        write("&amp;width=100&amp;height=50'>");
         // avant mouseover on prend une image qui sera mise en cache
         write("<em><img src='?resource=db.png' id='");
         write(id);
-        write("' alt='graph'/>");
-        uniqueByPageAndGraphSequence = htmlHitsRequestGraphReport.addGraphForHits(requestId, uniqueByPageAndGraphSequence);
-        write("</em>");
+        write("' alt='graph'/></em>");
         if (requestName.length() <= MAX_REQUEST_NAME_LENGTH) {
             // writeDirectly pour ne pas gérer de traductions si le nom contient '#'
             writeDirectly(htmlEncodeRequestName(requestId, requestName));
@@ -112,7 +81,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
 
             final String idToShow = "request-" + requestId;
             writeShowHideLink(idToShow, "#Details#");
-            writeln("<div id='request-" + requestId + "' style='display: none;'>");
+            writeln("<div id='request-" + requestId + "' class='displayNone'>");
             write("<br/> ");
             writeDirectly(htmlEncodeRequestName(requestId, requestName));
             writeln("</div> ");
@@ -139,7 +108,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
             writeRequest(request);
 
             if (JdbcWrapper.SINGLETON.getSqlCounter().isRequestIdFromThisCounter(graphName)
-                    && !request.getName().toLowerCase(Locale.ENGLISH).startsWith("alter ")) {
+                && !request.getName().toLowerCase(Locale.ENGLISH).startsWith("alter ")) {
                 // inutile d'essayer d'avoir le plan d'exécution des requêtes sql
                 // telles que "alter session set ..." (cf issue 152)
                 writeSqlRequestExplainPlan(collector, collectorServer, request);
@@ -152,19 +121,19 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
             writeln("<img src='?resource=scaler_slider.gif' alt=''/>");
             writeln("</div></div>");
             writeln("</td><td>");
-            writeDirectly("<div class='noPrint' style='color: #808080;'>");
+            writeDirectly("<div class='noPrint gray'>");
             writeln("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-            writeln("<label for='cb'><input id='cb' type='checkbox' onclick=\"handleHideMaximumClick(this);\"/>&nbsp;" +
-                    "#hide_maximum#</label>");
+            writeln("<label for='cb'><input id='cb' type='checkbox' />&nbsp;#hide_maximum#</label>");
             writeln("</div> ");
             writeln("</td></tr></table>");
 
             writeln("<div align='center'>");
             writeln("<table summary=''><tr><td>");
             final String graphNameEncoded = urlEncode(graphName);
-            writeln("<img class='synthèse' id='img' src='" + "?width=960&amp;height=400&amp;graph="
-                    + graphNameEncoded + "' alt='zoom'/>");
-            writeDirectly("<br/><div align='right' style='color: #808080;'>");
+            writeln("<img class='synthèse' id='img' data-graph-name='"
+                    + htmlEncodeButNotSpace(graphName) + "' src='"
+                    + "?width=960&amp;height=400&amp;graph=" + graphNameEncoded + "' alt='zoom'/>");
+            writeDirectly("<br/><div align='right' class='gray'>");
             writeln("#graph_units#");
             writeln("</div><div align='right'>");
             writeln("<a href='?part=lastValue&amp;graph=" + graphNameEncoded
@@ -175,15 +144,8 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
             writeln("&nbsp;&nbsp;&nbsp;<a href='?format=txt&amp;period="
                     + range.getValue().replace("|", "%7C") + "&amp;graph=" + graphNameEncoded
                     + "' title='Dump TXT'>TXT</a>");
-            writeln("</div></td></tr>");
-            String hitsGraphName = htmlHitsRequestGraphReport.addRequestGraphForHitsDetail(collector, graphName);
-            writeln("</table>");
+            writeln("</div></td></tr></table>");
             writeln("</div>");
-
-            writeGraphDetailScript(graphName);
-            if (!hitsGraphName.isEmpty()) {
-                writeGraphDetailScript(hitsGraphName);
-            }
         }
         if (request != null && request.getStackTrace() != null) {
             writeln("<blockquote><blockquote><b>Stack-trace</b><br/><font size='-1'>");
@@ -205,10 +167,10 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private boolean isGraphDisplayed(Collector collector, CounterRequest request)
             throws IOException {
         return request == null || getCounterByRequestId(request) != null
-                && HtmlCounterReport.isRequestGraphDisplayed(getCounterByRequestId(request))
-                // on vérifie aussi que l'instance de jrobin existe pour faire le graph,
-                // notamment si les statistiques ont été réinitialisées, ce qui vide les instances de jrobin
-                && collector.getJRobin(request.getId()) != null;
+                                  && HtmlCounterReport.isRequestGraphDisplayed(getCounterByRequestId(request))
+                                  // on vérifie aussi que l'instance de jrobin existe pour faire le graph,
+                                  // notamment si les statistiques ont été réinitialisées, ce qui vide les instances de jrobin
+                                  && collector.getJRobin(request.getId()) != null;
     }
 
     private void writeSqlRequestExplainPlan(Collector collector, CollectorServer collectorServer,
@@ -240,7 +202,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         assert requestId != null;
         counters = collector.getRangeCounters(range);
         CounterRequest myRequest = null;
-        final List<CounterRequest> requests = new ArrayList<CounterRequest>();
+        final List<CounterRequest> requests = new ArrayList<>();
         for (final Counter counter : counters) {
             for (final CounterRequest request : counter.getOrderedRequests()) {
                 if (myRequest == null && request.getId().equals(requestId)) {
@@ -320,21 +282,21 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         final double domProcessingPercent = 100d * domProcessingMean / total;
         final double pageRenderingPercent = 100d * pageRenderingMean / total;
         writeln("<br/><table class='rumData' summary=''><tr>");
-        writeln("<td class='rumDataNetwork tooltip' style='width:"
-                + percentUsFormat.format(networkPercent) + "%'><em>#Network#: "
+        writeln("<td class='rumDataNetwork tooltip' data-width-percent='"
+                + percentUsFormat.format(networkPercent) + "'><em>#Network#: "
                 + integerFormat.format(networkTimeMean) + " ms ("
-                + percentLocaleFormat.format(networkPercent) + "%)</em>#Network#</td>");
-        writeln("<td class='rumDataServer tooltip' style='width:"
-                + percentUsFormat.format(serverPercent) + "%'><em>#Server#: "
+                + percentLocaleFormat.format(networkPercent) + ")</em>#Network#</td>");
+        writeln("<td class='rumDataServer tooltip' data-width-percent='"
+                + percentUsFormat.format(serverPercent) + "'><em>#Server#: "
                 + integerFormat.format(serverMean) + " ms ("
                 + percentLocaleFormat.format(serverPercent) + "%)</em>#Server#</td>");
-        writeln("<td class='rumDataDomProcessing tooltip' style='width:"
-                + percentUsFormat.format(domProcessingPercent) + "%'><em>#DOM_processing#:"
+        writeln("<td class='rumDataDomProcessing tooltip' data-width-percent='"
+                + percentUsFormat.format(domProcessingPercent) + "'><em>#DOM_processing#:"
                 + integerFormat.format(domProcessingMean) + " ms ("
                 + percentLocaleFormat.format(domProcessingPercent)
                 + "%)</em>#DOM_processing#</td>");
-        writeln("<td class='rumDataPageRendering tooltip' style='width:"
-                + percentUsFormat.format(pageRenderingPercent) + "%'><em>#Page_rendering#:"
+        writeln("<td class='rumDataPageRendering tooltip' data-width-percent='"
+                + percentUsFormat.format(pageRenderingPercent) + "'><em>#Page_rendering#:"
                 + integerFormat.format(pageRenderingMean) + " ms ("
                 + percentLocaleFormat.format(pageRenderingPercent)
                 + "%)</em>#Page_rendering#</td>");
@@ -360,7 +322,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         writeln("<th class='sorttable_numeric'>#erreur_systeme#</th>");
         final Counter parentCounter = getCounterByRequestId(request);
         final boolean allChildHitsDisplayed = parentCounter != null
-                && parentCounter.getChildCounterName() != null && request.hasChildHits();
+                                              && parentCounter.getChildCounterName() != null && request.hasChildHits();
         if (allChildHitsDisplayed) {
             final String childCounterName = parentCounter.getChildCounterName();
             writeln("<th class='sorttable_numeric'>"
@@ -396,7 +358,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private boolean doesRequestDisplayUsages(CounterRequest request) {
         final Counter parentCounter = getCounterByRequestId(request);
         return parentCounter != null && !parentCounter.isErrorCounter()
-                && !Counter.HTTP_COUNTER_NAME.equals(parentCounter.getName());
+               && !Counter.HTTP_COUNTER_NAME.equals(parentCounter.getName());
     }
 
     private void writeChildRequests(CounterRequest request, Map<String, Long> childRequests,
@@ -417,7 +379,7 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
     private void writeChildRequest(CounterRequest childRequest, float executionsByRequest,
             boolean allChildHitsDisplayed, boolean allocatedKBytesDisplayed) throws IOException {
         writeln("<td>");
-        writeln("<div style='margin-left: 10px;' class='wrappedText'>");
+        writeln("<div class='wrappedText childRequest'>");
         writeCounterIcon(childRequest);
         writeRequestGraph(childRequest.getId(), childRequest.getName());
         writeln("</div></td><td align='right'>");
@@ -477,61 +439,8 @@ class HtmlCounterRequestGraphReport extends HtmlAbstractReport {
         }
     }
 
-    private void writeGraphDetailScript(String graphName) throws IOException {
-        writeln(SCRIPT_BEGIN);
-        writeln("function handleHideMaximumClick(checkbox) {");
-        writeln("    var img = document.getElementById('img');");
-        writeln("    if (checkbox.checked) {");
-        writeln("        img.src = img.src + '\\u0026max=false\\u0026r=' + Math.random();");
-        writeln("    } else {");
-        writeln("        img.src = img.src.replace('\\u0026max=false','');");
-        writeln("    }");
-        writeln("}");
-        writeln("function scaleImage(v, min, max) {");
-        writeln("    var images = document.getElementsByClassName('synthèse');");
-        writeln("    w = (max - min) * v + min;");
-        writeln("    for (i = 0; i < images.length; i++) {");
-        writeln("        images[i].style.width = w + 'px';");
-        writeln("    }");
-        writeln("}");
-
-        // 'animate' our slider
-        writeln("var slider = new Control.Slider('handle', 'track', {axis:'horizontal', alignX: 0, increment: 2});");
-
-        // resize the image as the slider moves. The image quality would deteriorate, but it
-        // would not be final anyway. Once slider is released the image is re-requested from the server, where
-        // it is rebuilt from vector format
-        writeln("slider.options.onSlide = function(value) {");
-        writeln("  scaleImage(value, initialWidth, initialWidth / 2 * 3);");
-        writeln("}");
-
-        // this is where the slider is released and the image is reloaded
-        // we use current style settings to work the required image dimensions
-        writeln("slider.options.onChange = function(value) {");
-        // chop off "px" and round up float values
-        writeln("  width = Math.round(Element.getStyle('img','width').replace('px','')) - 80;");
-        writeln("  height = Math.round(width * initialHeight / initialWidth) - 48;");
-        // reload the images
-        // rq : on utilise des caractères unicode pour éviter des warnings
-        writeln("  document.getElementById('img').src = '?graph="
-                + htmlEncodeButNotSpace(urlEncode(graphName))
-                + "\\u0026width=' + width + '\\u0026height=' + height;");
-        writeln("  document.getElementById('img').style.width = '';");
-        writeln("}");
-        writeln("window.onload = function() {");
-        writeln("  if (navigator.appName == 'Microsoft Internet Explorer') {");
-        writeln("    initialWidth = document.getElementById('img').width;");
-        writeln("    initialHeight = document.getElementById('img').height;");
-        writeln("  } else {");
-        writeln("    initialWidth = Math.round(Element.getStyle('img','width').replace('px',''));");
-        writeln("    initialHeight = Math.round(Element.getStyle('img','height').replace('px',''));");
-        writeln("  }");
-        writeln("}");
-        writeln(SCRIPT_END);
-    }
-
     private Map<String, CounterRequest> mapAllRequestsById() {
-        final Map<String, CounterRequest> result = new HashMap<String, CounterRequest>();
+        final Map<String, CounterRequest> result = new HashMap<>();
         for (final Counter counter : counters) {
             for (final CounterRequest request : counter.getRequests()) {
                 result.put(request.getId(), request);
