@@ -37,31 +37,32 @@
     </dependencies>
 
     <build>
-        <plugins>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-shade-plugin</artifactId>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-            <!--                        <phase>package</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>shade</goal>-->
-            <!--                        </goals>-->
-            <!--                        <configuration>-->
-            <!--                            <shadedArtifactAttached>false</shadedArtifactAttached>-->
-            <!--                            <filters>-->
-            <!--                                <filter>-->
-            <!--                                    <artifact>*:*</artifact>-->
-            <!--                                    <excludes>-->
-            <!--                                        <exclude>**/module-info.class</exclude>-->
-            <!--                                    </excludes>-->
-            <!--                                </filter>-->
-            <!--                            </filters>-->
-            <!--                        </configuration>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--            </plugin>-->
-        </plugins>
+        <!--!!!WHEN BUILD MELODY SHADED DONT FORGET TO REMOVE PROVIDED FROM jx-services-standard-impl-->
+        <!--<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>**/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>-->
     </build>
 
 </project>

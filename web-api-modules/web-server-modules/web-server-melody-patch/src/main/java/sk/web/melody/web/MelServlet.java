@@ -21,15 +21,8 @@ package sk.web.melody.web;
  */
 
 import lombok.AllArgsConstructor;
-import sk.services.async.AsyncImpl;
-import sk.services.bytes.BytesImpl;
-import sk.services.bytes.IBytes;
-import sk.services.http.HttpImpl;
-import sk.services.ids.IIds;
-import sk.services.ids.IdsImpl;
-import sk.services.rand.SecureRandImpl;
-import sk.services.retry.RepeatImpl;
-import sk.services.time.TimeUtcImpl;
+import sk.services.CoreServicesRaw;
+import sk.services.ICoreServices;
 import sk.utils.tuples.X2;
 
 import javax.servlet.ServletException;
@@ -48,13 +41,8 @@ public class MelServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        final AsyncImpl async = new AsyncImpl();
-        final RepeatImpl repeat = new RepeatImpl(async);
-        final TimeUtcImpl times = new TimeUtcImpl();
-        final IBytes bytes = new BytesImpl();
-        final IIds ids = new IdsImpl(new SecureRandImpl(), bytes, times);
-        final HttpImpl http = new HttpImpl(repeat, times, async, ids, bytes);
-        cleanerTask = new MelCleanTask(async, http);
+        ICoreServices core = new CoreServicesRaw();
+        cleanerTask = new MelCleanTask(core.async(), core.http());
         cleanerTask.start();
     }
 
