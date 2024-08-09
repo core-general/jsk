@@ -40,24 +40,28 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
     @Inject private WebMelodyParams moniParam;
     @Inject private WebMelodyCollectorParams moniColParam;
     @Inject private WebServerParams webSrv;
-    private O<String> ip;
+    private volatile O<String> ip = O.empty();
 
     @Override
     public void run() {
-        ip = moniColParam.isUsePrivateIp() ? nodeInfo.getPrivateIp() : nodeInfo.getPublicIp();
-        if (ip.isEmpty()) {
-            log.error("Can't obtain Ip");
-            return;
+        if (moniColParam.isMelodyCollectorOn()) {
+            ip = moniColParam.isUsePrivateIp() ? nodeInfo.getPrivateIp() : nodeInfo.getPublicIp();
+            if (ip.isEmpty()) {
+                log.error("Can't obtain Ip");
+                return;
+            }
+            invokeCollectorTask(getUrlNodeWithAction("add_node"), 120_000, true);
         }
-        invokeCollectorTask(getUrlNodeWithAction("add_node"), 120_000, true);
     }
 
     @Override
     public void onStop() {
-        if (ip.isEmpty()) {
-            return;
+        if (moniColParam.isMelodyCollectorOn()) {
+            if (ip.isEmpty()) {
+                return;
+            }
+            invokeCollectorTask(getUrlNodeWithAction("remove_node"), 1000, false);
         }
-        invokeCollectorTask(getUrlNodeWithAction("remove_node"), 1000, false);
     }
 
     private String getUrlNodeWithAction(String action) {
@@ -67,9 +71,10 @@ public class MelodyCollectorRegistratorBoot implements IBoot, AppStopListener {
         String appName = moniParam.getAppName();
 
         return String.format(
-                "https://%s:%d/api/%s?" +
-                        "app_name=%s&node_ip=%s&node_port=%s&node_login=%s&node_password=%s&use_https=false",
-                moniColParam.getHost(), moniColParam.getPort(), action, appName, ip.get(), port, login, password);
+                "%s:%d/api/%s?" +
+                "app_name=%s&node_ip=%s&node_port=%s&node_login=%s&node_password=%s&use_https=false",
+                moniColParam.getHost().startsWith("http") ? moniColParam.getHost() : "https://" + moniColParam.getHost(),
+                moniColParam.getPort(), action, appName, ip.get(), port, login, password);
     }
 
 
