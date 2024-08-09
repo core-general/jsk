@@ -28,24 +28,22 @@ import sk.db.util.generator.model.output.JsaEmbeddedKeyOutput;
 import sk.db.util.generator.model.output.JsaEntityOutput;
 import sk.db.util.generator.model.output.JsaPrimaryKeyOutput;
 import sk.db.util.generator.model.output.JsaStorageOutput;
-import sk.services.bytes.BytesImpl;
+import sk.services.CoreServicesRaw;
+import sk.services.ICoreServices;
 import sk.services.bytes.IBytes;
-import sk.services.free.Freemarker;
 import sk.services.free.IFree;
 import sk.services.ids.IIds;
-import sk.services.ids.IdsImpl;
 import sk.services.rand.IRand;
-import sk.services.rand.RandImpl;
-import sk.services.rand.SecureRandImpl;
 import sk.utils.functional.C1;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 
 public class JsaExporter {
-    static IRand rnd = new RandImpl();
-    static IBytes bytes = new BytesImpl();
-    static IIds ids = new IdsImpl(new SecureRandImpl(), bytes);
-    static IFree free = new Freemarker();
+    static ICoreServices core = new CoreServicesRaw();
+    static IRand rnd = core.rand();
+    static IBytes bytes = core.bytes();
+    static IIds ids = core.ids();
+    static IFree free = core.free();
 
     public static void export(C1<JsaFileInfo> fileProcessor, JsaFullEntityModel entities, String schema) {
         final String pkg = "__" + rnd.rndString(10, St.eng);
