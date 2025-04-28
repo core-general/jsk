@@ -84,7 +84,7 @@ public class UTLongIdToBigInt implements UserType<Object>, ParameterizedType, Dy
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         Long val = rs.getLong(names);
-        return creator.apply(val);
+        return rs.wasNull() ? null : creator.apply(val);
     }
 
     @Override

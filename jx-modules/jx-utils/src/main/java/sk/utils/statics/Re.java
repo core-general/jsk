@@ -34,8 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-
 @SuppressWarnings({"unused"})
 public final class Re/*flections*/ {
     @SneakyThrows
@@ -220,11 +218,12 @@ public final class Re/*flections*/ {
     //region private
     private static SortedSet<Field> getAllNonStaticFields(SortedSet<Field> fields, Class<?> type,
             F1<Class<?>, Field[]> clsToFields) {
-        fields.addAll(Stream.of(clsToFields.apply(type)).filter(f -> !isStatic(f)).collect(toList()));
-
         if (type.getSuperclass() != null) {
             fields = getAllNonStaticFields(fields, type.getSuperclass(), clsToFields);
         }
+
+        Stream.of(clsToFields.apply(type)).filter(f -> !isStatic(f))
+                .forEach(fields::add);
 
         return fields;
     }

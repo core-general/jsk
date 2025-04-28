@@ -84,7 +84,7 @@ public class UTUuidIdToUuid implements UserType<Object>, ParameterizedType, Dyna
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         UUID uuid = (UUID) rs.getObject(names);
-        return creator.apply(uuid);
+        return rs.wasNull() ? null : creator.apply(uuid);
     }
 
     @Override

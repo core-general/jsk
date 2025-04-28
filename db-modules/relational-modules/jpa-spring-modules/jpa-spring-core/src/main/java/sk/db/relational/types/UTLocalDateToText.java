@@ -51,7 +51,7 @@ public class UTLocalDateToText implements UserType<Object> {
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         String ldt = rs.getString(names);
-        return LocalDate.parse(ldt, Ti.yyyyMMdd);
+        return rs.wasNull() ? null : LocalDate.parse(ldt, Ti.yyyyMMdd);
     }
 
     @Override

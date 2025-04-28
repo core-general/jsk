@@ -76,6 +76,15 @@ public final class Im/*ages*/ {
         return dimg;
     }
 
+    public static BufferedImage resizeMaxDimension(BufferedImage img, int newMaxDimension) {
+        if (img.getWidth() > img.getHeight()) {
+            return resize(img, newMaxDimension, img.getHeight() * newMaxDimension / img.getWidth());
+        } else {
+            return resize(img, img.getWidth() * newMaxDimension / img.getHeight(), newMaxDimension);
+        }
+    }
+
+
     /**
      * @param im
      * @param blurSize some value between 2-20 depending on the input image, try a few variants

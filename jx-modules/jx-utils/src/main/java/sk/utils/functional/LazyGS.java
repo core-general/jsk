@@ -30,7 +30,10 @@ public class LazyGS<T> implements GSet<T> {
     }
 
     public T get() {
-        return val == null ? val = init.get() : val;
+        if (isSet()) {
+            return val;
+        }
+        return val = init.get();
     }
 
     @Override

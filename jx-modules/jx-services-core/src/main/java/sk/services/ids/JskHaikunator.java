@@ -132,6 +132,56 @@ public class JskHaikunator {
                 + St.engDig.charAt(engDig3 % St.engDig.length());
     }
 
+    public static String toUniqueHaiku(String val) {
+        final byte[] bytes = val.getBytes();
+
+        Checksum checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val1 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 1);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val2 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 2);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val3 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 3);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val4 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 4);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val5 = checksum.getValue();
+
+        bytes[0] = (byte) (bytes[0] + (byte) 5);
+        checksum = new CRC32C();
+        checksum.update(bytes, 0, bytes.length);
+        long val6 = checksum.getValue();
+
+
+        ByteBuffer buffer = ByteBuffer.allocate(24);
+        buffer.putInt((int) val1).putInt((int) val2).putInt((int) val3).putInt((int) val4).putInt((int) val5).putInt((int) val6);
+
+        final int adjsIndex = ByteBuffer.allocate(Integer.BYTES).putShort(2, buffer.getShort(1)).getInt();
+        final int nounsIndex = ByteBuffer.allocate(Integer.BYTES).putShort(2, buffer.getShort(3)).getInt();
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 18; i++) {
+            final short engDig1 = ByteBuffer.allocate(Short.BYTES).put(1, buffer.get(5 + i)).getShort();
+            sb.append(St.engENGDig.charAt(engDig1 % St.engENGDig.length()));
+        }
+
+        return adjs.get(adjsIndex % adjs.size()) + "-" + nouns.get(nounsIndex % nouns.size())
+               + "-"
+               + sb;
+    }
+
     //region ADJS + NOUNS
     public final static List<String> adjs = /*~500*/Collections.unmodifiableList(
             Cc.l("able", "accurate", "action", "active", "actual", "adorable", "adult", "afraid", "after", "aged", "agent", "ago",

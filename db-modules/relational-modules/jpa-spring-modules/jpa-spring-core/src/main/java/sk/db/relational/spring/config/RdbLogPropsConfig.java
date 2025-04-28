@@ -23,12 +23,14 @@ package sk.db.relational.spring.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.support.JskJpaRepositoryFactoryBean;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import sk.db.relational.spring.proprties.RdbJpaPackages;
 import sk.utils.statics.Cc;
 
 @Configuration
 @EnableJpaRepositories(
+        repositoryFactoryBeanClass = JskJpaRepositoryFactoryBean.class,
         value = {
                 "sk.db.relational.spring.services.dao.repo",
         },

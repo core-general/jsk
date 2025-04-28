@@ -28,9 +28,8 @@ import jakarta.inject.Inject;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.support.JskQuerydslPredicateExecutor;
 import org.springframework.data.querydsl.QPageRequest;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import sk.db.relational.utils.ReadWriteRepo;
 import sk.services.async.IAsync;
@@ -61,8 +60,6 @@ public class RdbIterator {
     @Inject IAsync async;
     @Inject Optional<IAppProfile> profile = Optional.empty();
 
-    @Inject NamedParameterJdbcOperations jdbc;
-
     /**
      * When full table scan is needed, it processes items page per page (1000 items in page)
      */
@@ -89,12 +86,10 @@ public class RdbIterator {
         long itemCount = 0;
         finish:
         while (pageNumber < Integer.MAX_VALUE) {
-            Page<T> all = repo.findAll(query,
+            List<T> content = Cc.list(repo.findAll(query,
                     ordering.length > 0
                     ? QPageRequest.of(pageNumber, pageSize, ordering)
-                    : QPageRequest.of(pageNumber, pageSize));
-
-            List<T> content = all.getContent();
+                    : QPageRequest.of(pageNumber, pageSize)));
 
 
             final F1<Boolean, Long> summator =
@@ -110,7 +105,7 @@ public class RdbIterator {
             itemCount += threadCount == 1 ?
                          summator.apply(false) :
                          async.coldTaskFJPGet(threadCount, () -> summator.apply(true));
-            if (all.getContent().size() < pageSize) {
+            if (content.size() < pageSize) {
                 break finish;
             }
             pageNumber++;
@@ -124,7 +119,7 @@ public class RdbIterator {
      */
     public <ITEM, ID extends Serializable> List<ITEM> getManyItemsByIds(
             Collection<ID> ids,
-            QuerydslPredicateExecutor<ITEM> repo,
+            JskQuerydslPredicateExecutor<ITEM> repo,
             SimpleExpression<ID> idExpression,
             O<Predicate> additionalWhere,
             boolean parallel) {
@@ -147,7 +142,7 @@ public class RdbIterator {
      * Count(*) counts items, so is very slow, this method allows to get data directly from metatables, so it's fast
      * itemCls should be annotated with Table annotation
      */
-    public O<Long> getFastItemCountInPostgresDb(Class<?> itemCls) {
+    public O<Long> getFastItemCountInPostgresDb(Class<?> itemCls, NamedParameterJdbcOperations jdbc) {
         final Table table = itemCls.getAnnotation(Table.class);
         if (table == null) {
             return O.empty();

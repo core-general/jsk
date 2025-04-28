@@ -25,6 +25,10 @@ import sk.utils.ifaces.Identifiable;
 import sk.utils.statics.St;
 
 public interface IHaikunable<T> extends Identifiable<T> {
+    default String toUniquHaiku() {
+        return JskHaikunator.toUniqueHaiku(toStringer());
+    }
+
     default String toShortHaiku() {
         return JskHaikunator.toShortHaiku(toStringer());
     }

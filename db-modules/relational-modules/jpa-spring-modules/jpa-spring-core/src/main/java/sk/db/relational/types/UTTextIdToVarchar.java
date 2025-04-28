@@ -89,7 +89,7 @@ public class UTTextIdToVarchar
     public Object nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
             throws SQLException {
         String uuid = rs.getString(position);
-        return creator.apply(uuid);
+        return rs.wasNull() ? null : creator.apply(uuid);
     }
 
     @Override

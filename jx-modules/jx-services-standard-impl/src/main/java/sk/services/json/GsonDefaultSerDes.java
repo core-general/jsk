@@ -25,7 +25,9 @@ import lombok.SneakyThrows;
 import sk.services.bytes.IBytes;
 import sk.services.time.ITime;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 import sk.utils.semver.Semver200;
+import sk.utils.statics.Fu;
 import sk.utils.statics.Ma;
 import sk.utils.statics.Ti;
 
@@ -53,6 +55,34 @@ public class GsonDefaultSerDes extends GsonSerDesList {
             @Override
             public JsonElement serialize(ObjectAndItsJson src, Type typeOfSrc, JsonSerializationContext context) {
                 return context.serialize(src.getObject());
+            }
+        });
+        add(new GsonSerDes<OneOf>(OneOf.class) {
+            @Override
+            public OneOf deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                    throws JsonParseException {
+                JsonObject o = json.getAsJsonObject();
+                JsonElement left = o.get("left");
+                JsonElement right = o.get("right");
+                if (left != null && !Fu.equal(left, JsonNull.INSTANCE)) {
+                    return OneOf.left(context.deserialize(left, ((ParameterizedType) typeOfT).getActualTypeArguments()[0]));
+                } else {
+                    return OneOf.right(context.deserialize(right, ((ParameterizedType) typeOfT).getActualTypeArguments()[1]));
+                }
+            }
+
+            @Override
+            public JsonElement serialize(OneOf src, Type typeOfSrc, JsonSerializationContext context) {
+                JsonObject jo = new JsonObject();
+                if (src == null) {
+                    return JsonNull.INSTANCE;
+                }
+                if (src.isLeft()) {
+                    jo.add("left", context.serialize(src.left()));
+                } else if (src.isRight()) {
+                    jo.add("right", context.serialize(src.right()));
+                }
+                return jo;
             }
         });
         add(new GsonSerDes<Optional>(Optional.class) {

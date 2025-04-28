@@ -20,10 +20,10 @@ package sk.db.relational.utils;
  * #L%
  */
 
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.jpa.repository.support.JskQuerydslPredicateExecutor;
 import org.springframework.data.repository.Repository;
 
 import java.io.Serializable;
 
 @SuppressWarnings("unused")
-public interface ReadRepo<T, ID extends Serializable> extends Repository<T, ID>, QuerydslPredicateExecutor<T> {}
+public interface ReadRepo<T, ID extends Serializable> extends Repository<T, ID>, JskQuerydslPredicateExecutor<T> {}

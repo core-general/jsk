@@ -20,9 +20,15 @@ package sk.db.relational.utils;
  * #L%
  */
 
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 import java.io.Serializable;
+import java.util.Optional;
 
-public interface ReadWriteRepo<T, ID extends Serializable> extends CrudRepository<T, ID>, QuerydslPredicateExecutor<T> {}
+public interface ReadWriteRepo<T, ID extends Serializable> extends CrudRepository<T, ID>, ReadRepo<T, ID> {
+    @Override
+    Optional<T> findById(ID id);
+
+    @Override
+    Iterable<T> findAllById(Iterable<ID> ids);
+}

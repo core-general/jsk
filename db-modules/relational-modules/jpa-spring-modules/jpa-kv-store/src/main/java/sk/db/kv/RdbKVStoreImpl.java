@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -86,10 +85,10 @@ public class RdbKVStoreImpl extends IKvStoreJsonBased implements IKvLimitedStore
         if (toLastCategory.isPresent()) {
             predicate = predicate.and(jpaKVItemWithRaw.id.key2.loe(toLastCategory.get()));
         }
-        final Page<JpaKVItemWithRaw> values = kvRaw.findAll(predicate, QPageRequest.of(0, maxCount,
+        final List<JpaKVItemWithRaw> values = kvRaw.findAll(predicate, QPageRequest.of(0, maxCount,
                 ascending ? jpaKVItemWithRaw.id.key2.asc() : jpaKVItemWithRaw.id.key2.desc()));
 
-        return values.get()
+        return values.stream()
                 .flatMap($ -> checkTtl($.getId(), $, t -> null).stream())
                 .map($ -> new KvListItemAll<>($.getId().toKvKey(), $.getValue(), O.ofNull($.getRawValue()), $.getCreatedAt()))
                 .limit(maxCount)

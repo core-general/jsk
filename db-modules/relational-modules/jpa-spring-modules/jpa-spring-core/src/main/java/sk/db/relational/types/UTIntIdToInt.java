@@ -84,7 +84,7 @@ public class UTIntIdToInt implements UserType<Object>, ParameterizedType, Dynami
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         Integer uuid = (Integer) rs.getObject(names);
-        return creator.apply(uuid);
+        return rs.wasNull() ? null : creator.apply(uuid);
     }
 
     @Override

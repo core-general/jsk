@@ -33,7 +33,7 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @NoArgsConstructor(onConstructor_ = @Deprecated)
-public class IdBase<T extends Comparable<T>>
+public abstract class IdBase<T extends Comparable<T>>
         implements Serializable, Comparable<IdBase<T>>, IHaikunable<T>, Identifiable<T> {
     protected T id;
 

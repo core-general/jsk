@@ -23,10 +23,15 @@ package sk.utils.async.locks;
 import lombok.AllArgsConstructor;
 
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @AllArgsConstructor
 public class JReadWriteLockDecorator implements JReadWriteLock {
     private ReadWriteLock lock;
+
+    public JReadWriteLockDecorator() {
+        lock = new ReentrantReadWriteLock(true);
+    }
 
     @Override
     public JLock writeLock() {

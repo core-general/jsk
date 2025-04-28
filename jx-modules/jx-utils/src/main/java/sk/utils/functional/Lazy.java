@@ -36,7 +36,10 @@ public class Lazy<T> implements Gett<T> {
     }
 
     public T get() {
-        return isSet() ? val : (val = init.get());
+        if (isSet()) {
+            return val;
+        }
+        return val = init.get();
     }
 
     public void refresh() {

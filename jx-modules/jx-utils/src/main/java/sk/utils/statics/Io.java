@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +44,6 @@ import java.util.stream.Stream;
 
 import static java.nio.file.Files.*;
 import static java.nio.file.StandardOpenOption.*;
-import static java.util.stream.Collectors.toMap;
 import static sk.utils.functional.O.*;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -146,6 +144,19 @@ public final class Io/*Input/Output*/ {
     }
 
     //region Input/Output streams. StreamPump
+    public static byte[] streamToBytes(InputStream is) {
+        return streamPump(is);
+    }
+
+    public static byte[] streamPump(InputStream is) {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            streamPump(is, os, 8 * 1024, NONE);
+            return os.toByteArray();
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
+    }
+
     @SneakyThrows
     public static void streamPump(InputStream in, OutputStream out, int bufferSize, StreamPumpInterceptor also) {
         byte[] read_buf = new byte[bufferSize];
@@ -163,15 +174,6 @@ public final class Io/*Input/Output*/ {
         long[] fullLength = new long[1];
         streamPump(in, out, bufferSize, also.andThen((buffer, size) -> fullLength[0] += size));
         return fullLength[0];
-    }
-
-    public static byte[] streamPump(InputStream is) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            streamPump(is, os, 8 * 1024, NONE);
-            return os.toByteArray();
-        } catch (IOException e) {
-            return Ex.thRow(e);
-        }
     }
 
     public static InputStream bytesToStream(byte[] in) {
@@ -612,10 +614,10 @@ public final class Io/*Input/Output*/ {
     //endregion
 
     //region Serialize/Deserialize
-    public static void serialize(String resultingFile, Object data) {
+    public static void serialize(OutputStream os, Object data) {
         try {
-            try (FileOutputStream fos = new FileOutputStream(resultingFile, false);
-                 ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            try (os;
+                 ObjectOutputStream oos = new ObjectOutputStream(os)) {
                 oos.writeObject(data);
             }
         } catch (IOException e) {
@@ -623,26 +625,40 @@ public final class Io/*Input/Output*/ {
         }
     }
 
+    public static void serialize(File f, Object data) {
+        try {
+            serialize(new FileOutputStream(f), data);
+        } catch (FileNotFoundException e) {
+            Ex.thRow(e);
+        }
+    }
+
+    public static byte[] serialize(Object data) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        serialize(baos, data);
+        return baos.toByteArray();
+    }
+
     @SuppressWarnings("unchecked")
-    public static <T> T deSerialize(String readFrom, Class<T> cls) {
-        try (FileInputStream fos = new FileInputStream(readFrom);
-             ObjectInputStream oos = new ObjectInputStream(fos)) {
+    public static <T> T deSerialize(InputStream readFrom, Class<T> cls) {
+        try (readFrom;
+             ObjectInputStream oos = new ObjectInputStream(readFrom)) {
             return (T) oos.readObject();
         } catch (IOException | ClassNotFoundException e) {
             return Ex.thRow(e);
         }
     }
 
-    public static Map<String, Object> deSerializeParallel(String... files) {
-        return deSerializeParallel(Object.class, files);
+    public static <T> T deSerialize(File file, Class<T> cls) {
+        try {
+            return deSerialize(new FileInputStream(file), cls);
+        } catch (FileNotFoundException e) {
+            return Ex.thRow(e);
+        }
     }
 
-    public static <T> Map<String, T> deSerializeParallel(Class<T> cls, String... files) {
-        return Stream.of(files).parallel().collect(toMap(file -> file, file -> Io.deSerialize(file, cls)));
-    }
-
-    public static Object deSerialize(String readFrom) {
-        return deSerialize(readFrom, Object.class);
+    public static <T> T deSerialize(byte[] bytes, Class<T> cls) {
+        return deSerialize(new ByteArrayInputStream(bytes), cls);
     }
     //endregion
 

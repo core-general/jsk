@@ -21,6 +21,7 @@ package sk.utils.async.locks;
  */
 
 import lombok.AllArgsConstructor;
+import sk.exceptions.NotImplementedException;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -32,7 +33,7 @@ public class JLockDecorator implements JLock {
     private final Lock lock;
 
     public JLockDecorator() {
-        this(new ReentrantLock());
+        lock = new ReentrantLock(true);
     }
 
     @Override
@@ -60,9 +61,16 @@ public class JLockDecorator implements JLock {
         lock.unlock();
     }
 
-
     @Override
     public Condition newCondition() {
         return lock.newCondition();
+    }
+
+    @Override
+    public boolean isLocked() {
+        return switch (lock) {
+            case ReentrantLock rl -> rl.isLocked();
+            default -> throw new NotImplementedException("isLock is not implemented for: " + lock.getClass());
+        };
     }
 }

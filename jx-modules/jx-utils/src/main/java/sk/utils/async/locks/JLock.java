@@ -30,13 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 public interface JLock extends Lock {
-    //public default boolean runIfLockFree(R toRun) {
-    //    return getIfLockFree(() -> {
-    //        toRun.run();
-    //        return true;
-    //    }).orElse(false);
-    //}
-
     public default void runInLock(R toRun) {
         getInLock(() -> {
             toRun.run();
@@ -91,4 +84,6 @@ public interface JLock extends Lock {
             unlock();
         }
     }
+
+    public boolean isLocked();
 }
