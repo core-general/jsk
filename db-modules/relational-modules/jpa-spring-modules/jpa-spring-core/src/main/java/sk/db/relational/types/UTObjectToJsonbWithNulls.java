@@ -35,7 +35,7 @@ public class UTObjectToJsonbWithNulls extends UTObjectToJsonb {
         if (value == null) {
             st.setNull(index, Types.OTHER);
         } else {
-            st.setString(index, getJson(session).to(value, false, true));
+            st.setString(index, getJson().to(value, false, true));
         }
     }
 }

@@ -30,8 +30,7 @@ public class PathWithBaseTest {
     @Test
     public void addToPath() {
         PathWithBase pwb = new PathWithBase("A");
-
-        assertEquals(new PathWithBase("A", O.empty()), pwb);
+        assertEquals(new PathWithBase("A"), pwb);
         assertEquals("a", (pwb = pwb.addToPath("a")).getPathNoSlash());
         assertEquals("a/b", (pwb = pwb.addToPath("b")).getPathNoSlash());
         assertEquals("a/b/c", (pwb = pwb.addToPath("/c")).getPathNoSlash());
@@ -39,6 +38,33 @@ public class PathWithBaseTest {
         assertEquals("a/b/c/d/e/f", (pwb = pwb.addToPath("f/")).getPathNoSlash());
         assertEquals("a/b/c/d/e/f/g", (pwb = pwb.addToPath("/g")).getPathNoSlash());
         assertEquals("a/b/c/d/e/f/g/h/", (pwb = pwb.addToPath("h")).getPathWithSlash());
+
+        pwb = new PathWithBase("A/a");
+        assertEquals(new PathWithBase("A/a"), pwb);
+        assertEquals("a/b", (pwb = pwb.addToPath("b")).getPathNoSlash());
+        assertEquals("a/b/c", (pwb = pwb.addToPath("/c")).getPathNoSlash());
+        assertEquals("a/b/c/d/e", (pwb = pwb.addToPath("d/e")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f", (pwb = pwb.addToPath("f/")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f/g", (pwb = pwb.addToPath("/g")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f/g/h/", (pwb = pwb.addToPath("h")).getPathWithSlash());
+
+        pwb = new PathWithBase("A", "a");
+        assertEquals(new PathWithBase("A/a"), pwb);
+        assertEquals("a/b", (pwb = pwb.addToPath("b")).getPathNoSlash());
+        assertEquals("a/b/c", (pwb = pwb.addToPath("/c")).getPathNoSlash());
+        assertEquals("a/b/c/d/e", (pwb = pwb.addToPath("d/e")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f", (pwb = pwb.addToPath("f/")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f/g", (pwb = pwb.addToPath("/g")).getPathNoSlash());
+        assertEquals("a/b/c/d/e/f/g/h/", (pwb = pwb.addToPath("h")).getPathWithSlash());
+
+        pwb = new PathWithBase("A/a", "a");
+        assertEquals(new PathWithBase("A/a/a"), pwb);
+        assertEquals("a/a/b", (pwb = pwb.addToPath("b")).getPathNoSlash());
+        assertEquals("a/a/b/c", (pwb = pwb.addToPath("/c")).getPathNoSlash());
+        assertEquals("a/a/b/c/d/e", (pwb = pwb.addToPath("d/e")).getPathNoSlash());
+        assertEquals("a/a/b/c/d/e/f", (pwb = pwb.addToPath("f/")).getPathNoSlash());
+        assertEquals("a/a/b/c/d/e/f/g", (pwb = pwb.addToPath("/g")).getPathNoSlash());
+        assertEquals("a/a/b/c/d/e/f/g/h/", (pwb = pwb.addToPath("h")).getPathWithSlash());
     }
 
     @Test

@@ -1,5 +1,25 @@
 package jsk.progen;
 
+/*-
+ * #%L
+ * Swiss Knife
+ * %%
+ * Copyright (C) 2019 - 2025 Core General
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import jsk.progen.model.JpgModel;
 import jsk.progen.model.JpgPackage;
 import jsk.progen.model.JpgServiceDefinition;
@@ -94,36 +114,37 @@ public class JpgGenerator {
         Set<JpgCommonModule> doneCommonModules = Cc.s();
         while (!tasks.isEmpty()) {
             JpgCreationTaskBase<?> task = tasks.poll();
-            boolean result = switch (task) {
-                case JpgCreationTaskNormalModule normalTask -> {
-                    JpgServiceModule module = normalTask.getModule();
-                    if (!doneServiceModules.contains(module)) {
-                        doneServiceModules.add(module);
-                        module.getDependentCommonModules().forEach(commonModule -> {
-                            if (!doneCommonModules.contains(commonModule)) {
-                                doneCommonModules.add(commonModule);
-                                tasks.add(new JpgCreationTaskCommonModule(normalTask.getCtx(), commonModule));
-                            }
-                        });
-                        module.getDependentServiceModules().forEach(servModule -> {
-                            if (!doneServiceModules.contains(servModule)) {
-                                doneServiceModules.add(servModule);
-                                tasks.add(new JpgCreationTaskNormalModule(normalTask.getCtx(), servModule));
-                            }
-                        });
-                    }
-                    module
-                }
-                case JpgCreationTaskCommonModule jpgCreationTaskCommonModule -> {
-
-                }
-                case JpgCreationTaskTopLevelServiceBuild topBuildTask -> {
-
-                }
-                case JpgCreationTaskTopLevelPomRewrite topLevelPomTask -> {
-
-                }
-            };
+            //todo not needs some work
+            //    boolean result = switch (task) {
+            //        case JpgCreationTaskNormalModule normalTask -> {
+            //            JpgServiceModule module = normalTask.getModule();
+            //            if (!doneServiceModules.contains(module)) {
+            //                doneServiceModules.add(module);
+            //                module.getDependentCommonModules().forEach(commonModule -> {
+            //                    if (!doneCommonModules.contains(commonModule)) {
+            //                        doneCommonModules.add(commonModule);
+            //                        tasks.add(new JpgCreationTaskCommonModule(normalTask.getCtx(), commonModule));
+            //                    }
+            //                });
+            //                module.getDependentServiceModules().forEach(servModule -> {
+            //                    if (!doneServiceModules.contains(servModule)) {
+            //                        doneServiceModules.add(servModule);
+            //                        tasks.add(new JpgCreationTaskNormalModule(normalTask.getCtx(), servModule));
+            //                    }
+            //                });
+            //            }
+            //            //module
+            //        }
+            //        case JpgCreationTaskCommonModule jpgCreationTaskCommonModule -> {
+            //
+            //        }
+            //        case JpgCreationTaskTopLevelServiceBuild topBuildTask -> {
+            //
+            //        }
+            //        case JpgCreationTaskTopLevelPomRewrite topLevelPomTask -> {
+            //
+            //        }
+            //    };
         }
     }
 

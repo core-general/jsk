@@ -40,9 +40,9 @@ class OneBothOrNoneTest {
         assertNull(any("a", null)
                 .map((o) -> null, (o) -> null)
                 .collect(OneOf::collectSelf, b -> b, () -> null));
-        assertEquals("123", any(null, null)
+        assertEquals("123", any((O<?>) null, (O<?>) null)
                 .map((o) -> "123", (o) -> null)
-                .collect(OneOf::collectSelf, b -> b, () -> null));
+                .collect(oneOf -> oneOf.left(), b -> b, () -> null));
     }
 
     private static String oneOrBoth(String a, String b) {

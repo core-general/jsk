@@ -36,8 +36,13 @@ public class WebServerSpringParams implements WebServerParams {
     @Value("${web_server_formlimit:1000000}")
     private volatile long formLimit;
 
+    //external folder
     @Value("${web_server_static_files_location:#{null}}")
     private volatile String staticFilesLocation;
+
+    //resource
+    @Value("${web_server_static_files_location_resource:#{null}}")
+    private volatile String staticFilesLocationResource;
 
     @Value("${web_server_idle_timeout:#{null}}")
     private volatile Long idleTimeout;
@@ -70,8 +75,13 @@ public class WebServerSpringParams implements WebServerParams {
     }
 
     @Override
-    public O<String> getStaticFilesLocation() {
-        return O.ofNull(staticFilesLocation);
+    public O<WebStaticFiles> getStaticFilesLocation() {
+        if (staticFilesLocation != null) {
+            return O.of(WebStaticFiles.externalFolder(staticFilesLocation));
+        } else if (staticFilesLocationResource != null) {
+            return O.of(WebStaticFiles.resources(staticFilesLocationResource));
+        }
+        return O.empty();
     }
 
     @Override

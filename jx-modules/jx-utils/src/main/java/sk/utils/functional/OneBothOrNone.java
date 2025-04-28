@@ -1,5 +1,25 @@
 package sk.utils.functional;
 
+/*-
+ * #%L
+ * Swiss Knife
+ * %%
+ * Copyright (C) 2019 - 2025 Core General
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import java.util.Optional;
 
 public class OneBothOrNone<L, R> {
@@ -11,15 +31,15 @@ public class OneBothOrNone<L, R> {
 
     public static <L, R> OneBothOrNone<L, R> right(R value) {return new OneBothOrNone<>(null, value);}
 
+    public static <L, R> OneBothOrNone<L, R> any(L left, R right) {return new OneBothOrNone<>(left, right);}
+
     public static <L, R> OneBothOrNone<L, R> any(O<L> left, O<R> right) {
-        return new OneBothOrNone<>(left.orElse(null), right.orElse(null));
+        return new OneBothOrNone<>(O.of(left).orElse(null), O.of(right).orElse(null));
     }
 
     public static <L, R> OneBothOrNone<L, R> any(Optional<L> left, Optional<R> right) {
-        return new OneBothOrNone<>(left.orElse(null), right.orElse(null));
+        return new OneBothOrNone<>(O.of(left).orElse(null), O.of(right).orElse(null));
     }
-
-    public static <L, R> OneBothOrNone<L, R> any(L left, R right) {return new OneBothOrNone<>(left, right);}
 
     public static <L, R> OneBothOrNone<L, R> both(Both<L, R> val) {
         return new OneBothOrNone<>(val.left(), val.right());

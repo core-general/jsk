@@ -59,7 +59,9 @@ public class PathWithBase {
     private PathWithBase(String base, O<String> path) {
         this.base = St.subRF(base, "/");
         O<String> pathPartOfBase = base.contains("/") ? O.of(St.subLF(base, "/")) : O.empty();
-        OneBothOrNone<String, String> leftAndPath = OneBothOrNone.any(pathPartOfBase, path);
+        OneBothOrNone<String, String> leftAndPath = OneBothOrNone.any(
+                pathPartOfBase.map($ -> St.notEndWith(St.notStartWith($, "/"), "/")),
+                path.map($ -> St.notEndWith(St.notStartWith($, "/"), "/")));
         this.path = O.ofNull(leftAndPath.collect(
                 one -> one.collect($ -> $, $ -> $),
                 both -> both.left() + "/" + both.right(),
@@ -88,6 +90,29 @@ public class PathWithBase {
                 getInnerPathNoSlash().map(currentPath -> currentPath + startWith(pathSuffix, "/"))
                         .or(() -> O.of(notStartWith(pathSuffix, "/")))
         );
+    }
+
+    public O<PathWithBase> getParent() {
+        if (path.isEmpty()) {
+            return O.empty();
+        }
+        String pth = path.get().trim();
+        if (pth.isEmpty()) {
+            return O.empty();
+        }
+        if (!pth.contains("/")) {
+            return O.of(new PathWithBase(base));
+        }
+
+        String parentPath = subRL(pth, "/").trim();
+        if (parentPath.isEmpty()) {
+            return O.empty();
+        }
+
+        return O.of(new PathWithBase(
+                base,
+                O.of(parentPath)
+        ));
     }
 
     public PathWithBase replacePath(String pathSuffix) {

@@ -63,6 +63,11 @@ public final class O<T> implements Serializable {
         return value == null ? empty() : value.map(O::of).orElse(empty());
     }
 
+
+    public static <T> O<T> of(O<T> value) {
+        return value == null ? empty() : value.map(O::of).orElse(empty());
+    }
+
     /**
      * Returns an {@code O} describing the given non-{@code null}
      * value.

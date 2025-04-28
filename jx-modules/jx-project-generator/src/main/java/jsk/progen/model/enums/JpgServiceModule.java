@@ -1,5 +1,25 @@
 package jsk.progen.model.enums;
 
+/*-
+ * #%L
+ * Swiss Knife
+ * %%
+ * Copyright (C) 2019 - 2025 Core General
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import jsk.progen.model.JpgServiceId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,11 +38,11 @@ import static jsk.progen.model.enums.JpgFileTemplates.L2_BUILD_SERVICE_POM;
 @AllArgsConstructor
 public enum JpgServiceModule implements Identifiable<String> {
     BUILD("build", Cc.s(COM_DB_PG), Cc.l(
-            L2_BUILD_SERVICE_POM,
+            L2_BUILD_SERVICE_POM
 
 
             )),
-    PUBLIC("public", Cc.s(COM_MODEL)),
+    PUBLIC("public", Cc.s(COM_MODEL),/*todo */ Cc.s()),
     PRIVATE("private", Cc.s(COM_SPRING), Cc.s(PUBLIC)),
     LOGIC("logic", Cc.s(), Cc.s(PRIVATE)),
 
@@ -37,12 +57,12 @@ public enum JpgServiceModule implements Identifiable<String> {
     String suffix;
     Set<JpgCommonModule> dependentCommonModules;
     Set<JpgServiceModule> dependentServiceModules = Cc.s();
-    List<JpgFileTemplates> templates;
+    //todo List<JpgFileTemplates> templates;
 
     JpgServiceModule(String suffix, Set<JpgCommonModule> dependentCommonModules, List<JpgFileTemplates> templates) {
         this.dependentCommonModules = dependentCommonModules;
         this.suffix = suffix;
-        this.templates = templates;
+        //todo this.templates = templates;
     }
 
     public static O<JpgServiceModule> parse(JpgServiceId id, String name) {
