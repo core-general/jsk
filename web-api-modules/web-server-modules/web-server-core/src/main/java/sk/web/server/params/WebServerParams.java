@@ -20,7 +20,12 @@ package sk.web.server.params;
  * #L%
  */
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
 import sk.utils.functional.O;
+import sk.utils.functional.OneOf;
 
 public interface WebServerParams {
     default String getServerNameHeader() {
@@ -35,9 +40,23 @@ public interface WebServerParams {
 
     O<Long> getIdleTimeout();
 
-    O<String> getStaticFilesLocation();
+    O<WebStaticFiles> getStaticFilesLocation();
 
     O<Integer> getTokenTimeoutSec();
 
     boolean isUseCookiesForToken();
+
+    @Data
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class WebStaticFiles {
+        @Getter private OneOf<String, String> eitherResourceOrExternal;
+
+        public static WebStaticFiles resources(String resourceDir) {
+            return new WebStaticFiles(OneOf.left(resourceDir));
+        }
+
+        public static WebStaticFiles externalFolder(String externalDir) {
+            return new WebStaticFiles(OneOf.right(externalDir));
+        }
+    }
 }

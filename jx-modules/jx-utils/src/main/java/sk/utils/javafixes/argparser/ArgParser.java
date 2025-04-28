@@ -47,6 +47,11 @@ public class ArgParser<T extends Enum<T> & ArgParserConfig<T>> {
         return new ArgParser<>(args, configProvider);
     }
 
+    public static <T extends Enum<T> & ArgParserConfig<T>> ArgParser<T> parse(String[] args,
+            Class<? extends ArgParserConfigProvider<T>> configProvider) {
+        return new ArgParser<>(args, configProvider.getEnumConstants()[0]);
+    }
+
     private ArgParser(String[] args, ArgParserConfigProvider<T> configProvider) {
         try {
             List<T> noArgConfigs = configProvider.getConfigs().stream()

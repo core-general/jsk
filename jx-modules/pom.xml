@@ -23,5 +23,6 @@
         <module>jx-model-mapper</module>
         <module>jx-logging</module>
         <module>jx-test-modules</module>
+        <module>jx-project-generator</module>
     </modules>
 </project>

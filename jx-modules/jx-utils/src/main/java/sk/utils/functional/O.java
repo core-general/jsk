@@ -114,6 +114,10 @@ public final class O<T> implements Serializable {
         return Optional.ofNullable(value);
     }
 
+    public int size() {
+        return isPresent() ? 1 : 0;
+    }
+
     public O<T> or(Supplier<? extends Optional<? extends T>> supplier) {
         Objects.requireNonNull(supplier);
         if (isPresent()) {

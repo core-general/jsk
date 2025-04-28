@@ -116,7 +116,12 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
     public void init() {
         Service spark = Service.ignite();
         spark.port(conf.getPort());
-        conf.getStaticFilesLocation().ifPresent(spark::externalStaticFileLocation);
+        conf.getStaticFilesLocation().ifPresent(sf -> {
+            sf.getEitherResourceOrExternal().apply(
+                    spark::staticFileLocation,
+                    spark::externalStaticFileLocation
+            );
+        });
 
         for (WebServerCore definition : serverDefinitions) {
             final WebServerContext env = provideContext(spark, definition.getApiClass());

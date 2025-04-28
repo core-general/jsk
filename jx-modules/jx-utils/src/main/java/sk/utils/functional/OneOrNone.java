@@ -27,7 +27,7 @@ import static sk.utils.functional.O.*;
 @SuppressWarnings({"unused", "WeakerAccess"})
 @EqualsAndHashCode
 public class OneOrNone<L, R> {
-    public static final OneOrNone NONE = new OneOrNone<>(null, null);
+    private static final OneOrNone NONE = new OneOrNone<>(null, null);
     private final L left;
     private final R right;
 
@@ -38,6 +38,8 @@ public class OneOrNone<L, R> {
     public static <L, R> OneOrBoth<L, R> one(OneOf<L, R> val) {
         return new OneOrBoth<>(val.oLeft().orElse(null), val.oRight().orElse(null));
     }
+
+    public static <L, R> OneOrNone<L, R> none() {return NONE;}
 
     public static <L, R> OneOrNone<L, R> maybeNone(L left, R right) {
         return new OneOrNone<>(left, right);
@@ -50,6 +52,7 @@ public class OneOrNone<L, R> {
             throw new IllegalArgumentException("mustNone is invoked, but at least one argument is not null");
         }
     }
+
     private OneOrNone(L l, R r) {
         if (l != null && r != null) {
             throw new IllegalArgumentException("Both values are not null");
@@ -124,8 +127,8 @@ public class OneOrNone<L, R> {
 
     public O<OneOf<L, R>> get() {
         return left != null || right != null
-                ? of(new OneOf<>(left, right))
-                : empty();
+               ? of(new OneOf<>(left, right))
+               : empty();
     }
 
     @Override

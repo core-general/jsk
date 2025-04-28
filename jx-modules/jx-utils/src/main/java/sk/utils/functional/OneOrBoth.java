@@ -109,10 +109,10 @@ public class OneOrBoth<L, R> {
 
     public OneOf<OneOf<L, R>, Both<L, R>> get() {
         return left != null && right != null
-                ? OneOf.right(Both.both(left, right))
-                : left != null
-                        ? OneOf.left(OneOf.left(left))
-                        : OneOf.left(OneOf.right(right));
+               ? OneOf.right(Both.both(left, right))
+               : left != null
+                 ? OneOf.left(OneOf.left(left))
+                 : OneOf.left(OneOf.right(right));
     }
 
     public boolean isBoth() {return left != null && right != null;}

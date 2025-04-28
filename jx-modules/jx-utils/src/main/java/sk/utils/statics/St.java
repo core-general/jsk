@@ -38,8 +38,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-import static java.lang.Character.isLetter;
-import static java.lang.Character.isSpaceChar;
+import static java.lang.Character.*;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection", "WeakerAccess"})
 public final class St/*rings*/ {
@@ -116,6 +115,21 @@ public final class St/*rings*/ {
         for (int i = 0; i < toProcess.length(); i++) {
             char c = toProcess.charAt(i);
             if (isLetter(c) || (spaces && isSpaceChar(c))) {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String leaveOnlyLettersAndNumbers(String toProcess) {
+        return leaveOnlyLettersAndNumbers(toProcess, false);
+    }
+
+    public static String leaveOnlyLettersAndNumbers(String toProcess, boolean spaces) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < toProcess.length(); i++) {
+            char c = toProcess.charAt(i);
+            if (isLetter(c) || isDigit(c) || (spaces && isSpaceChar(c))) {
                 sb.append(c);
             }
         }

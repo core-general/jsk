@@ -20,10 +20,10 @@ package sk.utils.files;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import sk.utils.functional.O;
+import sk.utils.functional.OneBothOrNone;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
 import sk.utils.statics.St;
@@ -36,18 +36,34 @@ import java.util.Arrays;
 import static sk.utils.statics.St.*;
 
 @EqualsAndHashCode
-@AllArgsConstructor
 public class PathWithBase {
     @Getter String base;
     O<String> path;
+
+    public static PathWithBase pwb(String base) {
+        return new PathWithBase(base);
+    }
+
+    public static PathWithBase pwb(String base, String... path) {
+        return new PathWithBase(base, path);
+    }
 
     public PathWithBase(String base) {
         this(base, O.empty());
     }
 
     public PathWithBase(String base, String... path) {
-        this(base, path.length == 0 ? O.empty()
-                                    : O.of(Cc.join("/", Arrays.asList(path), s -> St.notStartWith(St.notEndWith(s, "/"), "/"))));
+        this(base, path.length == 0 ? O.empty() : O.of(Cc.join("/", Arrays.asList(path))));
+    }
+
+    private PathWithBase(String base, O<String> path) {
+        this.base = St.subRF(base, "/");
+        O<String> pathPartOfBase = base.contains("/") ? O.of(St.subLF(base, "/")) : O.empty();
+        OneBothOrNone<String, String> leftAndPath = OneBothOrNone.any(pathPartOfBase, path);
+        this.path = O.ofNull(leftAndPath.collect(
+                one -> one.collect($ -> $, $ -> $),
+                both -> both.left() + "/" + both.right(),
+                () -> null));
     }
 
     public String getPathWithSlash() {
@@ -72,29 +88,6 @@ public class PathWithBase {
                 getInnerPathNoSlash().map(currentPath -> currentPath + startWith(pathSuffix, "/"))
                         .or(() -> O.of(notStartWith(pathSuffix, "/")))
         );
-    }
-
-    public O<PathWithBase> getParent() {
-        if (path.isEmpty()) {
-            return O.empty();
-        }
-        String pth = path.get().trim();
-        if (pth.isEmpty()) {
-            return O.empty();
-        }
-        if (!pth.contains("/")) {
-            return O.of(new PathWithBase(base));
-        }
-
-        String parentPath = subRL(pth, "/").trim();
-        if (parentPath.isEmpty()) {
-            return O.empty();
-        }
-
-        return O.of(new PathWithBase(
-                base,
-                O.of(parentPath)
-        ));
     }
 
     public PathWithBase replacePath(String pathSuffix) {

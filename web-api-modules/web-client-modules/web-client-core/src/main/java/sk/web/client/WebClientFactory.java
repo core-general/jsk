@@ -43,6 +43,7 @@ import sk.utils.tuples.X;
 import sk.utils.tuples.X1;
 import sk.web.WebMethodType;
 import sk.web.annotations.WebAuth;
+import sk.web.annotations.WebAuthNO;
 import sk.web.annotations.WebIdempotence;
 import sk.web.infogatherer.WebClassInfo;
 import sk.web.infogatherer.WebClassInfoProvider;
@@ -234,7 +235,7 @@ public class WebClientFactory {
             }
         }
 
-        WebAuth auth = api.getAnnotation(WebAuth.class).orElse(null);
+        WebAuth auth = api.getAnnotation(WebAuth.class, WebAuthNO.class).orElse(null);
         if (auth != null) {
             O.ofNull(auth.getPassword())
                     .filter($ -> !St.isNullOrEmpty($))

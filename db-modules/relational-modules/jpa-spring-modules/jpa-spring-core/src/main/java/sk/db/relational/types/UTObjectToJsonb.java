@@ -26,6 +26,7 @@ import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 import sk.services.json.IJson;
+import sk.spring.services.ServiceLocator4SpringImpl;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -41,9 +42,11 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
     public static final String param = "targetType";
 
     private Class<?> cls;
+    private IJson json;
 
     public void setParameterValues(Properties parameters) {
         synchronized (this) {
+            json = ServiceLocator4SpringImpl.instance.getService(IJson.class).get();
             cls = UtUtils.getType(parameters, param);
         }
     }
@@ -62,7 +65,7 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         String value = rs.getString(names);
-        return rs.wasNull() ? null : getJson(session).from(value, returnedClass());
+        return rs.wasNull() ? null : getJson().from(value, returnedClass());
     }
 
     @Override
@@ -71,13 +74,13 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
         if (value == null) {
             st.setNull(index, Types.OTHER);
         } else {
-            st.setString(index, getJson(session).to(value));
+            st.setString(index, getJson().to(value));
         }
     }
 
     @Override
     public boolean isMutable() {
-        return false;
+        return true;
     }
 
     @Override
@@ -92,28 +95,25 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
 
     @Override
     public Object deepCopy(Object value) throws HibernateException {
-        return value;
-    }
-
-    @Override
-    public Object replace(Object original, Object target, Object owner)
-            throws HibernateException {
-        return original;
+        if (value == null) {return null;}
+        return getJson().from(getJson().to(value), returnedClass());
     }
 
     @Override
     public Serializable disassemble(Object value) throws HibernateException {
-        return (Serializable) value;
+        if (value == null) {return null;}
+        // Serialize the object into JSON so that the snapshot represents its state.
+        return getJson().to(value);
     }
 
     @Override
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
-        return cached;
+        if (cached == null) {return null;}
+        return getJson().from((String) cached, returnedClass());
     }
 
-
-    IJson getJson(SharedSessionContractImplementor session) {
-        return getInjector(session).json();
+    IJson getJson() {
+        return json;
     }
 }
