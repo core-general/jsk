@@ -428,7 +428,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                         conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
                         profile.getProfile().isForProductionUsage(), true);
 
-                final String token = St.bytesToHex(bytes.md5((clientIp + saltPassword).getBytes(StandardCharsets.UTF_8)));
+                final String token = bytes.enc62(bytes.sha256((clientIp + saltPassword).getBytes(StandardCharsets.UTF_8)));
                 response.cookie("/", JSK_CLIENT_TOKEN,
                         token,
                         conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
