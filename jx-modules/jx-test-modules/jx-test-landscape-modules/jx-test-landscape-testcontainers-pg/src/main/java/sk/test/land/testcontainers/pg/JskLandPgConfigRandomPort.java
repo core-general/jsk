@@ -1,4 +1,4 @@
-package sk.test.land.testcontainers.localstack;
+package sk.test.land.testcontainers.pg;
 
 /*-
  * #%L
@@ -23,16 +23,20 @@ package sk.test.land.testcontainers.localstack;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import sk.aws.AwsUtilityHelper;
-import sk.aws.AwsWithChangedPort;
-import sk.services.ICoreServices;
+import org.springframework.context.annotation.Primary;
+import sk.db.relational.utils.RdbWithChangedPort;
 import sk.test.land.core.JskLandDefaultConfig;
+import sk.utils.statics.Io;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Import(JskLandDefaultConfig.class)
-public class JskLandLocalstackConfig {
+public class JskLandPgConfigRandomPort extends JskLandPgConfig {
     @Bean
-    JskLandLocalstack JskLandLocalstack(AwsWithChangedPort acp, AwsUtilityHelper awh, ICoreServices core) {
-        return new JskLandLocalstack(acp, "localstack/localstack:3.4.0", awh, core);
+    @Primary
+    RdbWithChangedPort RdbWithChangedPort() {
+        AtomicInteger ai = new AtomicInteger();
+        return () -> Io.getFreePort(ai).get();
     }
 }
