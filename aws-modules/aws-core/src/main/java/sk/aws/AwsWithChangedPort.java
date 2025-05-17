@@ -21,6 +21,8 @@ package sk.aws;
  */
 
 import sk.utils.functional.OneOf;
+import sk.utils.land.JskWithChangedPort;
+import sk.utils.land.JskWithChangedPortType;
 import sk.utils.statics.Ex;
 import sk.utils.statics.Io;
 import software.amazon.awssdk.regions.Region;
@@ -28,8 +30,11 @@ import software.amazon.awssdk.regions.Region;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public interface AwsWithChangedPort {
-    int getPort();
+public interface AwsWithChangedPort extends JskWithChangedPort {
+    @Override
+    default JskWithChangedPortType getType() {
+        return AwsPortType.AWS_PORT_TYPE;
+    }
 
     public default OneOf<URI, Region> getAddress(AwsProperties actual) {
         OneOf<URI, Region> addr = actual.getAddress();

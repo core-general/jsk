@@ -22,14 +22,18 @@ package sk.test.land.testcontainers.localstack;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import sk.aws.AwsUtilityHelper;
 import sk.aws.AwsWithChangedPort;
 import sk.services.ICoreServices;
+import sk.test.land.core.JskLandDefaultConfig;
 import sk.utils.statics.Io;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
+@Import(JskLandDefaultConfig.class)
 public class JskLandLocalstackConfig {
     @Bean
     JskLandLocalstack JskLandLocalstack(AwsWithChangedPort acp, AwsUtilityHelper awh, ICoreServices core) {
@@ -37,6 +41,7 @@ public class JskLandLocalstackConfig {
     }
 
     @Bean
+    @Primary
     AwsWithChangedPort AwsWithChangedPort() {
         AtomicInteger ai = new AtomicInteger();
         return () -> Io.getFreePort(ai).get();

@@ -1,10 +1,10 @@
-package sk.db.relational.utils;
+package sk.test.land.core;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2024 Core General
+ * Copyright (C) 2019 - 2025 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,29 @@ package sk.db.relational.utils;
  * #L%
  */
 
-import sk.utils.land.JskWithChangedPort;
-import sk.utils.land.JskWithChangedPortType;
+import lombok.SneakyThrows;
+import sk.services.async.IAsync;
+import sk.services.shutdown.AppStopListener;
 
-public interface RdbWithChangedPort extends JskWithChangedPort {
+import java.util.List;
+
+public class JskFullLand implements AppStopListener {
+    private JskLandScape finalLand;
+
+    @SneakyThrows
+    public JskFullLand(List<JskLand> environments, IAsync async) {
+        finalLand = new JskLandScapeParallel(async, environments);
+        finalLand.start();
+    }
+
     @Override
-    default JskWithChangedPortType getType() {
-        return RdbType.RDBTYPE;
+    @SneakyThrows
+    public void onStop() {
+        finalLand.stop();
+    }
+
+    @Override
+    public long waitBeforeStopMs() {
+        return 0;
     }
 }

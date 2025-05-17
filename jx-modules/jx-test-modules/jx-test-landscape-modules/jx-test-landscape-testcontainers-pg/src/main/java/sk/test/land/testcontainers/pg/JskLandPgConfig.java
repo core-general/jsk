@@ -22,12 +22,16 @@ package sk.test.land.testcontainers.pg;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import sk.db.relational.utils.RdbWithChangedPort;
+import sk.test.land.core.JskLandDefaultConfig;
 import sk.utils.statics.Io;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
+@Import(JskLandDefaultConfig.class)
 public class JskLandPgConfig {
     @Bean
     JskLandPg JskLandPg(RdbWithChangedPort props) {
@@ -35,6 +39,7 @@ public class JskLandPgConfig {
     }
 
     @Bean
+    @Primary
     RdbWithChangedPort RdbWithChangedPort() {
         AtomicInteger ai = new AtomicInteger();
         return () -> Io.getFreePort(ai).get();

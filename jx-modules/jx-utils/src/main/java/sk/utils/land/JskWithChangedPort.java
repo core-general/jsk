@@ -1,10 +1,10 @@
-package sk.db.relational.utils;
+package sk.utils.land;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2024 Core General
+ * Copyright (C) 2019 - 2025 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,8 @@ package sk.db.relational.utils;
  * #L%
  */
 
-import sk.utils.land.JskWithChangedPort;
-import sk.utils.land.JskWithChangedPortType;
+public interface JskWithChangedPort {
+    int getPort();
 
-public interface RdbWithChangedPort extends JskWithChangedPort {
-    @Override
-    default JskWithChangedPortType getType() {
-        return RdbType.RDBTYPE;
-    }
+    JskWithChangedPortType getType();
 }
