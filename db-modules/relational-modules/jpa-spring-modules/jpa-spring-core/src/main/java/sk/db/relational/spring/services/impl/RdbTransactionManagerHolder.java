@@ -26,10 +26,7 @@ import sk.db.relational.utils.ReadWriteRepo;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RdbTransactionManagerHolder {
     @Inject private List<ReadWriteRepo> readWriteRepos;
@@ -39,13 +36,18 @@ public class RdbTransactionManagerHolder {
     @PostConstruct
     public void initJpaRepoMap() {
         readWriteRepos.forEach(repository -> {
-            Arrays.stream(repository.getClass().getGenericInterfaces())
-                    .filter(ParameterizedType.class::isInstance)
-                    .map(ParameterizedType.class::cast)
-                    .filter($ -> ReadWriteRepo.class.equals($.getRawType()))
-                    .findAny()
-                    .ifPresent(parameterizedType ->
-                            repoJpaMap.put(parameterizedType.getActualTypeArguments()[0], repository));
+            Type[] genericInterfaces = repository.getClass().getGenericInterfaces();
+
+            for (Type genericInterface : genericInterfaces) {
+                Optional<ParameterizedType> repoType = Arrays.stream(((Class<?>) genericInterface).getGenericInterfaces())
+                        .filter($ -> $ instanceof ParameterizedType)
+                        .filter($ -> ((ParameterizedType) $).getRawType().equals(ReadWriteRepo.class))
+                        .map($ -> (ParameterizedType) $)
+                        .findAny();
+
+                repoType.ifPresent(
+                        parameterizedType -> repoJpaMap.put(parameterizedType.getActualTypeArguments()[0], repository));
+            }
         });
     }
 

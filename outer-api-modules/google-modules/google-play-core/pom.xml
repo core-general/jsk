@@ -5,7 +5,7 @@
     <parent>
         <artifactId>google-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.5.8</version>
+        <version>jsk.21.5.10</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.21.5.8</version>
+            <version>jsk.21.5.10</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.21.5.8</version>
+            <version>jsk.21.5.10</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -29,18 +29,30 @@
         <dependency>
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>1.23.0</version>
-            <!--            <exclusions>-->
-            <!--                <exclusion>-->
-            <!--                    <groupId>com.google.guava</groupId>-->
-            <!--                    <artifactId>guava</artifactId>-->
-            <!--                </exclusion>-->
-            <!--            </exclusions>-->
+            <version>1.35.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.opencensus</groupId>
+                    <artifactId>opencensus-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-games</artifactId>
-            <version>v1-rev20240701-2.0.0</version>
+            <version>v1-rev20250320-2.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.http-client</groupId>
@@ -49,6 +61,18 @@
                 <exclusion>
                     <groupId>com.google.http-client</groupId>
                     <artifactId>google-http-client-gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.auth</groupId>
+                    <artifactId>google-auth-library-oauth2-http</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.auth</groupId>
+                    <artifactId>google-auth-library-credentials</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

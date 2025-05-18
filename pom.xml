@@ -7,7 +7,7 @@
     <groupId>jsk</groupId>
     <artifactId>jsk-root</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.5.8</version>
+    <version>jsk.21.5.10</version>
 
     <modules>
         <module>jx-modules</module>
@@ -28,7 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
-        <spring.version>6.1.6</spring.version>
+        <spring.version>6.2.7</spring.version>
     </properties>
 
     <repositories>
@@ -68,7 +68,7 @@
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
-                <version>3.1.8</version>
+                <version>3.2.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

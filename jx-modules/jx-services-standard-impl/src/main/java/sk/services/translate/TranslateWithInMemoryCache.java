@@ -23,7 +23,6 @@ package sk.services.translate;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
-import org.checkerframework.checker.index.qual.NonNegative;
 import sk.services.json.IJson;
 
 
@@ -41,7 +40,7 @@ public class TranslateWithInMemoryCache implements ITranslate {
                 .maximumWeight(Runtime.getRuntime().maxMemory() / 10)
                 .weigher(new Weigher<String, TranslateInfo>() {
                     @Override
-                    public @NonNegative int weigh(String key, TranslateInfo value) {
+                    public int weigh(String key, TranslateInfo value) {
                         return key.length() * 2 + value.approxMemory();
                     }
                 })
@@ -51,7 +50,7 @@ public class TranslateWithInMemoryCache implements ITranslate {
                 .maximumWeight(Runtime.getRuntime().maxMemory() / 10)
                 .weigher(new Weigher<String, AwsLangRecoResult>() {
                     @Override
-                    public @NonNegative int weigh(String key, AwsLangRecoResult value) {
+                    public int weigh(String key, AwsLangRecoResult value) {
                         return key.length() * 2 + value.size();
                     }
                 })
