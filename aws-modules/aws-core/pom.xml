@@ -5,12 +5,12 @@
     <parent>
         <artifactId>aws-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.5.10</version>
+        <version>jsk.21.5.11</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-core</artifactId>
-    <version>jsk.21.5.10</version>
+    <version>jsk.21.5.11</version>
     <packaging>jar</packaging>
 
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.21.5.10</version>
+            <version>jsk.21.5.11</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -29,11 +29,32 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-core</artifactId>
             <version>${aws-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
             <version>${aws-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.17.1</version>
         </dependency>
     </dependencies>
 </project>
