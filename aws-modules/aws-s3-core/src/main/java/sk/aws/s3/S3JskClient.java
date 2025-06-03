@@ -442,7 +442,7 @@ public class S3JskClient {
     }
 
     public void clearAll(PathWithBase base, O<Long> msBetweenPageRequests) {
-        Cc.splitCollectionRandomly(getAllItems(base, msBetweenPageRequests), 1000, () -> rand.rndLong())
+        Cc.splitIntoGroups(getAllItems(base, msBetweenPageRequests), 1000)
                 .values().parallelStream().forEach($ -> {
                     repeat.repeat(() -> deleteByKeys(base,
                             $.stream().map($$ -> $$.getKey()).collect(Cc.toL()).toArray(new String[0])), 10);

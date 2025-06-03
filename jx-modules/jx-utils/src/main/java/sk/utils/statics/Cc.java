@@ -25,6 +25,7 @@ import sk.utils.functional.*;
 import sk.utils.tuples.X2;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.*;
@@ -341,11 +342,9 @@ public final class Cc/*ColleCtions*/ {
         return of(collection.stream().filter(predicate).findAny());
     }
 
-    public static <T, A extends Collection<T>> Map<Long, List<T>>
-    splitCollectionRandomly(A collection, int aproxSizeOfPartition, F0<Long> randomSequence) {
-        int size = collection.size();
-        int mod = Math.max(size / aproxSizeOfPartition, 1);
-        return collection.stream().collect(groupingBy($ -> randomSequence.apply() % mod));
+    public static <T, A extends Collection<T>> Map<Long, List<T>> splitIntoGroups(A collection, int maxGroupSize) {
+        AtomicLong count = new AtomicLong();
+        return collection.stream().collect(Collectors.groupingBy($ -> count.incrementAndGet() / maxGroupSize));
     }
     //endregion
 

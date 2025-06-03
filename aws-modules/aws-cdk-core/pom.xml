@@ -2,16 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>maths</artifactId>
         <groupId>jsk</groupId>
+        <artifactId>aws-modules</artifactId>
         <version>jsk.21.5.12</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>maths-common</artifactId>
-    <packaging>jar</packaging>
-    <version>jsk.21.5.12</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cdk.version>2.195.0</cdk.version>
+        <constructs.version>[10.0.0,11.0.0)</constructs.version>
+    </properties>
+    <artifactId>aws-cdk-core</artifactId>
 
     <dependencies>
         <dependency>
@@ -20,20 +24,20 @@
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>jx-services-standard-impl</artifactId>
+            <artifactId>jx-utils</artifactId>
             <version>jsk.21.5.12</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.6.1</version>
+            <groupId>software.amazon.awscdk</groupId>
+            <artifactId>aws-cdk-lib</artifactId>
+            <version>${cdk.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>jx-test</artifactId>
-            <version>jsk.21.5.12</version>
-            <scope>test</scope>
+            <groupId>software.constructs</groupId>
+            <artifactId>constructs</artifactId>
+            <version>${constructs.version}</version>
         </dependency>
+
     </dependencies>
 </project>
