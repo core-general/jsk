@@ -78,11 +78,12 @@ public abstract class JskGenericStack extends Stack {
         return Vpc.Builder.create(this, prefixCamelCase + "Vpc")
                 .maxAzs(99)  // Use all Availability Zones for better availability
                 .natGateways(0)  // No NAT Gateways for cost-saving
+                .ipv6Addresses(Ipv6Addresses.amazonProvided())
                 .subnetConfiguration(List.of(
                         SubnetConfiguration.builder()
                                 .name("PublicSubnet")
                                 .subnetType(SubnetType.PUBLIC)
-                                .cidrMask(24)
+                                .ipv6AssignAddressOnCreation(true)
                                 .build()
                 ))
                 .build();

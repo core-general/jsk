@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>g-cluster</artifactId>
-        <version>jsk.21.5.15</version>
+        <version>jsk.21.5.16</version>
     </parent>
 
     <groupId>com.animabiotech</groupId>
@@ -16,12 +16,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.21.5.15</version>
+            <version>jsk.21.5.16</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jfree</artifactId>
-            <version>jsk.21.5.15</version>
+            <version>jsk.21.5.16</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

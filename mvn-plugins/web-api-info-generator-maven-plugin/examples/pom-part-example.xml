@@ -3,7 +3,7 @@
         <plugin>
             <groupId>jsk</groupId>
             <artifactId>web-api-info-generator-maven-plugin</artifactId>
-            <version>jsk.21.5.15</version>
+            <version>jsk.21.5.16</version>
             <configuration>
                 <apiClasses>
                     <param>test.TestApi</param>
