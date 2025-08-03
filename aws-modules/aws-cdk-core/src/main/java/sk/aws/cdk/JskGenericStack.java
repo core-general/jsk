@@ -118,7 +118,7 @@ public abstract class JskGenericStack extends Stack {
                 .role(ec2Role)
                 .allowAllOutbound(true)
                 .keyPair(keyPair) // Key pair for SSH access - create this in AWS console first
-                .associatePublicIpAddress(true) // Explicitly assign public IP
+                .ipv6AddressCount(1) // Explicitly assign public IPV6 address
                 .blockDevices(List.of(
                         BlockDevice.builder()
                                 .deviceName("/dev/sda1")
