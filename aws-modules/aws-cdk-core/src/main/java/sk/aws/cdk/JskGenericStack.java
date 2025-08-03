@@ -29,6 +29,8 @@ import software.amazon.awscdk.services.certificatemanager.CertificateValidation;
 import software.amazon.awscdk.services.certificatemanager.ICertificate;
 import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.ec2.InstanceType;
+import software.amazon.awscdk.services.elasticache.CfnCacheCluster;
+import software.amazon.awscdk.services.elasticache.CfnSubnetGroup;
 import software.amazon.awscdk.services.elasticloadbalancingv2.*;
 import software.amazon.awscdk.services.elasticloadbalancingv2.Protocol;
 import software.amazon.awscdk.services.elasticloadbalancingv2.targets.InstanceTarget;
@@ -63,6 +65,12 @@ public abstract class JskGenericStack extends Stack {
         DatabaseInstance rdsPg = createRdsPg(params.getAppPrefix(), vpc, params.getPgVer(), params.isRdsEncrypted(), Cc.l(ec2),
                 params.getAllowedIps(),
                 params.isCantDeleteRds());
+
+        if (params.isCreateValkeyCacheCluster()) {
+            CfnCacheCluster valkeyCluster =
+                    createValkeyCluster(params.getAppPrefix(), vpc, params.getValkeyVersion(), params.getValkeyPort(),
+                            params.getValkeyCacheNodeCount(), Cc.l(ec2), params.getAllowedIps());
+        }
     }
 
     //region LOW LEVEL
@@ -201,8 +209,8 @@ public abstract class JskGenericStack extends Stack {
         ICertificate certificate = createCertificate(prefixCamelCase, domainName);
 
         // Add a listener for HTTPS traffic
-        ApplicationListener httpsListener =
-                alb.addListener(prefixCamelCase + "HttpsListener", BaseApplicationListenerProps.builder()
+        ApplicationListener httpsListener = alb.addListener(prefixCamelCase + "HttpsListener",
+                BaseApplicationListenerProps.builder()
                         .port(443)
                         .protocol(ApplicationProtocol.HTTPS)
                         .certificates(List.of(ListenerCertificate.fromCertificateManager(certificate)))
@@ -278,10 +286,10 @@ public abstract class JskGenericStack extends Stack {
                 .deletionProtection(deletionProtectionRds) // Set to true in production
                 .build();
 
-        allowedServers.forEach($ -> rdsInstance.getConnections().allowFrom($, Port.tcp(5432),
-                "Allow PostgreSQL traffic from specific servers"));
-        allowedIps.forEach($ -> rdsInstance.getConnections()
-                .allowFrom(Peer.ipv4($), Port.tcp(5432), "Allow PostgreSQL traffic from specific IP"));
+        allowedServers.forEach($ -> rdsInstance.getConnections().allowFrom(
+                $, Port.tcp(5432), "Allow PostgreSQL traffic from specific servers"));
+        allowedIps.forEach($ -> rdsInstance.getConnections().allowFrom(
+                Peer.ipv4($), Port.tcp(5432), "Allow PostgreSQL traffic from specific IP"));
 
 
         CfnOutput.Builder.create(this, prefixCamelCase + "DbSecretName")
@@ -289,6 +297,55 @@ public abstract class JskGenericStack extends Stack {
                 .value(rdsInstance.getSecret().getSecretName())
                 .build();
         return rdsInstance;
+    }
+
+    protected CfnCacheCluster createValkeyCluster(String prefixCamelCase, Vpc vpc,
+            String valkeyVersion,
+            int port,
+            int cacheNodeCount,
+            List<Instance> allowedServers,
+            List<String> allowedIps) {
+        // Create a security group for the ElastiCache cluster
+        SecurityGroup elasticacheSecurityGroup = SecurityGroup.Builder.create(this, prefixCamelCase + "ValkeySecurityGroup")
+                .vpc(vpc)
+                .description("Security Group for Valkey ElastiCache Cluster")
+                .allowAllOutbound(false)
+                .build();
+
+        // Create a subnet group for the ElastiCache cluster
+        CfnSubnetGroup subnetGroup = CfnSubnetGroup.Builder.create(this, prefixCamelCase + "ValkeySubnetGroup")
+                .description("Subnet group for Valkey ElastiCache Cluster")
+                .subnetIds(vpc.selectSubnets(SubnetSelection.builder()
+                        .subnetType(SubnetType.PUBLIC)
+                        .build()).getSubnetIds())
+                .build();
+
+        // Create the Valkey ElastiCache cluster
+        CfnCacheCluster valkeyCluster = CfnCacheCluster.Builder.create(this, prefixCamelCase + "ValkeyCluster")
+                .engine("valkey")
+                .engineVersion(valkeyVersion)
+                .cacheNodeType("cache.t3.micro") // Free tier eligible
+                .numCacheNodes(cacheNodeCount)
+                .port(port)
+                .cacheSubnetGroupName(subnetGroup.getRef())
+                .vpcSecurityGroupIds(List.of(elasticacheSecurityGroup.getSecurityGroupId()))
+                .azMode(cacheNodeCount > 1 ? "cross-az" : "single-az")
+                .build();
+
+        // Allow connections from EC2 instances and specific IPs
+        allowedServers.forEach($ -> elasticacheSecurityGroup.addIngressRule(
+                Peer.securityGroupId($.getConnections().getSecurityGroups().get(0).getSecurityGroupId()),
+                Port.tcp(port), "Allow Valkey traffic from EC2 instance"));
+        allowedIps.forEach($ -> elasticacheSecurityGroup.addIngressRule(
+                Peer.ipv4($), Port.tcp(port), "Allow Valkey traffic from specific IP"));
+
+        // Output the cluster endpoint for reference
+        CfnOutput.Builder.create(this, prefixCamelCase + "ValkeyEndpoint")
+                .description("Valkey ElastiCache Endpoint:")
+                .value(valkeyCluster.getAttrRedisEndpointAddress() + ":" + valkeyCluster.getAttrRedisEndpointPort())
+                .build();
+
+        return valkeyCluster;
     }
     //endregion
 }

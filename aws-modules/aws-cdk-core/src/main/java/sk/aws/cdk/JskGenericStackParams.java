@@ -50,7 +50,13 @@ public class JskGenericStackParams {
             "eu-west-1", "ami-0286d0aea4d6c7a34"
     ));
     private boolean elasticIpForInstance = false;
+
     private PostgresEngineVersion pgVer = PostgresEngineVersion.VER_17;
     private boolean cantDeleteRds = true;
     private boolean rdsEncrypted = true;
+
+    private boolean createValkeyCacheCluster = false;
+    private String valkeyVersion = "8.1";
+    private int valkeyPort = 6379;
+    private int valkeyCacheNodeCount = 1;
 }
