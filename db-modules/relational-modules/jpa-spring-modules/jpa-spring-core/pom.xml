@@ -5,14 +5,14 @@
     <parent>
         <artifactId>jpa-spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.5.16</version>
+        <version>jsk.21.5.20</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jpa-spring-core</artifactId>
 
     <packaging>jar</packaging>
-    <version>jsk.21.5.16</version>
+    <version>jsk.21.5.20</version>
 
     <properties>
         <spring-data.version>3.4.6</spring-data.version>
@@ -22,12 +22,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.21.5.16</version>
+            <version>jsk.21.5.20</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-hibernate-core</artifactId>
-            <version>jsk.21.5.16</version>
+            <version>jsk.21.5.20</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.5.16</version>
+            <version>jsk.21.5.20</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

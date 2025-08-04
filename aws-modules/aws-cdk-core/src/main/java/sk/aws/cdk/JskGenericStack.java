@@ -76,8 +76,10 @@ public abstract class JskGenericStack extends Stack {
     //region LOW LEVEL
     protected @NotNull Vpc createVpc(String prefixCamelCase) {
         return Vpc.Builder.create(this, prefixCamelCase + "Vpc")
+                .ipProtocol(IpProtocol.DUAL_STACK)
                 .maxAzs(99)  // Use all Availability Zones for better availability
                 .natGateways(0)  // No NAT Gateways for cost-saving
+                .ipAddresses(IpAddresses.cidr("10.10.0.0/16"))
                 .ipv6Addresses(Ipv6Addresses.amazonProvided())
                 .subnetConfiguration(List.of(
                         SubnetConfiguration.builder()
