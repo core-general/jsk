@@ -66,10 +66,10 @@ public abstract class JskGenericStack extends Stack {
                 params.getAllowedIps(),
                 params.isCantDeleteRds());
 
-        if (params.isCreateValkeyCacheCluster()) {
-            CfnCacheCluster valkeyCluster =
-                    createValkeyCluster(params.getAppPrefix(), vpc, params.getValkeyVersion(), params.getValkeyPort(),
-                            params.getValkeyCacheNodeCount(), Cc.l(ec2), params.getAllowedIps());
+        if (params.isCreateRedisCacheCluster()) {
+            CfnCacheCluster redisCluster =
+                    createRedisCluster(params.getAppPrefix(), vpc, params.getRedisVersion(), params.getRedisPort(),
+                            params.getRedisCacheNodeCount(), Cc.l(ec2), params.getAllowedIps());
         }
     }
 
@@ -302,31 +302,31 @@ public abstract class JskGenericStack extends Stack {
         return rdsInstance;
     }
 
-    protected CfnCacheCluster createValkeyCluster(String prefixCamelCase, Vpc vpc,
-            String valkeyVersion,
+    protected CfnCacheCluster createRedisCluster(String prefixCamelCase, Vpc vpc,
+            String redisVersion,
             int port,
             int cacheNodeCount,
             List<Instance> allowedServers,
             List<String> allowedIps) {
         // Create a security group for the ElastiCache cluster
-        SecurityGroup elasticacheSecurityGroup = SecurityGroup.Builder.create(this, prefixCamelCase + "ValkeySecurityGroup")
+        SecurityGroup elasticacheSecurityGroup = SecurityGroup.Builder.create(this, prefixCamelCase + "RedisSecurityGroup")
                 .vpc(vpc)
-                .description("Security Group for Valkey ElastiCache Cluster")
+                .description("Security Group for Redis ElastiCache Cluster")
                 .allowAllOutbound(false)
                 .build();
 
         // Create a subnet group for the ElastiCache cluster
-        CfnSubnetGroup subnetGroup = CfnSubnetGroup.Builder.create(this, prefixCamelCase + "ValkeySubnetGroup")
-                .description("Subnet group for Valkey ElastiCache Cluster")
+        CfnSubnetGroup subnetGroup = CfnSubnetGroup.Builder.create(this, prefixCamelCase + "RedisSubnetGroup")
+                .description("Subnet group for Redis ElastiCache Cluster")
                 .subnetIds(vpc.selectSubnets(SubnetSelection.builder()
                         .subnetType(SubnetType.PUBLIC)
                         .build()).getSubnetIds())
                 .build();
 
-        // Create the Valkey ElastiCache cluster
-        CfnCacheCluster valkeyCluster = CfnCacheCluster.Builder.create(this, prefixCamelCase + "ValkeyCluster")
-                .engine("valkey")
-                .engineVersion(valkeyVersion)
+        // Create the Redis ElastiCache cluster
+        CfnCacheCluster redisCluster = CfnCacheCluster.Builder.create(this, prefixCamelCase + "RedisCluster")
+                .engine("redis")
+                .engineVersion(redisVersion)
                 .cacheNodeType("cache.t3.micro") // Free tier eligible
                 .numCacheNodes(cacheNodeCount)
                 .port(port)
@@ -338,17 +338,17 @@ public abstract class JskGenericStack extends Stack {
         // Allow connections from EC2 instances and specific IPs
         allowedServers.forEach($ -> elasticacheSecurityGroup.addIngressRule(
                 Peer.securityGroupId($.getConnections().getSecurityGroups().get(0).getSecurityGroupId()),
-                Port.tcp(port), "Allow Valkey traffic from EC2 instance"));
+                Port.tcp(port), "Allow Redis traffic from EC2 instance"));
         allowedIps.forEach($ -> elasticacheSecurityGroup.addIngressRule(
-                Peer.ipv4($), Port.tcp(port), "Allow Valkey traffic from specific IP"));
+                Peer.ipv4($), Port.tcp(port), "Allow Redis traffic from specific IP"));
 
         // Output the cluster endpoint for reference
-        CfnOutput.Builder.create(this, prefixCamelCase + "ValkeyEndpoint")
-                .description("Valkey ElastiCache Endpoint:")
-                .value(valkeyCluster.getAttrRedisEndpointAddress() + ":" + valkeyCluster.getAttrRedisEndpointPort())
+        CfnOutput.Builder.create(this, prefixCamelCase + "RedisEndpoint")
+                .description("Redis ElastiCache Endpoint:")
+                .value(redisCluster.getAttrRedisEndpointAddress() + ":" + redisCluster.getAttrRedisEndpointPort())
                 .build();
 
-        return valkeyCluster;
+        return redisCluster;
     }
     //endregion
 }

@@ -55,8 +55,8 @@ public class JskGenericStackParams {
     private boolean cantDeleteRds = true;
     private boolean rdsEncrypted = true;
 
-    private boolean createValkeyCacheCluster = false;
-    private String valkeyVersion = "8.1";
-    private int valkeyPort = 6379;
-    private int valkeyCacheNodeCount = 1;
+    private boolean createRedisCacheCluster = false;
+    private String redisVersion = "7.1";
+    private int redisPort = 6379;
+    private int redisCacheNodeCount = 1;
 }
