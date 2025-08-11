@@ -56,15 +56,20 @@ public abstract class JskGenericStack extends Stack {
     /** USE THIS */
     protected void createAlbApp() {
         Vpc vpc = createVpc(params.getAppPrefix());
-        Instance ec2 = createEc2(params.getAppPrefix(), vpc, params.getAllowedIps(), params.getEc2Img(),
-                params.isElasticIpForInstance());
-        ApplicationLoadBalancer alb = createAlb(params.getAppPrefix(), vpc,
-                params.getAlbDomain().orElseThrow(() -> new RuntimeException("For alb setup must be domain name")),
-                params.getHealthCheckAlb().orElseThrow(() -> new RuntimeException("For alb setup must have healthCheck")),
-                O.of(ec2));
-        DatabaseInstance rdsPg = createRdsPg(params.getAppPrefix(), vpc, params.getPgVer(), params.isRdsEncrypted(), Cc.l(ec2),
-                params.getAllowedIps(),
-                params.isCantDeleteRds());
+        Instance ec2 = createEc2(params.getAppPrefix(), vpc, params.getAllowedIps(), params.getEc2Img());
+
+        if (params.isEnableAlb()) {
+            createAlb(params.getAppPrefix(), vpc, params.getAlbDomain().orElseThrow(RuntimeException::new),
+                    params.getHealthCheckAlb().orElseThrow(RuntimeException::new),
+                    O.of(ec2));
+        }
+
+        if (params.createPostgres) {
+            DatabaseInstance rdsPg =
+                    createRdsPg(params.getAppPrefix(), vpc, params.getPgVer(), params.isRdsEncrypted(), Cc.l(ec2),
+                            params.getAllowedIps(),
+                            params.isCantDeleteRds());
+        }
 
         if (params.isCreateRedisCacheCluster()) {
             CfnCacheCluster redisCluster =
@@ -76,16 +81,13 @@ public abstract class JskGenericStack extends Stack {
     //region LOW LEVEL
     protected @NotNull Vpc createVpc(String prefixCamelCase) {
         return Vpc.Builder.create(this, prefixCamelCase + "Vpc")
-                .ipProtocol(IpProtocol.DUAL_STACK)
                 .maxAzs(99)  // Use all Availability Zones for better availability
                 .natGateways(0)  // No NAT Gateways for cost-saving
-                .ipAddresses(IpAddresses.cidr("10.10.0.0/16"))
-                .ipv6Addresses(Ipv6Addresses.amazonProvided())
                 .subnetConfiguration(List.of(
                         SubnetConfiguration.builder()
                                 .name("PublicSubnet")
                                 .subnetType(SubnetType.PUBLIC)
-                                .ipv6AssignAddressOnCreation(true)
+                                .cidrMask(24)
                                 .build()
                 ))
                 .build();
@@ -93,8 +95,7 @@ public abstract class JskGenericStack extends Stack {
 
     protected Instance createEc2(String prefixCamelCase, Vpc vpc,
             List<String> allowedIps,
-            IMachineImage img,
-            boolean elasticIp) {
+            IMachineImage img) {
 
         // Create a security group for the EC2 instance
         SecurityGroup ec2SecurityGroup = SecurityGroup.Builder.create(this, prefixCamelCase + "Ec2Sg")
@@ -129,7 +130,7 @@ public abstract class JskGenericStack extends Stack {
                 .role(ec2Role)
                 .allowAllOutbound(true)
                 .keyPair(keyPair) // Key pair for SSH access - create this in AWS console first
-                .ipv6AddressCount(1) // Explicitly assign public IPV6 address
+                .associatePublicIpAddress(true) // Explicitly assign public IP
                 .blockDevices(List.of(
                         BlockDevice.builder()
                                 .deviceName("/dev/sda1")
@@ -148,24 +149,23 @@ public abstract class JskGenericStack extends Stack {
                 .build();
 
 
-        if (elasticIp) {
-            webServer.getConnections().allowFrom(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS traffic");
-            // Create an Elastic IP
-            CfnEIP elasticIP = CfnEIP.Builder.create(this, prefixCamelCase + "ServerElasticIP")
-                    .domain("vpc")
-                    .build();
+        webServer.getConnections().allowFrom(Peer.anyIpv4(), Port.tcp(443), "Allow HTTPS traffic");
+        webServer.getConnections().allowFrom(Peer.anyIpv4(), Port.tcp(80), "Allow HTTPS traffic");
+        // Create an Elastic IP
+        CfnEIP elasticIP = CfnEIP.Builder.create(this, prefixCamelCase + "ServerElasticIP")
+                .domain("vpc")
+                .build();
 
-            // Associate the Elastic IP with the EC2 instance
-            CfnEIPAssociation eipAssociation = CfnEIPAssociation.Builder.create(this, prefixCamelCase + "EipAssociation")
-                    .allocationId(elasticIP.getAttrAllocationId())
-                    .instanceId(webServer.getInstanceId())
-                    .build();
-            // Output the Elastic IP for reference
-            CfnOutput.Builder.create(this, prefixCamelCase + "ServerElasticIpAddress")
-                    .description("Elastic IP address assigned to the server:")
-                    .value(elasticIP.getRef())
-                    .build();
-        }
+        // Associate the Elastic IP with the EC2 instance
+        CfnEIPAssociation eipAssociation = CfnEIPAssociation.Builder.create(this, prefixCamelCase + "EipAssociation")
+                .allocationId(elasticIP.getAttrAllocationId())
+                .instanceId(webServer.getInstanceId())
+                .build();
+        // Output the Elastic IP for reference
+        CfnOutput.Builder.create(this, prefixCamelCase + "ServerElasticIpAddress")
+                .description("Elastic IP address assigned to the server:")
+                .value(elasticIP.getRef())
+                .build();
         return webServer;
     }
 
@@ -212,8 +212,8 @@ public abstract class JskGenericStack extends Stack {
         ICertificate certificate = createCertificate(prefixCamelCase, domainName);
 
         // Add a listener for HTTPS traffic
-        ApplicationListener httpsListener = alb.addListener(prefixCamelCase + "HttpsListener",
-                BaseApplicationListenerProps.builder()
+        ApplicationListener httpsListener =
+                alb.addListener(prefixCamelCase + "HttpsListener", BaseApplicationListenerProps.builder()
                         .port(443)
                         .protocol(ApplicationProtocol.HTTPS)
                         .certificates(List.of(ListenerCertificate.fromCertificateManager(certificate)))
@@ -289,10 +289,10 @@ public abstract class JskGenericStack extends Stack {
                 .deletionProtection(deletionProtectionRds) // Set to true in production
                 .build();
 
-        allowedServers.forEach($ -> rdsInstance.getConnections().allowFrom(
-                $, Port.tcp(5432), "Allow PostgreSQL traffic from specific servers"));
-        allowedIps.forEach($ -> rdsInstance.getConnections().allowFrom(
-                Peer.ipv4($), Port.tcp(5432), "Allow PostgreSQL traffic from specific IP"));
+        allowedServers.forEach($ -> rdsInstance.getConnections().allowFrom($, Port.tcp(5432),
+                "Allow PostgreSQL traffic from specific servers"));
+        allowedIps.forEach($ -> rdsInstance.getConnections()
+                .allowFrom(Peer.ipv4($), Port.tcp(5432), "Allow PostgreSQL traffic from specific IP"));
 
 
         CfnOutput.Builder.create(this, prefixCamelCase + "DbSecretName")

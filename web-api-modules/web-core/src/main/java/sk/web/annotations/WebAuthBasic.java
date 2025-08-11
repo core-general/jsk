@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
 public @interface WebAuthBasic {
     String realmName() default "App";
 
-    /** Force WebApiInfoParams to be present to check basic auth for sure */
+    /** Force WebBasicAuthParams to be present to check basic auth for sure */
     boolean forceParametersExist() default true;
 }

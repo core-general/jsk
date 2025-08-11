@@ -6,12 +6,12 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-modules</artifactId>
-        <version>jsk.21.5.20</version>
+        <version>jsk.21.5.21</version>
     </parent>
 
     <artifactId>jx-project-generator</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.21.5.20</version>
+    <version>jsk.21.5.21</version>
 
     <dependencies>
         <dependency>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.21.5.20</version>
+            <version>jsk.21.5.21</version>
         </dependency>
     </dependencies>
 
