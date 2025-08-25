@@ -68,14 +68,11 @@ public class MigratorBase {
                 if (!firstArgumentIsNotConfig) {
                     continue;
                 }
-            } else if (St.count(arg, "=") != 1) {
-                throw new RuntimeException("Bad format:" + arg);
             }
-            String[] split = arg.split("=");
-            if (split.length > 2 || split.length < 1) {
-                throw new RuntimeException("Bad format:" + arg);
-            }
-            toRet.put(split[0].trim(), split.length == 1 ? "" : split[1].trim());
+            String paramName = St.subRF(arg, "=");
+            String paramVal = St.subLF(arg, "=");
+
+            toRet.put(paramName.trim(), paramVal.trim());
         }
         return toRet;
     }

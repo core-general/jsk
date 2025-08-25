@@ -22,6 +22,7 @@ package sk.db.relational.spring.services.impl;
 
 import jakarta.inject.Inject;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sk.db.relational.spring.services.EntityManagerProvider;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
@@ -29,6 +30,7 @@ import sk.utils.functional.O;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class RdbTransactionManagerGenericImpl extends RdbTransactionManagerImpl {
     @Inject private RdbTransactionManagerHolder holder;
 
