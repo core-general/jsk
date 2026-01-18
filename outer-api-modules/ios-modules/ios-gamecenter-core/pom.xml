@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ios-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.6.1</version>
+        <version>jsk.21.6.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,18 +15,18 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.21.6.1</version>
+            <version>jsk.21.6.5</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.21.6.1</version>
+            <version>jsk.21.6.5</version>
         </dependency>
 
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.4.0</version>
+            <version>4.5.0</version>
         </dependency>
 
         <dependency>
