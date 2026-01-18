@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-test-landscape-modules</artifactId>
-        <version>jsk.21.5.24</version>
+        <version>jsk.21.6.1</version>
     </parent>
 
     <artifactId>jx-test-landscape-testcontainers-localstack</artifactId>
@@ -20,21 +20,21 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-landscape-testcontainers</artifactId>
-            <version>jsk.21.5.24</version>
+            <version>jsk.21.6.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-dynamodb-core</artifactId>
-            <version>jsk.21.5.24</version>
+            <version>jsk.21.6.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-s3-core</artifactId>
-            <version>jsk.21.5.24</version>
+            <version>jsk.21.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>localstack</artifactId>
+            <artifactId>testcontainers-localstack</artifactId>
             <version>${testcontainers.version}</version>
             <exclusions>
                 <exclusion>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.21.5.24</version>
+            <version>jsk.21.6.1</version>
         </dependency>
     </dependencies>
 
