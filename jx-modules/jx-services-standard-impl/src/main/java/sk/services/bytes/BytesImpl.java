@@ -115,16 +115,6 @@ public class BytesImpl implements IBytes {
         return toRet;
     }
 
-    @SneakyThrows
-    public static void main(String[] args) {
-        //todo delete
-        BytesImpl bi = new BytesImpl();
-        List<ZipFileInfo> zipFileMeta = bi.getZipFileMeta(
-                new URI("file:/home/kivan/projects/Actual/mergeum-backend/projects/builds/main-api-srv-build/target/main-api" +
-                        "-srv-build-1.0.0-jar-with-dependencies.jar!/__jsk_util/properties"));
-        int i = 0;
-    }
-
     @Override
     @SneakyThrows
     public List<ZipFileInfo> getZipFileMeta(URI uri) {
