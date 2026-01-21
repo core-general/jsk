@@ -5,7 +5,7 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.6.5</version>
+        <version>jsk.21.7.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,111 +15,111 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-cdk-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-dynamodb-spring-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-ec2-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>postgres-mig</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-spring-postgres-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-ip-geo-maxmind</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-probability-algs</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-system-info</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jfree</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>telegram-modules</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>fb-messenger</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>utf-2-ascii</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-rds-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-s3-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-sns-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-translate-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-spring-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-model-mapper</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>web-server-spark-spring-melody</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>outer-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -128,44 +128,44 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-landscape-testcontainers-pg</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-landscape-testcontainers-localstack</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>ios-gamecenter-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>relational-mig</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-dynamodb-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>google-play-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>fb-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
 
         <!--        <dependency>-->
         <!--            <groupId>jsk</groupId>-->
         <!--            <artifactId>web-client-swagger-generator</artifactId>-->
-        <!--            <version>jsk.21.6.5</version>-->
+        <!--            <version>jsk.21.7.1</version>-->
         <!--        </dependency>-->
     </dependencies>
 
@@ -185,7 +185,7 @@
         <!--            <plugin>-->
         <!--                <groupId>jsk</groupId>-->
         <!--                <artifactId>spring-properties-plugin</artifactId>-->
-        <!--                <version>jsk.21.6.5</version>-->
+        <!--                <version>jsk.21.7.1</version>-->
         <!--                <configuration>-->
         <!--                    <propertyPathPrefix>super_properties</propertyPathPrefix>-->
         <!--                </configuration>-->
@@ -201,7 +201,7 @@
         <!--            <plugin>-->
         <!--                <groupId>jsk</groupId>-->
         <!--                <artifactId>web-api-info-generator-maven-plugin</artifactId>-->
-        <!--                <version>jsk.21.6.5</version>-->
+        <!--                <version>jsk.21.7.1</version>-->
         <!--                <configuration>-->
         <!--                    <apiClasses>-->
         <!--                        <param>jsk.spark.TestApi1</param>-->
@@ -224,7 +224,7 @@
         <!--            <plugin>-->
         <!--                <groupId>jsk</groupId>-->
         <!--                <artifactId>web-client-swagger-maven-plugin</artifactId>-->
-        <!--                <version>jsk.21.6.5</version>-->
+        <!--                <version>jsk.21.7.1</version>-->
         <!--                <configuration>-->
         <!--                    <apiClasses>-->
         <!--                        <param>jsk.spark.TestApiSwaggerTest3</param>-->
@@ -236,7 +236,7 @@
         <!--                    <dependency>-->
         <!--                        <groupId>jsk</groupId>-->
         <!--                        <artifactId>z-module-4-experiments-only</artifactId>-->
-        <!--                        <version>jsk.21.6.5</version>-->
+        <!--                        <version>jsk.21.7.1</version>-->
         <!--                    </dependency>-->
         <!--                </dependencies>-->
         <!--                <executions>-->
@@ -250,7 +250,7 @@
         <!--            <plugin>-->
         <!--                <groupId>jsk</groupId>-->
         <!--                <artifactId>web-client-swagger-maven-plugin</artifactId>-->
-        <!--                <version>jsk.21.6.5</version>-->
+        <!--                <version>jsk.21.7.1</version>-->
         <!--                <configuration>-->
         <!--                    <apiClasses>-->
         <!--                        <param>jsk.spark.TestApiSwaggerTest3</param>-->
@@ -263,7 +263,7 @@
         <!--                    <dependency>-->
         <!--                        <groupId>jsk</groupId>-->
         <!--                        <artifactId>z-module-4-experiments-only</artifactId>-->
-        <!--                        <version>jsk.21.6.5</version>-->
+        <!--                        <version>jsk.21.7.1</version>-->
         <!--                    </dependency>-->
         <!--                </dependencies>-->
         <!--                <executions>-->

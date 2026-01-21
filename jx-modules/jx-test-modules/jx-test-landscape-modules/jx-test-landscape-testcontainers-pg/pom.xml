@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-test-landscape-modules</artifactId>
-        <version>jsk.21.6.5</version>
+        <version>jsk.21.7.1</version>
     </parent>
 
     <artifactId>jx-test-landscape-testcontainers-pg</artifactId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-landscape-testcontainers</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
@@ -39,17 +39,17 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-hibernate-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jpa-spring-postgres-core</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.6.5</version>
+            <version>jsk.21.7.1</version>
         </dependency>
     </dependencies>
 </project>
