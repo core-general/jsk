@@ -19,12 +19,7 @@
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>google-play-core</artifactId>
-            <version>jsk.21.6.5</version>
-        </dependency>
-        <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>aws-spring-core</artifactId>
+            <artifactId>aws-cdk-core</artifactId>
             <version>jsk.21.6.5</version>
         </dependency>
         <dependency>
@@ -34,12 +29,86 @@
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>jx-model-mapper</artifactId>
+            <artifactId>aws-ec2-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>postgres-mig</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jpa-spring-postgres-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-ip-geo-maxmind</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-probability-algs</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-system-info</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jfree</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>telegram-modules</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>fb-messenger</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>utf-2-ascii</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>aws-rds-core</artifactId>
             <version>jsk.21.6.5</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>aws-s3-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>aws-sns-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>aws-translate-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>aws-spring-core</artifactId>
+            <version>jsk.21.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-model-mapper</artifactId>
             <version>jsk.21.6.5</version>
         </dependency>
         <dependency>
@@ -71,6 +140,7 @@
             <artifactId>ios-gamecenter-core</artifactId>
             <version>jsk.21.6.5</version>
         </dependency>
+
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>relational-mig</artifactId>

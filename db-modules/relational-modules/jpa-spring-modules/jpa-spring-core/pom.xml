@@ -15,7 +15,7 @@
     <version>jsk.21.6.5</version>
 
     <properties>
-        <spring-data.version>3.4.6</spring-data.version>
+        <spring-data.version>3.5.8</spring-data.version>
     </properties>
 
     <dependencies>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>io.github.openfeign.querydsl</groupId>
             <artifactId>querydsl-jpa</artifactId>
-            <version>6.10.1</version>
+            <version>6.12</version>
         </dependency>
 
         <dependency>
