@@ -22,14 +22,18 @@ package jsk.outer.telegram.mtc.beans.telegram;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.File;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.request.*;
-import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.*;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import sk.outer.api.OutMessengerApi;
 import sk.services.ratelimits.IRateLimiter;
 import sk.utils.functional.F0;
@@ -38,24 +42,28 @@ import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 import sk.utils.tuples.X2;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.List;
 
 @Slf4j
-public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, Keyboard, BaseResponse> {
-    @Getter protected final TelegramBot bot;
+public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegramSpecial, ReplyKeyboard, Serializable> {
+    @Getter protected final TelegramClient bot;
     @Getter protected final IRateLimiter globalRateLimiter;
     private final F0<IRateLimiter> perUserRateLimiter;
+    private final String botToken;
 
     final LoadingCache<String, IRateLimiter> perUserLimiting;
 
-    public MgcGeneralTelegramApi(TelegramBot bot) {
-        this(bot, null, null);
+    public MgcGeneralTelegramApi(String botToken) {
+        this(botToken, null, null);
     }
 
-    public MgcGeneralTelegramApi(TelegramBot bot, IRateLimiter globalRateLimiter, F0<IRateLimiter> perUserRateLimiterProvider) {
-        this.bot = bot;
+    public MgcGeneralTelegramApi(String botToken, IRateLimiter globalRateLimiter, F0<IRateLimiter> perUserRateLimiterProvider) {
+        this.botToken = botToken;
+        this.bot = new OkHttpTelegramClient(botToken);
         this.globalRateLimiter = globalRateLimiter;
         this.perUserRateLimiter = perUserRateLimiterProvider;
         perUserLimiting = perUserRateLimiterProvider != null
@@ -67,38 +75,134 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
     }
 
     @Override
-    public BaseResponse send(String userId, O<String> text, O<String> image,
+    public Serializable send(String userId, O<String> text, O<String> image,
             O<MgcTelegramSpecial> mgcTelegramSpecial,
             O<X2<String, byte[]>> document,
-            O<Keyboard> replyKeyboardMarkup) {
+            O<ReplyKeyboard> replyKeyboardMarkup) {
 
-        List<AbstractSendRequest> requests = Cc.l();
+        List<BotApiMethod<?>> requests = Cc.l();
+        List<Object> allRequests = Cc.l();
 
         image.ifPresent(s -> {
-            addCaptionIfExistsToImage(text, requests, new SendPhoto(userId, s));
+            SendPhoto photo = SendPhoto.builder()
+                    .chatId(userId)
+                    .photo(new InputFile(s))
+                    .build();
+            addCaptionIfExistsToImage(text, photo);
+            allRequests.add(photo);
         });
-        mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> requests.add(new SendSticker(userId, s)));
-        mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> requests.add(s));
-        mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> requests.add(new SendVideo(userId, s)));
+
+        mgcTelegramSpecial.flatMap($ -> $.getSticker()).ifPresent(s -> {
+            allRequests.add(SendSticker.builder()
+                    .chatId(userId)
+                    .sticker(new InputFile(s))
+                    .build());
+        });
+
+        mgcTelegramSpecial.flatMap($ -> $.getPayments()).ifPresent(s -> {
+            requests.add(s);
+            allRequests.add(s);
+        });
+
+        mgcTelegramSpecial.flatMap($ -> $.getVideo()).ifPresent(s -> {
+            allRequests.add(SendVideo.builder()
+                    .chatId(userId)
+                    .video(new InputFile(s))
+                    .build());
+        });
+
         mgcTelegramSpecial.flatMap($ -> $.getRawImage())
                 .ifPresent(imgAndFormat -> {
-                    addCaptionIfExistsToImage(text, requests, new SendPhoto(userId, imgAndFormat.i2.toBytes(imgAndFormat.i1())));
+                    byte[] imageBytes = imgAndFormat.i2().toBytes(imgAndFormat.i1());
+                    SendPhoto photo = SendPhoto.builder()
+                            .chatId(userId)
+                            .photo(new InputFile(new ByteArrayInputStream(imageBytes),
+                                    "image." + imgAndFormat.i2().name().toLowerCase()))
+                            .build();
+                    addCaptionIfExistsToImage(text, photo);
+                    allRequests.add(photo);
                 });
-        text.filter(__ -> image.isEmpty() && mgcTelegramSpecial.map($ -> $.getRawImage().isEmpty()).orElse(true))
-                .ifPresent(s -> requests.add(new SendMessage(userId, s).disableWebPagePreview(true)));
-        document.ifPresent(s -> requests.add(new MgcTelegramFileRequest(userId, s.i2(), s.i1())));
 
-        Cc.last(requests).map($ -> {
-            replyKeyboardMarkup.ifPresent($::replyMarkup);
-            return $;
+        text.filter(__ -> image.isEmpty() && mgcTelegramSpecial.map($ -> $.getRawImage().isEmpty()).orElse(true))
+                .ifPresent(s -> {
+                    SendMessage msg = SendMessage.builder()
+                            .chatId(userId)
+                            .text(s)
+                            .disableWebPagePreview(true)
+                            .build();
+                    requests.add(msg);
+                    allRequests.add(msg);
+                });
+
+        document.ifPresent(s -> {
+            allRequests.add(SendDocument.builder()
+                    .chatId(userId)
+                    .document(new InputFile(new ByteArrayInputStream(s.i2()), s.i1()))
+                    .build());
         });
-        List<BaseResponse> collect = requests.stream()
-                .map($ -> {
-                    F0<BaseResponse> toRun = () -> {
+
+        if (!allRequests.isEmpty()) {
+            Object lastRequest = allRequests.get(allRequests.size() - 1);
+            replyKeyboardMarkup.ifPresent(kb -> {
+                if (lastRequest instanceof SendMessage msg) {
+                    allRequests.set(allRequests.size() - 1, SendMessage.builder()
+                            .chatId(msg.getChatId())
+                            .text(msg.getText())
+                            .disableWebPagePreview(msg.getDisableWebPagePreview())
+                            .replyMarkup(kb)
+                            .build());
+                } else if (lastRequest instanceof SendPhoto photo) {
+                    allRequests.set(allRequests.size() - 1, SendPhoto.builder()
+                            .chatId(photo.getChatId())
+                            .photo(photo.getPhoto())
+                            .caption(photo.getCaption())
+                            .replyMarkup(kb)
+                            .build());
+                } else if (lastRequest instanceof SendDocument doc) {
+                    allRequests.set(allRequests.size() - 1, SendDocument.builder()
+                            .chatId(doc.getChatId())
+                            .document(doc.getDocument())
+                            .replyMarkup(kb)
+                            .build());
+                } else if (lastRequest instanceof SendVideo video) {
+                    allRequests.set(allRequests.size() - 1, SendVideo.builder()
+                            .chatId(video.getChatId())
+                            .video(video.getVideo())
+                            .replyMarkup(kb)
+                            .build());
+                } else if (lastRequest instanceof SendSticker sticker) {
+                    allRequests.set(allRequests.size() - 1, SendSticker.builder()
+                            .chatId(sticker.getChatId())
+                            .sticker(sticker.getSticker())
+                            .replyMarkup(kb)
+                            .build());
+                }
+            });
+        }
+
+        List<Serializable> results = allRequests.stream()
+                .map(req -> {
+                    F0<Serializable> toRun = () -> {
                         if (globalRateLimiter != null) {
                             globalRateLimiter.waitUntilPossible();
                         }
-                        return bot.execute($);
+                        try {
+                            if (req instanceof BotApiMethod<?> method) {
+                                return bot.execute(method);
+                            } else if (req instanceof SendPhoto photo) {
+                                return bot.execute(photo);
+                            } else if (req instanceof SendDocument doc) {
+                                return bot.execute(doc);
+                            } else if (req instanceof SendSticker sticker) {
+                                return bot.execute(sticker);
+                            } else if (req instanceof SendVideo video) {
+                                return bot.execute(video);
+                            }
+                            return null;
+                        } catch (Exception e) {
+                            log.error("Telegram send error", e);
+                            return null;
+                        }
                     };
 
                     if (perUserRateLimiter != null) {
@@ -109,37 +213,56 @@ public class MgcGeneralTelegramApi implements OutMessengerApi<String, MgcTelegra
                     }
                 })
                 .collect(Cc.toL());
-        return Cc.last(collect).get();
+
+        return Cc.last(results).orElse(null);
     }
 
-    private void addCaptionIfExistsToImage(O<String> text, List<AbstractSendRequest> requests, SendPhoto photo) {
-        requests.add(photo);
+    private void addCaptionIfExistsToImage(O<String> text, SendPhoto photo) {
         if (text.isPresent()) {
-            photo.caption(St.raze3dots(text.get(), 990));
+            photo.setCaption(St.raze3dots(text.get(), 990));
         }
     }
 
     @Override
-    public BaseResponse editMessageText(String __, String inlineMessageId, String newText, O<Keyboard> newButtons) {
-        EditMessageText editMessageTextRequest = new EditMessageText(inlineMessageId, newText);
-        newButtons.filter($ -> $ instanceof InlineKeyboardMarkup)
-                .ifPresent($ -> editMessageTextRequest.replyMarkup((InlineKeyboardMarkup) $));
-        return bot.execute(editMessageTextRequest);
+    public Serializable editMessageText(String userId, String messageId, String newText, O<ReplyKeyboard> newButtons) {
+        try {
+            EditMessageText.EditMessageTextBuilder builder = EditMessageText.builder()
+                    .chatId(userId)
+                    .messageId(Integer.parseInt(messageId))
+                    .text(newText);
+
+            newButtons.filter($ -> $ instanceof InlineKeyboardMarkup)
+                    .ifPresent($ -> builder.replyMarkup((InlineKeyboardMarkup) $));
+
+            return bot.execute(builder.build());
+        } catch (Exception e) {
+            log.error("Edit message error", e);
+            return null;
+        }
     }
 
     @Override
-    public BaseResponse deleteMessage(String userId, String messageId) {
-        DeleteMessage deleterRequest = new DeleteMessage(userId, Integer.parseInt(messageId));
-        return bot.execute(deleterRequest);
+    public Serializable deleteMessage(String userId, String messageId) {
+        try {
+            DeleteMessage deleteRequest = DeleteMessage.builder()
+                    .chatId(userId)
+                    .messageId(Integer.parseInt(messageId))
+                    .build();
+            return bot.execute(deleteRequest);
+        } catch (Exception e) {
+            log.error("Delete message error", e);
+            return null;
+        }
     }
 
     public O<byte[]> getFileByFileId(String fileId) {
         try {
-            final File file = bot.execute(new GetFile(fileId)).file();
-            final byte[] fileContent = bot.getFileContent(file);
-            return O.of(fileContent);
-        } catch (IOException e) {
-            log.error("", e);
+            final org.telegram.telegrambots.meta.api.objects.File file = bot.execute(GetFile.builder().fileId(fileId).build());
+            try (InputStream is = bot.downloadFileAsStream(file)) {
+                return O.of(is.readAllBytes());
+            }
+        } catch (Exception e) {
+            log.error("Get file error", e);
             return O.empty();
         }
     }

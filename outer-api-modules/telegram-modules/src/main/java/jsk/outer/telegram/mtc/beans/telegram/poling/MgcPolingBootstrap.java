@@ -20,12 +20,11 @@ package jsk.outer.telegram.mtc.beans.telegram.poling;
  * #L%
  */
 
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.GetUpdates;
-import com.pengrad.telegrambot.response.GetUpdatesResponse;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import sk.services.async.IAsync;
 import sk.services.boot.IBoot;
 import sk.utils.async.ForeverThreadWithFinish;
@@ -33,6 +32,7 @@ import sk.utils.functional.C1;
 import sk.utils.statics.Ti;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -43,11 +43,11 @@ public class MgcPolingBootstrap implements IBoot {
     @Inject IAsync async;
 
     private final TelPolingConf conf;
-    private final TelegramBot bot;
+    private final TelegramClient bot;
     private final C1<Update> updateProcessor;
     private final ForeverThreadWithFinish mainThread;
 
-    public MgcPolingBootstrap(TelPolingConf conf, TelegramBot bot, C1<Update> updateProcessor) {
+    public MgcPolingBootstrap(TelPolingConf conf, TelegramClient bot, C1<Update> updateProcessor) {
         this.conf = conf;
         this.bot = bot;
         this.updateProcessor = updateProcessor;
@@ -63,39 +63,43 @@ public class MgcPolingBootstrap implements IBoot {
         try {
             if (conf.usePolling()) {
                 int lastTelegramMessageId = conf.getLastTelegramMessageId();
-                GetUpdates getUpdates = new GetUpdates().limit(100).offset(lastTelegramMessageId).timeout(3)
-                        .allowedUpdates(
+                GetUpdates getUpdates = GetUpdates.builder()
+                        .limit(100)
+                        .offset(lastTelegramMessageId)
+                        .timeout(3)
+                        .allowedUpdates(List.of(
                                 "message",
                                 "callback_query",
                                 "pre_checkout_query"
-                        );
-                GetUpdatesResponse response = null;
+                        ))
+                        .build();
+
+                List<Update> updates = null;
                 try {
                     try {
-                        response = bot.execute(getUpdates);
+                        updates = bot.execute(getUpdates);
                     } catch (Exception e) {
                         return;
                     }
-                    response.updates().stream().parallel()
+                    updates.stream().parallel()
                             .collect(Collectors.groupingBy(
-                                    $ -> $.message() != null
-                                         ? $.message().from().id()
-                                         : ($.callbackQuery() != null)
-                                           ? $.callbackQuery().from().id()
-                                           : $.preCheckoutQuery().from().id()))
+                                    $ -> $.getMessage() != null
+                                         ? $.getMessage().getFrom().getId()
+                                         : ($.getCallbackQuery() != null)
+                                           ? $.getCallbackQuery().getFrom().getId()
+                                           : $.getPreCheckoutQuery().getFrom().getId()))
                             .values().stream()
                             .parallel()
                             .forEach(X -> X.stream()
-                                    .sorted(comparing($ -> $.message() != null ? $.message().date() : MAX_VALUE))
+                                    .sorted(comparing($ -> $.getMessage() != null ? $.getMessage().getDate() : MAX_VALUE))
                                     .forEach(updateProcessor));
-                    int i = 0;
                 } catch (Throwable e) {
                     log.error("", e);
                 } finally {
                     try {
-                        if (response != null && response.updates() != null && response.updates().size() > 0) {
-                            conf.setLastTelegramMessageId(response.updates().stream()
-                                    .map(Update::updateId)
+                        if (updates != null && updates.size() > 0) {
+                            conf.setLastTelegramMessageId(updates.stream()
+                                                                  .map(Update::getUpdateId)
                                     .max(Comparator.comparing(u -> u)).orElse(0)
                                     + 1);
                         }

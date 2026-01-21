@@ -20,10 +20,10 @@ package jsk.outer.telegram.mtc.beans.telegram;
  * #L%
  */
 
-import com.pengrad.telegrambot.request.SendInvoice;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import sk.utils.functional.O;
 import sk.utils.javafixes.ImgFormat;
 import sk.utils.tuples.X;

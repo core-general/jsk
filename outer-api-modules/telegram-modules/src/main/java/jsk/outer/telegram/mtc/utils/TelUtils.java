@@ -20,34 +20,48 @@ package jsk.outer.telegram.mtc.utils;
  * #L%
  */
 
-import com.pengrad.telegrambot.model.request.*;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import sk.utils.statics.Cc;
 
 import java.util.List;
 
 public class TelUtils {
-    public static Keyboard toKeyboard(List<String> buttons, int columns) {
+    public static ReplyKeyboard toKeyboard(List<String> buttons, int columns) {
         return toKeyboard(buttons, columns, Cc.l());
     }
 
-    public static Keyboard toKeyboard(List<String> buttons, int columns, List<String> singleColumnButtons) {
+    public static ReplyKeyboard toKeyboard(List<String> buttons, int columns, List<String> singleColumnButtons) {
         singleColumnButtons = singleColumnButtons == null ? Cc.l() : singleColumnButtons;
 
-        List<String[]> collect = Cc.l();
+        List<KeyboardRow> rows = Cc.l();
         for (int i = 0; i < buttons.size(); i = i + columns) {
             int elementsLeft = Math.min(buttons.size() - i, columns);
-            String[] val = new String[elementsLeft];
+            KeyboardRow row = new KeyboardRow();
             for (int j = 0; j < elementsLeft; j++) {
-                val[j] = buttons.get(i + j);
+                row.add(buttons.get(i + j));
             }
-            collect.add(val);
+            rows.add(row);
         }
 
-        collect.addAll(singleColumnButtons.stream().map(x -> new String[]{x}).collect(Cc.toL()));
-        if (collect.stream().flatMap($ -> Cc.stream($)).count() == 0) {
-            return new ReplyKeyboardRemove();
+        for (String singleColumnButton : singleColumnButtons) {
+            KeyboardRow row = new KeyboardRow();
+            row.add(singleColumnButton);
+            rows.add(row);
+        }
+
+        if (rows.stream().mapToLong(KeyboardRow::size).sum() == 0) {
+            return ReplyKeyboardRemove.builder().removeKeyboard(true).build();
         } else {
-            return new ReplyKeyboardMarkup(collect.toArray(new String[collect.size()][])).resizeKeyboard(true);
+            return ReplyKeyboardMarkup.builder()
+                    .keyboard(rows)
+                    .resizeKeyboard(true)
+                    .build();
         }
     }
 
@@ -59,17 +73,24 @@ public class TelUtils {
             List<InlineKeyboardButton> singleColumnButtons) {
         singleColumnButtons = singleColumnButtons == null ? Cc.l() : singleColumnButtons;
 
-        List<InlineKeyboardButton[]> collect = Cc.l();
+        List<InlineKeyboardRow> rows = Cc.l();
         for (int i = 0; i < buttons.size(); i = i + columns) {
             int elementsLeft = Math.min(buttons.size() - i, columns);
-            InlineKeyboardButton[] val = new InlineKeyboardButton[elementsLeft];
+            InlineKeyboardRow row = new InlineKeyboardRow();
             for (int j = 0; j < elementsLeft; j++) {
-                val[j] = buttons.get(i + j);
+                row.add(buttons.get(i + j));
             }
-            collect.add(val);
+            rows.add(row);
         }
 
-        collect.addAll(singleColumnButtons.stream().map(x -> new InlineKeyboardButton[]{x}).collect(Cc.toL()));
-        return new InlineKeyboardMarkup(collect.toArray(new InlineKeyboardButton[collect.size()][]));
+        for (InlineKeyboardButton singleColumnButton : singleColumnButtons) {
+            InlineKeyboardRow row = new InlineKeyboardRow();
+            row.add(singleColumnButton);
+            rows.add(row);
+        }
+
+        return InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
     }
 }
