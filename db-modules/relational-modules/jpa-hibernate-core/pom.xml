@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>relational-modules</artifactId>
-        <version>jsk.21.7.2</version>
+        <version>jsk.21.7.3</version>
     </parent>
 
     <artifactId>jpa-hibernate-core</artifactId>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-utils</artifactId>
-            <version>jsk.21.7.2</version>
+            <version>jsk.21.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.7.2</version>
+            <version>jsk.21.7.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

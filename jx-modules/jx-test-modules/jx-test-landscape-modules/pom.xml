@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-test-modules</artifactId>
-        <version>jsk.21.7.2</version>
+        <version>jsk.21.7.3</version>
     </parent>
 
     <artifactId>jx-test-landscape-modules</artifactId>
