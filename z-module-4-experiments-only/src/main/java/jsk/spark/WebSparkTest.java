@@ -50,9 +50,9 @@ import sk.spring.services.AppProfileImpl;
 import sk.spring.utils.DefaultThrowableHandler;
 import sk.test.land.core.JskLandScapeParallel;
 import sk.test.land.testcontainers.localstack.JskLandLocalstack;
-import sk.test.land.testcontainers.localstack.JskLandLocalstackConfig;
+import sk.test.land.testcontainers.localstack.JskLandLocalstackConfigWithRandomPort;
 import sk.test.land.testcontainers.pg.JskLandPg;
-import sk.test.land.testcontainers.pg.JskLandPgConfig;
+import sk.test.land.testcontainers.pg.JskLandPgConfigRandomPort;
 import sk.test.land.testcontainers.pg.JskLandPgWithData;
 import sk.utils.files.PathWithBase;
 import sk.utils.functional.O;
@@ -275,8 +275,8 @@ public class WebSparkTest {
             Config.WebSparkCoreConfigThis.class,
             SpringCoreConfigWithProperties.class,
 
-            JskLandPgConfig.class,
-            JskLandLocalstackConfig.class
+            JskLandPgConfigRandomPort.class,
+            JskLandLocalstackConfigWithRandomPort.class
     })
     public static class Config {
         @Configuration
