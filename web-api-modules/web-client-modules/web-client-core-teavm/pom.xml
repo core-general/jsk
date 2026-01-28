@@ -9,19 +9,22 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-client-core-spring</artifactId>
+    <artifactId>web-client-core-teavm</artifactId>
+    <version>jsk.21.7.3</version>
+    <packaging>jar</packaging>
+
+    <description>TeaVM-compatible implementations for web-client-core (skeleton)</description>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>web-core-spring</artifactId>
+            <artifactId>web-client-core</artifactId>
             <version>jsk.21.7.3</version>
         </dependency>
         <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>web-client-core-java</artifactId>
-            <version>jsk.21.7.3</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
+        <!-- TeaVM dependencies would be added here when implementing -->
     </dependencies>
-
 </project>

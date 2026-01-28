@@ -34,33 +34,20 @@ import sk.services.retry.IRepeat;
 import sk.utils.functional.O;
 import sk.utils.functional.OneOf;
 import sk.utils.ids.IdBase;
-import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.Ex;
-import sk.utils.statics.Re;
 import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X1;
 import sk.web.WebMethodType;
-import sk.web.annotations.WebAuth;
-import sk.web.annotations.WebAuthNO;
-import sk.web.annotations.WebIdempotence;
 import sk.web.infogatherer.WebClassInfo;
 import sk.web.infogatherer.WebClassInfoProvider;
 import sk.web.infogatherer.WebMethodInfo;
-import sk.web.utils.WebApiMethod;
-import sk.web.utils.WebUtils;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static sk.utils.functional.O.of;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -72,6 +59,10 @@ public class WebClientFactory {
     @Inject IRepeat repeat;
     @Inject IExcept except;
     @Inject IServiceLocator beanProvider;
+
+    // Platform abstractions for TeaVM compatibility
+    @Inject WebApiInvoker apiInvoker;
+    @Inject WebUrlEncoder urlEncoder;
 
     public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
             WebClientInputHandler inputHandler, WebClientResultHandler<E> resultHandler) {
@@ -87,94 +78,99 @@ public class WebClientFactory {
             Class<API> apiCls,
             WebClientInputHandler inputHandler,
             WebClientResultHandler<E> resultHandler) {
-        if (!checkApiClassConformance(apiCls)) {
+        if (!checkApiClassConformance(classInfo)) {
             return O.empty();
         }
 
-        final Object proxier = new Object();
-        return O.of(Re.singleProxy(apiCls, (p, m, a) -> {
-            if (classInfo.getMethod(m.getName()) == null) {
-                switch (m.getName()) {
-                    case "getClass":
-                        return apiCls;
-                    case "hashCode":
-                        return proxier.hashCode();
-                    case "equals":
-                        return proxier.equals(a[0]);
-                    case "clone":
-                        return privateCreate(classInfo, apiCls, inputHandler, resultHandler);
-                    case "toString":
-                        return apiCls + " : " + proxier.hashCode();
-                    default:
-                        throw new UnsupportedOperationException("For method: " + m.getName());
-                }
+        // Use WebApiInvoker abstraction instead of Re.singleProxy
+        API client = apiInvoker.createClient(apiCls, classInfo, (methodName, args) -> {
+            WebMethodInfo methodInfo = classInfo.getMethod(methodName);
+            if (methodInfo == null) {
+                // This shouldn't happen as WebApiInvoker should handle Object methods
+                return except.throwByDescription("Unknown method: " + methodName);
             }
+            return executeApiCall(methodInfo, args, classInfo, inputHandler, resultHandler);
+        });
 
-            final WebApiMethod<API> webApiMethod = new WebApiMethod<>(apiCls, of(m), false);
-
-            int retryCount = 1;
-            int retrySleepMs = 0;
-
-            WebApiClientExecutionModel request = constructExecute(m, a, classInfo, webApiMethod);
-
-            WebIdempotence idempotence = webApiMethod.getAnnotation(WebIdempotence.class).orElse(null);
-            if (idempotence != null) {
-                retryCount = idempotence.retryCount();
-                retrySleepMs = idempotence.retrySleepMs();
-                final Map<String, String> whereToPut = idempotence.isParamOrHeader()
-                                                       ? request.getParams()
-                                                       : request.getHeaders();
-                if (!whereToPut.containsKey(idempotence.paramName())) {
-                    whereToPut.put(idempotence.paramName(), ids.shortIdS());
-                }
-            }
-
-            {
-                WebApiClientExecutionModel __tempReq = request;
-                request = inputHandler.preRequest().map($ -> $.apply(__tempReq)).orElse(__tempReq);
-            }
-
-            O<HttpBuilder<?>> oBuilder = prepareHttp(request);
-            if (oBuilder.isEmpty()) {
-                return except.throwByDescription("Can't prepare http request:" + request);
-            }
-
-            HttpBuilder<?> builder = oBuilder.get();
-            builder.tryCount(retryCount);
-            builder.trySleepMs(retrySleepMs);
-            OneOf<CoreHttpResponse, Exception> resp = builder.goResponse();
-            if (resp.isLeft()) {
-                CoreHttpResponse left = resp.left();
-                final WebRequestResultModel<?> resultModel = new WebRequestResultModel<>(request, left, findReturnType(m));
-                OneOf<?, E> tOneOf = resultHandler.processResult(resultModel);
-                return tOneOf.isRight() ? resultHandler.doInCaseOfProblem(resultModel, tOneOf.right()) : tOneOf.left();
-            } else {
-                throw resp.right();
-            }
-        }));
+        return O.of(client);
     }
 
-    private <API> boolean checkApiClassConformance(Class<API> apiCls) {
-        //check client auth providers existence
-        Cc.stream(WebUtils.getActualApiMethods(apiCls)).forEach($ -> {
-            WebAuth annotation = $.getAnnotation(WebAuth.class);
-            if (annotation != null && beanProvider.getService(annotation.clientProvider()).isEmpty()) {
-                except.throwByDescription("PROBLEM no bean found:" + annotation.clientProvider());
+    /**
+     * Executes an API call using pre-extracted method metadata.
+     * No runtime annotation reflection needed here.
+     */
+    private <E> Object executeApiCall(
+            WebMethodInfo methodInfo,
+            Object[] args,
+            WebClassInfo classInfo,
+            WebClientInputHandler inputHandler,
+            WebClientResultHandler<E> resultHandler) {
+
+        int retryCount = 1;
+        int retrySleepMs = 0;
+
+        WebApiClientExecutionModel request = constructExecute(args, classInfo, methodInfo);
+
+        // Use pre-extracted idempotence config instead of annotation reflection
+        if (methodInfo.getIdempotenceInfo().isPresent()) {
+            WebMethodInfo.WebIdempotenceInfo idem = methodInfo.getIdempotenceInfo().get();
+            retryCount = idem.getRetryCount();
+            retrySleepMs = idem.getRetrySleepMs();
+            final Map<String, String> whereToPut = idem.isParamOrHeader()
+                                                   ? request.getParams()
+                                                   : request.getHeaders();
+            if (!whereToPut.containsKey(idem.getParamName())) {
+                whereToPut.put(idem.getParamName(), ids.shortIdS());
             }
+        }
+
+        {
+            WebApiClientExecutionModel __tempReq = request;
+            request = inputHandler.preRequest().map($ -> $.apply(__tempReq)).orElse(__tempReq);
+        }
+
+        O<HttpBuilder<?>> oBuilder = prepareHttp(request);
+        if (oBuilder.isEmpty()) {
+            return except.throwByDescription("Can't prepare http request:" + request);
+        }
+
+        HttpBuilder<?> builder = oBuilder.get();
+        builder.tryCount(retryCount);
+        builder.trySleepMs(retrySleepMs);
+        OneOf<CoreHttpResponse, Exception> resp = builder.goResponse();
+        if (resp.isLeft()) {
+            CoreHttpResponse left = resp.left();
+            final WebRequestResultModel<?> resultModel = new WebRequestResultModel<>(request, left,
+                    methodInfo.getReturnValue().getType());
+            OneOf<?, E> tOneOf = resultHandler.processResult(resultModel);
+            return tOneOf.isRight() ? resultHandler.doInCaseOfProblem(resultModel, tOneOf.right()) : tOneOf.left();
+        } else {
+            return Ex.thRow(resp.right());
+        }
+    }
+
+    /**
+     * Checks API class conformance using pre-extracted WebClassInfo.
+     * No runtime reflection needed.
+     */
+    private boolean checkApiClassConformance(WebClassInfo classInfo) {
+        //check client auth providers existence
+        classInfo.getMethods().forEach(methodInfo -> {
+            methodInfo.getAuthInfo().ifPresent(authInfo -> {
+                if (beanProvider.getService(authInfo.getClientProvider()).isEmpty()) {
+                    except.throwByDescription("PROBLEM no bean found:" + authInfo.getClientProvider());
+                }
+            });
         });
 
         return true;
     }
 
-    private TypeWrap<?> findReturnType(Method m) {
-        return TypeWrap.raw(m.getGenericReturnType());
-    }
-
     private O<HttpBuilder<?>> prepareHttp(WebApiClientExecutionModel request) {
         if (request.getMethod() == WebMethodType.GET) {
+            // Use WebUrlEncoder abstraction instead of URLEncoder
             String encodedURL = request.getParams().entrySet().stream()
-                    .map(kv -> kv.getKey() + "=" +
-                               Ex.getIgnore(() -> URLEncoder.encode(kv.getValue(), StandardCharsets.UTF_8.toString())))
+                    .map(kv -> kv.getKey() + "=" + urlEncoder.encode(kv.getValue()))
                     .collect(Collectors.joining("&", request.getFullUrl() + "?", ""));
 
             IHttp.HttpGetBuilder builder = http.get(encodedURL);
@@ -214,34 +210,36 @@ public class WebClientFactory {
         }
     }
 
-    private <API> WebApiClientExecutionModel constructExecute(Method m, Object[] a, WebClassInfo methods,
-            WebApiMethod<API> api) {
+    /**
+     * Constructs execution model using pre-extracted WebMethodInfo.
+     * Uses pre-extracted auth config instead of WebApiMethod.
+     */
+    private WebApiClientExecutionModel constructExecute(Object[] a, WebClassInfo methods,
+            WebMethodInfo methodInfo) {
         Map<String, String> h = Cc.m();
         Map<String, String> p = Cc.m();
         Map<String, byte[]> raw = Cc.m();
 
-        WebMethodInfo methodInfo = methods.getMethod(m.getName());
         List<WebMethodInfo.ParameterNameAndType> paramAndTypes = methodInfo.getParamAndTypes();
         List<String> names = paramAndTypes.stream().map($ -> $.getName()).collect(Collectors.toList());
         if ((a == null && names.size() != 0) || (a != null && names.size() != a.length)) {
             return except.throwByDescription("names.size()!=methodArg.length:" + names.size() + " " + a.length);
         } else {
-            Parameter[] mParams = m.getParameters();
             for (int i = 0; i < names.size(); i++) {
                 String name = names.get(i);
                 Object obj = a[i];
-                Parameter param = mParams[i];
-                putParam(obj, param, name, p, raw);
+                WebMethodInfo.ParameterNameAndType paramInfo = paramAndTypes.get(i);
+                putParam(obj, paramInfo, name, p, raw);
             }
         }
 
-        WebAuth auth = api.getAnnotation(WebAuth.class, WebAuthNO.class).orElse(null);
-        if (auth != null) {
+        // Use pre-extracted auth config instead of WebApiMethod
+        methodInfo.getAuthInfo().ifPresent(auth -> {
             O.ofNull(auth.getPassword())
                     .filter($ -> !St.isNullOrEmpty($))
-                    .or(() -> beanProvider.getService(auth.clientProvider()).flatMap($ -> $.getSecret4Client()))
-                    .ifPresent($ -> (auth.isParamOrHeader() ? p : h).put(auth.paramName(), $));
-        }
+                    .or(() -> beanProvider.getService(auth.getClientProvider()).flatMap($ -> $.getSecret4Client()))
+                    .ifPresent($ -> (auth.isParamOrHeader() ? p : h).put(auth.getParamName(), $));
+        });
 
         return new WebApiClientExecutionModel(
                 ids.shortId(),
@@ -295,18 +293,19 @@ public class WebClientFactory {
         return finalPath.toString();
     }
 
-    private void putParam(Object value, Parameter param, String name, Map<String, String> p, Map<String, byte[]> raw) {
+    private void putParam(Object value, WebMethodInfo.ParameterNameAndType paramInfo, String name, Map<String, String> p,
+            Map<String, byte[]> raw) {
         if (value == null) {
             return;
         }
         final Class cls = value.getClass();
         if (value instanceof Optional) {
             if (((Optional<?>) value).isPresent()) {
-                putParam(((Optional<?>) value).get(), param, name, p, raw);
+                putParam(((Optional<?>) value).get(), paramInfo, name, p, raw);
             }
         } else if (value instanceof O) {
             if (((O<?>) value).isPresent()) {
-                putParam(((O<?>) value).get(), param, name, p, raw);
+                putParam(((O<?>) value).get(), paramInfo, name, p, raw);
             }
         } else if (value instanceof byte[]) {
             raw.put(name, (byte[]) value);

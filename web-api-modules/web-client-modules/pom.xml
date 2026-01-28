@@ -15,6 +15,8 @@
 
     <modules>
         <module>web-client-core</module>
+        <module>web-client-core-java</module>
+        <module>web-client-core-teavm</module>
         <module>web-client-core-spring</module>
         <module>web-client-swagger</module>
     </modules>

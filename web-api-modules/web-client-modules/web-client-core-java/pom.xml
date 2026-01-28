@@ -9,19 +9,21 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-client-core-spring</artifactId>
+    <artifactId>web-client-core-java</artifactId>
+    <version>jsk.21.7.3</version>
+    <packaging>jar</packaging>
+
+    <description>Java-specific implementations for web-client-core using reflection proxies</description>
 
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>
-            <artifactId>web-core-spring</artifactId>
+            <artifactId>web-client-core</artifactId>
             <version>jsk.21.7.3</version>
         </dependency>
         <dependency>
-            <groupId>jsk</groupId>
-            <artifactId>web-client-core-java</artifactId>
-            <version>jsk.21.7.3</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
-
 </project>

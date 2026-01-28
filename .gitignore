@@ -27,4 +27,8 @@ hs_err_pid*
 **/target/
 .#*
 .env
+.serena
 /TAGS
+
+dependency-reduced-pom.xml
+java_home.txt

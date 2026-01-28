@@ -28,6 +28,8 @@ import sk.utils.javafixes.TypeWrap;
 import sk.utils.statics.Cc;
 import sk.utils.statics.St;
 import sk.web.WebMethodType;
+import sk.web.auth.WebAuthClient;
+import sk.web.auth.WebAuthServer;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -43,6 +45,10 @@ public class WebMethodInfo {
     List<ParameterNameAndType> paramAndTypes;
     ApiMethodModel precompiledModel;
 
+    // Pre-resolved configs (eliminates runtime annotation reflection for TeaVM compatibility)
+    O<WebAuthInfo> authInfo;
+    O<WebIdempotenceInfo> idempotenceInfo;
+
     @Data
     @AllArgsConstructor
     public static class ParameterNameAndType {
@@ -53,6 +59,26 @@ public class WebMethodInfo {
         public String getTypeName() {
             return O.ofNull(type).flatMap($ -> O.ofNull($.getType())).flatMap($ -> O.ofNull($.getTypeName())).orElse("NONE");
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class WebAuthInfo {
+        String paramName;
+        boolean isParamOrHeader;
+        String password;
+        Class<? extends WebAuthServer> srvProvider;
+        Class<? extends WebAuthClient> clientProvider;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class WebIdempotenceInfo {
+        String paramName;
+        boolean isParamOrHeader;
+        boolean force;
+        int retryCount;
+        int retrySleepMs;
     }
 
     public String postmanize() {

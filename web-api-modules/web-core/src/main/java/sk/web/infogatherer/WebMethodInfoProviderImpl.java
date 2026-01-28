@@ -31,10 +31,15 @@ import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
 import sk.utils.tuples.X;
 import sk.web.WebMethodType;
+import sk.web.annotations.WebAuth;
+import sk.web.annotations.WebAuthNO;
+import sk.web.annotations.WebIdempotence;
+import sk.web.annotations.WebIdempotenceNO;
 import sk.web.annotations.type.WebGET;
 import sk.web.annotations.type.WebMethod;
 import sk.web.annotations.type.WebPOST;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -68,27 +73,49 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
 
         Map<String, WebMethodInfo> actualMethodInfos = currentMethods.entrySet().stream()
                 .map($ -> {
-                    WebMethodType method = O.ofNull($.getValue().getAnnotation(WebGET.class))
+                    Method m = $.getValue();
+                    WebMethodType method = O.ofNull(m.getAnnotation(WebGET.class))
                             .map(__ -> WebMethodType.GET)
-                            .or(() -> O.ofNull($.getValue().getAnnotation(WebPOST.class))
+                            .or(() -> O.ofNull(m.getAnnotation(WebPOST.class))
                                     .map(x -> x.forceMultipart() ? WebMethodType.POST_MULTI_SURE : WebMethodType.POST_MULTI))
-                            .or(() -> O.ofNull($.getValue().getAnnotation(WebMethod.class)).map(WebMethod::method))
+                            .or(() -> O.ofNull(m.getAnnotation(WebMethod.class)).map(WebMethod::method))
                             .orElse(WebMethodType.POST_MULTI);
                     ApiMethodModel methodModel = precompiledModel.getEndpoints().get($.getKey());
 
-                    Type[] paramTypes = $.getValue().getGenericParameterTypes();
+                    Type[] paramTypes = m.getGenericParameterTypes();
 
-                    return new WebMethodInfo($.getValue(),
-                            getMethodApiPath(basePath, $.getValue()),
+                    // Extract auth annotation (method level overrides class level, WebAuthNO disables)
+                    O<WebMethodInfo.WebAuthInfo> authInfo = resolveAnnotation(m, apiCls, WebAuth.class, WebAuthNO.class)
+                            .map(a -> new WebMethodInfo.WebAuthInfo(
+                                    a.paramName(),
+                                    a.isParamOrHeader(),
+                                    a.getPassword(),
+                                    a.srvProvider(),
+                                    a.clientProvider()));
+
+                    // Extract idempotence annotation (method level overrides class level, WebIdempotenceNO disables)
+                    O<WebMethodInfo.WebIdempotenceInfo> idempotenceInfo =
+                            resolveAnnotation(m, apiCls, WebIdempotence.class, WebIdempotenceNO.class)
+                                    .map(a -> new WebMethodInfo.WebIdempotenceInfo(
+                                            a.paramName(),
+                                            a.isParamOrHeader(),
+                                            a.force(),
+                                            a.retryCount(),
+                                            a.retrySleepMs()));
+
+                    return new WebMethodInfo(m,
+                            getMethodApiPath(basePath, m),
                             method,
-                            new WebMethodInfo.ParameterNameAndType(null, TypeWrap.raw($.getValue().getReturnType()), false),
-                            mapEachWithIndex(Arrays.asList($.getValue().getParameters()),
+                            new WebMethodInfo.ParameterNameAndType(null, TypeWrap.raw(m.getGenericReturnType()), false),
+                            mapEachWithIndex(Arrays.asList(m.getParameters()),
                                     (p, i) -> new WebMethodInfo.ParameterNameAndType(
                                             methodModel.getParams().get(i).getName(),
                                             TypeWrap.raw(paramTypes[i]),
                                             methodModel.getParams().get(i).isMerging()
                                     )),
-                            methodModel);
+                            methodModel,
+                            authInfo,
+                            idempotenceInfo);
                 })
                 .collect(toM($ -> $.getMethod().getName(), $ -> $));
 
@@ -98,6 +125,25 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
                 precompiledModel.getComment(),
                 actualMethodInfos,
                 precompiledModel.getClasses());
+    }
+
+    /**
+     * Resolves an annotation considering method-level, class-level, and opposite annotation.
+     * Method-level annotation takes precedence. If opposite annotation is present on method, returns empty.
+     */
+    private <A extends Annotation, N extends Annotation> O<A> resolveAnnotation(
+            Method method, Class<?> cls, Class<A> annotationClass, Class<N> oppositeClass) {
+        // Check if method has the opposite annotation (which disables the feature)
+        if (method.getAnnotation(oppositeClass) != null) {
+            return O.empty();
+        }
+        // Method-level annotation takes precedence
+        A methodAnnotation = method.getAnnotation(annotationClass);
+        if (methodAnnotation != null) {
+            return O.of(methodAnnotation);
+        }
+        // Fall back to class-level annotation
+        return O.ofNull(cls.getAnnotation(annotationClass));
     }
 
     private O<String> validateModel(Map<String, Method> methods, ApiClassModel model) {

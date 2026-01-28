@@ -19,6 +19,12 @@
             <artifactId>jx-services-core</artifactId>
             <version>jsk.21.7.3</version>
         </dependency>
+        <!--could be changed to different implementation-->
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-logging-logback</artifactId>
+            <version>jsk.21.7.3</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
