@@ -26,7 +26,7 @@ import sk.web.infogatherer.WebClassInfo;
  * Platform abstraction for creating API client instances.
  * Java uses dynamic proxies, TeaVM uses compile-time generated classes.
  */
-public interface WebApiInvoker {
+public interface WebPlatformSpecificHelper {
     /**
      * Creates a client instance for the given API interface.
      *
@@ -41,4 +41,12 @@ public interface WebApiInvoker {
             WebClassInfo classInfo,
             WebMethodInvokeHandler methodInvoker
     );
+
+    /**
+     * Encodes a string for use in a URL parameter value.
+     *
+     * @param value The value to urlEncode
+     * @return The URL-encoded value
+     */
+    String urlEncode(String value);
 }
