@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-test-landscape-modules</artifactId>
-        <version>jsk.21.7.3</version>
+        <version>jsk.21.7.4</version>
     </parent>
 
     <artifactId>jx-test-landscape-core</artifactId>
@@ -19,17 +19,17 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-utils</artifactId>
-            <version>jsk.21.7.3</version>
+            <version>jsk.21.7.4</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-core</artifactId>
-            <version>jsk.21.7.3</version>
+            <version>jsk.21.7.4</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.21.7.3</version>
+            <version>jsk.21.7.4</version>
         </dependency>
 
     </dependencies>

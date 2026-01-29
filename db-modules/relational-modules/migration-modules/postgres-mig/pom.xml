@@ -5,7 +5,7 @@
     <parent>
         <artifactId>migration-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.21.7.3</version>
+        <version>jsk.21.7.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>relational-mig</artifactId>
-            <version>jsk.21.7.3</version>
+            <version>jsk.21.7.4</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

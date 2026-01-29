@@ -6,12 +6,12 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-modules</artifactId>
-        <version>jsk.21.7.3</version>
+        <version>jsk.21.7.4</version>
     </parent>
 
     <artifactId>jx-test-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.21.7.3</version>
+    <version>jsk.21.7.4</version>
 
     <modules>
         <module>jx-test</module>
