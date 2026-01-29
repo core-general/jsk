@@ -10,10 +10,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-client-core-teavm</artifactId>
-    <version>jsk.21.7.3</version>
     <packaging>jar</packaging>
 
-    <description>TeaVM-compatible implementations for web-client-core (skeleton)</description>
+    <properties>
+        <teavm.version>0.13.0</teavm.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -21,6 +22,23 @@
             <artifactId>web-client-core</artifactId>
             <version>jsk.21.7.3</version>
         </dependency>
+
+        <!-- Emulator of Java class library for TeaVM -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-classlib</artifactId>
+            <version>${teavm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-jso-apis</artifactId>
+            <version>${teavm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

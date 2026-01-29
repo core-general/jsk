@@ -12,7 +12,6 @@
     <artifactId>jpa-spring-core</artifactId>
 
     <packaging>jar</packaging>
-    <version>jsk.21.7.3</version>
 
     <properties>
         <spring-data.version>3.5.8</spring-data.version>

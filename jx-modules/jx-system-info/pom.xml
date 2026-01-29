@@ -11,7 +11,6 @@
 
     <artifactId>jx-system-info</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.21.7.3</version>
     <dependencies>
         <dependency>
             <groupId>jsk</groupId>

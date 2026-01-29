@@ -11,7 +11,6 @@
 
     <artifactId>maths-common</artifactId>
     <packaging>jar</packaging>
-    <version>jsk.21.7.3</version>
 
     <dependencies>
         <dependency>

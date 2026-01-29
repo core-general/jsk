@@ -10,7 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-spring-core</artifactId>
-    <version>jsk.21.7.3</version>
     <packaging>jar</packaging>
 
     <dependencies>
