@@ -48,14 +48,13 @@ import sk.utils.async.locks.JLock;
 import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Fu;
-import sk.utils.statics.Io;
-import sk.utils.statics.St;
+import sk.utils.statics.*;
 import sk.utils.tuples.X1;
 import sk.web.annotations.WebParamsToObject;
 import sk.web.annotations.WebPath;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,12 +125,15 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
             final Io.ExecuteInfo order = Io.execute("git rev-list --count HEAD");
 
             String version = Cc.join("-", Cc.l(hash.getOutput(), order.getOutput()));
-            long date = System.currentTimeMillis();
+            long date = Ma.pl(LocalDateTime.now().format(Ti.yyyyMMddHHmmss_ONLY_DIGITS));
 
             MavenProject project = (MavenProject) getPluginContext().get("project");
             String outPath = project.getRuntimeClasspathElements().get(0);
 
-            util.saveVersionAndBuildTime(outPath, new ApiBuildInfo(version, date));
+            ApiBuildInfo info = new ApiBuildInfo(version, date);
+            util.saveVersionAndBuildTime(outPath, info);
+
+            getLog().info("Building version: " + info);
         } catch (Exception e) {
             getLog().error(e);
         }
