@@ -10,7 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>web-server-modules</artifactId>
-    <version>jsk.21.7.4</version>
     <packaging>pom</packaging>
 
 
@@ -21,6 +20,7 @@
         <module>web-server-spring-jpa-core</module>
         <module>web-server-melody-patch</module>
         <module>web-useful-tool-modules</module>
+        <module>web-vaadin-common</module>
     </modules>
 
 </project>

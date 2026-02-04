@@ -21,7 +21,7 @@
         <module>mvn-plugins</module>
         <module>maths</module>
         <module>g-cluster</module>
-        <module>web-api-modules/web-server-modules/web-vaadin-common</module>
+        <module>z-teavm-4-experiments</module>
     </modules>
 
     <properties>

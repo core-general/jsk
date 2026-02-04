@@ -2,21 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
+        <artifactId>jsk-root</artifactId>
         <version>jsk.21.7.4</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>web-api-modules</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>z-teavm-4-experiments</artifactId>
 
-    <modules>
-        <module>web-core</module>
-        <module>web-client-modules</module>
-        <module>web-server-modules</module>
-        <module>web-core-spring</module>
-    </modules>
 
 </project>
