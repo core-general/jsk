@@ -20,22 +20,52 @@ package sk.web.client.teavm;
  * #L%
  */
 
-import sk.web.client.WebUrlEncoder;
+import sk.web.client.WebMethodInvokeHandler;
+import sk.web.client.WebPlatformSpecificHelper;
+import sk.web.infogatherer.WebClassInfo;
 
 /**
- * TeaVM-compatible URL encoder implementation.
+ * TeaVM implementation of WebPlatformSpecificHelper.
  * <p>
- * TeaVM doesn't support java.net.URLEncoder directly, so this implementation
- * provides a pure Java URL encoding that is compatible with TeaVM compilation.
+ * TeaVM cannot use java.lang.reflect.Proxy, so this implementation requires
+ * compile-time generated client classes. The actual implementation would use
+ * TeaVM Metaprogramming or annotation processors to generate concrete client
+ * implementations at compile time.
  * <p>
- * Alternative approaches for TeaVM:
- * 1. Bridge to JavaScript's encodeURIComponent via JSBody annotation
- * 2. Use a pure Java implementation (as done here)
+ * To use this in a TeaVM project:
+ * 1. Implement a TeaVM Metaprogramming plugin or annotation processor
+ * 2. For each API interface, generate a concrete class that implements it
+ * 3. The generated class should delegate to WebMethodInvokeHandler for each method
+ * 4. Register generated classes in a factory/registry
+ * <p>
+ * Example generated code pattern:
+ * <pre>
+ * public class MyApiClient implements MyApi {
+ *     private final WebMethodInvokeHandler handler;
+ *
+ *     public String myMethod(String param) {
+ *         return (String) handler.invoke("myMethod", new Object[]{param});
+ *     }
+ * }
+ * </pre>
  */
-public class TeaVMUrlEncoder implements WebUrlEncoder {
+public class WebTeaVMSpecificHelper implements WebPlatformSpecificHelper {
 
     @Override
-    public String encode(String value) {
+    public <API> API createClient(Class<API> apiCls, WebClassInfo classInfo, WebMethodInvokeHandler methodInvoker) {
+        // TeaVM requires compile-time generation - this is a placeholder
+        // Actual implementation requires:
+        // 1. Compile-time annotation processor or TeaVM plugin
+        // 2. Generated concrete classes for each API interface
+        // 3. A registry to look up generated implementations
+        throw new UnsupportedOperationException(
+                "TeaVM requires compile-time generated clients. " +
+                "Use @GenerateClient annotation or TeaVM Metaprogramming to generate " +
+                "client implementations for: " + apiCls.getName());
+    }
+
+    @Override
+    public String urlEncode(String value) {
         if (value == null) {
             return "";
         }

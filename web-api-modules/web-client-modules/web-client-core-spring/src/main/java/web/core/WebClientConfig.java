@@ -23,11 +23,17 @@ package web.core;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.web.auth.WebAuthClientWithStaticSecrets;
+import sk.web.client.java.WebJavaSpecificHelper;
 
 @Configuration
 public class WebClientConfig {
     @Bean
     public WebAuthClientWithStaticSecrets WebAuthServerWithStaticSecrets() {
         return new WebAuthClientWithStaticSecrets();
+    }
+
+    @Bean
+    WebJavaSpecificHelper WebJavaSpecificHelper() {
+        return new WebJavaSpecificHelper();
     }
 }

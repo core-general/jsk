@@ -20,16 +20,20 @@ package sk.web.client.java;
  * #L%
  */
 
+import sk.utils.statics.Ex;
 import sk.utils.statics.Re;
-import sk.web.client.WebApiInvoker;
 import sk.web.client.WebMethodInvokeHandler;
+import sk.web.client.WebPlatformSpecificHelper;
 import sk.web.infogatherer.WebClassInfo;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
- * Java implementation of WebApiInvoker using dynamic proxies.
+ * Java implementation of WebPlatformSpecificHelper using dynamic proxies.
  * Uses Re.singleProxy (java.lang.reflect.Proxy) for runtime proxy generation.
  */
-public class JavaWebApiInvoker implements WebApiInvoker {
+public class WebJavaSpecificHelper implements WebPlatformSpecificHelper {
 
     @Override
     public <API> API createClient(Class<API> apiCls, WebClassInfo classInfo, WebMethodInvokeHandler methodInvoker) {
@@ -57,5 +61,10 @@ public class JavaWebApiInvoker implements WebApiInvoker {
             // Delegate to the method invoker for actual API calls
             return methodInvoker.invoke(methodName, args);
         });
+    }
+
+    @Override
+    public String urlEncode(String value) {
+        return Ex.getIgnore(() -> URLEncoder.encode(value, StandardCharsets.UTF_8.toString()));
     }
 }

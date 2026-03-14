@@ -48,14 +48,12 @@ import sk.utils.async.locks.JLock;
 import sk.utils.async.locks.JLockDecorator;
 import sk.utils.functional.C1;
 import sk.utils.functional.O;
-import sk.utils.statics.Cc;
-import sk.utils.statics.Fu;
-import sk.utils.statics.Io;
-import sk.utils.statics.St;
+import sk.utils.statics.*;
 import sk.utils.tuples.X1;
 import sk.web.annotations.WebParamsToObject;
 import sk.web.annotations.WebPath;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,15 +124,63 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
             final Io.ExecuteInfo order = Io.execute("git rev-list --count HEAD");
 
             String version = Cc.join("-", Cc.l(hash.getOutput(), order.getOutput()));
-            long date = System.currentTimeMillis();
+            long date = Ma.pl(LocalDateTime.now().format(Ti.yyyyMMddHHmmss_ONLY_DIGITS));
 
             MavenProject project = (MavenProject) getPluginContext().get("project");
             String outPath = project.getRuntimeClasspathElements().get(0);
 
-            util.saveVersionAndBuildTime(outPath, new ApiBuildInfo(version, date));
+            ApiBuildInfo info = new ApiBuildInfo(version, date);
+            util.saveVersionAndBuildTime(outPath, info);
+
+            getLog().info("Building version: " + info);
         } catch (Exception e) {
             getLog().error(e);
         }
+    }
+
+    private String alignBasePath(String basePath, String referencePath) {
+        if (basePath == null || basePath.isEmpty()) {
+            return basePath;
+        }
+
+        java.io.File baseFile = new java.io.File(basePath);
+        if (baseFile.isAbsolute()) {
+            getLog().debug("BasePath is absolute, using as-is: " + basePath);
+            return basePath;
+        }
+
+        java.io.File refFile = new java.io.File(referencePath);
+        java.io.File parent = refFile.isDirectory() ? refFile : refFile.getParentFile();
+
+        while (parent != null) {
+            java.io.File candidate = new java.io.File(parent, basePath);
+            if (candidate.exists() && candidate.isDirectory()) {
+                String alignedPath = candidate.getAbsolutePath();
+                getLog().info("Aligned basePath: " + basePath + " -> " + alignedPath);
+                return alignedPath;
+            }
+            parent = parent.getParentFile();
+        }
+
+        getLog().warn("Could not align basePath to absolute path, using as-is: " + basePath);
+        return basePath;
+    }
+
+    private List<String> alignBasePaths(String[] basePaths, List<String> compileSourceRoots) {
+        if (basePaths == null || basePaths.length == 0) {
+            return Cc.lEmpty();
+        }
+
+        String referencePath = compileSourceRoots.isEmpty() ? null : compileSourceRoots.get(0);
+
+        if (referencePath == null) {
+            getLog().warn("No compile source roots available for basePath alignment");
+            return Cc.l(basePaths);
+        }
+
+        return Cc.stream(basePaths)
+                .map(bp -> alignBasePath(bp, referencePath))
+                .collect(Cc.toL());
     }
 
     private void generateApiClasses(ApiClassUtil util) {
@@ -143,8 +189,12 @@ public class WebMvnApiInfoGenerator extends AbstractMojo {
                 (k, v) -> v.getClass() + " = " + v.toString()));
         try {
             MavenProject project = (MavenProject) getPluginContext().get("project");
-            List<String> compileSourceRoots = Cc.addAll(new ArrayList<>(project.getCompileSourceRoots()),
-                    basePaths != null ? Cc.l(basePaths) : Cc.lEmpty());
+            List<String> compileSourceRoots;
+            {
+                List<String> projectSourceRoots = new ArrayList<>(project.getCompileSourceRoots());
+                List<String> alignedBasePaths = alignBasePaths(basePaths, projectSourceRoots);
+                compileSourceRoots = Cc.addAll(projectSourceRoots, alignedBasePaths);
+            }
             String outPath = project.getRuntimeClasspathElements().get(0);
             List<String> compileSourceRootsTest = project.getTestCompileSourceRoots();
             String outPathTest = project.getTestClasspathElements().get(0);

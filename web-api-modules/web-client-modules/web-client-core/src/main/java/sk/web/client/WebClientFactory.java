@@ -61,8 +61,7 @@ public class WebClientFactory {
     @Inject IServiceLocator beanProvider;
 
     // Platform abstractions for TeaVM compatibility
-    @Inject WebApiInvoker apiInvoker;
-    @Inject WebUrlEncoder urlEncoder;
+    @Inject WebPlatformSpecificHelper platformHelper;
 
     public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
             WebClientInputHandler inputHandler, WebClientResultHandler<E> resultHandler) {
@@ -82,11 +81,11 @@ public class WebClientFactory {
             return O.empty();
         }
 
-        // Use WebApiInvoker abstraction instead of Re.singleProxy
-        API client = apiInvoker.createClient(apiCls, classInfo, (methodName, args) -> {
+        // Use WebPlatformSpecificHelper abstraction instead of Re.singleProxy
+        API client = platformHelper.createClient(apiCls, classInfo, (methodName, args) -> {
             WebMethodInfo methodInfo = classInfo.getMethod(methodName);
             if (methodInfo == null) {
-                // This shouldn't happen as WebApiInvoker should handle Object methods
+                // This shouldn't happen as WebPlatformSpecificHelper should handle Object methods
                 return except.throwByDescription("Unknown method: " + methodName);
             }
             return executeApiCall(methodInfo, args, classInfo, inputHandler, resultHandler);
@@ -170,7 +169,7 @@ public class WebClientFactory {
         if (request.getMethod() == WebMethodType.GET) {
             // Use WebUrlEncoder abstraction instead of URLEncoder
             String encodedURL = request.getParams().entrySet().stream()
-                    .map(kv -> kv.getKey() + "=" + urlEncoder.encode(kv.getValue()))
+                    .map(kv -> kv.getKey() + "=" + platformHelper.urlEncode(kv.getValue()))
                     .collect(Collectors.joining("&", request.getFullUrl() + "?", ""));
 
             IHttp.HttpGetBuilder builder = http.get(encodedURL);

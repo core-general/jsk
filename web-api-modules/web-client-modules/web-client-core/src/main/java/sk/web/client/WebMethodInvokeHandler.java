@@ -22,7 +22,7 @@ package sk.web.client;
 
 /**
  * Callback interface for handling API method invocations.
- * Used by WebApiInvoker to delegate the actual HTTP call logic.
+ * Used by WebPlatformSpecificHelper to delegate the actual HTTP call logic.
  */
 @FunctionalInterface
 public interface WebMethodInvokeHandler {
