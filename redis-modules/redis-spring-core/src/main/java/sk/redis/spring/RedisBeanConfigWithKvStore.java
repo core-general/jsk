@@ -22,20 +22,18 @@ package sk.redis.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import sk.redis.RedisKVStoreImpl;
 import sk.services.kv.IKvUnlimitedStore;
 
 /**
  * Spring config that provides both Redis connection and IKvUnlimitedStore bean.
  * Mirrors DynBeanConfigWithKvStore pattern.
- *
- * <p>The IKvUnlimitedStore bean is abstract now and will be made concrete
- * in P1C when RedisKVStoreImpl implementation is available:
- * {@code return new RedisKVStoreImpl();}</p>
  */
 @Configuration
 public abstract class RedisBeanConfigWithKvStore extends RedisBeanConfig {
 
-    /** Will return new RedisKVStoreImpl() after P1C */
     @Bean
-    public abstract IKvUnlimitedStore RedisKVStoreImpl();
+    IKvUnlimitedStore RedisKVStoreImpl() {
+        return new RedisKVStoreImpl();
+    }
 }

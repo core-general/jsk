@@ -22,15 +22,13 @@ package sk.redis.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import sk.redis.JedisConnectionProvider;
 import sk.redis.RedisConnectionProvider;
 import sk.redis.RedisProperties;
 
 /**
  * Abstract Spring config providing Redis connection.
  * Consumer projects extend this and implement RedisProperties bean.
- *
- * <p>The RedisConnectionProvider bean is abstract now and will be made concrete
- * in P1B when JedisConnectionProvider implementation is available.</p>
  */
 @Configuration
 public abstract class RedisBeanConfig {
@@ -38,7 +36,8 @@ public abstract class RedisBeanConfig {
     @Bean
     public abstract RedisProperties RedisProperties();
 
-    /** Will return new JedisConnectionProvider(properties) after P1B */
     @Bean
-    public abstract RedisConnectionProvider RedisConnectionProvider(RedisProperties properties);
+    public RedisConnectionProvider RedisConnectionProvider(RedisProperties properties) {
+        return new JedisConnectionProvider(properties);
+    }
 }
