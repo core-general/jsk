@@ -16,6 +16,7 @@
         <module>jx-test-landscape-testcontainers</module>
         <module>jx-test-landscape-testcontainers-localstack</module>
         <module>jx-test-landscape-testcontainers-pg</module>
+        <module>jx-test-landscape-testcontainers-redis</module>
     </modules>
 
     <properties>
