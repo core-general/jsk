@@ -17,6 +17,7 @@
         <module>text-modules</module>
         <module>z-module-4-experiments-only</module>
         <module>aws-modules</module>
+        <module>redis-modules</module>
         <module>outer-api-modules</module>
         <module>mvn-plugins</module>
         <module>maths</module>
