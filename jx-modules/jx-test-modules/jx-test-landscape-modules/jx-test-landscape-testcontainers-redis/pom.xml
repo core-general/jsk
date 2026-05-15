@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-test-landscape-modules</artifactId>
-        <version>jsk.21.7.5</version>
+        <version>jsk.21.7.8</version>
     </parent>
 
     <artifactId>jx-test-landscape-testcontainers-redis</artifactId>
@@ -19,23 +19,23 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test-landscape-testcontainers</artifactId>
-            <version>jsk.21.7.5</version>
+            <version>jsk.21.7.8</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>redis-core</artifactId>
-            <version>jsk.21.7.5</version>
+            <version>jsk.21.7.8</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.21.7.5</version>
+            <version>jsk.21.7.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-services-standard-impl</artifactId>
-            <version>jsk.21.7.5</version>
+            <version>jsk.21.7.8</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

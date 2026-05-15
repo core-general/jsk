@@ -32,6 +32,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"unused"})
@@ -106,6 +107,16 @@ public final class Re/*flections*/ {
         result = computeParentParameters(curClass);
         parentParams.putIfAbsent(curClass, result);
         return result;
+    }
+
+    public static <T> Map<String, Object> toMap(T o) {
+        return toMapExclude("", o, Cc.s());
+    }
+
+    public static <T> Map<String, Object> toMapExclude(String keySuffix, T o, Set<String> exclude) {
+        return getAllNonStaticFields(o.getClass()).stream()
+                .filter(field -> !exclude.contains(field.getName()))
+                .collect(Collectors.toMap(f -> f.getName() + keySuffix, f -> getter(f).apply(o)));
     }
 
     //region fields
