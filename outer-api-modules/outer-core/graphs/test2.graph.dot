@@ -1,0 +1,7 @@
+digraph G {
+rankdir=LR;
+"g3n1\ng3n1"->"g3n2\ng3n2" [ label = "g3e1\ng3e1" ];
+
+"g3n1\ng3n1"->"g3n3\ng3n4" [ label = "g3e2\ng3e2" ];
+
+}

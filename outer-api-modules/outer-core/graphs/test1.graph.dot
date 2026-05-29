@@ -1,0 +1,17 @@
+digraph G {
+rankdir=LR;
+"g2n1\ng2n1"->"g2n2\ng2n2" [ label = "g2e1\ng2e1" ];
+
+"g2n1\ng2n1"->"g2n3\ng2n4" [ label = "g2e2\ng2e2" ];
+
+"g2n1\ng2n1"->"g2G2\ng2G2" [ label = "g2e6\ng2e6" ];
+
+"g2G2\ng2G2"->"g2n1\ng2n1" [ label = "g2e7\ng2e7" ];
+
+"g2n4\ng2n4"->"g2n1\ng2n1" [ label = "g2e4\ng2e4" ];
+
+"g2n3\ng2n4"->"g2n4\ng2n4" [ label = "g2e3\ng2e3" ];
+
+"g2n3\ng2n4"->"g2G1\ng2G1" [ label = "g2e5\ng2e5" ];
+
+}
