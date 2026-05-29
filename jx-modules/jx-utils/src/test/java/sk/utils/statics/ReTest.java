@@ -56,10 +56,10 @@ public class ReTest {
         }
 
         {
-            F1<Object, Object> getter = Re.getter(Re.getNonStaticDeclaredField(С.class, "myField").get());
-            final O<C2<Object, Object>> setter = Re.setter(Re.getNonStaticDeclaredField(С.class, "myField").get());
+            F1<Object, Object> getter = Re.getter(Re.getNonStaticDeclaredField(C.class, "myField").get());
+            final O<C2<Object, Object>> setter = Re.setter(Re.getNonStaticDeclaredField(C.class, "myField").get());
 
-            С b = new С();
+            C b = new C();
             setter.get().accept(b, "xxx");
             assertEquals(getter.apply(b), "WOOOT");
             assertEquals(b.toString(), "xx");
@@ -109,7 +109,7 @@ public class ReTest {
         String myField;
     }
 
-    public static class С extends A {
+    public static class C extends A {
 
         @Override
         public String getMyField() {
