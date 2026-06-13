@@ -50,8 +50,8 @@ import sk.utils.statics.Cc;
 @Slf4j
 public class JskLandRedis extends JskLandContainer<GenericContainer<?>> implements JskLandEmptyStateMixin {
 
-    private static final int REDIS_PORT = 6379;
-    private static final String DEFAULT_IMAGE = "redis:7-alpine";
+    private static final int REDIS_PORT_INSIDE_CONTAINER = 6379;
+    private static final String DEFAULT_IMAGE = "redis:8.8.0-alpine";
 
     private final String dockerImage;
     private final String keyPrefix;
@@ -71,8 +71,8 @@ public class JskLandRedis extends JskLandContainer<GenericContainer<?>> implemen
     @Override
     protected GenericContainer<?> createContainer(int port) {
         GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse(dockerImage))
-                .withExposedPorts(REDIS_PORT);
-        container.setPortBindings(Cc.l(port + ":" + REDIS_PORT));
+                .withExposedPorts(REDIS_PORT_INSIDE_CONTAINER);
+        container.setPortBindings(Cc.l(port + ":" + REDIS_PORT_INSIDE_CONTAINER));
         return container;
     }
 

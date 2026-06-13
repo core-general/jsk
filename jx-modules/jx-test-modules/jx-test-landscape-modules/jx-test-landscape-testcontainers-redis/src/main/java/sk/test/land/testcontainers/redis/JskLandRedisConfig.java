@@ -1,17 +1,17 @@
-package sk.redis.spring;
+package sk.test.land.testcontainers.redis;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2026 Core General
+ * Copyright (C) 2019 - 2024 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,17 +22,15 @@ package sk.redis.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.redis.RedisKVStoreImpl;
-import sk.services.kv.IKvUnlimitedStore;
+import org.springframework.context.annotation.Import;
+import sk.redis.RedisWithChangedPort;
+import sk.test.land.core.JskLandDefaultConfig;
 
-/**
- * Spring config that provides both Redis connection and IKvUnlimitedStore bean.
- * Mirrors DynBeanConfigWithKvStore pattern.
- */
 @Configuration
-public abstract class RedisBeanConfigWithKvStore extends RedisBeanConfig {
+@Import(JskLandDefaultConfig.class)
+public class JskLandRedisConfig {
     @Bean
-    IKvUnlimitedStore RedisKVStoreImpl() {
-        return new RedisKVStoreImpl();
+    JskLandRedis JskLandRedis(RedisWithChangedPort props) {
+        return new JskLandRedis(props.getPort(), "");
     }
 }

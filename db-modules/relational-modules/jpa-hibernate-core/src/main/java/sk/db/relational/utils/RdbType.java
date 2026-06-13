@@ -23,5 +23,6 @@ package sk.db.relational.utils;
 import sk.utils.land.JskWithChangedPortType;
 
 public enum RdbType implements JskWithChangedPortType {
-    RDBTYPE
+    RDBTYPE,
+    RDS
 }
