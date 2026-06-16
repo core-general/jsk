@@ -27,6 +27,7 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisNoScriptException;
 import sk.utils.functional.C1;
 import sk.utils.functional.F1;
+import sk.utils.statics.St;
 
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class JedisConnectionProvider implements RedisConnectionProvider {
         poolConfig.setTestWhileIdle(properties.getPoolTestWhileIdle());
 
         this.pool = properties.getPassword()
+                .filter($ -> St.isNotNullOrEmpty($.trim()))
                 .map(pw -> new JedisPool(poolConfig, properties.getHost(), properties.getPort(),
                         (int) properties.getPoolMaxWaitMillis(), pw))
                 .orElseGet(() -> new JedisPool(poolConfig, properties.getHost(), properties.getPort(),

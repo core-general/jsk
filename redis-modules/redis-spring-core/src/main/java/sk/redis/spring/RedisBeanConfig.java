@@ -34,9 +34,6 @@ import sk.redis.RedisProperties;
 public abstract class RedisBeanConfig {
 
     @Bean
-    public abstract RedisProperties RedisProperties();
-
-    @Bean
     public RedisConnectionProvider RedisConnectionProvider(RedisProperties properties) {
         return new JedisConnectionProvider(properties);
     }
