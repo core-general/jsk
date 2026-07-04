@@ -54,6 +54,8 @@ public class WebServerSpringParams implements WebServerParams {
     @Value("${web_server_token_timeout_sec:#{null}}")
     private volatile Integer tokenTimeoutSec;
 
+    private boolean portWasRandom;
+
     @Value("${web_server_token_in_cookies:#{false}}")
     @Getter
     private volatile boolean useCookiesForToken;
@@ -67,7 +69,11 @@ public class WebServerSpringParams implements WebServerParams {
 
     @Override
     public synchronized int getPort() {
-        return port == 0 ? port = Io.getFreePort(portStorage).get() : port + JskLocalPortOffset.getOffset();
+        if (port == 0) {
+            portWasRandom = true;
+            port = Io.getFreePort(portStorage).get();
+        }
+        return portWasRandom ? port : port + JskLocalPortOffset.getOffset();
     }
 
     @Override
