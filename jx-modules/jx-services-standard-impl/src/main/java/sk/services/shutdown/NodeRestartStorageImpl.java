@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sk.services.json.IJson;
 import sk.utils.functional.O;
+import sk.utils.land.JskLocalPortOffset;
 import sk.utils.statics.Io;
 
 
@@ -35,7 +36,7 @@ import sk.utils.statics.Io;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NodeRestartStorageImpl implements INodeRestartStorage {
-    private final static String path = "/tmp/jsk/shutdown/storage";
+    private final static String path = "/tmp/jsk/shutdown/storage" + JskLocalPortOffset.pathSuffix();
 
     @Getter
     @Inject

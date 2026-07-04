@@ -25,6 +25,7 @@ import sk.services.json.IJson;
 import sk.services.shutdown.AppStopListener;
 import sk.utils.functional.O;
 import sk.utils.javafixes.TypeWrap;
+import sk.utils.land.JskLocalPortOffset;
 import sk.utils.land.JskWithChangedPortType;
 import sk.utils.statics.Io;
 
@@ -33,7 +34,7 @@ import java.util.Map;
 
 @AllArgsConstructor
 public class JskLandLocalPortLoader implements AppStopListener {
-    public static final String PARENT = "/tmp/jsk/local";
+    public static final String PARENT = "/tmp/jsk/local" + JskLocalPortOffset.pathSuffix();
     public static final String PATH = PARENT + "/.portdata";
 
     private final IJson json;

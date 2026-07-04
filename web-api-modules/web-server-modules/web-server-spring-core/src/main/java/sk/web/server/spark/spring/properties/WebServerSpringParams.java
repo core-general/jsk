@@ -23,6 +23,7 @@ package sk.web.server.spark.spring.properties;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import sk.utils.functional.O;
+import sk.utils.land.JskLocalPortOffset;
 import sk.utils.statics.Io;
 import sk.web.server.params.WebServerParams;
 
@@ -66,7 +67,7 @@ public class WebServerSpringParams implements WebServerParams {
 
     @Override
     public synchronized int getPort() {
-        return port == 0 ? port = Io.getFreePort(portStorage).get() : port;
+        return port == 0 ? port = Io.getFreePort(portStorage).get() : port + JskLocalPortOffset.getOffset();
     }
 
     @Override

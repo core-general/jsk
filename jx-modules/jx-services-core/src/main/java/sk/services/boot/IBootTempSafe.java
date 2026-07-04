@@ -20,6 +20,7 @@ package sk.services.boot;
  * #L%
  */
 
+import sk.utils.land.JskLocalPortOffset;
 import sk.utils.statics.Io;
 
 @SuppressWarnings("unused")
@@ -28,7 +29,7 @@ public abstract class IBootTempSafe implements IBootTemp {
     private final String triggerFilePath;
 
     public IBootTempSafe() {
-        triggerFilePath = "/tmp/jsk_" + getClass().getSimpleName();
+        triggerFilePath = "/tmp/jsk_" + getClass().getSimpleName() + JskLocalPortOffset.pathSuffix();
     }
 
     public IBootTempSafe(String triggerFilePath) {
