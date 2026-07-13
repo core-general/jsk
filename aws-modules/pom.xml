@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <version>jsk.21.7.8</version>
     <properties>
-        <aws-version>2.41.10</aws-version>
+        <aws-version>2.47.5</aws-version>
     </properties>
 
     <modules>
