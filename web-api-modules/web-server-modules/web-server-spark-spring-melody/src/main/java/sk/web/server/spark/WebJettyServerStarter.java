@@ -22,19 +22,19 @@ package sk.web.server.spark;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpCookie;
-import org.eclipse.jetty.http.HttpGenerator;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.MultiPartCompliance;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.ee10.servlet.ErrorPageErrorHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.Callback;
 import sk.services.shutdown.AppStopListener;
 import sk.utils.statics.Ex;
 import sk.web.server.params.WebServerParams;
 import sk.web.server.spark.context.WebJettyContextConsumer;
 
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import jakarta.servlet.MultipartConfigElement;
 import java.util.List;
 
 @Slf4j
@@ -63,14 +63,21 @@ public class WebJettyServerStarter implements AppStopListener {
             params.getIdleTimeout().ifPresent(((AbstractConnector) connector)::setIdleTimeout);
             for (ConnectionFactory connectionFactory : connector.getConnectionFactories()) {
                 if (connectionFactory instanceof HttpConnectionFactory) {
-                    ((HttpConnectionFactory) connectionFactory)
-                            .getHttpConfiguration()
-                            .setMultiPartFormDataCompliance(MultiPartFormDataCompliance.RFC7578);
+                    HttpConfiguration httpConfiguration = ((HttpConnectionFactory) connectionFactory)
+                            .getHttpConfiguration();
+                    httpConfiguration.setMultiPartCompliance(MultiPartCompliance.RFC7578);
+                    httpConfiguration.setSendServerVersion(false);
+                    httpConfiguration.addCustomizer((request, responseHeaders) -> {
+                        responseHeaders.put(HttpHeader.SERVER, params.getServerNameHeader());
+                        return request;
+                    });
                 }
             }
         }
 
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setMaxFormKeys(250);
+        context.setMaxFormContentSize(Math.toIntExact(params.getFormLimit()));
         context.setAttribute("org.eclipse.jetty.cookie.sameSiteDefault", HttpCookie.SameSite.STRICT.name());
         contextConsumers.forEach($ -> $.accept(context));
         context.setErrorHandler(new ErrorProcessor());
@@ -85,8 +92,6 @@ public class WebJettyServerStarter implements AppStopListener {
 
         context.getServletHandler().getServlets()[0].getRegistration().setMultipartConfig(
                 new MultipartConfigElement("/tmp/srv-mp", params.getFormLimit(), params.getFormLimit(), 0));
-
-        HttpGenerator.setJettyVersion(params.getServerNameHeader());
     }
 
     @Override
@@ -105,12 +110,11 @@ public class WebJettyServerStarter implements AppStopListener {
 
     public static class ErrorProcessor extends ErrorPageErrorHandler {
         @Override
-        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
-            try {
-                response.getWriter().append("JSK " + response.getStatus() + " HTTP error for " + target);
-            } catch (IOException e) {
-                log.error("", e);
-            }
+        protected void generateResponse(Request request, Response response, int code, String message,
+                Throwable cause, Callback callback) {
+            response.getHeaders().put(HttpHeader.CONTENT_TYPE, "text/plain; charset=UTF-8");
+            Content.Sink.write(response, true,
+                    "JSK " + code + " HTTP error for " + Request.getPathInContext(request), callback);
         }
     }
 }

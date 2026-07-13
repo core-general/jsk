@@ -24,8 +24,8 @@ package net.bull.javamelody.internal.model;
 import net.bull.javamelody.SessionListener;
 import net.bull.javamelody.internal.common.LOG;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;

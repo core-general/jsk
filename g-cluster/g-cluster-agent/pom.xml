@@ -33,9 +33,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.sparkjava</groupId>
+            <groupId>org.zoomba-lang</groupId>
             <artifactId>spark-core</artifactId>
-            <version>2.9.4</version>
+            <version>3.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -26,7 +26,7 @@ import sk.utils.tuples.X2;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRenderResult;
 
-import javax.servlet.http.Part;
+import jakarta.servlet.http.Part;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;

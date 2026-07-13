@@ -20,7 +20,7 @@ package sk.web.server.spark.context;
  * #L%
  */
 
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import sk.utils.functional.C1;
 
 public interface WebJettyContextConsumer extends C1<ServletContextHandler> {

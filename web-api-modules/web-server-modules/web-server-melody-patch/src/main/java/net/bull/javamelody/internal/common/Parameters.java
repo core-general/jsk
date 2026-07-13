@@ -41,8 +41,8 @@ import net.bull.javamelody.Parameter;
 import net.bull.javamelody.internal.model.TransportFormat;
 import sk.utils.statics.Cc;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.MalformedURLException;

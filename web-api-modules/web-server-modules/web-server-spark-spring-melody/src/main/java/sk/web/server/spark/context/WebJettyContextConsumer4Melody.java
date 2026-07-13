@@ -23,12 +23,12 @@ package sk.web.server.spark.context;
 import jakarta.inject.Inject;
 import net.bull.javamelody.MonitoringFilter;
 import net.bull.javamelody.Parameter;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.springframework.core.annotation.Order;
 import sk.web.server.spark.melodycollector.WebMelodyParams;
 
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 import java.util.EnumSet;
 
 @Order(0)
