@@ -30,7 +30,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lombok.version>1.18.46</lombok.version>
         <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
-        <spring.version>6.2.15</spring.version>
+        <spring.version>6.2.19</spring.version>
     </properties>
 
     <repositories>
