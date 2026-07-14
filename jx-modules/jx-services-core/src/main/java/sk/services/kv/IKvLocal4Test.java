@@ -53,11 +53,13 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
 
     @Override
     public synchronized O<KvVersionedItem<String>> getRawVersioned(KvKeyWithDefault key) {
+        evictExpired(key(key));
         return O.ofNull(data.get(key(key))).map($ -> $.toSimple());
     }
 
     @Override
     public synchronized O<KvVersionedItemAll<String>> getRawVersionedAll(KvKeyWithDefault key) {
+        evictExpired(key(key));
         return O.ofNull(data.get(key(key)));
     }
 
@@ -71,11 +73,12 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
 
     @Override
     public synchronized OneOf<Boolean, Exception> trySaveNewStringAndRaw(KvKey key, KvAllValues<String> newValueProvider) {
+        evictExpired(key(key));
         if (data.containsKey(key(key))) {
-            return OneOf.left(true);
+            return OneOf.left(false);
         } else {
             data.put(key(key), toVersionedAll(key, newValueProvider));
-            return OneOf.left(false);
+            return OneOf.left(true);
         }
     }
 
@@ -83,6 +86,7 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
     @Override
     public synchronized OneOf<O<KvAllValues<String>>, Exception> updateStringAndRaw(KvKeyWithDefault key,
             F1<KvAllValues<String>, O<KvAllValues<String>>> updater) {
+        evictExpired(key(key));
         X1<Boolean> valIsOld = new X1<>(false);
 
         final KvVersionedItemAll<String> val = Cc.computeAndApply(data, key(key),
@@ -116,6 +120,13 @@ public class IKvLocal4Test extends IKvStoreJsonBased implements IKvLimitedStore,
 
     private static Key key(KvKey kk) {
         return new Key(kk);
+    }
+
+    private void evictExpired(Key key) {
+        KvVersionedItemAll<String> value = data.get(key);
+        if (value != null && value.getTtl().filter(ttl -> !ttl.isAfter(times.nowZ())).isPresent()) {
+            data.remove(key);
+        }
     }
 
     @Override
