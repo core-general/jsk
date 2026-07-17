@@ -60,6 +60,10 @@ public class WebServerSpringParams implements WebServerParams {
     @Getter
     private volatile boolean useCookiesForToken;
 
+    @Value("${web_server_force_secure_cookies:false}")
+    @Getter
+    private volatile boolean forceSecureCookies;
+
     private final AtomicInteger portStorage = new AtomicInteger(0);
 
     @Override

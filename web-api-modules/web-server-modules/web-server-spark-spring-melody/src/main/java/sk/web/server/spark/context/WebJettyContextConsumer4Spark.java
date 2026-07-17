@@ -21,10 +21,16 @@ package sk.web.server.spark.context;
  */
 
 import jakarta.inject.Inject;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.io.RuntimeIOException;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.io.RuntimeIOException;
 import org.springframework.core.annotation.Order;
 import sk.exceptions.JskProblem;
 import sk.services.bytes.IBytes;
@@ -63,12 +69,6 @@ import spark.Service;
 import spark.servlet.SparkApplication;
 import spark.servlet.SparkFilter;
 
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.FilterConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.Part;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -405,7 +405,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         public boolean setResponseToken(String token) {
             if (conf.isUseCookiesForToken()) {
                 response.cookie("/", JSK_USR_TOKEN, token, conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
-                        profile.getProfile().isForProductionUsage(), true);
+                        secureCookies(), true);
                 return true;
             } else {
                 return false;
@@ -426,13 +426,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 response.cookie("/", JSK_CLIENT_ID,
                         id,
                         conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
-                        profile.getProfile().isForProductionUsage(), true);
+                        secureCookies(), true);
 
                 final String token = bytes.enc62(bytes.sha256((clientIp + saltPassword).getBytes(StandardCharsets.UTF_8)));
                 response.cookie("/", JSK_CLIENT_TOKEN,
                         token,
                         conf.getTokenTimeoutSec().orElse(Integer.MAX_VALUE),
-                        profile.getProfile().isForProductionUsage(), true);
+                        secureCookies(), true);
 
 
                 return X.x(id, token);
@@ -446,7 +446,11 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
         @Override
         public void setCookie(String path, String key, String value, int seconds, boolean httpOnly) {
-            response.cookie(path, key, value, seconds, profile.getProfile().isForProductionUsage(), httpOnly);
+            response.cookie(path, key, value, seconds, secureCookies(), httpOnly);
+        }
+
+        private boolean secureCookies() {
+            return conf.isForceSecureCookies() || profile.getProfile().isForProductionUsage();
         }
 
         @Override

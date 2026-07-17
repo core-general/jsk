@@ -46,6 +46,10 @@ public interface WebServerParams {
 
     boolean isUseCookiesForToken();
 
+    default boolean isForceSecureCookies() {
+        return false;
+    }
+
     @Data
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class WebStaticFiles {
