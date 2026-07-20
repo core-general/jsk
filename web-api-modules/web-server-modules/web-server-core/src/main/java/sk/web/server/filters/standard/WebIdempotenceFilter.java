@@ -24,6 +24,7 @@ package sk.web.server.filters.standard;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
+import sk.services.idempotence.IIdentityProvider;
 import sk.services.idempotence.IIdempProvider;
 import sk.services.idempotence.IdempLockResult;
 import sk.services.idempotence.IdempValue;
@@ -51,6 +52,7 @@ public class WebIdempotenceFilter implements WebServerFilter {
     @Inject IWebExcept except;
     @Inject Optional<WebIdempotenceParams> conf;
     @Inject Optional<IIdempProvider> idempotence;
+    @Inject Optional<IIdentityProvider> identityProvider;
 
     @Override
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
@@ -60,12 +62,13 @@ public class WebIdempotenceFilter implements WebServerFilter {
         O<String> oIdempotenceKey = O.empty();
         if (idemp.isPresent()) {
             final WebIdempotence idempotence = idemp.get();
-            oIdempotenceKey = idempotence.isParamOrHeader()
+            O<String> requestId = idempotence.isParamOrHeader()
                     ? ctx.getParamAsString(idempotence.paramName())
                     : ctx.getRequestHeader(idempotence.paramName());
-            if (idempotence.force() && oIdempotenceKey.isEmpty()) {
+            if (idempotence.force() && requestId.isEmpty()) {
                 return except.returnMissingParameter(idempotence.paramName(), idempotence.isParamOrHeader());
             }
+            oIdempotenceKey = requestId.map(this::scopedKey);
             if (oIdempotenceKey.isPresent()) {
                 final IdempLockResult<WebReplyMeta> lock =
                         this.idempotence.orElseThrow(() -> new RuntimeException("No Idempotence Provider set"))
@@ -108,6 +111,12 @@ public class WebIdempotenceFilter implements WebServerFilter {
             }
             throw e;
         }
+    }
+
+    private String scopedKey(String requestId) {
+        return identityProvider.map(IIdentityProvider::currentIdentity).orElseGet(O::empty)
+                .map(identity -> identity.length() + ":" + identity + ":" + requestId.length() + ":" + requestId)
+                .orElse(requestId);
     }
 
     private O<String> formRequestInfo(WebRequestInnerContext requestContext) {

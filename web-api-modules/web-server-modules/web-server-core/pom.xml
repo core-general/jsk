@@ -37,6 +37,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-test</artifactId>
+            <version>jsk.25.1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
