@@ -39,12 +39,20 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JskLandPg extends JskLandContainer<PostgreSQLContainer<?>> {
+    private static final int POSTGRES_PORT_INSIDE_CONTAINER = 5432;
+
     @NotNull private final RdbWithChangedPort portProvider;
     protected final String dockerImgName;
 
     public JskLandPg(RdbWithChangedPort outsidePort, String dockerImgName) {
         super(outsidePort.getPort());
         portProvider = outsidePort;
+        this.dockerImgName = dockerImgName;
+    }
+
+    public JskLandPg(String dockerImgName) {
+        super();
+        portProvider = this::getOutsidePort;
         this.dockerImgName = dockerImgName;
     }
 
@@ -70,8 +78,15 @@ public class JskLandPg extends JskLandContainer<PostgreSQLContainer<?>> {
                 .withUsername("test")
                 .withPassword("test")
                 .withStartupTimeoutSeconds(150);
-        selfPostgreSQLContainer.setPortBindings(Cc.l(port + ":5432"));
+        if (port > 0) {
+            selfPostgreSQLContainer.setPortBindings(Cc.l(port + ":" + POSTGRES_PORT_INSIDE_CONTAINER));
+        }
         return selfPostgreSQLContainer;
+    }
+
+    @Override
+    protected int resolveMappedOutsidePort(PostgreSQLContainer<?> startedContainer) {
+        return startedContainer.getMappedPort(POSTGRES_PORT_INSIDE_CONTAINER);
     }
 
     @Override

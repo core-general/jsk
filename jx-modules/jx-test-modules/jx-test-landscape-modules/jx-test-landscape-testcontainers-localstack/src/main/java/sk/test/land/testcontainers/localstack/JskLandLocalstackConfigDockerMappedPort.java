@@ -1,10 +1,10 @@
-package sk.test.land.testcontainers.pg;
+package sk.test.land.testcontainers.localstack;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2024 Core General
+ * Copyright (C) 2019 - 2026 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import sk.db.relational.utils.RdbWithChangedPort;
+import sk.aws.AwsUtilityHelper;
+import sk.aws.AwsWithChangedPort;
+import sk.services.ICoreServices;
 import sk.test.land.core.JskLandDefaultConfig;
-import sk.utils.statics.Io;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-/**
- * @deprecated Preselecting a host port is unsafe when containers start concurrently.
- * Use {@link JskLandPgConfigDockerMappedPort}.
- */
 @Configuration
 @Import(JskLandDefaultConfig.class)
-@Deprecated
-public class JskLandPgConfigRandomPort extends JskLandPgConfig {
+public class JskLandLocalstackConfigDockerMappedPort {
+    @Bean
+    JskLandLocalstack JskLandLocalstack(AwsUtilityHelper awh, ICoreServices core) {
+        return new JskLandLocalstack("localstack/localstack:3.4.0", awh, core);
+    }
+
     @Bean
     @Primary
-    RdbWithChangedPort RdbWithChangedPort() {
-        AtomicInteger ai = new AtomicInteger();
-        return () -> Io.getFreePort(ai).get();
+    AwsWithChangedPort AwsWithChangedPort(JskLandLocalstack localstack) {
+        return localstack::getOutsidePort;
     }
 }

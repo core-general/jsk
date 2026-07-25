@@ -4,7 +4,7 @@ package sk.test.land.testcontainers.pg;
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2024 Core General
+ * Copyright (C) 2019 - 2026 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,22 +26,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import sk.db.relational.utils.RdbWithChangedPort;
 import sk.test.land.core.JskLandDefaultConfig;
-import sk.utils.statics.Io;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-/**
- * @deprecated Preselecting a host port is unsafe when containers start concurrently.
- * Use {@link JskLandPgConfigDockerMappedPort}.
- */
 @Configuration
 @Import(JskLandDefaultConfig.class)
-@Deprecated
-public class JskLandPgConfigRandomPort extends JskLandPgConfig {
+public class JskLandPgConfigDockerMappedPort {
+    @Bean
+    JskLandPg JskLandPg() {
+        return new JskLandPg("postgres:16.3");
+    }
+
     @Bean
     @Primary
-    RdbWithChangedPort RdbWithChangedPort() {
-        AtomicInteger ai = new AtomicInteger();
-        return () -> Io.getFreePort(ai).get();
+    RdbWithChangedPort RdbWithChangedPort(JskLandPg pg) {
+        return pg::getOutsidePort;
     }
 }

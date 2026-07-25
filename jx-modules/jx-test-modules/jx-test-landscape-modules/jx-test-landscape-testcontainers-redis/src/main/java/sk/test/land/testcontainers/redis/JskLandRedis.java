@@ -68,12 +68,29 @@ public class JskLandRedis extends JskLandContainer<GenericContainer<?>> implemen
         this.dockerImage = dockerImage;
     }
 
+    public JskLandRedis(String keyPrefix) {
+        this(keyPrefix, DEFAULT_IMAGE);
+    }
+
+    public JskLandRedis(String keyPrefix, String dockerImage) {
+        super();
+        this.keyPrefix = keyPrefix;
+        this.dockerImage = dockerImage;
+    }
+
     @Override
     protected GenericContainer<?> createContainer(int port) {
         GenericContainer<?> container = new GenericContainer<>(DockerImageName.parse(dockerImage))
                 .withExposedPorts(REDIS_PORT_INSIDE_CONTAINER);
-        container.setPortBindings(Cc.l(port + ":" + REDIS_PORT_INSIDE_CONTAINER));
+        if (port > 0) {
+            container.setPortBindings(Cc.l(port + ":" + REDIS_PORT_INSIDE_CONTAINER));
+        }
         return container;
+    }
+
+    @Override
+    protected int resolveMappedOutsidePort(GenericContainer<?> startedContainer) {
+        return startedContainer.getMappedPort(REDIS_PORT_INSIDE_CONTAINER);
     }
 
     /**

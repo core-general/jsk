@@ -21,11 +21,38 @@ package sk.test.land.testcontainers.pg;
  */
 
 import org.junit.jupiter.api.Test;
+import sk.db.relational.utils.RdbWithChangedPort;
 import sk.utils.statics.Cc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JskLandPgTest {
+    @Test
+    void fixedAndDockerMappedModesConfigureDifferentHostPortPolicies() {
+        JskLandPg mapped = new JskLandPg("postgres:16.3");
+        var mappedContainer = mapped.createContainer(0);
+        assertTrue(mappedContainer.getPortBindings().isEmpty());
+        assertTrue(mappedContainer.getExposedPorts().contains(5432));
+
+        RdbWithChangedPort fixedPort = () -> 32123;
+        JskLandPg fixed = new JskLandPg(fixedPort, "postgres:16.3");
+        var fixedContainer = fixed.createContainer(fixedPort.getPort());
+        assertEquals(Cc.l("32123:5432/tcp"), fixedContainer.getPortBindings());
+        assertEquals(32123, fixed.getOutsidePort());
+    }
+
+    @Test
+    void dockerMappedConfigExposesTheLandscapePortThroughRdbWithChangedPort() {
+        JskLandPg pg = mock(JskLandPg.class);
+        when(pg.getOutsidePort()).thenReturn(32124);
+
+        RdbWithChangedPort port = new JskLandPgConfigDockerMappedPort().RdbWithChangedPort(pg);
+
+        assertEquals(32124, port.getPort());
+    }
 
     @Test
     void prepareDeleteQueryTest() {

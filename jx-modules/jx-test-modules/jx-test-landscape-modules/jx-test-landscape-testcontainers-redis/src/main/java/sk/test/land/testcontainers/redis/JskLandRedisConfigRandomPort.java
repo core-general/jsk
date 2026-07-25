@@ -30,8 +30,13 @@ import sk.utils.statics.Io;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @deprecated Preselecting a host port is unsafe when containers start concurrently.
+ * Use {@link JskLandRedisConfigDockerMappedPort}.
+ */
 @Configuration
 @Import(JskLandDefaultConfig.class)
+@Deprecated
 public class JskLandRedisConfigRandomPort extends JskLandRedisConfig {
     @Bean
     @Primary

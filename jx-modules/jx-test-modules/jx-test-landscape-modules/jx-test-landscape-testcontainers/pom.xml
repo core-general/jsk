@@ -36,5 +36,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-test</artifactId>
+            <version>jsk.25.1.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

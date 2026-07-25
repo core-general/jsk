@@ -20,19 +20,41 @@ package sk.test.land.testcontainers;
  * #L%
  */
 
-import lombok.Getter;
 import org.testcontainers.containers.GenericContainer;
 import sk.test.land.core.JskLand;
 
 public abstract class JskLandContainer<DOCKER extends GenericContainer> extends JskLand {
     private volatile DOCKER container;
-    @Getter protected final int outsidePort;
+    private final boolean dockerMappedPort;
+    protected volatile int outsidePort;
 
     public JskLandContainer(int outsidePort) {
+        dockerMappedPort = false;
         this.outsidePort = outsidePort;
     }
 
+    protected JskLandContainer() {
+        dockerMappedPort = true;
+        outsidePort = 0;
+    }
+
     protected abstract DOCKER createContainer(int port);
+
+    protected int resolveMappedOutsidePort(DOCKER startedContainer) {
+        throw new UnsupportedOperationException(
+                "Docker-mapped ports are not supported by " + getClass().getName());
+    }
+
+    public int getOutsidePort() {
+        if (dockerMappedPort) {
+            getContainer();
+            if (outsidePort <= 0) {
+                throw new IllegalStateException(
+                        "Docker did not provide a mapped port for " + getClass().getName());
+            }
+        }
+        return outsidePort;
+    }
 
     public DOCKER getContainer() {
         return getStatusLock().getInLock(() -> {
@@ -51,6 +73,13 @@ public abstract class JskLandContainer<DOCKER extends GenericContainer> extends 
     protected void doInit() throws Exception {
         container = createContainer(outsidePort);
         container.start();
+        if (dockerMappedPort) {
+            outsidePort = resolveMappedOutsidePort(container);
+            if (outsidePort <= 0) {
+                throw new IllegalStateException(
+                        "Docker did not provide a mapped port for " + getClass().getName());
+            }
+        }
     }
 
     @Override

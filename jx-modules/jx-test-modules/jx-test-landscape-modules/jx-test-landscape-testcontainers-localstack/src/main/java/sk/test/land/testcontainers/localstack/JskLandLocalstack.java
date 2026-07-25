@@ -55,6 +55,8 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 public class JskLandLocalstack extends JskLandContainer<LocalStackContainer> implements JskLandEmptyStateMixin {
+    private static final int LOCALSTACK_PORT_INSIDE_CONTAINER = 4566;
+
     private final AwsWithChangedPort acp;
     private final String dockerImgName;
     private final AwsUtilityHelper utilityHelper;
@@ -63,6 +65,14 @@ public class JskLandLocalstack extends JskLandContainer<LocalStackContainer> imp
     public JskLandLocalstack(AwsWithChangedPort acp, String dockerImgName, AwsUtilityHelper utilityHelper, ICoreServices core) {
         super(acp.getPort());
         this.acp = acp;
+        this.dockerImgName = dockerImgName;
+        this.utilityHelper = utilityHelper;
+        this.core = core;
+    }
+
+    public JskLandLocalstack(String dockerImgName, AwsUtilityHelper utilityHelper, ICoreServices core) {
+        super();
+        acp = this::getOutsidePort;
         this.dockerImgName = dockerImgName;
         this.utilityHelper = utilityHelper;
         this.core = core;
@@ -125,8 +135,15 @@ public class JskLandLocalstack extends JskLandContainer<LocalStackContainer> imp
                                  "SKIP_INFRA_DOWNLOADS", "1",
                                  "DISABLE_EVENTS", "1"
                          ));
-        selfPostgreSQLContainer.setPortBindings(Cc.l(port + ":4566"));
+        if (port > 0) {
+            selfPostgreSQLContainer.setPortBindings(Cc.l(port + ":" + LOCALSTACK_PORT_INSIDE_CONTAINER));
+        }
         return selfPostgreSQLContainer;
+    }
+
+    @Override
+    protected int resolveMappedOutsidePort(LocalStackContainer startedContainer) {
+        return startedContainer.getMappedPort(LOCALSTACK_PORT_INSIDE_CONTAINER);
     }
 
 
