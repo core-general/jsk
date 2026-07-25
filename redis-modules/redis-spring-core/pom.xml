@@ -5,7 +5,7 @@
     <parent>
         <artifactId>redis-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.25.1.1</version>
+        <version>jsk.25.2.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>redis-core</artifactId>
-            <version>jsk.25.1.1</version>
+            <version>jsk.25.2.0</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.25.1.1</version>
+            <version>jsk.25.2.0</version>
         </dependency>
     </dependencies>
 </project>

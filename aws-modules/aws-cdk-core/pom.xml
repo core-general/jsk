@@ -6,7 +6,7 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>aws-modules</artifactId>
-        <version>jsk.25.1.1</version>
+        <version>jsk.25.2.0</version>
     </parent>
 
 
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-utils</artifactId>
-            <version>jsk.25.1.1</version>
+            <version>jsk.25.2.0</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
