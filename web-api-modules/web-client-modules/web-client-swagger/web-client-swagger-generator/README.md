@@ -5,7 +5,7 @@ Generates OpenAPI 3.0 specifications from JSK API interfaces using the same meta
 ## What It Solves
 
 - `WebSwaggerGenerator` introspects API interface methods via `WebClassInfoProvider` and builds full `OpenAPI` spec
-- Handles JSK-specific types: `O<T>` → nullable, `IdBase`/`IdString`/`IdLong`/`IdUuid` → string/integer, enums, `byte[]` → binary
+- Handles JSK-specific types: `O<T>`→nullable, `IdBase`/`IdString`/`IdLong`/`IdUuid`→string/integer, enums, `byte[]`→binary
 - Maps `ZonedDateTime`, `LocalDate`, `LocalDateTime`, `LocalTime` to date/datetime string formats
 
 ## Key Details

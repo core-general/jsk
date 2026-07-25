@@ -22,15 +22,16 @@ db-modules/relational-modules/
 
 ## SQL-to-Class Generator (jpa-util)
 
-**Entry point**: `sk.db.util.generator.JsaMain` — takes SQL `CREATE TABLE` scripts → generates JPA entities, ID classes, repos, storage facades.
+**Entry point**: `sk.db.util.generator.JsaMain` — takes SQL `CREATE TABLE` scripts→generates JPA entities, ID classes, repos,
+storage facades.
 
 ### Pipeline
 
-| Stage | Class | Role |
-|---|---|---|
+| Stage   | Class                   | Role                                                                                         |
+|---------|-------------------------|----------------------------------------------------------------------------------------------|
 | Extract | `JsaTableInfoExtractor` | Parses SQL (JSqlParser): tables, columns, PKs, FKs, PG enums, meta-annotations from comments |
-| Process | `JsaProcessor` | Transforms to entity models: Java types, composite keys, relations, enums, JSON fields |
-| Export | `JsaExporter` | FreeMarker templates → Java source files |
+| Process | `JsaProcessor`          | Transforms to entity models: Java types, composite keys, relations, enums, JSON fields       |
+| Export  | `JsaExporter`           | FreeMarker templates→Java source files                                                       |
 
 ### CLI / Programmatic Usage
 
@@ -46,12 +47,12 @@ new JsaMain().start(sqlCode, fileInfo -> { /* process */ }, "myschema", O.empty(
 
 Comments in SQL control field mapping. Matched to tables by `(tableName, columnName)`.
 
-| Annotation | Purpose | Extra Params |
-|---|---|---|
-| `@jsonb <table> <col> <JavaClass>` | JSONB → Java class | 1: class name |
-| `@enum <table> <col> <EnumClass>` | VARCHAR → Java enum | 1: enum class |
-| `@pg_enum <table> <col> <EnumClass>` | PG native enum → Java enum | 1: enum class |
-| `@relationHere <table> <col> <refTable>` | FK to table in same SQL file | 1: referenced table |
+| Annotation                                            | Purpose                       | Extra Params           |
+|-------------------------------------------------------|-------------------------------|------------------------|
+| `@jsonb <table> <col> <JavaClass>`                    | JSONB→Java class              | 1: class name          |
+| `@enum <table> <col> <EnumClass>`                     | VARCHAR→Java enum             | 1: enum class          |
+| `@pg_enum <table> <col> <EnumClass>`                  | PG native enum→Java enum      | 1: enum class          |
+| `@relationHere <table> <col> <refTable>`              | FK to table in same SQL file  | 1: referenced table    |
 | `@relationOutside <table> <col> <IdClass> <JpaClass>` | FK to entity outside SQL file | 2: ID class, JPA class |
 
 ### Input Example
@@ -111,10 +112,10 @@ Composite PKs also generate `<Entity>Id.java` (interface) + `<Entity>IdJpaImpl.j
 
 ### Special Column Detection
 
-- `version`/`row_version` → `@Version` (optimistic locking)
-- `created_at`/`updated_at` → auto-managed via `JpaWithContextAndCreatedUpdated`
-- PK columns → typed ID classes
-- FK columns → `@ManyToOne(fetch = LAZY)` + `@JoinColumn`
+- `version`/`row_version`→`@Version` (optimistic locking)
+- `created_at`/`updated_at`→auto-managed via `JpaWithContextAndCreatedUpdated`
+- PK columns→typed ID classes
+- FK columns→`@ManyToOne(fetch = LAZY)` + `@JoinColumn`
 
 ---
 
@@ -130,7 +131,8 @@ Composite PKs also generate `<Entity>Id.java` (interface) + `<Entity>IdJpaImpl.j
 
 ### `RdbBaseDbConfig` — Central `@Configuration`
 
-Wires: `DataSource` → `EntityManagerFactory` (Hibernate) → `JpaTransactionManager` → `RdbTransactionWrapperImpl`, `EntityManagerProviderImpl`, `RdbIterator`, `TransactionalNamedParameterJdbcTemplate`.
+Wires: `DataSource`→`EntityManagerFactory` (Hibernate)→`JpaTransactionManager`→`RdbTransactionWrapperImpl`,
+`EntityManagerProviderImpl`, `RdbIterator`, `TransactionalNamedParameterJdbcTemplate`.
 
 ### Package Scanning
 
@@ -152,22 +154,22 @@ Wires: `DataSource` → `EntityManagerFactory` (Hibernate) → `JpaTransactionMa
 
 Package: `sk.db.relational.types`. Access Spring services via `UTWithContext.getInjector()` (reads `CoreServices` from session factory properties).
 
-| Class | Mapping | Notes |
-|---|---|---|
-| `UTUuidIdToUuid` | UUID col → `IdUuid` subclass | Reflection for UUID constructor |
-| `UTTextIdToVarchar` | TEXT/VARCHAR → `IdString` subclass | Reflection for String constructor |
-| `UTUuidIdToVarchar36` | VARCHAR(36) → `IdUuid` subclass | UUID stored as text |
-| `UTIntIdToInt` | INTEGER → typed ID | — |
-| `UTLongIdToBigInt` | BIGINT → typed ID | — |
-| `UTEnumToString` | VARCHAR → Java Enum | Stores enum name |
-| `UtPgEnumToEnumUserType` | PG enum → Java Enum | Uses `Types.OTHER` |
-| `UTObjectToJsonb` | JSONB → Java object | Via `IJson` service |
-| `UTObjectToJsonbWithNulls` | JSONB → Java object | Preserves null JSON values |
-| `UTStringToJsonb` | JSONB → raw String | — |
-| `UTZdtToTimestamp` | TIMESTAMP → `ZonedDateTime` | Via `ITime` service |
-| `UTZdtToBigInt` | BIGINT → `ZonedDateTime` | Epoch millis |
-| `UTLocalDateToText` | TEXT → `LocalDate` | — |
-| `UTStringSetToString` | TEXT → `Set<String>` | — |
+| Class                      | Mapping                          | Notes                             |
+|----------------------------|----------------------------------|-----------------------------------|
+| `UTUuidIdToUuid`           | UUID col→`IdUuid` subclass       | Reflection for UUID constructor   |
+| `UTTextIdToVarchar`        | TEXT/VARCHAR→`IdString` subclass | Reflection for String constructor |
+| `UTUuidIdToVarchar36`      | VARCHAR(36)→`IdUuid` subclass    | UUID stored as text               |
+| `UTIntIdToInt`             | INTEGER→typed ID                 | —                                 |
+| `UTLongIdToBigInt`         | BIGINT→typed ID                  | —                                 |
+| `UTEnumToString`           | VARCHAR→Java Enum                | Stores enum name                  |
+| `UtPgEnumToEnumUserType`   | PG enum→Java Enum                | Uses `Types.OTHER`                |
+| `UTObjectToJsonb`          | JSONB→Java object                | Via `IJson` service               |
+| `UTObjectToJsonbWithNulls` | JSONB→Java object                | Preserves null JSON values        |
+| `UTStringToJsonb`          | JSONB→raw String                 | —                                 |
+| `UTZdtToTimestamp`         | TIMESTAMP→`ZonedDateTime`        | Via `ITime` service               |
+| `UTZdtToBigInt`            | BIGINT→`ZonedDateTime`           | Epoch millis                      |
+| `UTLocalDateToText`        | TEXT→`LocalDate`                 | —                                 |
+| `UTStringSetToString`      | TEXT→`Set<String>`               | —                                 |
 
 ---
 
@@ -226,7 +228,9 @@ Generated `StorageFacadeImpl` extends `RdbTransactionManagerImpl`:
 }
 ```
 
-- **`RdbTransactionManagerGenericImpl`** (2025+) — Auto-discovery alternative: `RdbTransactionManagerHolder` introspects all `ReadWriteRepo` beans at startup, builds `Class → ReadWriteRepo` map via reflection. No code generation needed for `saveSingleItem`.
+- **`RdbTransactionManagerGenericImpl`** (2025+) — Auto-discovery alternative: `RdbTransactionManagerHolder` introspects all
+  `ReadWriteRepo` beans at startup, builds `Class→ReadWriteRepo` map via reflection. No code generation needed for
+  `saveSingleItem`.
 
 ---
 
@@ -234,7 +238,7 @@ Generated `StorageFacadeImpl` extends `RdbTransactionManagerImpl`:
 
 `CoreServices` injected into every `JpaWithContext` entity via Hibernate event listeners:
 
-1. `RdbIntegratorProvider4Context` → registers `RdbIntegrator4Context` as Hibernate `Integrator`
+1. `RdbIntegratorProvider4Context`→registers `RdbIntegrator4Context` as Hibernate `Integrator`
 2. Listens to PRE_LOAD, PRE_INSERT, PRE_UPDATE, PERSIST, SAVE, MERGE, UPDATE
 3. Injects `CoreServices` from session factory properties (key: `__JSK_INJECTOR__`)
 
@@ -312,7 +316,7 @@ Flyway 11.20.2. `postgres-mig` = `relational-mig` + PG driver.
 ## Setup Checklist
 
 1. Create SQL schema with `CREATE TABLE` + meta-annotations
-2. Run `JsaMain` → generates entities, repos, storage facade
+2. Run `JsaMain`→generates entities, repos, storage facade
 3. **Rename generated package** from `__aBcDeFgHiJ/` to actual package
 4. Extend `RdbPostgresProperties` with connection settings
 5. Create `@Configuration` with `@EnableJpaRepositories(repositoryFactoryBeanClass = JskJpaRepositoryFactoryBean.class)`

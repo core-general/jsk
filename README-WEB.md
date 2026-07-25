@@ -1,6 +1,7 @@
 # JSK Web Framework Reference
 
-Interface-first, annotation-driven web framework. Define API as a Java interface → same interface drives server routing, client proxy generation, and documentation.
+Interface-first, annotation-driven web framework. Define API as a Java interface→same interface drives server routing, client
+proxy generation, and documentation.
 
 ## Key Type: `O<T>`
 
@@ -45,7 +46,7 @@ web-api-modules/
 │   └── web-client-swagger/
 │       └── web-client-swagger-generator/  # OpenAPI/Swagger spec generation
 mvn-plugins/
-├── web-api-info-generator-maven-plugin/   # REQUIRED: Parses API source → metadata JSON
+├── web-api-info-generator-maven-plugin/   # REQUIRED: Parses API source→metadata JSON
 └── web-client-swagger-maven-plugin/       # Generates Swagger + optional Dart/TS clients
 ```
 
@@ -196,7 +197,7 @@ Thread-local request context. Inject and use inside API implementations:
 
 ## Creating a Java Client
 
-Same API interface → type-safe HTTP client via `WebClientFactory`:
+Same API interface→type-safe HTTP client via `WebClientFactory`:
 
 ```java
 // Full version (with pre-request hook)
@@ -207,7 +208,8 @@ O<API> createWebApiClient(String basePath, Class<API> apiCls,
 O<API> createWebApiClient(String basePath, Class<API> apiCls, WebClientResultHandler<E> resultHandler)
 ```
 
-Creates a **dynamic proxy** that translates method calls → HTTP requests using annotation metadata. Handles path param substitution, `@WebAuth` secrets, `@WebIdempotence` keys automatically.
+Creates a **dynamic proxy** that translates method calls→HTTP requests using annotation metadata. Handles path param substitution,
+`@WebAuth` secrets, `@WebIdempotence` keys automatically.
 
 - `WebClientInputHandler` — pre-request hook to modify `WebApiClientExecutionModel` (headers, URL, etc.)
 - `WebClientResultHandler<E>` — processes responses. Default: `WebClientResultHandlerSimpleJsonImpl` (JSON deserialization)
@@ -223,18 +225,18 @@ Creates a **dynamic proxy** that translates method calls → HTTP requests using
 
 Filters sorted by `getFilterPriority()` in a `TreeSet`. Chain built via `descendingSet()` — **lowest priority = executes first**.
 
-| # | Filter | Priority | Purpose |
-|---|---|---|---|
-| 1 | `WebContextExplicatorFilter` | -2,000,000 | Explicates request context |
-| 2 | `WebRequestLoggingFilter` | 0 | Logs request info |
-| 3 | `WebDefaultHeadersFilter` | 1,000,000 | Sets default response headers |
-| 4 | `WebDdosFilter` | 2,000,000 | Rate limiting / DDoS protection |
-| 5 | `WebIdempotenceFilter` | 3,000,000 | Idempotency handling |
-| 6 | `WebExceptionFilter` | 4,000,000 | Catches and renders exceptions |
-| 7 | `WebShutdownFilter` | 5,000,000 | Returns 503 during shutdown |
-| 8 | `WebAuthFilter` | 6,000,000 | Validates `@WebAuth` secrets |
-| 9 | `WebRenderFilter` | 7,000,000 | Prepares rendering context |
-| | → **Method invocation** | | |
+| # | Filter                       | Priority   | Purpose                         |
+|---|------------------------------|------------|---------------------------------|
+| 1 | `WebContextExplicatorFilter` | -2,000,000 | Explicates request context      |
+| 2 | `WebRequestLoggingFilter`    | 0          | Logs request info               |
+| 3 | `WebDefaultHeadersFilter`    | 1,000,000  | Sets default response headers   |
+| 4 | `WebDdosFilter`              | 2,000,000  | Rate limiting / DDoS protection |
+| 5 | `WebIdempotenceFilter`       | 3,000,000  | Idempotency handling            |
+| 6 | `WebExceptionFilter`         | 4,000,000  | Catches and renders exceptions  |
+| 7 | `WebShutdownFilter`          | 5,000,000  | Returns 503 during shutdown     |
+| 8 | `WebAuthFilter`              | 6,000,000  | Validates `@WebAuth` secrets    |
+| 9 | `WebRenderFilter`            | 7,000,000  | Prepares rendering context      |
+|   | →**Method invocation**       |            |                                 |
 
 `PRIORITY_STEP = 1,000,000`. `WebUserActionLoggingFilter` (priority: -1,000,000) is an additional filter, not in default set.
 
@@ -264,7 +266,7 @@ Override `getExceptionProcessors(O<Method> methodOrAll)` on `WebServerCore` for 
 - **Server**: `WebAuthServer.authenticate(O<String> secret)` validates. Default: `WebAuthServerWithStaticSecrets` using `WebSecretProvider.getPossibleSecrets()`.
 - **Client**: `WebAuthClient.getSecret4Client()` provides secret. Default: `WebAuthClientWithStaticSecrets`.
 - `isParamOrHeader`: `true` = request param, `false` = header
-- `getPassword` non-empty → static password, bypasses providers
+- `getPassword` non-empty→static password, bypasses providers
 
 ### Basic Auth (`@WebAuthBasic`)
 
@@ -326,13 +328,15 @@ Both can be used together. All collected into a set. Separator is `#` (NOT comma
 
 ## Graceful Shutdown
 
-`WebServerCore` implements `AppStopListener`. On stop: sets `shouldStop` flag → `WebShutdownFilter` returns 503 for new requests. Override `waitBeforeStopMs()` (default 1000ms) to adjust delay.
+`WebServerCore` implements `AppStopListener`. On stop: sets `shouldStop` flag→`WebShutdownFilter` returns 503 for new requests.
+Override `waitBeforeStopMs()` (default 1000ms) to adjust delay.
 
 ## Maven Plugins
 
 ### `web-api-info-generator-maven-plugin` (REQUIRED)
 
-Parses API `.java` source with JavaParser → generates metadata JSON to `__jsk_util/api_info/`. **Without this, runtime throws error.** Captures parameter names (not available via reflection), Javadoc, hash codes for API versioning.
+Parses API `.java` source with JavaParser→generates metadata JSON to `__jsk_util/api_info/`. **Without this, runtime throws error.
+** Captures parameter names (not available via reflection), Javadoc, hash codes for API versioning.
 
 ```xml
 <plugin>

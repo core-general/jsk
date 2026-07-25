@@ -24,10 +24,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import sk.services.kv.keys.KvKeyRaw;
 import sk.services.kv.keys.KvSimpleKeyWithName;
-import sk.utils.functional.O;
 import sk.utils.statics.Cc;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for {@link RedisKVStoreImpl} key format logic.
@@ -78,7 +78,7 @@ class RedisKVStoreImplTest {
 
     @Test
     void keyFormat_kvSimpleKeyWithName_splitsOnUnderscore() {
-        // KvSimpleKeyWithName("FOO_bar", ...) → categories=["FOO","bar"] → prefix:FOO:bar
+        // KvSimpleKeyWithName("FOO_bar", ...)→categories=["FOO","bar"]→prefix:FOO:bar
         KvSimpleKeyWithName key = new KvSimpleKeyWithName("FOO_bar", "default");
         byte[] redisKey = kvStore.toRedisKey(key);
         assertEquals(KEY_PREFIX + ":FOO:bar", new String(redisKey));
@@ -86,7 +86,7 @@ class RedisKVStoreImplTest {
 
     @Test
     void keyFormat_kvSimpleKeyWithName_threePartName() {
-        // KvSimpleKeyWithName("NS_part_sort", ...) → categories=["NS","part","sort"]
+        // KvSimpleKeyWithName("NS_part_sort", ...)→categories=["NS","part","sort"]
         KvSimpleKeyWithName key = new KvSimpleKeyWithName("NS_part_sort", "default");
         byte[] redisKey = kvStore.toRedisKey(key);
         assertEquals(KEY_PREFIX + ":NS:part:sort", new String(redisKey));

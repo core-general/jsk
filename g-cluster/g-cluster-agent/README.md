@@ -5,7 +5,7 @@ Lightweight agent process that runs on cluster nodes, polls S3 for new file vers
 ## What It Solves
 
 - Periodically checks S3 for newer versions of tracked files, downloads updates, manages version state (good/bad/new)
-- Rolling update protocol: acquire S3 lock → download → restart service → health-check → mark good or rollback
+- Rolling update protocol: acquire S3 lock→download→restart service→health-check→mark good or rollback
 - Exposes health-check endpoint on port 8079 via SparkJava (`/agent/ping`)
 - Automatic rollback to last known good version if health check fails
 

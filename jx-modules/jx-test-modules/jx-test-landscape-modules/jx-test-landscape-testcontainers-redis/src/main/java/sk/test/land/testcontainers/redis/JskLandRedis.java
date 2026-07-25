@@ -42,7 +42,7 @@ import sk.utils.statics.Cc;
  * Follows the same pattern as {@link sk.test.land.testcontainers.JskLandContainer}:
  * <ul>
  *   <li>Extends {@code JskLandContainer<GenericContainer<?>>}</li>
- *   <li>Implements {@code JskLandEmptyStateMixin} with {@code toEmptyState()} → {@code FLUSHDB}</li>
+ *   <li>Implements {@code JskLandEmptyStateMixin} with {@code toEmptyState()}→{@code FLUSHDB}</li>
  *   <li>Port binding via constructor</li>
  *   <li>Convenience methods for client access</li>
  * </ul>

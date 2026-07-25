@@ -6,7 +6,7 @@ Base Testcontainers integration for the landscape framework — bridges `JskLand
 
 - `JskLandContainer<DOCKER>` — abstract `JskLand` subclass that manages a `GenericContainer` lifecycle
 - Auto-starts the container on first `getContainer()` call if not already initialized
-- Maps `doInit()` → `container.start()` and `doShutdown()` → `container.stop()`
+- Maps `doInit()`→`container.start()` and `doShutdown()`→`container.stop()`
 
 ## Key Details
 

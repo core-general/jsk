@@ -284,7 +284,7 @@ public class RedisKVStoreImpl extends IKvStoreJsonBased implements IKvUnlimitedS
     /**
      * Replicates DynKVStoreImpl.getOrCreateNewAllValues pattern:
      * 1. Try getRawVersionedAll
-     * 2. If empty → trySaveNewStringAndRaw with default, then re-read
+     * 2. If empty→trySaveNewStringAndRaw with default, then re-read
      */
     private O<KvVersionedItemAll<String>> getOrCreateAllValues(KvKeyWithDefault key) {
         O<KvVersionedItemAll<String>> existing = getRawVersionedAll(key);

@@ -6,7 +6,8 @@ The core server engine — reads API interface metadata, creates HTTP routes, bu
 
 - `WebServerCore<T>` creates routes from API interface + implementation, processes requests through a priority-sorted filter chain
 - `WebServerCoreWithPings<T>` adds auto-generated auxiliary endpoints: `{basePath}/ping`, `/jskinfo`, `/api-info`, `/api-info-postman`, `/api-info-swagger`
-- 9 standard filters (priority-ordered): context parsing → request logging → default headers → DDoS rate limiting → idempotence → exception handling → shutdown → auth → rendering
+- 9 standard filters (priority-ordered): context parsing→request logging→default headers→DDoS rate limiting→idempotence→exception
+  handling→shutdown→auth→rendering
 
 ## Key Details
 

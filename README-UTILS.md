@@ -12,21 +12,21 @@ Final classes, static methods only. 2-letter names by design.
 
 #### `Cc` — Collections
 
-| Category | Methods | Notes |
-|---|---|---|
-| **Create** | `l(items...)` `s(items...)` `m(k,v,...)` `tm(k,v,...)` `lhm(k,v,...)` `em(cls,k,v,...)` `q(items...)` | Mutable. `l`→ArrayList, `s`→HashSet, `m`→HashMap, `tm`→TreeMap, `lhm`→LinkedHashMap, `em`→EnumMap, `q`→ArrayDeque. Map factories check dup keys. |
-| **Empty** | `lEmpty()` `mEmpty()` `sEmpty()` | Immutable (delegates `Collections.empty*()`) |
-| **Join** | `join(delim, iter, toStr)` `joinMap(iDel, keyDel, map, toStrK, toStrV)` | `joinMap` stringers are `F2S<K,V>` — receive both key AND value |
-| **Streams** | `stream(iterable)` `stream(iterator)` `addStream(s1,s2)` | Any Iterable/Iterator → Stream |
-| **Collectors** | `toL()` `toS()` `toM(keyMapper)` `toM(keyMapper,valMapper)` `toMX2()` `toSortedM(...)` `toSortedMX2()` `toMEntry()` `toSortedMEntry()` | `toMX2()` collects X2 tuples→map, `toMEntry()` collects Map.Entry streams |
-| **Iterate** | `eachWithIndex(iter,c)` `eachWithEach(t1,t2,c)` `eachSync(t1,t2,c)` `mapEachWithIndex(iter,f)` | Indexed/sync/cartesian |
-| **List ops** | `first(l)` `last(l)` `getAt(l,i)` `sort(l,comp)` `reverse(l)` `shuffle(l,rnd)` `filter(l,pred)` `map(l,fn)` `fill(n,val)` | Return `O<T>` for safe access |
-| **Map ops** | `compute(map,key,remap,start)` `putAll(map,maps...)` `groupBy(col,fn)` `mapBy(col,fn)` `filter(map,pred)` | Return the map (chaining) |
-| **Set ops** | `addAll(col,cols...)` `removeAll(c1,c2)` `retainAll(c1,c2)` | Mutate-and-return |
-| **Ordering** | `ordering(list)`→`Map<T,Integer>` `orderingComparator(ordering)` | Build comparator from reference list |
-| **Split** | `splitIntoGroups(col, size)` | Split collection into sized groups |
+| Category       | Methods                                                                                                                                | Notes                                                                                                                                            |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Create**     | `l(items...)` `s(items...)` `m(k,v,...)` `tm(k,v,...)` `lhm(k,v,...)` `em(cls,k,v,...)` `q(items...)`                                  | Mutable. `l`→ArrayList, `s`→HashSet, `m`→HashMap, `tm`→TreeMap, `lhm`→LinkedHashMap, `em`→EnumMap, `q`→ArrayDeque. Map factories check dup keys. |
+| **Empty**      | `lEmpty()` `mEmpty()` `sEmpty()`                                                                                                       | Immutable (delegates `Collections.empty*()`)                                                                                                     |
+| **Join**       | `join(delim, iter, toStr)` `joinMap(iDel, keyDel, map, toStrK, toStrV)`                                                                | `joinMap` stringers are `F2S<K,V>` — receive both key AND value                                                                                  |
+| **Streams**    | `stream(iterable)` `stream(iterator)` `addStream(s1,s2)`                                                                               | Any Iterable/Iterator→Stream                                                                                                                     |
+| **Collectors** | `toL()` `toS()` `toM(keyMapper)` `toM(keyMapper,valMapper)` `toMX2()` `toSortedM(...)` `toSortedMX2()` `toMEntry()` `toSortedMEntry()` | `toMX2()` collects X2 tuples→map, `toMEntry()` collects Map.Entry streams                                                                        |
+| **Iterate**    | `eachWithIndex(iter,c)` `eachWithEach(t1,t2,c)` `eachSync(t1,t2,c)` `mapEachWithIndex(iter,f)`                                         | Indexed/sync/cartesian                                                                                                                           |
+| **List ops**   | `first(l)` `last(l)` `getAt(l,i)` `sort(l,comp)` `reverse(l)` `shuffle(l,rnd)` `filter(l,pred)` `map(l,fn)` `fill(n,val)`              | Return `O<T>` for safe access                                                                                                                    |
+| **Map ops**    | `compute(map,key,remap,start)` `putAll(map,maps...)` `groupBy(col,fn)` `mapBy(col,fn)` `filter(map,pred)`                              | Return the map (chaining)                                                                                                                        |
+| **Set ops**    | `addAll(col,cols...)` `removeAll(c1,c2)` `retainAll(c1,c2)`                                                                            | Mutate-and-return                                                                                                                                |
+| **Ordering**   | `ordering(list)`→`Map<T,Integer>` `orderingComparator(ordering)`                                                                       | Build comparator from reference list                                                                                                             |
+| **Split**      | `splitIntoGroups(col, size)`                                                                                                           | Split collection into sized groups                                                                                                               |
 
-`Cc.l("Alice","Bob")` → ArrayList, `Cc.m("Alice",95,"Bob",87)` → HashMap, `Cc.join(", ", items, Item::getName)`
+`Cc.l("Alice","Bob")`→ArrayList, `Cc.m("Alice",95,"Bob",87)`→HashMap, `Cc.join(", ", items, Item::getName)`
 
 #### `St` — Strings
 
@@ -194,7 +194,8 @@ Lazy init wrapper. **Not thread-safe**. `lazy.get()` (compute on first call), `l
 
 ### 1.3 Tuples (`sk.utils.tuples`)
 
-`X.x(a)` through `X.x(a,b,c,d,e,f,g)` → `X1` through `X7`. Fields: `i1` `i2` ... (public + accessor methods). Implements `AsList`, proper `equals`/`hashCode`.
+`X.x(a)` through `X.x(a,b,c,d,e,f,g)`→`X1` through `X7`. Fields: `i1` `i2` ... (public + accessor methods). Implements `AsList`,
+proper `equals`/`hashCode`.
 
 ### 1.4 Async Primitives (`sk.utils.async`)
 
@@ -307,21 +308,21 @@ Usage: `http.get(url).tryCount(5).timeout(Duration.ofSeconds(30)).go().left()`
 
 ## 3. jx-services-standard-impl
 
-Default implementations. `CoreServicesRaw.services()` → fully wired DI-free instance.
+Default implementations. `CoreServicesRaw.services()`→fully wired DI-free instance.
 
-| Impl → Interface | Notes |
-|---|---|
-| `CoreServicesRaw`→`ICoreServices` | Factory for all services |
-| `AsyncImpl`→`IAsync` | ExecutorService/ForkJoinPool |
-| `BytesImpl`→`IBytes` | JDK-based |
-| `JGsonImpl`→`IJson` | Gson + polymorphism |
-| `UtcSettableTimeUtilImpl`→`ITime` | UTC settable |
-| `IdsImpl`→`IIds` | UUID+hashing (SecureRandImpl) |
-| `RandTestImpl`→`IRand` | Test-oriented; `SecureRandImpl` also available |
-| `HttpImpl`→`IHttp` | java.net.http.HttpClient |
-| `ILogConsoleImpl`→`ILog` | Console |
-| `RepeatImpl`/`ResCacheImpl` | Standard |
-| `Freemarker`→`IFree` | Freemarker |
+| Impl→Interface                    | Notes                                          |
+|-----------------------------------|------------------------------------------------|
+| `CoreServicesRaw`→`ICoreServices` | Factory for all services                       |
+| `AsyncImpl`→`IAsync`              | ExecutorService/ForkJoinPool                   |
+| `BytesImpl`→`IBytes`              | JDK-based                                      |
+| `JGsonImpl`→`IJson`               | Gson + polymorphism                            |
+| `UtcSettableTimeUtilImpl`→`ITime` | UTC settable                                   |
+| `IdsImpl`→`IIds`                  | UUID+hashing (SecureRandImpl)                  |
+| `RandTestImpl`→`IRand`            | Test-oriented; `SecureRandImpl` also available |
+| `HttpImpl`→`IHttp`                | java.net.http.HttpClient                       |
+| `ILogConsoleImpl`→`ILog`          | Console                                        |
+| `RepeatImpl`/`ResCacheImpl`       | Standard                                       |
+| `Freemarker`→`IFree`              | Freemarker                                     |
 
 ---
 

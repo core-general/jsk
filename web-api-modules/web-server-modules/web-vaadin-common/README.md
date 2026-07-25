@@ -6,7 +6,7 @@ Vaadin Flow UI component library — custom layout components, typed form fields
 
 - Custom layout components: `YHorizontal`, `YVertical`, `YHtml`, `YRemovableDialog`, `YSvg`
 - Typed form fields: `YStringField`, `YIntField`, `YLongField`, `YFloatField`, `YDoubleField`, `YUuidField`, `YPasswordField`
-- Binding infrastructure: `YBindedField` → `YBindedBufferedField` (save/cancel) → `YBindedBufferedDialogField` (in dialog)
+- Binding infrastructure: `YBindedField`→`YBindedBufferedField` (save/cancel)→`YBindedBufferedDialogField` (in dialog)
 - `BaseWebAppInit` bootstraps Vaadin + Spring MVC application with Atmosphere (Push) support
 
 ## Key Details
