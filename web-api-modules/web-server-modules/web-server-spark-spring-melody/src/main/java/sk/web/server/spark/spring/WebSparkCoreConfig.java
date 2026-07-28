@@ -104,7 +104,7 @@ public class WebSparkCoreConfig {
 
             @Override
             public int getUserRequestsAllowedInCourt() {
-                return 10;
+                return 30;
             }
 
             @Override
