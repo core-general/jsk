@@ -1,10 +1,10 @@
-package sk.web.server.context;
+package sk.web.server.model;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2026 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,16 @@ package sk.web.server.context;
  * #L%
  */
 
-import sk.web.annotations.WebInputLimit;
+import lombok.Getter;
 
-public abstract class WebRequestOuterFullContext
-        extends WebRequestWritableOuterContext
-        implements WebRequestReadableOuterContext {
-    public void setInputLimit(WebInputLimit inputLimit) {
+@Getter
+public final class WebInputLimitExceededException extends RuntimeException {
+    private final String problemCode;
+    private final String problemMessage;
+
+    public WebInputLimitExceededException(String problemCode, String problemMessage) {
+        super(problemCode + ": " + problemMessage);
+        this.problemCode = problemCode;
+        this.problemMessage = problemMessage;
     }
 }

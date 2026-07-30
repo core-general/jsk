@@ -383,6 +383,118 @@ public interface IBytes {
             throw new RuntimeException("Error while decompression!", e);
         }
     }
+
+    default byte[] unGzipBytes(byte[] data, int maxOutputBytes) {
+        if (data == null || data.length == 0) {
+            throw new IllegalArgumentException("unGzip data is bad");
+        }
+        if (maxOutputBytes < 0) {
+            throw new IllegalArgumentException("Invalid gzip output limit: " + maxOutputBytes);
+        }
+
+        int inputOffset = gzipHeaderEnd(data);
+        Inflater inflater = new Inflater(true);
+        CRC32 crc = new CRC32();
+        int initialSize = Math.min(maxOutputBytes, 8 * 1024);
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream(initialSize)) {
+            inflater.setInput(data, inputOffset, data.length - inputOffset);
+            byte[] buffer = new byte[8 * 1024];
+            int outputSize = 0;
+            while (!inflater.finished()) {
+                int inflated = inflater.inflate(buffer);
+                if (inflated > 0) {
+                    if (inflated > maxOutputBytes - outputSize) {
+                        throw new Io.StreamLimitExceededException(maxOutputBytes);
+                    }
+                    output.write(buffer, 0, inflated);
+                    crc.update(buffer, 0, inflated);
+                    outputSize += inflated;
+                } else if (inflater.needsDictionary() || inflater.needsInput()) {
+                    throw new IllegalArgumentException("Invalid gzip deflate stream");
+                } else {
+                    throw new IllegalArgumentException("Gzip inflater made no progress");
+                }
+            }
+
+            int trailerOffset = data.length - inflater.getRemaining();
+            if (data.length - trailerOffset != 8) {
+                throw new IllegalArgumentException("Gzip must contain exactly one member");
+            }
+            long expectedCrc = littleEndianUnsignedInt(data, trailerOffset);
+            long expectedSize = littleEndianUnsignedInt(data, trailerOffset + 4);
+            if (expectedCrc != crc.getValue()
+                    || expectedSize != Integer.toUnsignedLong(outputSize)) {
+                throw new IllegalArgumentException("Invalid gzip trailer");
+            }
+            return output.toByteArray();
+        } catch (DataFormatException | IOException e) {
+            throw new IllegalArgumentException("Invalid gzip data", e);
+        } finally {
+            inflater.end();
+        }
+    }
+
+    private static int gzipHeaderEnd(byte[] data) {
+        if (data.length < 18
+                || (data[0] & 0xff) != 0x1f
+                || (data[1] & 0xff) != 0x8b
+                || (data[2] & 0xff) != Deflater.DEFLATED) {
+            throw new IllegalArgumentException("Invalid gzip header");
+        }
+        int flags = data[3] & 0xff;
+        if ((flags & 0xe0) != 0) {
+            throw new IllegalArgumentException("Invalid gzip flags");
+        }
+        int offset = 10;
+        if ((flags & 0x04) != 0) {
+            requireGzipBytes(data, offset, 2);
+            int extraLength = (data[offset] & 0xff) | ((data[offset + 1] & 0xff) << 8);
+            offset += 2;
+            requireGzipBytes(data, offset, extraLength);
+            offset += extraLength;
+        }
+        if ((flags & 0x08) != 0) {
+            offset = gzipZeroTerminatedEnd(data, offset);
+        }
+        if ((flags & 0x10) != 0) {
+            offset = gzipZeroTerminatedEnd(data, offset);
+        }
+        if ((flags & 0x02) != 0) {
+            requireGzipBytes(data, offset, 2);
+            CRC32 headerCrc = new CRC32();
+            headerCrc.update(data, 0, offset);
+            int expected = (data[offset] & 0xff) | ((data[offset + 1] & 0xff) << 8);
+            if (((int) headerCrc.getValue() & 0xffff) != expected) {
+                throw new IllegalArgumentException("Invalid gzip header CRC");
+            }
+            offset += 2;
+        }
+        requireGzipBytes(data, offset, 9);
+        return offset;
+    }
+
+    private static int gzipZeroTerminatedEnd(byte[] data, int offset) {
+        while (offset < data.length && data[offset] != 0) {
+            offset++;
+        }
+        requireGzipBytes(data, offset, 1);
+        return offset + 1;
+    }
+
+    private static void requireGzipBytes(byte[] data, int offset, int count) {
+        if (offset < 0 || count < 0 || offset > data.length - count) {
+            throw new IllegalArgumentException("Truncated gzip data");
+        }
+    }
+
+    private static long littleEndianUnsignedInt(byte[] data, int offset) {
+        requireGzipBytes(data, offset, 4);
+        return Integer.toUnsignedLong(
+                (data[offset] & 0xff)
+                        | ((data[offset + 1] & 0xff) << 8)
+                        | ((data[offset + 2] & 0xff) << 16)
+                        | ((data[offset + 3] & 0xff) << 24));
+    }
     //endregion
 
 

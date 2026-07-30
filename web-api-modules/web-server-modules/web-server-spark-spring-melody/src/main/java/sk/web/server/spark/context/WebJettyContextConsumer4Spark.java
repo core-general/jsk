@@ -25,7 +25,6 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
@@ -51,6 +50,7 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
+import sk.web.annotations.WebInputLimit;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebContentTypeMeta;
 import sk.web.renders.WebRenderResult;
@@ -59,6 +59,7 @@ import sk.web.server.WebServerContext;
 import sk.web.server.WebServerCore;
 import sk.web.server.context.WebRequestIp;
 import sk.web.server.context.WebRequestOuterFullContext;
+import sk.web.server.model.WebInputLimitExceededException;
 import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebAdditionalParams;
 import sk.web.server.params.WebServerParams;
@@ -168,6 +169,45 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         };
     }
 
+    static boolean isMultipartContentType(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
+        String normalized = contentType.stripLeading();
+        String mediaType = "multipart/form-data";
+        if (!normalized.regionMatches(true, 0, mediaType, 0, mediaType.length())) {
+            return false;
+        }
+        String suffix = normalized.substring(mediaType.length()).stripLeading();
+        return suffix.isEmpty() || suffix.startsWith(";");
+    }
+
+    static void validateMultipartParts(Collection<Part> parts, WebInputLimit inputLimit) {
+        if (parts.size() > inputLimit.maxPartCount()) {
+            throw inputLimitExceeded(inputLimit);
+        }
+        long aggregate = 0;
+        for (Part part : parts) {
+            long partSize = part.getSize();
+            if (partSize < 0 || partSize > inputLimit.maxPartBytes()) {
+                throw inputLimitExceeded(inputLimit);
+            }
+            try {
+                aggregate = Math.addExact(aggregate, partSize);
+            } catch (ArithmeticException e) {
+                throw inputLimitExceeded(inputLimit);
+            }
+            if (aggregate > inputLimit.maxAggregatePartBytes()) {
+                throw inputLimitExceeded(inputLimit);
+            }
+        }
+    }
+
+    private static WebInputLimitExceededException inputLimitExceeded(WebInputLimit inputLimit) {
+        return new WebInputLimitExceededException(
+                inputLimit.problemCode(), inputLimit.problemMessage());
+    }
+
     private class BasicSparkRoute implements Route {
         private final String type;
         private final String path;
@@ -206,6 +246,9 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         private final ConcurrentHashMap<String, byte[]> multipartCache;
         private final ConcurrentHashMap<String, String> paramCache;
         private final AtomicReference<String> requestHash = new AtomicReference<>();
+        private final AtomicReference<Boolean> multipartLimitsChecked = new AtomicReference<>(false);
+        private volatile WebInputLimit inputLimit;
+        private volatile byte[] bodyCache;
 
         public SparkWebRequestOuterFullContext(String type, String path, Request request, boolean multipartSure,
                 Response response, Optional<IIpGeoExtractor> geoService, IBytes bytes, IIds ids) {
@@ -223,6 +266,18 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         @Override
         public String getRequestType() {
             return type;
+        }
+
+        @Override
+        public void setInputLimit(WebInputLimit inputLimit) {
+            if (inputLimit.maxRequestBytes() < 0
+                    || inputLimit.maxPartBytes() < 0
+                    || inputLimit.maxAggregatePartBytes() < 0
+                    || inputLimit.maxPartCount() < 0) {
+                throw new IllegalArgumentException("Web input limits must be non-negative");
+            }
+            this.inputLimit = inputLimit;
+            checkRequestLength();
         }
 
         @Override
@@ -246,7 +301,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
             final String realIp = proxy2.or(() -> proxy1).orElse(ip);
             return new WebRequestIp(realIp, proxies,
-                    O.of(geoService).flatMap($ -> $.ipToGeoData(realIp)));
+                    O.of(geoService).flatMap($ -> $.ipToGeoData(realIp)), ip);
         }
 
         @Override
@@ -259,6 +314,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         @Override
         public Map<String, String> getAllParamsAsStrings() {
             return throwOnBadRequestData(() -> {
+                enforceMultipartLimits();
                 return Cc.putAll(request.queryParams().stream()
                         .map($ -> X.x($, request.queryParams($)))
                         .collect(Cc.toMX2()), request.params());
@@ -289,14 +345,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         @Override
         public boolean isMultipart() {
             return throwOnBadRequestData(() -> {
-                HttpServletRequest rawRequest = request.raw();
-                return rawRequest.getContentType() != null
-                       && rawRequest.getContentType().startsWith("multipart/form-data");
+                return isMultipartContentType(request.raw().getContentType());
             });
         }
 
         @Override
         public O<String> getParamAsString(String param) {
+            checkRequestLength();
             final String valk = paramCache.computeIfAbsent(param, k -> throwOnBadRequestData(() -> {
                 if (multipartSure) {
                     return ofNull(multipart(request, param).map(bytes -> bytesToS(bytes, "UTF-8"))
@@ -313,13 +368,29 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
         @Override
         public O<byte[]> getParamAsBytes(String param) {
+            checkRequestLength();
             return throwOnBadRequestData(() -> multipart(request, param));
         }
 
         @Override
         public O<byte[]> getBody() {
             return throwOnBadRequestData(() -> {
-                final byte[] value = request.bodyAsBytes();
+                checkRequestLength();
+                byte[] value = bodyCache;
+                if (value == null) {
+                    try {
+                        value = inputLimit == null
+                                ? request.bodyAsBytes()
+                                : sk.utils.statics.Io.streamPump(
+                                        request.raw().getInputStream(),
+                                        inputLimit.maxRequestBytes());
+                    } catch (sk.utils.statics.Io.StreamLimitExceededException e) {
+                        throw inputLimitExceeded();
+                    } catch (IOException e) {
+                        throw new WebProblemWithRequestBodyException(e);
+                    }
+                    bodyCache = value;
+                }
                 if (value.length == 0) {
                     log.error("Body has size 0, we assume it doesn't exist! Method:" + path);
                     return empty();
@@ -332,6 +403,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         @Override
         public SortedMap<String, String> getNonMultipartParamInfo() {
             return throwOnBadRequestData(() -> {
+                enforceMultipartLimits();
                 TreeMap<String, String> toRet = new TreeMap<>();
                 if (isMultipart()) {
                     for (String paramName : Cc.enumerableToIterable(request.raw().getParameterNames())) {
@@ -355,6 +427,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
         public O<List<Part>> getMultipartParamInfo() {
             return throwOnBadRequestData(() -> {
                 try {
+                    checkMultipartLimits();
                     if (isMultipart()) {
                         List<Part> parts = new ArrayList<>();
                         for (String paramName : Cc.enumerableToIterable(request.raw().getParameterNames())) {
@@ -540,11 +613,17 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                    ? ofNull(
                     multipartCache.computeIfAbsent(paramName, (k) -> {
                         try {
+                            checkMultipartLimits();
                             return O.ofNull(req.raw().getPart(paramName)).flatMap(p -> {
                                 long size = p.getSize();
                                 byte[] bytes = new byte[0];
                                 try {
-                                    bytes = streamPump(p.getInputStream());
+                                    bytes = inputLimit == null
+                                            ? streamPump(p.getInputStream())
+                                            : sk.utils.statics.Io.streamPump(
+                                                    p.getInputStream(), inputLimit.maxPartBytes());
+                                } catch (sk.utils.statics.Io.StreamLimitExceededException e) {
+                                    throw inputLimitExceeded();
                                 } catch (IOException e) {
                                     return empty();
                                 }
@@ -562,6 +641,53 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                         }
                     }))
                    : empty();
+        }
+
+        private void checkRequestLength() {
+            if (inputLimit == null) {
+                return;
+            }
+            long contentLength = request.raw().getContentLengthLong();
+            if (contentLength > inputLimit.maxRequestBytes()) {
+                throw inputLimitExceeded();
+            }
+        }
+
+        private void enforceMultipartLimits() {
+            try {
+                checkMultipartLimits();
+            } catch (IOException | ServletException e) {
+                throw new WebProblemWithRequestBodyException(e);
+            }
+        }
+
+        private void checkMultipartLimits() throws IOException, ServletException {
+            if (inputLimit == null || multipartLimitsChecked.get()) {
+                return;
+            }
+            synchronized (multipartLimitsChecked) {
+                if (multipartLimitsChecked.get()) {
+                    return;
+                }
+                checkRequestLength();
+                String contentType = request.raw().getContentType();
+                if (!isMultipartContentType(contentType)) {
+                    multipartLimitsChecked.set(true);
+                    return;
+                }
+                try {
+                    Collection<Part> parts = request.raw().getParts();
+                    validateMultipartParts(parts, inputLimit);
+                } catch (IllegalStateException e) {
+                    throw inputLimitExceeded();
+                }
+                multipartLimitsChecked.set(true);
+            }
+        }
+
+        private WebInputLimitExceededException inputLimitExceeded() {
+            return new WebInputLimitExceededException(
+                    inputLimit.problemCode(), inputLimit.problemMessage());
         }
 
         private <T> T throwOnBadRequestData(F0<T> toRun) {

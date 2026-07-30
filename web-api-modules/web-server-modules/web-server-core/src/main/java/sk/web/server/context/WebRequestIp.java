@@ -31,4 +31,20 @@ public class WebRequestIp {
     String clientIp;
     List<String> proxyChainIps;
     O<IpGeoData> geoData;
+    String peerIp;
+
+    public WebRequestIp(String clientIp, List<String> proxyChainIps, O<IpGeoData> geoData) {
+        this(clientIp, proxyChainIps, geoData, clientIp);
+    }
+
+    public WebRequestIp(
+            String clientIp,
+            List<String> proxyChainIps,
+            O<IpGeoData> geoData,
+            String peerIp) {
+        this.clientIp = clientIp;
+        this.proxyChainIps = proxyChainIps;
+        this.geoData = geoData;
+        this.peerIp = peerIp;
+    }
 }

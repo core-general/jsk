@@ -23,6 +23,7 @@ package sk.web.server.context;
 import lombok.AllArgsConstructor;
 import sk.utils.functional.O;
 import sk.utils.tuples.X2;
+import sk.web.annotations.WebInputLimit;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebRenderResult;
 
@@ -38,6 +39,9 @@ public abstract class WebRequestOuterFullContextAdapter extends WebRequestOuterF
 
     @Override
     public String getRequestType() {return delegate.getRequestType();}
+
+    @Override
+    public void setInputLimit(WebInputLimit inputLimit) {delegate.setInputLimit(inputLimit);}
 
     @Override
     public String getUrlPathPart() {return delegate.getUrlPathPart();}

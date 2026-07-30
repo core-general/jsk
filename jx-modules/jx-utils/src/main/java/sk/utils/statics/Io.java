@@ -157,6 +157,33 @@ public final class Io/*Input/Output*/ {
         }
     }
 
+    public static byte[] streamPump(InputStream is, long maxBytes) {
+        if (maxBytes < 0 || maxBytes > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Invalid stream byte limit: " + maxBytes);
+        }
+        int initialSize = (int) Math.min(maxBytes, 8 * 1024L);
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream(initialSize)) {
+            byte[] buffer = new byte[8 * 1024];
+            long total = 0;
+            int read;
+            try (is) {
+                while ((read = is.read(buffer)) != -1) {
+                    if (read == 0) {
+                        continue;
+                    }
+                    if (read > maxBytes - total) {
+                        throw new StreamLimitExceededException(maxBytes);
+                    }
+                    os.write(buffer, 0, read);
+                    total += read;
+                }
+            }
+            return os.toByteArray();
+        } catch (IOException e) {
+            return Ex.thRow(e);
+        }
+    }
+
     @SneakyThrows
     public static void streamPump(InputStream in, OutputStream out, int bufferSize, StreamPumpInterceptor also) {
         byte[] read_buf = new byte[bufferSize];
@@ -195,6 +222,19 @@ public final class Io/*Input/Output*/ {
                 intercept(buffer, size);
                 after.intercept(buffer, size);
             };
+        }
+    }
+
+    public static final class StreamLimitExceededException extends RuntimeException {
+        private final long maxBytes;
+
+        public StreamLimitExceededException(long maxBytes) {
+            super("Stream exceeds byte limit: " + maxBytes);
+            this.maxBytes = maxBytes;
+        }
+
+        public long getMaxBytes() {
+            return maxBytes;
         }
     }
     //endregion

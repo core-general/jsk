@@ -60,6 +60,7 @@ import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.filters.WebServerFilterNext;
 import sk.web.server.filters.standard.*;
+import sk.web.server.model.WebInputLimitExceededException;
 import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebBasicAuthParams;
 import sk.web.server.params.WebExceptionParams;
@@ -234,20 +235,28 @@ public class WebServerCore<API>
             final O<WebIdempotence> webIdempotence = webApiMethod.getAnnotation(WebIdempotence.class, WebIdempotenceNO.class);
 
             final C1<WebRequestOuterFullContext> outerProcessor = outerContext -> {
-                R basicAuthCheck =
-                        webAuthBasic.map($ -> (R) () -> checkBasicAuth((header) -> outerContext.getRequestHeader(header),
-                                (k, v) -> outerContext.setResponseHeader(k, v), $.realmName(),
-                                $.forceParametersExist())).orElseGet(() -> () -> {});
-
-
-                final WebRequestInnerContext innerContext = prepareInnerContext(outerContext, webApiMethod, methodInfo.getType(),
-                        eCur.or(() -> eProc), webAuth, basicAuthCheck, webIdempotence, foundRender);
                 try {
+                    webApiMethod.getAnnotation(WebInputLimit.class)
+                            .ifPresent(outerContext::setInputLimit);
+                    R basicAuthCheck =
+                            webAuthBasic.map($ -> (R) () -> checkBasicAuth(
+                                    (header) -> outerContext.getRequestHeader(header),
+                                    (k, v) -> outerContext.setResponseHeader(k, v), $.realmName(),
+                                    $.forceParametersExist())).orElseGet(() -> () -> {});
+                    final WebRequestInnerContext innerContext =
+                            prepareInnerContext(outerContext, webApiMethod, methodInfo.getType(),
+                                    eCur.or(() -> eProc), webAuth, basicAuthCheck, webIdempotence, foundRender);
                     WebServerFilterNext curent =
                             invokeBaseMethodSupplier(method, paramGetters, methodInfo, mustMultipart, outerContext);
                     curent = createFilterChain(webApiMethod, curent, innerContext, methodFilters);
                     final WebRenderResult renderResult = curent.invokeNext().render(foundRender, webExcept, webApiMethod);
                     outerContext.setResponse(renderResult, foundRedirect);
+                } catch (WebInputLimitExceededException exc) {
+                    outerContext.setError(
+                            413,
+                            webExcept.getDefaultExceptionRender(),
+                            JskProblem.substatus(exc.getProblemCode(), exc.getProblemMessage()),
+                            webApiMethod);
                 } catch (WebProblemWithRequestBodyException exc) {
                     //should be fixed, that's why stacktrace
                     if (exceptConf.shouldLog(exc)) {

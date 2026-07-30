@@ -1,10 +1,10 @@
-package sk.web.server.context;
+package sk.web.annotations;
 
 /*-
  * #%L
  * Swiss Knife
  * %%
- * Copyright (C) 2019 - 2020 Core General
+ * Copyright (C) 2019 - 2026 Core General
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,23 @@ package sk.web.server.context;
  * #L%
  */
 
-import sk.web.annotations.WebInputLimit;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public abstract class WebRequestOuterFullContext
-        extends WebRequestWritableOuterContext
-        implements WebRequestReadableOuterContext {
-    public void setInputLimit(WebInputLimit inputLimit) {
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface WebInputLimit {
+    long maxRequestBytes();
+
+    long maxPartBytes();
+
+    long maxAggregatePartBytes();
+
+    int maxPartCount();
+
+    String problemCode() default "request_too_large";
+
+    String problemMessage() default "Request input exceeds its limit.";
 }
