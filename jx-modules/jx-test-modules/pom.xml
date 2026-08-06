@@ -6,12 +6,12 @@
     <parent>
         <groupId>jsk</groupId>
         <artifactId>jx-modules</artifactId>
-        <version>jsk.25.3.0</version>
+        <version>jsk.25.3.1</version>
     </parent>
 
     <artifactId>jx-test-modules</artifactId>
     <packaging>pom</packaging>
-    <version>jsk.25.3.0</version>
+    <version>jsk.25.3.1</version>
 
     <modules>
         <module>jx-test</module>
