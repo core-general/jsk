@@ -5,11 +5,11 @@
     <parent>
         <artifactId>jsk-root</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.25.2.0</version>
+        <version>jsk.25.3.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>jsk.25.2.0</version>
+    <version>jsk.25.3.0</version>
 
     <artifactId>g-cluster</artifactId>
     <packaging>pom</packaging>
