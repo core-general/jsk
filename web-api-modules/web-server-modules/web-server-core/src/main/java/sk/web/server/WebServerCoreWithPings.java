@@ -114,6 +114,7 @@ public class WebServerCoreWithPings<T> extends WebServerCore<T> {
             final String infoPath = base + "jskinfo";
             final WebServerFilterNext infoProcessor =
                     () -> {
+                        checkBasic();
                         List<String> categories = getCategoriesFromRequest();
                         final IServerInfo info = nodeInfo.getCurrentServerInfo();
                         if (categories.size() == 0) {
