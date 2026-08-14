@@ -46,7 +46,7 @@ Each module also has its own `README.md` inside its directory.
 <dependency>
     <groupId>jsk</groupId>
     <artifactId>jx-utils</artifactId>
-    <version>jsk.25.4.1</version>
+    <version>jsk.25.5.1</version>
 </dependency>
 ```
 
