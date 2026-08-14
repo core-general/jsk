@@ -24,7 +24,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
@@ -72,11 +72,13 @@ import spark.servlet.SparkFilter;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 import static sk.utils.functional.O.empty;
 import static sk.utils.functional.O.ofNull;
@@ -200,6 +202,19 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
             if (aggregate > inputLimit.maxAggregatePartBytes()) {
                 throw inputLimitExceeded(inputLimit);
             }
+        }
+    }
+
+    static void writeResponseBytes(HttpServletResponse response, byte[] body, boolean gzip) throws IOException {
+        if (!gzip) {
+            response.setContentLength(body.length);
+        }
+        OutputStream output = response.getOutputStream();
+        if (gzip) {
+            output = new GZIPOutputStream(output);
+        }
+        try (BufferedOutputStream buffered = new BufferedOutputStream(output)) {
+            buffered.write(body);
         }
     }
 
@@ -575,7 +590,8 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 result.getMeta().getContentType().getFileName().ifPresent(file -> {
                     response.header("Content-Disposition", String.format("attachment; filename=\"%s\"", file));
                 });
-                if (result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation()) {
+                final boolean gzipResponse = result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation();
+                if (gzipResponse) {
                     response.header("Content-Encoding", "gzip");
                 }
 
@@ -584,11 +600,9 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                             string -> {
                                 response.body(string);
                             },
-                            bytes -> {
-                                response.header("Content-Length", bytes.length + "");
-                                try (ServletOutputStream stream = response.raw().getOutputStream();
-                                     BufferedOutputStream bos = new BufferedOutputStream(stream)) {
-                                    bos.write(bytes);
+                            bodyBytes -> {
+                                try {
+                                    writeResponseBytes(response.raw(), bodyBytes, gzipResponse);
                                 } catch (Exception e) {
                                     log.error("", e);
                                 }

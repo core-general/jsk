@@ -20,22 +20,32 @@ package sk.web.server.spark.context;
  * #L%
  */
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.junit.jupiter.api.Test;
 import sk.web.annotations.WebInputLimit;
 import sk.web.server.model.WebInputLimitExceededException;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class WebJettyContextConsumer4SparkInputLimitTest {
     @Test
     void recognizesMultipartMediaTypeCaseAndParametersWithoutPrefixConfusion() {
@@ -68,6 +78,63 @@ class WebJettyContextConsumer4SparkInputLimitTest {
         assertThrows(WebInputLimitExceededException.class,
                 () -> WebJettyContextConsumer4Spark.validateMultipartParts(
                         List.of(part(1), part(1), part(1)), limits));
+    }
+
+    @Test
+    void writesBinaryResponseAsCompleteGzipStreamWithoutRawContentLength() throws Exception {
+        byte[] body = "repeated-response-content-".repeat(100).getBytes();
+        ByteArrayOutputStream written = new ByteArrayOutputStream();
+        AtomicInteger contentLength = new AtomicInteger(-1);
+        HttpServletResponse response = responseWritingTo(written, contentLength);
+
+        WebJettyContextConsumer4Spark.writeResponseBytes(response, body, true);
+
+        try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(written.toByteArray()))) {
+            assertArrayEquals(body, gzip.readAllBytes());
+        }
+        assertEquals(-1, contentLength.get());
+    }
+
+    @Test
+    void writesUncompressedBinaryResponseWithItsContentLength() throws Exception {
+        byte[] body = new byte[]{1, 2, 3, 4};
+        ByteArrayOutputStream written = new ByteArrayOutputStream();
+        AtomicInteger contentLength = new AtomicInteger(-1);
+        HttpServletResponse response = responseWritingTo(written, contentLength);
+
+        WebJettyContextConsumer4Spark.writeResponseBytes(response, body, false);
+
+        assertArrayEquals(body, written.toByteArray());
+        assertEquals(body.length, contentLength.get());
+    }
+
+    private static HttpServletResponse responseWritingTo(ByteArrayOutputStream output, AtomicInteger contentLength) {
+        ServletOutputStream stream = new ServletOutputStream() {
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setWriteListener(WriteListener writeListener) {
+            }
+
+            @Override
+            public void write(int value) {
+                output.write(value);
+            }
+        };
+        return (HttpServletResponse) Proxy.newProxyInstance(
+                HttpServletResponse.class.getClassLoader(),
+                new Class<?>[]{HttpServletResponse.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getOutputStream" -> stream;
+                    case "setContentLength" -> {
+                        contentLength.set((Integer) args[0]);
+                        yield null;
+                    }
+                    default -> throw new UnsupportedOperationException(method.getName());
+                });
     }
 
     private static WebInputLimit limits(int maxPartCount, long maxPartBytes, long maxAggregatePartBytes) {
