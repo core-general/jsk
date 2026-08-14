@@ -54,7 +54,7 @@ public abstract class WebByteRenderBase implements WebRender {
 
     @Override
     public boolean allowDeflation(Object val, OneOf<String, byte[]> bs) {
-        return forceDeflate() || bs.isRight() ? false : true;
+        return forceDeflate() || bs.isLeft();
     }
 
     @Override
