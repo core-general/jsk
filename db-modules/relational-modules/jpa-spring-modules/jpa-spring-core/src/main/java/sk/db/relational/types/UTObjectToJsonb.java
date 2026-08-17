@@ -40,14 +40,17 @@ import java.util.Properties;
 public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTWithContext, DynamicParameterizedType {
     public final static String type = "sk.db.relational.types.UTObjectToJsonb";
     public static final String param = "targetType";
+    public static final String serializeNullsParam = "serializeNulls";
 
     private Class<?> cls;
     private IJson json;
+    private Boolean serializeNulls;
 
     public void setParameterValues(Properties parameters) {
         synchronized (this) {
             json = ServiceLocator4SpringImpl.instance.getService(IJson.class).get();
             cls = UtUtils.getType(parameters, param);
+            serializeNulls = parseSerializeNulls(parameters);
         }
     }
 
@@ -65,7 +68,7 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
     public Object nullSafeGet(ResultSet rs, int names, SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException {
         String value = rs.getString(names);
-        return rs.wasNull() ? null : getJson().from(value, returnedClass());
+        return rs.wasNull() ? null : fromJson(value);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
         if (value == null) {
             st.setNull(index, Types.OTHER);
         } else {
-            st.setString(index, getJson().to(value));
+            st.setString(index, toJson(value));
         }
     }
 
@@ -96,21 +99,44 @@ public class UTObjectToJsonb implements UserType<Object>, ParameterizedType, UTW
     @Override
     public Object deepCopy(Object value) throws HibernateException {
         if (value == null) {return null;}
-        return getJson().from(getJson().to(value), returnedClass());
+        return fromJson(toJson(value));
     }
 
     @Override
     public Serializable disassemble(Object value) throws HibernateException {
         if (value == null) {return null;}
         // Serialize the object into JSON so that the snapshot represents its state.
-        return getJson().to(value);
+        return toJson(value);
     }
 
     @Override
     public Object assemble(Serializable cached, Object owner)
             throws HibernateException {
         if (cached == null) {return null;}
-        return getJson().from((String) cached, returnedClass());
+        return fromJson((String) cached);
+    }
+
+    private static Boolean parseSerializeNulls(Properties parameters) {
+        String configured = parameters.getProperty(serializeNullsParam);
+        if (configured == null) {return null;}
+        return switch (configured) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new IllegalArgumentException(
+                    serializeNullsParam + " must be either true or false, but was: " + configured);
+        };
+    }
+
+    private String toJson(Object value) {
+        return serializeNulls == null
+               ? getJson().to(value)
+               : getJson().to(value, false, serializeNulls);
+    }
+
+    private Object fromJson(String value) {
+        return Boolean.TRUE.equals(serializeNulls)
+               ? getJson().fromWithNulls(value, returnedClass())
+               : getJson().from(value, returnedClass());
     }
 
     IJson getJson() {
