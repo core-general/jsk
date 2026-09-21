@@ -262,6 +262,10 @@ public interface IBytes {
 
     void zipFileOrFolderTo(File sourceFileOrFolder, File targetFile);
 
+    default void zipFolderContentsTo(File sourceFolder, File targetFile) {
+        throw new UnsupportedOperationException("Folder-content ZIP creation is not supported by this implementation");
+    }
+
     default O<byte[]> zipData(byte[] data) {
         return zipArchive(Cc.m(ZIP_KEY, data));
     }

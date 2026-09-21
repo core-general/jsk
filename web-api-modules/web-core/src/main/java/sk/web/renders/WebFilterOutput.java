@@ -60,6 +60,10 @@ public class WebFilterOutput {
         rawOrRendered = OneOf.right(rendered);
     }
 
+    public static WebFilterOutput reply(WebReply<?> reply) {
+        return new WebFilterOutput(reply);
+    }
+
     public static <A> WebFilterOutput empty() {
         return new WebFilterOutput(WebReply.empty());
     }

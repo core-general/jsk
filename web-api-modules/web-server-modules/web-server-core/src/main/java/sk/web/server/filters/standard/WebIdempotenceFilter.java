@@ -96,7 +96,7 @@ public class WebIdempotenceFilter implements WebServerFilter {
                 final String key = oIdempotenceKey.get();
                 final WebRenderResult render = webReply.render(requestContext.getRequestContext().getWebRender(), except,
                         requestContext.getApiMethod());
-                if (render.getMeta().isProblem()) {
+                if (render.getMeta().isProblem() || render.isStreaming()) {
                     idempotence.get().unlockOrClear(key);
                 } else {
                     idempotence.get().cacheValue(key, requestContext.getRequestContext().getRequestHash(),

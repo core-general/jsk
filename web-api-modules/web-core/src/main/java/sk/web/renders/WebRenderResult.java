@@ -20,13 +20,25 @@ package sk.web.renders;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import sk.utils.functional.OneOf;
 
-@AllArgsConstructor
 @Getter
 public class WebRenderResult {
     WebReplyMeta meta;
     OneOf<String, byte[]> value;
+    WebStreamBody stream;
+
+    public WebRenderResult(WebReplyMeta meta, OneOf<String, byte[]> value) {
+        this.meta = meta;
+        this.value = value;
+    }
+
+    public static WebRenderResult streaming(WebReplyMeta meta, WebStreamBody stream) {
+        WebRenderResult result = new WebRenderResult(meta, OneOf.left("[streamed body]"));
+        result.stream = java.util.Objects.requireNonNull(stream);
+        return result;
+    }
+
+    public boolean isStreaming() { return stream != null; }
 }

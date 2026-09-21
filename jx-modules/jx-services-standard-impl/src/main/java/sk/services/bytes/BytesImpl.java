@@ -128,6 +128,37 @@ public class BytesImpl implements IBytes {
 
     @Override
     @SneakyThrows
+    public void zipFolderContentsTo(File sourceFolder, File targetFile) {
+        java.nio.file.Path root = sourceFolder.toPath();
+        java.nio.file.Path target = targetFile.toPath().toAbsolutePath().normalize();
+        if (!java.nio.file.Files.isDirectory(root, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+                || target.startsWith(root.toAbsolutePath().normalize())) {
+            throw new IllegalArgumentException("ZIP destination must be outside a regular source directory");
+        }
+        java.nio.file.Files.createDirectories(target.getParent());
+        try (var entries = java.nio.file.Files.walk(root)) {
+            for (var entry : entries.toList()) {
+                if (!java.nio.file.Files.isDirectory(entry, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+                        && !java.nio.file.Files.isRegularFile(entry, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+                    throw new IllegalArgumentException("Unsupported archive entry: " + root.relativize(entry));
+                }
+            }
+        }
+        java.nio.file.Files.deleteIfExists(target);
+        try (ZipFile zip = new ZipFile(targetFile)) {
+            var parameters = new net.lingala.zip4j.model.ZipParameters();
+            parameters.setIncludeRootFolder(false);
+            zip.addFolder(sourceFolder, parameters);
+        }
+        if (!java.nio.file.Files.exists(target)) {
+            try (var zip = new java.util.zip.ZipOutputStream(java.nio.file.Files.newOutputStream(target))) {
+                zip.finish();
+            }
+        }
+    }
+
+    @Override
+    @SneakyThrows
     public void zipFileOrFolderTo(File sourceFileOrFolder, File targetFile) {
         targetFile.mkdirs();
         Io.deleteIfExists(targetFile.getAbsolutePath());

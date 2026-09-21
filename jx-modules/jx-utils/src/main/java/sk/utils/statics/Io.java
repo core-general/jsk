@@ -703,6 +703,10 @@ public final class Io/*Input/Output*/ {
     //endregion
 
     //region Execute script + services
+    public static sk.utils.process.ManagedProcess startProcess(sk.utils.process.ProcessOptions options) throws IOException {
+        return new sk.utils.process.ManagedProcess(options);
+    }
+
     public static ExecuteInfo executeAndFail(String command) {
         return execute(command).failIfNotOk();
     }

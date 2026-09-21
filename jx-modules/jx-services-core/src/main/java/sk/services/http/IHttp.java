@@ -116,6 +116,7 @@ public interface IHttp {
         String login = null;
         String password = null;
         Map<String, String> headers = null;
+        boolean followRedirects = true;
         int tryCount = 1;
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
@@ -288,6 +289,13 @@ public interface IHttp {
     @Getter
     class HttpBodyBuilder extends HttpPostBuilder<HttpBodyBuilder> {
         OneOf<String, byte[]> body;
+        java.nio.file.Path bodyFile;
+
+        public HttpBodyBuilder bodyFile(java.nio.file.Path file) {
+            this.bodyFile = java.util.Objects.requireNonNull(file);
+            this.body = null;
+            return this;
+        }
 
         private HttpBodyBuilder(String url, F1<HttpBodyBuilder, OneOf<CoreHttpResponse, Exception>> requester) {
             super(url, requester);
@@ -295,16 +303,19 @@ public interface IHttp {
 
         public HttpBodyBuilder body(OneOf<String, byte[]> body) {
             this.body = body;
+            this.bodyFile = null;
             return this;
         }
 
         public HttpBodyBuilder body(String body) {
             this.body = OneOf.left(body);
+            this.bodyFile = null;
             return this;
         }
 
         public HttpBodyBuilder body(byte[] body) {
             this.body = OneOf.right(body);
+            this.bodyFile = null;
             return this;
         }
 

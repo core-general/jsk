@@ -590,12 +590,26 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 result.getMeta().getContentType().getFileName().ifPresent(file -> {
                     response.header("Content-Disposition", String.format("attachment; filename=\"%s\"", file));
                 });
-                final boolean gzipResponse = result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation();
+                final boolean gzipResponse = !result.isStreaming() && result.getMeta().isAllowDeflation() && requestHeaderAllowDeflation();
                 if (gzipResponse) {
                     response.header("Content-Encoding", "gzip");
                 }
 
-                if (response.body() == null) {
+                if (result.isStreaming()) {
+                    try {
+                        long length = result.getStream().contentLength();
+                        if (length >= 0) response.raw().setContentLengthLong(length);
+                        try (OutputStream output = response.raw().getOutputStream()) {
+                            result.getStream().writeTo(output);
+                        }
+                    } catch (Exception e) {
+                        if (!response.raw().isCommitted()) {
+                            response.raw().reset();
+                            response.status(500);
+                        }
+                        log.error("Streaming response failed for {}", path, e);
+                    }
+                } else if (response.body() == null) {
                     result.getValue().apply(
                             string -> {
                                 response.body(string);

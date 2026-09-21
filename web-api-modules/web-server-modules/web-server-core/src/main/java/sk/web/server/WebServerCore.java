@@ -572,7 +572,10 @@ public class WebServerCore<API>
                     method.invoke(serverApiImpl, params);
                     return WebFilterOutput.empty();
                 } else {
-                    return WebFilterOutput.rawValue(200, method.invoke(serverApiImpl, params));
+                    Object result = method.invoke(serverApiImpl, params);
+                    if (result instanceof WebFilterOutput output) return output;
+                    if (result instanceof sk.web.renders.WebReply<?> reply) return WebFilterOutput.reply(reply);
+                    return WebFilterOutput.rawValue(200, result);
                 }
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() instanceof RuntimeException) {

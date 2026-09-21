@@ -73,6 +73,7 @@ public class HttpImpl implements IHttp {
     protected @Inject IBytes ibytes;
 
     protected HttpClient httpClient;
+    protected HttpClient httpClientWithoutRedirects;
 
     public HttpImpl(ICoreServices core) {
         this.retry = core.repeat();
@@ -95,6 +96,7 @@ public class HttpImpl implements IHttp {
     @PostConstruct
     protected final HttpImpl init() {
         httpClient = prepareBuilder().build();
+        httpClientWithoutRedirects = prepareBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
         return this;
     }
 
@@ -174,9 +176,12 @@ public class HttpImpl implements IHttp {
         return execute(headBuilder, builder, true);
     }
 
-    private <T extends HttpPostBuilder<T>> BodyPublisher definePostRequestBody(T pb, Builder builder) {
+    private <T extends HttpPostBuilder<T>> BodyPublisher definePostRequestBody(T pb, Builder builder) throws IOException {
         switch (pb.getType()) {
             case BODY:
+                if (((HttpBodyBuilder) pb).bodyFile() != null) {
+                    return BodyPublishers.ofFile(((HttpBodyBuilder) pb).bodyFile());
+                }
                 return ((HttpBodyBuilder) pb).body().collect(
                         str -> BodyPublishers.ofString(str, UTF_8),
                         bytes -> BodyPublishers.ofByteArray(bytes)
@@ -239,12 +244,13 @@ public class HttpImpl implements IHttp {
         //endregion
 
         try {
+            HttpClient client = xBuilder.followRedirects() ? httpClient : httpClientWithoutRedirects;
             HttpResponse<?> response = null;
             byte[] bytes = EMPTY_BYTES;
             if (forceEmptyContent) {
-                response = httpClient.send(builder.build(), BodyHandlers.discarding());
+                response = client.send(builder.build(), BodyHandlers.discarding());
             } else {
-                final HttpResponse<byte[]> resp = httpClient.send(builder.build(), BodyHandlers.ofByteArray());
+                final HttpResponse<byte[]> resp = client.send(builder.build(), BodyHandlers.ofByteArray());
                 bytes = decodeData(resp, encodeAsGzip);
                 response = resp;
             }
@@ -254,6 +260,7 @@ public class HttpImpl implements IHttp {
             long finish = times.now();
             return new CoreHttpResponseDefaultImpl(ibytes, finish - start, code, bytes, headers);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IOException(e);
         }
     }
