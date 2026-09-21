@@ -61,7 +61,7 @@ public class WebFilterOutput {
     }
 
     public static WebFilterOutput reply(WebReply<?> reply) {
-        return new WebFilterOutput(reply);
+        return reply.getRendered() == null ? new WebFilterOutput(reply) : rendered(reply.getRendered());
     }
 
     public static <A> WebFilterOutput empty() {

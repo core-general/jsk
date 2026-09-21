@@ -87,4 +87,25 @@ class IoProcessTest {
             assertTrue(found.stream().anyMatch(p -> p.pid() == process.pid()));
         }
     }
+
+    @Test void timeoutTerminatesChildrenInOtherGroupsOfTheOwnedSession() throws Exception {
+        Path childPid = temporary.resolve("child.pid");
+        Path script = Files.writeString(temporary.resolve("job-control.sh"),
+                "set -m\ncat >/dev/null\nsleep 60 &\necho $! > child.pid\nwait\n");
+        var options = new ProcessOptions(List.of("/bin/bash", script.toString()), temporary, Map.of(),
+                Duration.ofMillis(500), Duration.ofMillis(30), 64, true);
+        try (var process = Io.startProcess(options)) {
+            try {
+                var result = process.await("prompt");
+                assertTrue(result.timedOut());
+                long child = Long.parseLong(Files.readString(childPid).strip());
+                assertNotEquals(process.pid(), child);
+                assertTrue(LinuxProcessSessions.liveSessionMembers(process.pid()).isEmpty());
+                assertFalse(LinuxProcessSessions.hasLiveMembers(child));
+            } finally {
+                if (Files.exists(childPid)) ProcessHandle.of(Long.parseLong(Files.readString(childPid).strip()))
+                        .ifPresent(ProcessHandle::destroyForcibly);
+            }
+        }
+    }
 }

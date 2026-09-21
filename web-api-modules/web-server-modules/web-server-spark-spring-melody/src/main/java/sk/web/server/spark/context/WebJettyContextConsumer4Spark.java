@@ -50,6 +50,7 @@ import sk.utils.statics.St;
 import sk.utils.tuples.X;
 import sk.utils.tuples.X2;
 import sk.web.exceptions.IWebExcept;
+import sk.web.exceptions.JskProblemExceptionWithHttpCode;
 import sk.web.annotations.WebInputLimit;
 import sk.web.redirect.WebRedirectResult;
 import sk.web.renders.WebContentTypeMeta;
@@ -596,18 +597,34 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 }
 
                 if (result.isStreaming()) {
+                    OutputStream output = null;
                     try {
                         long length = result.getStream().contentLength();
                         if (length >= 0) response.raw().setContentLengthLong(length);
-                        try (OutputStream output = response.raw().getOutputStream()) {
-                            result.getStream().writeTo(output);
-                        }
+                        output = response.raw().getOutputStream();
+                        result.getStream().writeTo(output);
                     } catch (Exception e) {
                         if (!response.raw().isCommitted()) {
                             response.raw().reset();
-                            response.status(500);
+                            int code = e instanceof JskProblemExceptionWithHttpCode problem ? problem.getHttpCode() : 500;
+                            JskProblem problem = e instanceof JskProblemExceptionWithHttpCode known ? known.getProblem()
+                                    : JskProblem.code(WebServerCore.INTERNAL_ERROR);
+                            byte[] body = json.to(problem).getBytes(StandardCharsets.UTF_8);
+                            response.status(code);
+                            response.type("application/json");
+                            response.header(JskProblem.PROBLEM_SIGN, "+");
+                            response.raw().setContentLengthLong(body.length);
+                            try {
+                                output = response.raw().getOutputStream();
+                                output.write(body);
+                            } catch (IOException writeError) { e.addSuppressed(writeError); }
                         }
                         log.error("Streaming response failed for {}", path, e);
+                    } finally {
+                        if (output != null) {
+                            try { output.close(); }
+                            catch (IOException closeError) { log.debug("Streaming response closed for {}", path, closeError); }
+                        }
                     }
                 } else if (response.body() == null) {
                     result.getValue().apply(

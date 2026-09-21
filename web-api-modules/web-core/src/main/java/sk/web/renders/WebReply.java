@@ -33,26 +33,32 @@ import sk.utils.functional.OneOf;
 public class WebReply<A> {
     final int httpCode;
     final OneOf<A, JskProblem> valOrProblem;
+    final WebRenderResult rendered;
 
     public static WebReply<String> empty() {
         return value(204, "");
     }
 
     public static <A> WebReply<A> value(int httpCode, A val) {
-        return new WebReply<>(httpCode, OneOf.left(val));
+        return new WebReply<>(httpCode, OneOf.left(val), null);
     }
 
     public static <A> WebReply<A> problem(int httpCode, JskProblem problem) {
-        return new WebReply<>(httpCode, OneOf.right(problem));
+        return new WebReply<>(httpCode, OneOf.right(problem), null);
+    }
+
+    public static WebReply<byte[]> streaming(WebReplyMeta meta, WebStreamBody body) {
+        return new WebReply<>(meta.getHttpCode(), OneOf.left(new byte[0]), WebRenderResult.streaming(meta, body));
     }
 
     public static WebReply<?> withModifiedValue(WebReply<?> reply, F1<? super Object, O<?>> converter) {
+        if (reply.getRendered() != null) return reply;
         final OneOf<?, JskProblem> objectObjectOneOf = reply.getValOrProblem()
                 .mapLeft(l -> converter.apply(l))
                 .flatMap(
                         converted -> converted.isPresent() ? OneOf.left(converted.get()) : OneOf.left(converted),
                         r -> OneOf.right(r)
                 );
-        return new WebReply<>(reply.getHttpCode(), objectObjectOneOf);
+        return new WebReply<>(reply.getHttpCode(), objectObjectOneOf, null);
     }
 }

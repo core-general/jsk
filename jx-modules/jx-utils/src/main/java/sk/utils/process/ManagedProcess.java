@@ -85,13 +85,14 @@ public final class ManagedProcess implements AutoCloseable {
         if (closed) return;
         boolean interrupted = Thread.interrupted();
         try {
-            if (options.newSession()) LinuxProcessSessions.terminateGroup(pid(), options.terminationGrace());
             var children = process.descendants().toList();
+            if (options.newSession()) LinuxProcessSessions.terminateSession(pid(), options.terminationGrace());
             children.forEach(ProcessHandle::destroy);
             process.destroy();
             if (!process.waitFor(options.terminationGrace().toMillis(), TimeUnit.MILLISECONDS)) process.destroyForcibly();
             children.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
             if (!process.waitFor(5, TimeUnit.SECONDS)) throw new IOException("Process did not terminate: " + pid());
+            if (options.newSession()) LinuxProcessSessions.terminateSession(pid(), options.terminationGrace());
             closed = true;
         } catch (InterruptedException e) {
             interrupted = true;

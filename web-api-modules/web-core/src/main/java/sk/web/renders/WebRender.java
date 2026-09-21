@@ -31,6 +31,7 @@ public interface WebRender {
     OneOf<String, byte[]> valueProvider(Object val, WebApiMethod<?> method);
 
     default public WebRenderResult getResult(WebReply<?> reply, WebRender problemRender, WebApiMethod<?> method) {
+        if (reply.getRendered() != null) return reply.getRendered();
         final Object toRender = reply.getValOrProblem().collectSelf();
         final OneOf<String, byte[]> rendered = reply.getValOrProblem()
                 .collect($ -> valueProvider($, method), $ -> problemRender.valueProvider($, method));

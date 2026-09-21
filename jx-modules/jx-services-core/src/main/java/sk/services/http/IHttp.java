@@ -120,6 +120,7 @@ public interface IHttp {
         int tryCount = 1;
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
+        @Setter(AccessLevel.NONE) O<Duration> totalTimeout = O.empty();
 
         @SneakyThrows
         HttpBuilder(String url) {
@@ -146,6 +147,14 @@ public interface IHttp {
 
         public T timeout(long ms) {
             timeout = O.of(Duration.ofMillis(ms));
+            return getThis();
+        }
+
+        public T totalTimeout(Duration duration) {
+            if (duration == null || duration.isNegative() || duration.isZero()) {
+                throw new IllegalArgumentException("Total HTTP timeout must be positive");
+            }
+            totalTimeout = O.of(duration);
             return getThis();
         }
 

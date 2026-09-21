@@ -25,6 +25,9 @@ import sk.exceptions.JskProblem;
 import sk.services.except.IExcept;
 import sk.services.json.IJson;
 import sk.utils.functional.OneOf;
+import sk.utils.javafixes.TypeWrap;
+import sk.web.renders.WebReply;
+import java.lang.reflect.ParameterizedType;
 
 public abstract class WebClientResultHandlerBase implements WebClientResultHandler<JskProblem> {
     protected @Inject IJson json;
@@ -50,6 +53,14 @@ public abstract class WebClientResultHandlerBase implements WebClientResultHandl
 
     @Override
     public final <T> OneOf<T, JskProblem> processResult(WebRequestResultModel<T> resultModel) {
+        if (resultModel.getResultClass().getType() instanceof ParameterizedType type
+                && type.getRawType() == WebReply.class) {
+            int code = resultModel.getResult().code();
+            if (isProblem(resultModel)) return OneOf.left((T) WebReply.problem(code, ifBusinessProblem(resultModel).right()));
+            var payload = new WebRequestResultModel<>(resultModel.getRequest(), resultModel.getResult(),
+                    TypeWrap.raw(type.getActualTypeArguments()[0]));
+            return OneOf.left((T) WebReply.value(code, ifNotBusinessProblem(payload).left()));
+        }
         if (isProblem(resultModel)) {
             return ifBusinessProblem(resultModel);
         } else {

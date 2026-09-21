@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -248,9 +249,9 @@ public class HttpImpl implements IHttp {
             HttpResponse<?> response = null;
             byte[] bytes = EMPTY_BYTES;
             if (forceEmptyContent) {
-                response = client.send(builder.build(), BodyHandlers.discarding());
+                response = send(client, builder.build(), BodyHandlers.discarding(), xBuilder);
             } else {
-                final HttpResponse<byte[]> resp = client.send(builder.build(), BodyHandlers.ofByteArray());
+                final HttpResponse<byte[]> resp = send(client, builder.build(), BodyHandlers.ofByteArray(), xBuilder);
                 bytes = decodeData(resp, encodeAsGzip);
                 response = resp;
             }
@@ -262,6 +263,29 @@ public class HttpImpl implements IHttp {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException(e);
+        }
+    }
+
+    private <T> HttpResponse<T> send(HttpClient client, HttpRequest request, HttpResponse.BodyHandler<T> handler,
+            HttpBuilder<?> options) throws IOException, InterruptedException {
+        if (options.totalTimeout().isEmpty()) return client.send(request, handler);
+        long budget = options.totalTimeout().get().toNanos();
+        long started = System.nanoTime();
+        var future = client.sendAsync(request, handler);
+        try {
+            long remaining = Math.max(0, budget - (System.nanoTime() - started));
+            return future.get(remaining, java.util.concurrent.TimeUnit.NANOSECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            future.cancel(true);
+            throw new java.net.http.HttpTimeoutException("Total HTTP request timeout exceeded");
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        } catch (java.util.concurrent.ExecutionException e) {
+            if (e.getCause() instanceof IOException failure) throw failure;
+            if (e.getCause() instanceof RuntimeException failure) throw failure;
+            if (e.getCause() instanceof Error failure) throw failure;
+            throw new IOException(e.getCause());
         }
     }
 
