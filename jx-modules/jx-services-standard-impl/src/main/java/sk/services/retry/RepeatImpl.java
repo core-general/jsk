@@ -62,11 +62,11 @@ public class RepeatImpl implements IRepeat {
             try {
                 return toRun.get();
             } catch (RuntimeException e) {
+                if (okExceptions.stream().noneMatch($ -> $.isAssignableFrom(e.getClass()))) {
+                    return tryThrow(onFail, e);
+                }
                 if (exception == null) {
                     exception = e;
-                    if (okExceptions.stream().noneMatch($ -> $.isAssignableFrom(e.getClass()))) {
-                        return tryThrow(onFail, exception);
-                    }
                 }
                 if (sleepBetweenTries > 0) {
                     sleep.sleep(sleepBetweenTries);
@@ -86,11 +86,11 @@ public class RepeatImpl implements IRepeat {
             try {
                 return toRun.get();
             } catch (Exception e) {
+                if (okExceptions.stream().noneMatch($ -> $.isAssignableFrom(e.getClass()))) {
+                    return tryThrowE(onFail, e);
+                }
                 if (exception == null) {
                     exception = e;
-                    if (okExceptions.stream().noneMatch($ -> $.isAssignableFrom(e.getClass()))) {
-                        return tryThrowE(onFail, exception);
-                    }
                 }
                 if (sleepBetweenTries > 0) {
                     sleep.sleep(sleepBetweenTries);

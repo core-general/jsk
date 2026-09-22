@@ -25,15 +25,46 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import sk.services.async.ISleep;
 import sk.test.JskMockitoTest;
+import sk.utils.functional.F0;
+import sk.utils.functional.F0E;
 import sk.utils.statics.Cc;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 public class RepeatImplTest extends JskMockitoTest {
     @InjectMocks RepeatImpl repeat;
     @Mock ISleep sleep;
+    @Mock F0<String> operation;
+    @Mock F0E<String> checkedOperation;
+
+    @Test
+    void stopsWhenARetriedOperationFailsWithANonRetryableException() {
+        RuntimeException terminal = new IllegalArgumentException("Ownership changed");
+        when(operation.get()).thenThrow(new SomeException()).thenThrow(terminal).thenReturn("unexpected");
+
+        assertSame(terminal, assertThrows(IllegalArgumentException.class,
+                () -> repeat.repeat(operation, 5, 10, Cc.s(SomeException.class))));
+        verify(operation, times(2)).get();
+        verify(sleep).sleep(10);
+        verifyNoMoreInteractions(operation, sleep);
+    }
+
+    @Test
+    void checkedRetriesStopWhenTheFailureTypeChanges() throws Exception {
+        Exception terminal = new java.io.IOException("Permanent failure");
+        when(checkedOperation.get()).thenThrow(new SomeException()).thenThrow(terminal).thenReturn("unexpected");
+
+        assertSame(terminal, assertThrows(java.io.IOException.class,
+                () -> repeat.repeatE(checkedOperation, 5, 10, Cc.s(SomeException.class))));
+        verify(checkedOperation, times(2)).get();
+        verify(sleep).sleep(10);
+        verifyNoMoreInteractions(checkedOperation, sleep);
+    }
 
     @Test
     public void repeat() {
