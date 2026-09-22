@@ -113,6 +113,12 @@ public class JGsonImpl implements IJson {
         GsonBuilder prettyAndNullConcreteBuilder = new GsonBuilder();
         GsonBuilder prettyAndNullPolymorphBuilder = new GsonBuilder();
 
+        // Object/Number values (including map/list members) must not round through Double.
+        List.of(concreteBuilder, polymorphBuilder, serializeNullsConcreteBuilder, serializeNullsPolymorphBuilder,
+                prettyConcreteBuilder, prettyPolymorphBuilder, prettyAndNullConcreteBuilder, prettyAndNullPolymorphBuilder)
+                .forEach(builder -> builder.setObjectToNumberStrategy(ToNumberPolicy.BIG_DECIMAL)
+                        .setNumberToNumberStrategy(ToNumberPolicy.BIG_DECIMAL));
+
         new GsonDefaultSerDes(times, bytes).getSerDesInfoList().forEach($ -> {
             concreteBuilder.registerTypeAdapter($.getCls(), $);
             polymorphBuilder.registerTypeAdapter($.getCls(), $);
