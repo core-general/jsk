@@ -33,6 +33,9 @@ import sk.utils.functional.OneOf;
 import sk.utils.statics.Ex;
 
 import java.time.Duration;
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.function.LongConsumer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -121,6 +124,7 @@ public interface IHttp {
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
         @Setter(AccessLevel.NONE) O<Duration> totalTimeout = O.empty();
+        @Setter(AccessLevel.NONE) HttpFileDestination fileDestination;
 
         @SneakyThrows
         HttpBuilder(String url) {
@@ -182,6 +186,32 @@ public interface IHttp {
             return requester.apply(getThis());
         }
 
+        /**
+         * Streams a successful response to a new file. The returned response contains metadata
+         * and an empty body on success, or at most 64 KiB of an error body. Failed transfers do
+         * not leave the destination behind. Existing files are never overwritten.
+         */
+        public OneOf<CoreHttpResponse, Exception> goToFile(Path destination, long maxBytes) {
+            return goToFile(destination, maxBytes, unused -> {});
+        }
+
+        /**
+         * reserveBytes runs before each disk write (including temporary gzip content). It may
+         * throw to abort the transfer. The caller owns releasing reservations after completion.
+         * Like other builder operations, this terminal method is not thread-safe.
+         */
+        public OneOf<CoreHttpResponse, Exception> goToFile(
+                Path destination, long maxBytes, LongConsumer reserveBytes) {
+            if (maxBytes < 1) throw new IllegalArgumentException("maxBytes must be positive");
+            fileDestination = new HttpFileDestination(
+                    Objects.requireNonNull(destination), maxBytes, Objects.requireNonNull(reserveBytes));
+            try {
+                return goResponse();
+            } finally {
+                fileDestination = null;
+            }
+        }
+
         public String goAndThrow() throws RuntimeException {
             return go().collect($ -> $, Ex::thRow);
         }
@@ -196,6 +226,8 @@ public interface IHttp {
 
         abstract T getThis();
     }
+
+    record HttpFileDestination(Path path, long maxBytes, LongConsumer reserveBytes) {}
 
     class HttpGetBuilder extends HttpBuilder<HttpGetBuilder> {
         private HttpGetBuilder(String url, F1<HttpGetBuilder, OneOf<CoreHttpResponse, Exception>> requester) {

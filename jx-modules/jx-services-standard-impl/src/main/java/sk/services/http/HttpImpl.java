@@ -246,6 +246,11 @@ public class HttpImpl implements IHttp {
 
         try {
             HttpClient client = xBuilder.followRedirects() ? httpClient : httpClientWithoutRedirects;
+            if (xBuilder.fileDestination() != null) {
+                var downloaded = HttpFileTransfer.download(client, builder.build(), xBuilder, encodeAsGzip);
+                return new CoreHttpResponseDefaultImpl(ibytes, times.now() - start,
+                        downloaded.code(), downloaded.errorBody(), downloaded.headers());
+            }
             HttpResponse<?> response = null;
             byte[] bytes = EMPTY_BYTES;
             if (forceEmptyContent) {
