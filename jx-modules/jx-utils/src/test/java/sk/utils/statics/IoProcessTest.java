@@ -32,6 +32,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class IoProcessTest {
     @TempDir Path temporary;
 
+    @Test void cancellationDuringCleanupStillTerminatesOwnedChildren() throws Exception {
+        Path script = Files.writeString(temporary.resolve("cleanup.sh"), "trap '' TERM\ncat >/dev/null\nsleep 60 &\necho $! > child.pid\nwait\n");
+        var options = new ProcessOptions(List.of("/bin/bash", script.toString()), temporary, Map.of(),
+                Duration.ofSeconds(60), Duration.ofMillis(800), 64, true);
+        try (var process = Io.startProcess(options)) {
+            var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+            var wasInterrupted = new java.util.concurrent.atomic.AtomicBoolean();
+            var worker = Thread.ofPlatform().start(() -> {
+                try { process.await(""); } catch (Throwable error) { failure.set(error); }
+            });
+            long ready = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+            while (!Files.exists(temporary.resolve("child.pid")) && System.nanoTime() < ready) Thread.sleep(10);
+            assertTrue(Files.exists(temporary.resolve("child.pid")));
+            var cleanupFailure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+            var cleanup = Thread.ofPlatform().start(() -> {
+                try { process.close(); } catch (Throwable error) { cleanupFailure.set(error); }
+                finally { wasInterrupted.set(wasInterrupted.get() || Thread.currentThread().isInterrupted()); }
+            });
+            Thread.sleep(80); cleanup.interrupt(); cleanup.join(7000); worker.join(7000);
+            assertFalse(cleanup.isAlive()); assertFalse(worker.isAlive());
+            assertNull(cleanupFailure.get()); assertNull(failure.get()); assertTrue(wasInterrupted.get());
+            assertTrue(LinuxProcessSessions.liveSessionMembers(process.pid()).isEmpty());
+        }
+    }
+
     @Test void sendsLiteralInputInTheConfiguredDirectoryAndEnvironment() throws Exception {
         Path work = Files.createDirectory(temporary.resolve("space in path"));
         Path script = Files.writeString(temporary.resolve("worker.sh"), "cat > input.txt\nprintf '%s' \"$EXE_WORK_DIR\"\n");

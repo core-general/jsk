@@ -83,25 +83,42 @@ public final class ManagedProcess implements AutoCloseable {
     @Override
     public synchronized void close() throws IOException {
         if (closed) return;
-        boolean interrupted = Thread.interrupted();
+        boolean[] interrupted = {Thread.interrupted()};
         try {
             var children = process.descendants().toList();
-            if (options.newSession()) LinuxProcessSessions.terminateSession(pid(), options.terminationGrace());
+            if (options.newSession()) finishSession(interrupted);
             children.forEach(ProcessHandle::destroy);
             process.destroy();
-            if (!process.waitFor(options.terminationGrace().toMillis(), TimeUnit.MILLISECONDS)) process.destroyForcibly();
+            if (!awaitTermination(options.terminationGrace().toMillis(), interrupted)) process.destroyForcibly();
             children.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
-            if (!process.waitFor(5, TimeUnit.SECONDS)) throw new IOException("Process did not terminate: " + pid());
-            if (options.newSession()) LinuxProcessSessions.terminateSession(pid(), options.terminationGrace());
+            if (!awaitTermination(5000, interrupted)) throw new IOException("Process did not terminate: " + pid());
+            if (options.newSession()) finishSession(interrupted);
             closed = true;
-        } catch (InterruptedException e) {
-            interrupted = true;
-            process.destroyForcibly();
-            throw new ProcessTerminationException("Interrupted while terminating process", e);
         } catch (IOException e) {
             throw new ProcessTerminationException("Cannot verify process termination: " + pid(), e);
         } finally {
-            if (interrupted) Thread.currentThread().interrupt();
+            if (interrupted[0]) Thread.currentThread().interrupt();
+        }
+    }
+
+    private void finishSession(boolean[] interrupted) throws IOException {
+        long deadline = System.nanoTime() + options.terminationGrace().toNanos() + TimeUnit.SECONDS.toNanos(5);
+        java.time.Duration grace = options.terminationGrace();
+        while (true) {
+            try { LinuxProcessSessions.terminateSession(pid(), grace); return; }
+            catch (InterruptedException cancellation) {
+                interrupted[0] = true;
+                if (System.nanoTime() >= deadline) throw new ProcessTerminationException("Process cleanup interrupted beyond its deadline", cancellation);
+                grace = java.time.Duration.ZERO;
+            }
+        }
+    }
+
+    private boolean awaitTermination(long millis, boolean[] interrupted) {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(millis);
+        while (true) {
+            try { return process.waitFor(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS); }
+            catch (InterruptedException cancellation) { interrupted[0] = true; }
         }
     }
 
