@@ -123,8 +123,11 @@ public interface IHttp {
         int tryCount = 1;
         int trySleepMs = 0;
         O<Duration> timeout = O.empty();
+        @Setter(AccessLevel.NONE) O<Duration> connectTimeout = O.empty();
         @Setter(AccessLevel.NONE) O<Duration> totalTimeout = O.empty();
         @Setter(AccessLevel.NONE) HttpFileDestination fileDestination;
+        @Setter(AccessLevel.NONE) HttpStreamConsumer streamConsumer;
+        @Setter(AccessLevel.NONE) long maxResponseBytes = Long.MAX_VALUE;
 
         @SneakyThrows
         HttpBuilder(String url) {
@@ -160,6 +163,26 @@ public interface IHttp {
             }
             totalTimeout = O.of(duration);
             return getThis();
+        }
+
+        public T connectTimeout(Duration duration) {
+            if (duration == null || duration.isNegative() || duration.isZero())
+                throw new IllegalArgumentException("HTTP connect timeout must be positive");
+            connectTimeout = O.of(duration);
+            return getThis();
+        }
+
+        public T maxResponseBytes(long limit) {
+            if (limit < 1) throw new IllegalArgumentException("Response limit must be positive");
+            maxResponseBytes = limit;
+            return getThis();
+        }
+
+        public OneOf<CoreHttpResponse, Exception> goStream(HttpStreamConsumer consumer) {
+            if (streamConsumer != null || fileDestination != null) throw new IllegalStateException("HTTP terminal operation is already active");
+            streamConsumer = Objects.requireNonNull(consumer);
+            try { return goResponse(); }
+            finally { streamConsumer = null; }
         }
 
         public OneOf<String, Exception> go() {
@@ -202,6 +225,7 @@ public interface IHttp {
          */
         public OneOf<CoreHttpResponse, Exception> goToFile(
                 Path destination, long maxBytes, LongConsumer reserveBytes) {
+            if (streamConsumer != null || fileDestination != null) throw new IllegalStateException("HTTP terminal operation is already active");
             if (maxBytes < 1) throw new IllegalArgumentException("maxBytes must be positive");
             fileDestination = new HttpFileDestination(
                     Objects.requireNonNull(destination), maxBytes, Objects.requireNonNull(reserveBytes));
@@ -226,6 +250,13 @@ public interface IHttp {
 
         abstract T getThis();
     }
+
+    @FunctionalInterface
+    interface HttpStreamConsumer {
+        void accept(HttpStreamResponse response) throws java.io.IOException;
+    }
+
+    record HttpStreamResponse(int code, Map<String, java.util.List<String>> headers, java.io.InputStream body) {}
 
     record HttpFileDestination(Path path, long maxBytes, LongConsumer reserveBytes) {}
 

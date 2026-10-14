@@ -75,6 +75,9 @@ public class HttpImpl implements IHttp {
 
     protected HttpClient httpClient;
     protected HttpClient httpClientWithoutRedirects;
+    private final Map<ClientOptions, HttpClient> configuredClients = new java.util.concurrent.ConcurrentHashMap<>();
+    private java.util.concurrent.ScheduledExecutorService deadlineExecutor;
+    private record ClientOptions(boolean followRedirects, java.time.Duration connectTimeout) {}
 
     public HttpImpl(ICoreServices core) {
         this.retry = core.repeat();
@@ -108,6 +111,14 @@ public class HttpImpl implements IHttp {
                 .connectTimeout(getConfig().getConnectTimeout());
     }
 
+    private HttpClient client(HttpBuilder<?> options) {
+        if (options.connectTimeout().isEmpty() || options.connectTimeout().get().equals(getConfig().getConnectTimeout()))
+            return options.followRedirects() ? httpClient : httpClientWithoutRedirects;
+        return configuredClients.computeIfAbsent(new ClientOptions(options.followRedirects(), options.connectTimeout().get()),
+                key -> prepareBuilder().connectTimeout(key.connectTimeout())
+                        .followRedirects(key.followRedirects() ? HttpClient.Redirect.NORMAL : HttpClient.Redirect.NEVER).build());
+    }
+
     @Override
     public F1<HttpGetBuilder, OneOf<CoreHttpResponse, Exception>> howToGet() {
         return getBuilder -> executeUni(getBuilder, this::executeSingleGet);
@@ -131,6 +142,7 @@ public class HttpImpl implements IHttp {
     private <T extends HttpBuilder<T>> OneOf<CoreHttpResponse, Exception> executeUni(T builder,
             F1E<T, CoreHttpResponse> oneTimeGetter) {
         try {
+            if (builder.streamConsumer() != null) return OneOf.left(oneTimeGetter.apply(builder));
             return OneOf.left(retry.repeatE(
                     () -> {
                         CoreHttpResponse resp = oneTimeGetter.apply(builder);
@@ -235,7 +247,7 @@ public class HttpImpl implements IHttp {
 
         //region Gzip or other compression
         boolean encodeAsGzip = false;
-        if (!xBuilder.headers().containsKey("Accept-Encoding")) {
+        if (xBuilder.streamConsumer() == null && !xBuilder.headers().containsKey("Accept-Encoding")) {
             builder.header("Accept-Encoding", "gzip");
             encodeAsGzip = true;
         }
@@ -245,7 +257,10 @@ public class HttpImpl implements IHttp {
         //endregion
 
         try {
-            HttpClient client = xBuilder.followRedirects() ? httpClient : httpClientWithoutRedirects;
+            HttpClient client = client(xBuilder);
+            if (xBuilder.streamConsumer() != null || xBuilder.fileDestination() == null && xBuilder.maxResponseBytes() != Long.MAX_VALUE) {
+                return stream(client,builder.build(),xBuilder,encodeAsGzip,start,forceEmptyContent);
+            }
             if (xBuilder.fileDestination() != null) {
                 var downloaded = HttpFileTransfer.download(client, builder.build(), xBuilder, encodeAsGzip);
                 return new CoreHttpResponseDefaultImpl(ibytes, times.now() - start,
@@ -268,6 +283,80 @@ public class HttpImpl implements IHttp {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException(e);
+        }
+    }
+
+    private CoreHttpResponse stream(HttpClient client, HttpRequest request, HttpBuilder<?> options,
+            boolean decodeGzip, long startedAt, boolean forceEmptyContent) throws IOException, InterruptedException {
+        var sink = HttpResponse.BodySubscribers.ofInputStream();
+        long started = System.nanoTime();
+        long budget = options.totalTimeout().orElseGet(() -> options.timeout().orElseGet(() -> getConfig().getReadTimeout())).toNanos();
+        var pending = client.sendAsync(request, ignored -> sink);
+        var expired = new java.util.concurrent.atomic.AtomicBoolean();
+        java.util.concurrent.ScheduledFuture<?> deadline = null;
+        try {
+            deadline = deadlines().schedule(() -> {
+                expired.set(true); pending.cancel(true);
+                sink.getBody().thenAccept(this::closeStream);
+            }, Math.max(0,budget - (System.nanoTime() - started)), java.util.concurrent.TimeUnit.NANOSECONDS);
+            var response = pending.get(Math.max(0,budget - (System.nanoTime() - started)), java.util.concurrent.TimeUnit.NANOSECONDS);
+            byte[] bytes = EMPTY_BYTES;
+            try (var body = response.body()) {
+                if (expired.get()) throw new java.net.http.HttpTimeoutException("Total HTTP request timeout exceeded");
+                if (options.streamConsumer() != null) {
+                    options.streamConsumer().accept(new HttpStreamResponse(response.statusCode(),response.headers().map(),
+                            options.maxResponseBytes() == Long.MAX_VALUE ? body : new LimitedInputStream(body, options.maxResponseBytes())));
+                } else if (!forceEmptyContent) {
+                    java.io.InputStream input = new LimitedInputStream(body,options.maxResponseBytes());
+                    if (decodeGzip && response.headers().allValues("Content-Encoding").stream().anyMatch("gzip"::equalsIgnoreCase))
+                        input = new LimitedInputStream(new GZIPInputStream(input),options.maxResponseBytes());
+                    try (var consumed = input) { bytes = consumed.readAllBytes(); }
+                }
+                if (expired.get() || System.nanoTime() - started >= budget)
+                    throw new java.net.http.HttpTimeoutException("Total HTTP request timeout exceeded");
+            }
+            return new CoreHttpResponseDefaultImpl(ibytes,times.now() - startedAt,response.statusCode(),bytes,response.headers().map());
+        } catch (java.util.concurrent.TimeoutException e) {
+            throw new java.net.http.HttpTimeoutException("Total HTTP request timeout exceeded");
+        } catch (java.util.concurrent.ExecutionException e) {
+            if (e.getCause() instanceof IOException failure) throw failure;
+            if (e.getCause() instanceof RuntimeException failure) throw failure;
+            if (e.getCause() instanceof Error failure) throw failure;
+            throw new IOException(e.getCause());
+        } catch (IOException | java.util.concurrent.CancellationException e) {
+            if (expired.get()) throw new java.net.http.HttpTimeoutException("Total HTTP request timeout exceeded");
+            throw e;
+        } finally {
+            if (deadline != null) deadline.cancel(false);
+            pending.cancel(true);
+            sink.getBody().thenAccept(this::closeStream);
+        }
+    }
+
+    private synchronized java.util.concurrent.ScheduledExecutorService deadlines() {
+        if (deadlineExecutor == null)
+            deadlineExecutor = async.newDedicatedScheduledExecutor("HttpDeadlines-" + ids.shortIdS()).getUnderlying();
+        return deadlineExecutor;
+    }
+
+    private void closeStream(java.io.InputStream input) {
+        try { input.close(); } catch (IOException ignored) { }
+    }
+
+    private static final class LimitedInputStream extends java.io.FilterInputStream {
+        private final long limit;
+        private long count;
+        LimitedInputStream(java.io.InputStream input, long limit) { super(input); this.limit = limit; }
+        @Override public int read() throws IOException {
+            int value = in.read();
+            if (value != -1 && ++count > limit) throw new HttpResponseLimitException(limit);
+            return value;
+        }
+        @Override public int read(byte[] bytes, int offset, int length) throws IOException {
+            long remaining = limit - count;
+            int read = in.read(bytes,offset,(int)Math.min(length, remaining >= Integer.MAX_VALUE ? Integer.MAX_VALUE : remaining + 1));
+            if (read > 0 && (count += read) > limit) throw new HttpResponseLimitException(limit);
+            return read;
         }
     }
 

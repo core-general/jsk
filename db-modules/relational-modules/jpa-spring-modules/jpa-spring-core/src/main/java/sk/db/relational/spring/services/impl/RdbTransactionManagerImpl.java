@@ -26,7 +26,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.dialect.lock.OptimisticEntityLockException;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import sk.db.relational.spring.services.EntityManagerProvider;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
@@ -37,9 +40,8 @@ import sk.utils.functional.O;
 import sk.utils.javafixes.FlushableDetachable;
 import sk.utils.tuples.*;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static sk.utils.statics.Cc.s;
@@ -163,7 +165,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     }
 
     private <T> T transactionWithSaveUni(Supplier<T> howToGet, F1<T, List<Object>> toSave, int count, boolean forceNew) {
-        return transactionWithSaveUniUni(() -> {
+        F0<T> attempt = () -> {
             final Supplier<T> lambda = () -> {
                 T t = howToGet.get();
                 List<Object> apply = toSave.apply(t);
@@ -172,7 +174,11 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
                 return t;
             };
             return forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
-        });
+        };
+        if (!forceNew && TransactionSynchronizationManager.isActualTransactionActive()) {
+            return attempt.get();
+        }
+        return transactionWithSaveUniUni(attempt);
     }
 
     private void tryDetachIfNeeded(Object toDetach) {
@@ -217,11 +223,46 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     }
 
     private <T> T transactionWithSaveUniUni(F0<T> sup) {
-        return retry.repeat(sup, 50, 100, s(
-                ObjectOptimisticLockingFailureException.class,
-                OptimisticLockException.class,
-                OptimisticEntityLockException.class,
-                StaleObjectStateException.class
-        ));
+        try {
+            return retry.repeat(() -> {
+                try {
+                    return sup.get();
+                } catch (RuntimeException failure) {
+                    if (!isRetryable(failure)) throw failure;
+                    throw new RetryableTransactionFailure(failure);
+                }
+            }, 50, 100, s(RetryableTransactionFailure.class));
+        } catch (RetryableTransactionFailure failure) {
+            throw (RuntimeException) failure.getCause();
+        }
+    }
+
+    private boolean isRetryable(Throwable failure) {
+        Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+        Deque<Throwable> pending = new ArrayDeque<>();
+        pending.add(failure);
+        while (!pending.isEmpty()) {
+            Throwable current = pending.removeFirst();
+            if (!visited.add(current)) continue;
+            if (current instanceof ObjectOptimisticLockingFailureException
+                    || current instanceof OptimisticLockException
+                    || current instanceof OptimisticEntityLockException
+                    || current instanceof StaleObjectStateException
+                    || current instanceof DuplicateKeyException
+                    || current instanceof ConstraintViolationException constraint
+                    && constraint.getKind() == ConstraintViolationException.ConstraintKind.UNIQUE) return true;
+            if (current instanceof SQLException sql) {
+                if ("23505".equals(sql.getSQLState())) return true;
+                if (sql.getNextException() != null) pending.addLast(sql.getNextException());
+            }
+            if (current.getCause() != null) pending.addLast(current.getCause());
+        }
+        return false;
+    }
+
+    private static final class RetryableTransactionFailure extends RuntimeException {
+        private RetryableTransactionFailure(RuntimeException cause) {
+            super(cause);
+        }
     }
 }

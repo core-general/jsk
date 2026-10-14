@@ -65,18 +65,28 @@ public class WebClientFactory {
 
     public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
             WebClientInputHandler inputHandler, WebClientResultHandler<E> resultHandler) {
-        return privateCreate(infoProvider.getClassModel(apiCls, O.ofNull(basePath)), apiCls, inputHandler, resultHandler);
+        return createWebApiClient(basePath, apiCls, inputHandler, resultHandler, WebClientRequestOptions.DEFAULT);
     }
 
     public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls, WebClientResultHandler<E> resultHandler) {
-        return privateCreate(infoProvider.getClassModel(apiCls, O.ofNull(basePath)), apiCls, WebClientInputHandlerImpl.empty(),
-                resultHandler);
+        return createWebApiClient(basePath, apiCls, WebClientInputHandlerImpl.empty(), resultHandler, WebClientRequestOptions.DEFAULT);
+    }
+
+    public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
+            WebClientResultHandler<E> resultHandler, WebClientRequestOptions options) {
+        return createWebApiClient(basePath, apiCls, WebClientInputHandlerImpl.empty(), resultHandler, options);
+    }
+
+    public <API, E> O<API> createWebApiClient(String basePath, Class<API> apiCls,
+            WebClientInputHandler inputHandler, WebClientResultHandler<E> resultHandler, WebClientRequestOptions options) {
+        return privateCreate(infoProvider.getClassModel(apiCls, O.ofNull(basePath)), apiCls, inputHandler, resultHandler,
+                Objects.requireNonNull(options));
     }
 
     private <API, E> O<API> privateCreate(WebClassInfo classInfo,
             Class<API> apiCls,
             WebClientInputHandler inputHandler,
-            WebClientResultHandler<E> resultHandler) {
+            WebClientResultHandler<E> resultHandler, WebClientRequestOptions options) {
         if (!checkApiClassConformance(classInfo)) {
             return O.empty();
         }
@@ -88,7 +98,7 @@ public class WebClientFactory {
                 // This shouldn't happen as WebPlatformSpecificHelper should handle Object methods
                 return except.throwByDescription("Unknown method: " + methodName);
             }
-            return executeApiCall(methodInfo, args, classInfo, inputHandler, resultHandler);
+            return executeApiCall(methodInfo, args, classInfo, inputHandler, resultHandler, options);
         });
 
         return O.of(client);
@@ -103,7 +113,7 @@ public class WebClientFactory {
             Object[] args,
             WebClassInfo classInfo,
             WebClientInputHandler inputHandler,
-            WebClientResultHandler<E> resultHandler) {
+            WebClientResultHandler<E> resultHandler, WebClientRequestOptions options) {
 
         int retryCount = 1;
         int retrySleepMs = 0;
@@ -136,6 +146,10 @@ public class WebClientFactory {
         HttpBuilder<?> builder = oBuilder.get();
         builder.tryCount(retryCount);
         builder.trySleepMs(retrySleepMs);
+        builder.followRedirects(options.followRedirects());
+        if (options.connectTimeout() != null) builder.connectTimeout(options.connectTimeout());
+        if (options.totalTimeout() != null) { builder.timeout(options.totalTimeout()); builder.totalTimeout(options.totalTimeout()); }
+        builder.maxResponseBytes(options.maxResponseBytes());
         OneOf<CoreHttpResponse, Exception> resp = builder.goResponse();
         if (resp.isLeft()) {
             CoreHttpResponse left = resp.left();

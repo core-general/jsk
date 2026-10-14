@@ -9,5 +9,12 @@ PostgreSQL-specific defaults for JPA configuration.
 
 ## Key Details
 
-- Essentially a marker/defaults interface — 1-2 files
+- Supplies PostgreSQL configuration defaults
 - Used as a base for PostgreSQL-backed application configurations
+
+## Transaction verification
+
+`TransactionCreationRetryTest` uses a fresh PostgreSQL Testcontainer and direct test-scoped Testcontainers dependencies, avoiding
+a dependency on the JSK PostgreSQL landscape module that already depends on this module. Forced missing-key races verify
+rollback and fresh reads at explicit flush, automatic flush, and deferred database commit. The suite also covers optimistic
+updates, joined and independent transactions, exhaustion, exception chains, unrelated constraints, and business failures.

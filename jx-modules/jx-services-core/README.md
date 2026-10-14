@@ -14,3 +14,20 @@ Defines all core service interfaces and provides foundational abstractions for c
 - 164 Java files — the second-largest module
 - The cluster worker system is substantial (26 files, multiple patterns including KV-backed locking and scheduling)
 - Depends only on `jx-utils`
+
+## HTTP response streaming
+
+`IHttp.HttpBuilder.goStream` runs a scoped callback with `code()`, `headers()`, and `body()` for the response, including error statuses. It makes one attempt regardless of `tryCount`. The body is closed when the callback returns or fails; it must not escape the callback. The returned `CoreHttpResponse` contains metadata and an empty byte body.
+
+```java
+var result = http.get(url)
+        .followRedirects(false)
+        .connectTimeout(Duration.ofSeconds(2))
+        .timeout(Duration.ofSeconds(10))
+        .totalTimeout(Duration.ofSeconds(10))
+        .goStream(response -> response.body().transferTo(output));
+```
+
+`totalTimeout` remains active while the callback consumes the body. Expiry closes the upstream stream and returns a timeout failure; interruption preserves the thread's interrupted flag. Callbacks should return promptly when their stream closes. The destination stream belongs to the caller.
+
+Streaming delivers raw response bytes and does not automatically request gzip. `maxResponseBytes` can bound streamed bytes or buffered responses; buffered gzip responses are bounded before and after decompression. Existing buffered and file terminal operations retain their behavior, and `goToFile` uses its own byte limit. Builders are mutable and must not be shared between concurrent requests.
