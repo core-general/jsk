@@ -45,7 +45,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
 
     private volatile STATE state;
     private final List<CluScheduler<STATE, ? extends MSG>> schedulers = Cc.l();
-    private final BlockingQueue<MSG> messageQue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<O<MSG>> messageQue = new LinkedBlockingQueue<>();
     private final ReentrantLock lock = new ReentrantLock(true);
     private ForeverThreadWithFinish processingThread;
 
@@ -77,10 +77,9 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
             schedulers.forEach(CluScheduler::start);
             processingThread = new ForeverThreadWithFinish(() -> {
                 try {
-                    MSG msg = messageQue.poll(3, TimeUnit.SECONDS);
+                    O<MSG> msg = messageQue.poll(3, TimeUnit.SECONDS);
                     if (msg != null) {
-                        processor.accept(msg, getState());
-                        //log.trace(() -> name + " - processor for msg: " + msg + " finished");
+                        msg.ifPresent(message -> processor.accept(message, getState()));
                     }
                 } catch (Exception e) {
                     try {
@@ -89,7 +88,6 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
                         log.error("", e);
                         log.error("", ex2);
                     }
-                    //log.trace(() -> name + " - error:" + Ex.getInfo(e));
                 }
             }, name + "_EventQueueProcessor", true);
             processingThread.start();
@@ -101,6 +99,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
         return inLock(() -> {
             schedulers.forEach(CluScheduler::stop);
             CompletableFuture<Boolean> complete = processingThread.finishThread(msTimeout);
+            messageQue.offer(O.empty());
             processingThread = null;
             return complete;
         });
@@ -129,7 +128,7 @@ public abstract class CluWorker<STATE extends Enum<STATE> & CluState<STATE>, MSG
                         ? () -> async.newDedicatedScheduledExecutor(name + "_" + schedulerName).getUnderlying()
                         : () -> new ScheduledExecutorServiceNoShutdownDecorator(async.scheduledExec().getUnderlying()),
                         periodDelay, allowedStates,
-                        () -> getState(), processor, messageQue::add);
+                        () -> getState(), processor, message -> messageQue.add(O.of(message)));
         schedulers.add(scheduler);
         return scheduler;
     }

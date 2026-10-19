@@ -23,8 +23,9 @@ package jsk.gcl.agent.services;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
-import sk.services.CoreServicesRaw;
-import sk.services.ICoreServices;
+import sk.services.json.JGsonImpl;
+import sk.services.bytes.BytesImpl;
+import sk.services.time.UtcSettableTimeUtilImpl;
 import sk.utils.functional.O;
 import sk.utils.tuples.X1;
 
@@ -36,9 +37,9 @@ class GcaInternalSyncedMetaTest {
     @Test
     @SneakyThrows
     void readOrUpdateObject() {
-        ICoreServices core = new CoreServicesRaw();
+        var json = new JGsonImpl(O.empty(), new UtcSettableTimeUtilImpl(), new BytesImpl(), false).init();
         X1<String> txt = new X1<>();
-        var meta = new GcaInternalSyncedMeta<>(core.json(), "?", A.class, new A()) {
+        var meta = new GcaInternalSyncedMeta<>(json, "?", A.class, new A()) {
 
             @Override
             protected void saveToDisc(String filePath, String text) {
@@ -58,7 +59,7 @@ class GcaInternalSyncedMetaTest {
             toret[0] = a;
         });
 
-        A from = core.json().from(txt.get(), A.class);
+        A from = json.from(txt.get(), A.class);
         assertEquals(toret[0], from);
     }
 

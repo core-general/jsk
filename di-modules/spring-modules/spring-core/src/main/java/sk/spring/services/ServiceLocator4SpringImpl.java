@@ -21,6 +21,7 @@ package sk.spring.services;
  */
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -33,12 +34,26 @@ import java.util.List;
 @Slf4j
 public class ServiceLocator4SpringImpl implements IServiceLocator {
     public static volatile IServiceLocator instance;
+    private static final List<ServiceLocator4SpringImpl> activeLocators = new ArrayList<>();
 
     @Inject AbstractApplicationContext context;
 
     @PostConstruct
     public void init() {
-        instance = this;
+        synchronized (activeLocators) {
+            activeLocators.add(this);
+            instance = this;
+        }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        synchronized (activeLocators) {
+            activeLocators.remove(this);
+            if (instance == this) {
+                instance = activeLocators.isEmpty() ? null : activeLocators.getLast();
+            }
+        }
     }
 
     @Override

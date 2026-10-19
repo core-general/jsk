@@ -20,12 +20,16 @@ package sk.services.http;
  * #L%
  */
 
-import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 import sk.services.CoreServicesRaw;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.SocketException;
 import java.net.http.HttpTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
@@ -36,13 +40,15 @@ class HttpDeadlineTest {
         var http = CoreServicesRaw.services().http();
         for (boolean trickle : new boolean[]{false, true}) {
             try (var peer = new IncompleteResponse(trickle)) {
+                // Establish client/server readiness before testing the short body deadline.
+                assertTrue(http.get(peer.url() + "warm").timeout(Duration.ofSeconds(10))
+                        .totalTimeout(Duration.ofSeconds(5)).goResponse().isLeft());
                 var response = assertTimeoutPreemptively(Duration.ofSeconds(5), () -> http.get(peer.url())
-                        .timeout(Duration.ofSeconds(10)).totalTimeout(Duration.ofMillis(500)).goResponse());
+                        .timeout(Duration.ofSeconds(10)).totalTimeout(Duration.ofMillis(150)).goResponse());
                 assertEquals(0, peer.started.getCount());
                 assertTrue(response.isRight());
                 assertInstanceOf(HttpTimeoutException.class, response.right());
                 if (trickle) assertTrue(peer.writes.get() > 1);
-                peer.release.countDown();
                 assertTrue(peer.disconnected.await(3, TimeUnit.SECONDS), "HTTP exchange was not cancelled");
             }
         }
@@ -65,56 +71,69 @@ class HttpDeadlineTest {
                 assertFalse(caller.isAlive());
                 assertTrue(interrupted.get());
                 assertInstanceOf(IOException.class, failure.get());
-                peer.release.countDown();
-                assertTrue(peer.disconnected.await(3, TimeUnit.SECONDS));
+                assertTrue(peer.disconnected.await(3, TimeUnit.SECONDS), "Interrupted HTTP exchange was not cancelled");
             } finally { caller.interrupt(); caller.join(3000); }
         }
     }
 
     private static final class IncompleteResponse implements AutoCloseable {
         final CountDownLatch started = new CountDownLatch(1);
-        final CountDownLatch release = new CountDownLatch(1);
         final CountDownLatch disconnected = new CountDownLatch(1);
         final AtomicInteger writes = new AtomicInteger();
-        final ExecutorService workers = Executors.newCachedThreadPool();
-        final HttpServer server;
+        final ExecutorService workers = Executors.newVirtualThreadPerTaskExecutor();
+        final ServerSocket server;
 
         IncompleteResponse(boolean trickle) throws IOException {
-            server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-            server.setExecutor(workers);
-            server.createContext("/", exchange -> {
-                try {
-                    exchange.sendResponseHeaders(200, 0);
-                    var output = exchange.getResponseBody();
-                    output.write('{');
+            server = new ServerSocket();
+            server.bind(new InetSocketAddress("127.0.0.1", 0));
+            workers.submit(() -> {
+                boolean completed = false;
+                while (!completed) try (var socket = server.accept()) {
+                    socket.setTcpNoDelay(true);
+                    var input = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
+                    String request = input.readLine();
+                    for (String line; (line = input.readLine()) != null && !line.isEmpty();) {}
+                    var output = socket.getOutputStream();
+                    if (request != null && request.startsWith("GET /warm ")) {
+                        output.write("HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
+                        output.flush(); continue;
+                    }
+                    output.write(("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n1\r\n{\r\n")
+                            .getBytes(StandardCharsets.US_ASCII));
                     output.flush();
                     writes.incrementAndGet();
                     started.countDown();
-                    while (!release.await(20, TimeUnit.MILLISECONDS)) {
-                        if (trickle) {
-                            output.write(' ');
-                            output.flush();
-                            writes.incrementAndGet();
-                        }
+                    if (trickle) {
+                        workers.submit(() -> {
+                            try {
+                                while (!disconnected.await(20, TimeUnit.MILLISECONDS)) {
+                                    output.write("1\r\n \r\n".getBytes(StandardCharsets.US_ASCII));
+                                    output.flush();
+                                    writes.incrementAndGet();
+                                }
+                            } catch (IOException e) {
+                                throw new java.io.UncheckedIOException(e);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        });
                     }
-                    long deadline = System.nanoTime() + Duration.ofSeconds(3).toNanos();
-                    while (System.nanoTime() < deadline) {
-                        output.write(new byte[8192]);
-                        output.flush();
-                        Thread.sleep(10);
+                    try {
+                        if (input.read() != -1) throw new IOException("Unexpected data after the request headers");
+                    } catch (SocketException resetByClient) {
                     }
-                } catch (IOException e) { disconnected.countDown(); }
-                catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-                finally { exchange.close(); }
+                    disconnected.countDown(); completed = true;
+                } catch (IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
             });
-            server.start();
         }
 
-        String url() { return "http://127.0.0.1:" + server.getAddress().getPort() + "/"; }
-        @Override public void close() {
-            release.countDown();
-            server.stop(0);
+        String url() { return "http://127.0.0.1:" + server.getLocalPort() + "/"; }
+        @Override public void close() throws Exception {
+            server.close();
             workers.shutdownNow();
+            assertTrue(workers.awaitTermination(3, TimeUnit.SECONDS), "HTTP test peer did not stop");
         }
     }
 }

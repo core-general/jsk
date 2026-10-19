@@ -184,7 +184,7 @@ class HttpFileDownloadTest {
     }
 
     @Test void downloadsAnArchiveLargerThanTheChildJvmHeap() throws Exception {
-        int size = 128 * 1024 * 1024;
+        int size = 64 * 1024 * 1024;
         byte[] block = new byte[8192];
         CRC32 crc = new CRC32();
         for (int n = 0; n < size; n += block.length) crc.update(block);
@@ -200,7 +200,7 @@ class HttpFileDownloadTest {
         });
         Path log = temporary.resolve("probe.log");
         Process process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
-                "-Xmx64m", "-cp", System.getProperty("surefire.test.class.path", System.getProperty("java.class.path")),
+                "-Xmx32m", "-cp", System.getProperty("surefire.test.class.path", System.getProperty("java.class.path")),
                 Probe.class.getName(), url("/large"), temporary.resolve("large.zip").toString())
                 .redirectErrorStream(true).redirectOutput(log.toFile()).start();
         try {

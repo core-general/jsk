@@ -22,7 +22,6 @@ package sk.web.server.spark.context;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
@@ -67,9 +66,13 @@ import sk.web.server.params.WebServerParams;
 import spark.Request;
 import spark.Response;
 import spark.Route;
-import spark.Service;
-import spark.servlet.SparkApplication;
-import spark.servlet.SparkFilter;
+import spark.RouteImpl;
+import spark.ExceptionHandlerImpl;
+import spark.ExceptionMapper;
+import spark.http.matching.MatcherFilter;
+import spark.route.HttpMethod;
+import spark.route.Routes;
+import spark.staticfiles.StaticFilesConfiguration;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -88,7 +91,7 @@ import static sk.utils.statics.St.bytesToS;
 
 @Order(1)
 @Slf4j
-public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, SparkApplication {
+public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
     @Inject WebServerParams conf;
     @Inject WebAdditionalParams additional;
     @Inject IExcept except;
@@ -101,38 +104,27 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
 
     @Inject protected Optional<IIpGeoExtractor> geoService = Optional.empty();
 
-    @Override
-    public void accept(ServletContextHandler context) {
-        context.addFilter(new FilterHolder(new SparkFilter() {
-                    @Override
-                    protected SparkApplication[] getApplications(FilterConfig filterConfig) throws ServletException {
-                        return new SparkApplication[]{WebJettyContextConsumer4Spark.this};
-                    }
-                }),
-                "/*",
-                EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST));
-    }
-
     private final Map<String, Class> gets = Cc.m();
     private final Map<String, Class> posts = Cc.m();
 
     @Override
-    public void init() {
-        Service spark = Service.ignite();
-        spark.port(conf.getPort());
+    public void accept(ServletContextHandler context) {
+        Routes routes = Routes.create();
+        StaticFilesConfiguration staticFiles = StaticFilesConfiguration.create();
+        ExceptionMapper exceptions = new ExceptionMapper();
         conf.getStaticFilesLocation().ifPresent(sf -> {
             sf.getEitherResourceOrExternal().apply(
-                    spark::staticFileLocation,
-                    spark::externalStaticFileLocation
+                    staticFiles::configure,
+                    staticFiles::configureExternal
             );
         });
 
         for (WebServerCore definition : serverDefinitions) {
-            final WebServerContext env = provideContext(spark, definition.getApiClass());
+            final WebServerContext env = provideContext(routes, definition.getApiClass());
             definition.create(env);
         }
 
-        spark.options("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
+        routes.add(HttpMethod.options, RouteImpl.create("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
             additional.getCrossOrigin(ctx.getRequestHeader("Origin")).ifPresent($ -> {
                 ctx.setResponseHeader("Access-Control-Allow-Origin", $);
                 ctx.setResponseHeader("Access-Control-Allow-Credentials", "true");
@@ -142,24 +134,30 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                             new WebReplyMeta(200, new WebContentTypeMeta("text/html; charset=UTF-8"), false, false),
                             OneOf.left("")),
                     empty());
-        }));
+        })));
 
-        spark.exception(Exception.class, (exception, request, response) -> {
-            log.error("UNHANDLED EXCEPTION", exception);
-            response.header(JskProblem.PROBLEM_SIGN, "+");
-            response.status(500);
-            response.body("OOPS! Please contact responsible person!");
+        exceptions.map(Exception.class, new ExceptionHandlerImpl<Exception>(Exception.class) {
+            @Override
+            public void handle(Exception exception, Request request, Response response) {
+                log.error("UNHANDLED EXCEPTION", exception);
+                response.header(JskProblem.PROBLEM_SIGN, "+");
+                response.status(500);
+                response.body("OOPS! Please contact responsible person!");
+            }
         });
+        context.addFilter(new FilterHolder(new MatcherFilter(routes, staticFiles, exceptions, true, false)),
+                "/*", EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST));
     }
 
-    public WebServerContext provideContext(Service spark, Class apiClass) {
+    public WebServerContext provideContext(Routes routes, Class apiClass) {
         return new WebServerContext() {
             @Override
             public void addPost(String path, C1<WebRequestOuterFullContext> webRequestProcessor, boolean multipartSure) {
                 Cc.compute(posts, path, (k, v) -> except
                                 .throwByDescription("Post method already exists:" + path + " in class:" + apiClass.getTypeName()),
                         () -> apiClass);
-                spark.post(path, new BasicSparkRoute("POST", path, multipartSure, webRequestProcessor));
+                routes.add(HttpMethod.post, RouteImpl.create(path,
+                        new BasicSparkRoute("POST", path, multipartSure, webRequestProcessor)));
             }
 
             @Override
@@ -167,7 +165,8 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer, S
                 Cc.compute(gets, path, (k, v) -> except
                                 .throwByDescription("Get method already exists:" + path + " in class:" + apiClass.getTypeName()),
                         () -> apiClass);
-                spark.get(path, new BasicSparkRoute("GET", path, false, webRequestProcessor));
+                routes.add(HttpMethod.get, RouteImpl.create(path,
+                        new BasicSparkRoute("GET", path, false, webRequestProcessor)));
             }
         };
     }

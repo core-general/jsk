@@ -27,6 +27,7 @@ import java.nio.file.*;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class IoProcessTest {
@@ -116,11 +117,14 @@ class IoProcessTest {
     @Test void timeoutTerminatesChildrenInOtherGroupsOfTheOwnedSession() throws Exception {
         Path childPid = temporary.resolve("child.pid");
         Path script = Files.writeString(temporary.resolve("job-control.sh"),
-                "set -m\ncat >/dev/null\nsleep 60 &\necho $! > child.pid\nwait\n");
+                "set -m\nsleep 60 &\necho $! > child.pid\nwait\n");
         var options = new ProcessOptions(List.of("/bin/bash", script.toString()), temporary, Map.of(),
-                Duration.ofMillis(500), Duration.ofMillis(30), 64, true);
+                Duration.ofMillis(200), Duration.ofMillis(30), 64, true);
         try (var process = Io.startProcess(options)) {
             try {
+                long ready = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+                while (!Files.exists(childPid) && System.nanoTime() < ready) Thread.sleep(5);
+                assertTrue(Files.exists(childPid), "Owned child must exist before timeout cleanup");
                 var result = process.await("prompt");
                 assertTrue(result.timedOut());
                 long child = Long.parseLong(Files.readString(childPid).strip());
