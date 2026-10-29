@@ -11,6 +11,22 @@
 
     <artifactId>jpa-spring-postgres-core</artifactId>
     <packaging>jar</packaging>
+    <properties>
+        <integration.excludedGroups>integration</integration.excludedGroups>
+        <integration.groups></integration.groups>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${integration.excludedGroups}</excludedGroups>
+                    <groups>${integration.groups}</groups>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
