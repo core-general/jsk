@@ -71,6 +71,12 @@
             <version>jsk.25.5.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>spring-error-reporting</artifactId>
+            <version>jsk.25.5.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

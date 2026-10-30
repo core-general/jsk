@@ -43,6 +43,12 @@
             <version>jsk.25.5.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jsk</groupId>
+            <artifactId>jx-logging-logback</artifactId>
+            <version>jsk.25.5.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

@@ -15,5 +15,6 @@
     <modules>
         <module>spring-core</module>
         <module>spring-properties-plugin-model</module>
+        <module>spring-error-reporting</module>
     </modules>
 </project>

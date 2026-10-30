@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.services.nodeinfo.IBeanInfoSubscriber;
 import sk.services.nodeinfo.model.IBeanInfo;
+import sk.services.errors.ErrorReportMarkers;
 import sk.utils.statics.Cc;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.filters.WebServerFilter;
@@ -65,7 +66,7 @@ public class WebDdosFilter implements WebServerFilter, IBeanInfoSubscriber<Map<S
         if (conf.isDdosCourtEnabled() && !debugDdosRequest) {
             final String clientIp = requestContext.getRequestContext().getIpInfo().getClientIp();
             if (jail.getIfPresent(clientIp) != null) {
-                log.error("ddoser:" + clientIp + "");
+                log.error(ErrorReportMarkers.LOCAL_ONLY, "ddoser:" + clientIp + "");
                 return WebFilterOutput.rawProblem(403, JskProblem.code("forbidden"));
             } else {
                 @SuppressWarnings("ConstantConditions")

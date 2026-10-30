@@ -34,6 +34,7 @@ import sk.db.relational.spring.services.EntityManagerProvider;
 import sk.db.relational.spring.services.RdbTransactionManager;
 import sk.db.relational.spring.services.RdbTransactionWrapper;
 import sk.services.retry.IRepeat;
+import sk.services.errors.IErrorReportingScope;
 import sk.utils.functional.F0;
 import sk.utils.functional.F1;
 import sk.utils.functional.O;
@@ -53,6 +54,7 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
     @Inject EntityManagerProvider em;
     @Inject IRepeat retry;
     @Inject RdbTransactionWrapper trans;
+    @Inject Optional<IErrorReportingScope> errorReportingScopes = Optional.empty();
 
     public RdbTransactionManagerImpl(EntityManagerProvider em, RdbTransactionWrapper trans) {
         this.trans = trans;
@@ -173,7 +175,12 @@ public abstract class RdbTransactionManagerImpl implements RdbTransactionManager
                 apply.forEach(this::trySave);
                 return t;
             };
-            return forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
+            F0<T> wrapped = () -> forceNew ? trans.transactionalForceNew(lambda) : trans.transactional(lambda);
+            if (errorReportingScopes.isEmpty()) return wrapped.get();
+            boolean joining = !forceNew && TransactionSynchronizationManager.isActualTransactionActive();
+            try (var scope = new TransactionSqlReportingScope(errorReportingScopes.get(), joining)) {
+                return wrapped.get();
+            }
         };
         if (!forceNew && TransactionSynchronizationManager.isActualTransactionActive()) {
             return attempt.get();

@@ -24,6 +24,7 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.exceptions.JskProblemException;
+import sk.services.errors.IErrorReporter;
 import sk.web.exceptions.JskProblemExceptionWithHttpCode;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.WebServerCore;
@@ -31,12 +32,19 @@ import sk.web.server.filters.WebServerFilter;
 import sk.web.server.filters.WebServerFilterContext;
 import sk.web.server.model.WebProblemWithRequestBodyException;
 import sk.web.server.params.WebExceptionParams;
+import sk.web.utils.WebApiMethod;
+
+import java.lang.reflect.Method;
+import java.util.Optional;
+
+import static sk.services.errors.ErrorReportMarkers.REPORTED_SEPARATELY;
 
 @Slf4j
 public class WebExceptionFilter implements WebServerFilter {
     public static final int PRIORITY = WebIdempotenceFilter.PRIORITY + PRIORITY_STEP;
 
     @Inject WebExceptionParams conf;
+    @Inject Optional<IErrorReporter> errorReporter = Optional.empty();
 
     @Override
     public int getFilterPriority() {
@@ -50,14 +58,18 @@ public class WebExceptionFilter implements WebServerFilter {
         } catch (JskProblemExceptionWithHttpCode exc) {
             final WebFilterOutput webFilterOutput = WebFilterOutput.rawProblem(exc.getHttpCode(), exc.getProblem());
             if (conf.shouldLog(exc)) {
-                log.error(String.format("Error on request with code: %d %s", exc.getHttpCode(), exc.getProblem()));
+                log.error(REPORTED_SEPARATELY,
+                        String.format("Error on request with code: %d %s", exc.getHttpCode(), exc.getProblem()));
+                reportServerProblem(exc.getHttpCode(), exc, requestContext);
             }
             return webFilterOutput;
         } catch (JskProblemException exc) {
             final WebFilterOutput webFilterOutput =
                     WebFilterOutput.rawProblem(conf.getUnhandledJskExceptionHttpCode(), exc.getProblem());
             if (conf.shouldLog(exc)) {
-                log.error("Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + exc.getProblem());
+                log.error(REPORTED_SEPARATELY,
+                        "Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + exc.getProblem());
+                reportServerProblem(conf.getUnhandledJskExceptionHttpCode(), exc, requestContext);
             }
             return webFilterOutput;
         } catch (WebProblemWithRequestBodyException exc) {
@@ -81,4 +93,17 @@ public class WebExceptionFilter implements WebServerFilter {
         }
     }
 
+    private void reportServerProblem(int httpCode, JskProblemException exc, WebServerFilterContext<?> requestContext) {
+        if (httpCode >= 500) {
+            final JskProblem problem = exc.getProblem();
+            errorReporter.ifPresent(reporter -> reporter.reportProblem(httpCode,
+                    problem == null ? null : problem.getCode(),
+                    problem == null ? null : problem.getDescription(),
+                    apiMethodName(requestContext.getApiMethod())));
+        }
+    }
+
+    private static String apiMethodName(WebApiMethod<?> apiMethod) {
+        return apiMethod.getCls().getName() + apiMethod.getOMethod().map(Method::getName).map($ -> "." + $).orElse("");
+    }
 }
