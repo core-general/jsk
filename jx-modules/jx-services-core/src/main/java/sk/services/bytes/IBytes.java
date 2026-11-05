@@ -217,6 +217,10 @@ public interface IBytes {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
+    default String bcryptHash(String password, int cost) {
+        return BCrypt.hashpw(password, BCrypt.gensalt(cost));
+    }
+
     /**
      * @return true - ok, false - not ok
      */

@@ -485,7 +485,7 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
                     bodyCache = value;
                 }
                 if (value.length == 0) {
-                    log.error("Body has size 0, we assume it doesn't exist! Method:" + path);
+                    log.debug("Body has size 0, we assume it doesn't exist! Method:" + path);
                     return empty();
                 } else {
                     return O.ofNull(value);
