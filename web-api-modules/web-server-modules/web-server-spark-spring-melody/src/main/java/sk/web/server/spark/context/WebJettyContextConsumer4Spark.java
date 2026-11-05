@@ -57,6 +57,7 @@ import sk.web.renders.WebRenderResult;
 import sk.web.renders.WebReplyMeta;
 import sk.web.server.WebServerContext;
 import sk.web.server.WebServerCore;
+import sk.web.server.WebUnmatchedRequestHandler;
 import sk.web.server.context.WebRequestIp;
 import sk.web.server.context.WebRequestOuterFullContext;
 import sk.web.server.model.WebInputLimitExceededException;
@@ -72,6 +73,7 @@ import spark.ExceptionMapper;
 import spark.http.matching.MatcherFilter;
 import spark.route.HttpMethod;
 import spark.route.Routes;
+import spark.routematch.RouteMatch;
 import spark.staticfiles.StaticFilesConfiguration;
 
 import java.io.BufferedOutputStream;
@@ -101,11 +103,14 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
     @Inject IWebExcept webExcept;
     @Inject IAppProfile<?> profile;
     @Inject List<WebServerCore> serverDefinitions = Cc.l();
+    @Inject Optional<List<WebUnmatchedRequestHandler>> unmatchedHandlers = Optional.empty();
 
     @Inject protected Optional<IIpGeoExtractor> geoService = Optional.empty();
 
-    private final Map<String, Class> gets = Cc.m();
-    private final Map<String, Class> posts = Cc.m();
+    private static final List<String> FALLBACK_METHODS = List.of("GET", "POST", "PUT", "PATCH", "DELETE");
+
+    private final Map<String, Map<String, Class>> pathsByMethod = Cc.m();
+    private final List<PendingRoute> pendingRoutes = Cc.l();
 
     @Override
     public void accept(ServletContextHandler context) {
@@ -122,6 +127,16 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
         for (WebServerCore definition : serverDefinitions) {
             final WebServerContext env = provideContext(routes, definition.getApiClass());
             definition.create(env);
+        }
+        pendingRoutes.stream()
+                .sorted(PendingRoute.MOST_SPECIFIC_FIRST)
+                .forEach($ -> routes.add($.method(), $.route()));
+        pendingRoutes.clear();
+        for (WebUnmatchedRequestHandler handler : unmatchedHandlers.orElse(List.of())) {
+            final String fallbackPath = St.endWith(handler.getPathPrefix(), "/") + "*";
+            for (String method : FALLBACK_METHODS) {
+                routes.add(sparkMethod(method), RouteImpl.create(fallbackPath, new UnmatchedSparkRoute(routes, handler)));
+            }
         }
 
         routes.add(HttpMethod.options, RouteImpl.create("/*", new BasicSparkRoute("OPTIONS", "/*", false, ctx -> {
@@ -153,22 +168,85 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
         return new WebServerContext() {
             @Override
             public void addPost(String path, C1<WebRequestOuterFullContext> webRequestProcessor, boolean multipartSure) {
-                Cc.compute(posts, path, (k, v) -> except
-                                .throwByDescription("Post method already exists:" + path + " in class:" + apiClass.getTypeName()),
-                        () -> apiClass);
-                routes.add(HttpMethod.post, RouteImpl.create(path,
-                        new BasicSparkRoute("POST", path, multipartSure, webRequestProcessor)));
+                register("POST", path, apiClass, new BasicSparkRoute("POST", path, multipartSure, webRequestProcessor));
             }
 
             @Override
             public void addGet(String path, C1<WebRequestOuterFullContext> webRequestProcessor) {
-                Cc.compute(gets, path, (k, v) -> except
-                                .throwByDescription("Get method already exists:" + path + " in class:" + apiClass.getTypeName()),
-                        () -> apiClass);
-                routes.add(HttpMethod.get, RouteImpl.create(path,
-                        new BasicSparkRoute("GET", path, false, webRequestProcessor)));
+                register("GET", path, apiClass, new BasicSparkRoute("GET", path, false, webRequestProcessor));
+            }
+
+            @Override
+            public void addRoute(String httpMethod, String path, C1<WebRequestOuterFullContext> webRequestProcessor) {
+                register(httpMethod, path, apiClass, new BasicSparkRoute(httpMethod, path, false, webRequestProcessor));
             }
         };
+    }
+
+    private void register(String httpMethod, String path, Class apiClass, BasicSparkRoute route) {
+        Cc.compute(pathsByMethod.computeIfAbsent(httpMethod, $ -> Cc.m()), path, (k, v) -> except
+                        .throwByDescription(St.capFirst(httpMethod.toLowerCase()) + " method already exists:" + path +
+                                            " in class:" + apiClass.getTypeName()),
+                () -> apiClass);
+        pendingRoutes.add(new PendingRoute(sparkMethod(httpMethod), path, pendingRoutes.size(), RouteImpl.create(path, route)));
+    }
+
+    private static HttpMethod sparkMethod(String httpMethod) {
+        return HttpMethod.valueOf(httpMethod.toLowerCase());
+    }
+
+    record PendingRoute(HttpMethod method, String path, int order, RouteImpl route) {
+        static final Comparator<PendingRoute> MOST_SPECIFIC_FIRST = Comparator
+                .comparing((PendingRoute $) -> segmentKinds($.path()), PendingRoute::compareKinds)
+                .thenComparingInt(PendingRoute::order);
+
+        static List<Integer> segmentKinds(String path) {
+            return Arrays.stream(path.split("/"))
+                    .filter($ -> !$.isEmpty())
+                    .map($ -> $.startsWith(":") ? 1 : $.equals("*") ? 2 : 0)
+                    .toList();
+        }
+
+        static int compareKinds(List<Integer> left, List<Integer> right) {
+            for (int i = 0; i < Math.min(left.size(), right.size()); i++) {
+                final int byKind = Integer.compare(left.get(i), right.get(i));
+                if (byKind != 0) {
+                    return byKind;
+                }
+            }
+            return Integer.compare(left.size(), right.size());
+        }
+    }
+
+    private class UnmatchedSparkRoute implements Route {
+        private final Routes routes;
+        private final WebUnmatchedRequestHandler handler;
+
+        UnmatchedSparkRoute(Routes routes, WebUnmatchedRequestHandler handler) {
+            this.routes = routes;
+            this.handler = handler;
+        }
+
+        @Override
+        public Object handle(Request request, Response response) {
+            final String path = request.uri();
+            final List<String> matching = FALLBACK_METHODS.stream()
+                    .filter($ -> isServedBy(routes.find(sparkMethod($), path, "*/*")))
+                    .toList();
+            final String method = request.requestMethod().toUpperCase();
+            handler.handle(method, path, matching,
+                    new SparkWebRequestOuterFullContext(method, path, request, false, response, geoService, bytes, ids));
+            return response.body();
+        }
+
+        private boolean isServedBy(RouteMatch match) {
+            if (match == null) {
+                return false;
+            }
+            final Object target = match.getTarget();
+            return !(target instanceof UnmatchedSparkRoute)
+                   && !(target instanceof RouteImpl impl && impl.delegate() instanceof UnmatchedSparkRoute);
+        }
     }
 
     static boolean isMultipartContentType(String contentType) {

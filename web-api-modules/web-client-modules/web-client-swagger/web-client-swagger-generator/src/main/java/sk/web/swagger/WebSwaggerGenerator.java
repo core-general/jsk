@@ -136,6 +136,15 @@ public class WebSwaggerGenerator {
             case POST_BODY:
                 item.setPost(op);
                 break;
+            case PUT:
+                item.setPut(op);
+                break;
+            case PATCH:
+                item.setPatch(op);
+                break;
+            case DELETE:
+                item.setDelete(op);
+                break;
         }
 
         op.setOperationId(method.getPrecompiledModel().getMName());

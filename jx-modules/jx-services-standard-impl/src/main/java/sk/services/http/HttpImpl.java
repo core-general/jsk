@@ -135,6 +135,16 @@ public class HttpImpl implements IHttp {
     }
 
     @Override
+    public <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToPut() {
+        return postBuilder -> executeUni(postBuilder, $ -> executeSingleWithBody("PUT", $));
+    }
+
+    @Override
+    public <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToPatch() {
+        return postBuilder -> executeUni(postBuilder, $ -> executeSingleWithBody("PATCH", $));
+    }
+
+    @Override
     public F1<HttpHeadBuilder, OneOf<CoreHttpResponse, Exception>> howToHead() {
         return headBuilder -> executeUni(headBuilder, this::executeSingleHead);
     }
@@ -167,10 +177,15 @@ public class HttpImpl implements IHttp {
     }
 
     private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSingleDelete(T postBuilder) throws IOException {
+        return executeSingleWithBody("DELETE", postBuilder);
+    }
+
+    private <T extends HttpPostBuilder<T>> CoreHttpResponse executeSingleWithBody(String method, T postBuilder)
+            throws IOException {
         final Builder bld = newBuilder();
         return execute(postBuilder, bld
                 .uri(URI.create(postBuilder.url()))
-                .method("DELETE", definePostRequestBody(postBuilder, bld)), false);
+                .method(method, definePostRequestBody(postBuilder, bld)), false);
     }
 
     private CoreHttpResponse executeSingleGet(HttpGetBuilder getBuilder) throws IOException {

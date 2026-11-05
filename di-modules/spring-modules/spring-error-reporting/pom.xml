@@ -5,7 +5,7 @@
     <parent>
         <artifactId>spring-modules</artifactId>
         <groupId>jsk</groupId>
-        <version>jsk.25.5.4</version>
+        <version>jsk.25.5.5-model</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>spring-core</artifactId>
-            <version>jsk.25.5.4</version>
+            <version>jsk.25.5.5-model</version>
         </dependency>
         <dependency>
             <groupId>jsk</groupId>
             <artifactId>jx-test</artifactId>
-            <version>jsk.25.5.4</version>
+            <version>jsk.25.5.5-model</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

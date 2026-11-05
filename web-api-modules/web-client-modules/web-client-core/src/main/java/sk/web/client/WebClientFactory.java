@@ -181,12 +181,7 @@ public class WebClientFactory {
 
     private O<HttpBuilder<?>> prepareHttp(WebApiClientExecutionModel request) {
         if (request.getMethod() == WebMethodType.GET) {
-            // Use WebUrlEncoder abstraction instead of URLEncoder
-            String encodedURL = request.getParams().entrySet().stream()
-                    .map(kv -> kv.getKey() + "=" + platformHelper.urlEncode(kv.getValue()))
-                    .collect(Collectors.joining("&", request.getFullUrl() + "?", ""));
-
-            IHttp.HttpGetBuilder builder = http.get(encodedURL);
+            IHttp.HttpGetBuilder builder = http.get(withQuery(request.getFullUrl(), request.getParams()));
 
             builder.headers().putAll(request.getHeaders());
             if (request.getRaw().size() > 0) {
@@ -194,6 +189,8 @@ public class WebClientFactory {
             }
 
             return O.of(builder);
+        } else if (request.getBodyParam() != null || !request.getMethod().isPost()) {
+            return prepareWithBody(request);
         } else if ((request.getMethod() == WebMethodType.POST_MULTI || request.getMethod() == WebMethodType.POST_MULTI_SURE)
                    && (request.getParams().size() > 0 || request.getRaw().size() > 0)) {
             IHttp.HttpMultipartBuilder builder = http.postMulti(request.getFullUrl());
@@ -221,6 +218,34 @@ public class WebClientFactory {
             }
             return O.of(builder);
         }
+    }
+
+    private O<HttpBuilder<?>> prepareWithBody(WebApiClientExecutionModel request) {
+        final Map<String, String> queryParams = new LinkedHashMap<>(request.getParams());
+        final O<String> textBody = O.ofNull(request.getBodyParam()).flatMap($ -> O.ofNull(queryParams.remove($)));
+        final O<byte[]> rawBody = O.ofNull(request.getBodyParam()).flatMap($ -> O.ofNull(request.getRaw().get($)));
+        if (request.getRaw().size() > (rawBody.isPresent() ? 1 : 0)) {
+            return O.empty();
+        }
+        final String url = withQuery(request.getFullUrl(), queryParams);
+        final IHttp.HttpBodyBuilder builder = switch (request.getMethod()) {
+            case PUT -> http.putBody(url);
+            case PATCH -> http.patchBody(url);
+            case DELETE -> http.deleteBody(url);
+            default -> http.postBody(url);
+        };
+        builder.headers().putAll(request.getHeaders());
+        rawBody.ifPresentOrElse(builder::body, () -> builder.body(textBody.orElse("")));
+        return O.of(builder);
+    }
+
+    private String withQuery(String url, Map<String, String> params) {
+        if (params.isEmpty()) {
+            return url;
+        }
+        return params.entrySet().stream()
+                .map(kv -> platformHelper.urlEncode(kv.getKey()) + "=" + platformHelper.urlEncode(kv.getValue()))
+                .collect(Collectors.joining("&", url + "?", ""));
     }
 
     /**
@@ -254,11 +279,38 @@ public class WebClientFactory {
                     .ifPresent($ -> (auth.isParamOrHeader() ? p : h).put(auth.getParamName(), $));
         });
 
+        final Map<String, String> pathValues = Cc.m();
+        for (String pathParam : pathParameterNames(methodInfo.getFullMethodPath())) {
+            O.ofNull(p.remove(pathParam)).ifPresent($ -> pathValues.put(pathParam, encodePathSegment($)));
+        }
         return new WebApiClientExecutionModel(
                 ids.shortId(),
-                tunePathParams(methodInfo.getFullMethodPath(), p),
+                tunePathParams(methodInfo.getFullMethodPath(), pathValues),
                 methodInfo.getType(), h, p,
-                raw);
+                raw,
+                methodInfo.getBodyParameter().map(WebMethodInfo.ParameterNameAndType::getName).orElse(null));
+    }
+
+    Set<String> pathParameterNames(String path) {
+        String localPath = path;
+        if (path.startsWith("https:") || path.startsWith("http:")) {
+            try {
+                localPath = new URL(path).getFile();
+            } catch (MalformedURLException e) {
+                return Ex.thRow(e);
+            }
+        }
+        final Set<String> names = new LinkedHashSet<>();
+        for (String segment : localPath.split("/")) {
+            if (segment.startsWith(":") && segment.length() > 1) {
+                names.add(segment.substring(1));
+            }
+        }
+        return names;
+    }
+
+    private String encodePathSegment(String value) {
+        return platformHelper.urlEncode(value).replace("+", "%20");
     }
 
     String tunePathParams(String path, Map<String, String> p) {

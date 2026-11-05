@@ -47,6 +47,10 @@ public interface IHttp {
 
     <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToDelete();
 
+    <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToPut();
+
+    <T extends HttpPostBuilder<T>> F1<T, OneOf<CoreHttpResponse, Exception>> howToPatch();
+
     F1<HttpHeadBuilder, OneOf<CoreHttpResponse, Exception>> howToHead();
 
     default IHttpConf getConfig() {
@@ -108,6 +112,22 @@ public interface IHttp {
 
     default HttpMultipartBuilder deleteMulti(String url) {
         return new HttpMultipartBuilder(url, howToDelete());
+    }
+
+    default HttpFormBuilder putForm(String url) {
+        return new HttpFormBuilder(url, howToPut());
+    }
+
+    default HttpBodyBuilder putBody(String url) {
+        return new HttpBodyBuilder(url, howToPut());
+    }
+
+    default HttpFormBuilder patchForm(String url) {
+        return new HttpFormBuilder(url, howToPatch());
+    }
+
+    default HttpBodyBuilder patchBody(String url) {
+        return new HttpBodyBuilder(url, howToPatch());
     }
 
     @Accessors(fluent = true, chain = true)

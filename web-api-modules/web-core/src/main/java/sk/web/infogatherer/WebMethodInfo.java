@@ -55,6 +55,11 @@ public class WebMethodInfo {
         String name;
         TypeWrap type;
         boolean merging;
+        boolean body;
+
+        public ParameterNameAndType(String name, TypeWrap type, boolean merging) {
+            this(name, type, merging, false);
+        }
 
         public String getTypeName() {
             return O.ofNull(type).flatMap($ -> O.ofNull($.getType())).flatMap($ -> O.ofNull($.getTypeName())).orElse("NONE");
@@ -79,6 +84,10 @@ public class WebMethodInfo {
         boolean force;
         int retryCount;
         int retrySleepMs;
+    }
+
+    public O<ParameterNameAndType> getBodyParameter() {
+        return O.of(paramAndTypes.stream().filter(ParameterNameAndType::isBody).findFirst());
     }
 
     public String postmanize() {
