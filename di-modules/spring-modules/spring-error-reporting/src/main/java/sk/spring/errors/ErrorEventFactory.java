@@ -57,10 +57,19 @@ public class ErrorEventFactory {
 
     public ErrorEvent create(ErrorOccurrence occurrence) {
         return switch (occurrence) {
+            case ErrorOccurrence.Browser browser -> browser(browser);
             case ErrorOccurrence.Thrown thrown -> exception(thrown);
             case ErrorOccurrence.Logged logged -> log(logged);
             case ErrorOccurrence.Problem problem -> problem(problem);
         };
+    }
+
+    private ErrorEvent browser(ErrorOccurrence.Browser browser) {
+        String path = text(browser.path());
+        String stack = text(browser.stack());
+        String trace = (path.isEmpty() ? "" : "path: " + limit(redact(path), 500))
+                + (stack.isEmpty() ? "" : (path.isEmpty() ? "" : "\n") + redact(stack));
+        return event(browser, "browser", text(browser.type()), redact(browser.message()), List.of(), "", "", "", trace, browser.service());
     }
 
     private ErrorEvent exception(ErrorOccurrence.Thrown thrown) {
@@ -86,7 +95,12 @@ public class ErrorEventFactory {
 
     private ErrorEvent event(ErrorOccurrence occurrence, String kind, String type, String message, List<String> frames,
             String logger, String site, String template, String trace) {
-        return new ErrorEvent(limit(UUID.randomUUID().toString(), MAX_ID_CHARS), limit(settings.service(), MAX_SERVICE_CHARS),
+        return event(occurrence, kind, type, message, frames, logger, site, template, trace, settings.service());
+    }
+
+    private ErrorEvent event(ErrorOccurrence occurrence, String kind, String type, String message, List<String> frames,
+            String logger, String site, String template, String trace, String service) {
+        return new ErrorEvent(limit(UUID.randomUUID().toString(), MAX_ID_CHARS), limit(service, MAX_SERVICE_CHARS),
                 limit(settings.environment(), MAX_ENVIRONMENT_CHARS),
                 RFC_3339_UTC.format(Instant.ofEpochMilli(occurrence.epochMillis())), limit(kind, MAX_KIND_CHARS),
                 limit(type, MAX_TYPE_CHARS), limit(message, MAX_MESSAGE_CHARS),

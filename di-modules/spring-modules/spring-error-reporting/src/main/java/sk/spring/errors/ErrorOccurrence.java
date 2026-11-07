@@ -23,6 +23,8 @@ package sk.spring.errors;
 public sealed interface ErrorOccurrence {
     long epochMillis();
 
+    record Browser(String service, String type, String message, String stack, String path, long epochMillis) implements ErrorOccurrence {}
+
     record Thrown(String operation, Throwable error, long epochMillis) implements ErrorOccurrence {}
 
     record Logged(String logger, StackTraceElement site, String template, String message, long epochMillis)

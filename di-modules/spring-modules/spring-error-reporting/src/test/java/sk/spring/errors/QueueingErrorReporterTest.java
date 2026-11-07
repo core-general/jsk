@@ -89,6 +89,19 @@ class QueueingErrorReporterTest extends JskMockitoTest {
     }
 
     @Test
+    void browserAndBackendOccurrencesShareOneTransportBatch() {
+        reporter.reportBrowser("portal web", "TypeError", "failed", "frame", "/compare");
+        reporter.reportProblem(503, "UPSTREAM_DOWN", "unavailable", "Api.call");
+        respond(status(202));
+        reporter.sendNext();
+        List<Map<String, Object>> sent = events(batch(0));
+        assertEquals(List.of("browser", "problem"), sent.stream().map(event -> event.get("kind")).toList());
+        assertEquals("portal web", sent.getFirst().get("service"));
+        assertEquals("path: /compare\nframe", sent.getFirst().get("trace"));
+        assertEquals(1, posts.size());
+    }
+
+    @Test
     void fullQueueDropsWithoutBlockingAndOnlyTheSentDropCountIsCleared() {
         int overflow = 3;
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> reportDistinct(QUEUE_CAPACITY + overflow));

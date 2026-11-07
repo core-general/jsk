@@ -460,6 +460,13 @@ public class WebJettyContextConsumer4Spark implements WebJettyContextConsumer {
         }
 
         @Override
+        public List<String> getParamValues(String param) {
+            checkRequestLength();
+            final String[] values = multipartSure ? null : throwOnBadRequestData(() -> request.queryParamsValues(param));
+            return values == null ? getParamAsString(param).map(List::of).orElse(List.of()) : List.of(values);
+        }
+
+        @Override
         public O<byte[]> getParamAsBytes(String param) {
             checkRequestLength();
             return throwOnBadRequestData(() -> multipart(request, param));

@@ -23,5 +23,7 @@ package sk.spring.errors;
 import sk.services.errors.IErrorReporter;
 
 public interface ILoggedErrorReporter extends IErrorReporter {
+    default void reportBrowser(String service, String type, String message, String stack, String path) {}
+
     void reportLogged(String logger, StackTraceElement site, String template, String message);
 }
