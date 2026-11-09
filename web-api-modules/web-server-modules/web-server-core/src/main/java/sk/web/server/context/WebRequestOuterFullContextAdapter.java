@@ -82,6 +82,9 @@ public abstract class WebRequestOuterFullContextAdapter extends WebRequestOuterF
     public O<String> getParamAsString(String param) {return delegate.getParamAsString(param);}
 
     @Override
+    public List<String> getParamValues(String param) {return delegate.getParamValues(param);}
+
+    @Override
     public O<byte[]> getParamAsBytes(String param) {return delegate.getParamAsBytes(param);}
 
     @Override

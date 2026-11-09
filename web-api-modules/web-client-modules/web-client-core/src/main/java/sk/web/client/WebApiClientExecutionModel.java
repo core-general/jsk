@@ -36,4 +36,10 @@ public class WebApiClientExecutionModel {
     Map<String, String> headers;
     Map<String, String> params;
     Map<String, byte[]> raw;
+    String bodyParam;
+
+    public WebApiClientExecutionModel(UUID requestId, String fullUrl, WebMethodType method, Map<String, String> headers,
+            Map<String, String> params, Map<String, byte[]> raw) {
+        this(requestId, fullUrl, method, headers, params, raw, null);
+    }
 }

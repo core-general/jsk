@@ -32,12 +32,16 @@ import sk.utils.javafixes.TypeWrap;
 import sk.utils.tuples.X;
 import sk.web.WebMethodType;
 import sk.web.annotations.WebAuth;
+import sk.web.annotations.WebBody;
 import sk.web.annotations.WebAuthNO;
 import sk.web.annotations.WebIdempotence;
 import sk.web.annotations.WebIdempotenceNO;
+import sk.web.annotations.type.WebDELETE;
 import sk.web.annotations.type.WebGET;
 import sk.web.annotations.type.WebMethod;
+import sk.web.annotations.type.WebPATCH;
 import sk.web.annotations.type.WebPOST;
+import sk.web.annotations.type.WebPUT;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -78,6 +82,9 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
                             .map(__ -> WebMethodType.GET)
                             .or(() -> O.ofNull(m.getAnnotation(WebPOST.class))
                                     .map(x -> x.forceMultipart() ? WebMethodType.POST_MULTI_SURE : WebMethodType.POST_MULTI))
+                            .or(() -> O.ofNull(m.getAnnotation(WebPUT.class)).map(__ -> WebMethodType.PUT))
+                            .or(() -> O.ofNull(m.getAnnotation(WebPATCH.class)).map(__ -> WebMethodType.PATCH))
+                            .or(() -> O.ofNull(m.getAnnotation(WebDELETE.class)).map(__ -> WebMethodType.DELETE))
                             .or(() -> O.ofNull(m.getAnnotation(WebMethod.class)).map(WebMethod::method))
                             .orElse(WebMethodType.POST_MULTI);
                     ApiMethodModel methodModel = precompiledModel.getEndpoints().get($.getKey());
@@ -111,7 +118,8 @@ public class WebMethodInfoProviderImpl implements WebClassInfoProvider {
                                     (p, i) -> new WebMethodInfo.ParameterNameAndType(
                                             methodModel.getParams().get(i).getName(),
                                             TypeWrap.raw(paramTypes[i]),
-                                            methodModel.getParams().get(i).isMerging()
+                                            methodModel.getParams().get(i).isMerging(),
+                                            p.isAnnotationPresent(WebBody.class)
                                     )),
                             methodModel,
                             authInfo,

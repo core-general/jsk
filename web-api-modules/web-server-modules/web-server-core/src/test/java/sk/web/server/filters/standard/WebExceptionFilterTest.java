@@ -29,6 +29,7 @@ import sk.services.errors.IErrorReporter;
 import sk.test.JskMockitoTest;
 import sk.utils.functional.O;
 import sk.web.exceptions.JskProblemExceptionWithHttpCode;
+import sk.web.exceptions.WebParameterException;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.context.WebRequestInnerContext;
 import sk.web.server.filters.WebServerFilterContext;
@@ -38,6 +39,8 @@ import sk.web.utils.WebApiMethod;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -55,7 +58,24 @@ class WebExceptionFilterTest extends JskMockitoTest {
         filter.conf = conf;
         filter.errorReporter = Optional.of(reporter);
         when(conf.shouldLog(any())).thenReturn(true);
+        when(request.getExceptionProcessors()).thenReturn(O.empty());
         apiMethod = TestApi.class.getMethod("call");
+    }
+
+    @Test
+    void serverProcessorsAnswerProblemsBeforeTheBuiltInMapping() {
+        WebFilterOutput refusal = WebFilterOutput.rawValue(422, "refused");
+        when(request.getExceptionProcessors()).thenReturn(O.of(type -> WebParameterException.class.isAssignableFrom(type)
+                                                                       ? O.of((exc, ctx) -> refusal)
+                                                                       : O.empty()));
+
+        WebFilterOutput processed = invoke(new WebParameterException("page", WebParameterException.Kind.MALFORMED, false,
+                O.of("x"), O.empty(), JskProblem.code("coerce_error")));
+        WebFilterOutput builtIn = invoke(new JskProblemExceptionWithHttpCode(404, JskProblem.code("NOT_FOUND"), false));
+
+        assertSame(refusal, processed);
+        assertNotEquals(refusal.getCode(), builtIn.getCode());
+        verifyNoInteractions(reporter);
     }
 
     @Test

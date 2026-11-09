@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import sk.exceptions.JskProblem;
 import sk.exceptions.JskProblemException;
 import sk.services.errors.IErrorReporter;
+import sk.utils.functional.O;
 import sk.web.exceptions.JskProblemExceptionWithHttpCode;
 import sk.web.renders.WebFilterOutput;
 import sk.web.server.WebServerCore;
@@ -55,41 +56,50 @@ public class WebExceptionFilter implements WebServerFilter {
     public <API> WebFilterOutput invoke(WebServerFilterContext<API> requestContext) {
         try {
             return requestContext.getNextInChain().invokeNext();
-        } catch (JskProblemExceptionWithHttpCode exc) {
-            final WebFilterOutput webFilterOutput = WebFilterOutput.rawProblem(exc.getHttpCode(), exc.getProblem());
-            if (conf.shouldLog(exc)) {
-                log.error(REPORTED_SEPARATELY,
-                        String.format("Error on request with code: %d %s", exc.getHttpCode(), exc.getProblem()));
-                reportServerProblem(exc.getHttpCode(), exc, requestContext);
+        } catch (Exception exc) {
+            final O<WebFilterOutput> processed = requestContext.getRequestContext().getExceptionProcessors()
+                    .flatMap($ -> $.apply(exc.getClass()))
+                    .map($ -> $.apply(exc, requestContext.getRequestContext()));
+            if (processed.isPresent()) {
+                logProcessed(exc, processed.get());
+                return processed.get();
             }
-            return webFilterOutput;
-        } catch (JskProblemException exc) {
-            final WebFilterOutput webFilterOutput =
-                    WebFilterOutput.rawProblem(conf.getUnhandledJskExceptionHttpCode(), exc.getProblem());
-            if (conf.shouldLog(exc)) {
-                log.error(REPORTED_SEPARATELY,
-                        "Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + exc.getProblem());
-                reportServerProblem(conf.getUnhandledJskExceptionHttpCode(), exc, requestContext);
+            if (exc instanceof JskProblemExceptionWithHttpCode withCode) {
+                return builtInProblem(withCode.getHttpCode(), withCode, requestContext,
+                        String.format("Error on request with code: %d %s", withCode.getHttpCode(), withCode.getProblem()));
+            } else if (exc instanceof JskProblemException problem) {
+                return builtInProblem(conf.getUnhandledJskExceptionHttpCode(), problem, requestContext,
+                        "Error on request no code: " + conf.getUnhandledJskExceptionHttpCode() + " " + problem.getProblem());
+            } else if (exc instanceof WebProblemWithRequestBodyException) {
+                if (conf.shouldLog(exc)) {
+                    log.warn("WebProblemWithRequestBodyException");
+                }
+                return WebFilterOutput.rawProblem(503, JskProblem.code(WebServerCore.IO_PROBLEM_WHILE_READ_BODY));
             }
-            return webFilterOutput;
-        } catch (WebProblemWithRequestBodyException exc) {
-            if (conf.shouldLog(exc)) {
-                log.warn("WebProblemWithRequestBodyException");
-            }
-            return WebFilterOutput.rawProblem(503, JskProblem.code(WebServerCore.IO_PROBLEM_WHILE_READ_BODY));
-        } catch (Exception unknownExc) {
-            final WebFilterOutput webFilterOutput = requestContext.getRequestContext().getExceptionProcessors()
-                    .flatMap($ -> $.apply(unknownExc.getClass()))
-                    .map($ -> $.apply(unknownExc, requestContext.getRequestContext()))
-                    .orElseGet(() -> WebFilterOutput.rawProblem(conf.getUnknownExceptionHttpCode(),
-                            JskProblem.code(WebServerCore.INTERNAL_ERROR)));
+            final WebFilterOutput unknown = WebFilterOutput.rawProblem(conf.getUnknownExceptionHttpCode(),
+                    JskProblem.code(WebServerCore.INTERNAL_ERROR));
+            logProcessed(exc, unknown);
+            return unknown;
+        }
+    }
 
-            if (conf.shouldLog(unknownExc)) {
-                log.error("Error on request unknown: " + webFilterOutput.getCode() + " " +
-                                webFilterOutput.getRawOrRenderedAsString(),
-                        unknownExc);
-            }
-            return webFilterOutput;
+    private WebFilterOutput builtInProblem(int httpCode, JskProblemException exc, WebServerFilterContext<?> requestContext,
+            String message) {
+        if (conf.shouldLog(exc)) {
+            log.error(REPORTED_SEPARATELY, message);
+            reportServerProblem(httpCode, exc, requestContext);
+        }
+        return WebFilterOutput.rawProblem(httpCode, exc.getProblem());
+    }
+
+    private void logProcessed(Exception exc, WebFilterOutput output) {
+        if (!conf.shouldLog(exc)) {
+            return;
+        }
+        if (output.getCode() >= 500) {
+            log.error("Error on request unknown: " + output.getCode() + " " + output.getRawOrRenderedAsString(), exc);
+        } else {
+            log.info("Request refused: " + output.getCode() + " " + exc.getClass().getSimpleName() + " " + exc.getMessage());
         }
     }
 

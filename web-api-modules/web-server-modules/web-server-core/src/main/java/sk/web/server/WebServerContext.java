@@ -27,4 +27,6 @@ public interface WebServerContext {
     void addPost(String path, C1<WebRequestOuterFullContext> webRequestProcessor, boolean multipartSure);
 
     void addGet(String path, C1<WebRequestOuterFullContext> webRequestProcessor);
+
+    void addRoute(String httpMethod, String path, C1<WebRequestOuterFullContext> webRequestProcessor);
 }

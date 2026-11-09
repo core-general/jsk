@@ -138,6 +138,11 @@ public class WebRequestInnerContextImpl<API> implements WebRequestInnerContext {
     }
 
     @Override
+    public List<String> getParamValues(String param) {
+        return outerFull.getParamValues(param);
+    }
+
+    @Override
     public O<byte[]> getParamAsBytes(String param) {
         return outerFull.getParamAsBytes(param);
     }

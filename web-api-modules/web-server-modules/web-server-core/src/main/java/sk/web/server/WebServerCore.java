@@ -47,6 +47,7 @@ import sk.web.WebMethodType;
 import sk.web.annotations.*;
 import sk.web.annotations.type.WebPOST;
 import sk.web.exceptions.IWebExcept;
+import sk.web.exceptions.WebParameterException;
 import sk.web.infogatherer.WebClassInfo;
 import sk.web.infogatherer.WebClassInfoProvider;
 import sk.web.infogatherer.WebMethodInfo;
@@ -73,7 +74,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -117,11 +117,6 @@ public class WebServerCore<API>
     @Setter
     private volatile boolean shouldStop;
     private volatile boolean created;
-
-    private final F2<String, Boolean, Supplier<Object>> NON_NULL_CHECK = (paramName, nullAllowed) -> () ->
-            nullAllowed
-            ? null
-            : webExcept.throwMissingParameter(paramName, true);
 
     private final WebServerInfo info;
 
@@ -174,6 +169,11 @@ public class WebServerCore<API>
         return JSON.getRender(beanProvider);
     }
 
+    protected O<F1<String, Object>>
+    getParameterConverter(String paramName, Type type, boolean isBody) {
+        return empty();
+    }
+
     public synchronized final void create(WebServerContext _env) {
         if (created) {
             return;
@@ -211,7 +211,7 @@ public class WebServerCore<API>
             final O<F1<Class<? extends Exception>, O<F2<Exception, WebRequestInnerContext, WebFilterOutput>>>> eCur =
                     getExceptionProcessors(of(method));
             final F2<String, WebRequestReadableOuterContext, ?> paramGetters =
-                    createParamGetters(methodInfo.getParamAndTypes(), methodInfo.getType() == WebMethodType.POST_BODY);
+                    createParamGetters(methodInfo, methodInfo.getType() == WebMethodType.POST_BODY);
 
             final sk.web.renders.WebRender foundRender = webApiMethod.getAnnotation(WebRender.class)
                     .flatMap($ -> $.getProvider() == WebRenderEmptyProvider.class
@@ -280,6 +280,8 @@ public class WebServerCore<API>
                 case POST_MULTI, POST_FORM, POST_BODY ->
                         env.addPost(methodInfo.getFullMethodPath(), outerProcessor, false, of(methodInfo));
                 case GET -> env.addGet(methodInfo.getFullMethodPath(), outerProcessor, of(methodInfo));
+                case PUT, PATCH, DELETE -> env.addRoute(methodInfo.getType().getSimpleMethod(),
+                        methodInfo.getFullMethodPath(), outerProcessor, of(methodInfo));
             }
         }
 
@@ -420,6 +422,15 @@ public class WebServerCore<API>
             );
             _env.addGet(path, webRequestProcessor);
         }
+
+        public void addRoute(String httpMethod, String path, C1<WebRequestOuterFullContext> webRequestProcessor,
+                O<WebMethodInfo> methodInfo) {
+            methodInfo.ifPresentOrElse(
+                    $ -> info.getOtherMethods().add(OneOf.left($)),
+                    () -> info.getOtherMethods().add(OneOf.right(httpMethod + " " + path))
+            );
+            _env.addRoute(httpMethod, path, webRequestProcessor);
+        }
     }
 
     @RequiredArgsConstructor
@@ -427,6 +438,7 @@ public class WebServerCore<API>
         final String apiClassName;
         @Getter final List<OneOf<WebMethodInfo, String>> getMethods = Cc.l();
         @Getter final List<OneOf<WebMethodInfo, String>> postMethods = Cc.l();
+        @Getter final List<OneOf<WebMethodInfo, String>> otherMethods = Cc.l();
 
         final F1<List<OneOf<WebMethodInfo, String>>, SortedMap<String, String>> converter = x -> x.stream()
                 .map($ -> {
@@ -435,7 +447,8 @@ public class WebServerCore<API>
                                     .sorted()
                                     .collect(joining(",")), s -> "");
                     final X2<String, String> x1 = X.x(
-                            $.collect(w -> String.format("%s %s(%s)",
+                            $.collect(w -> String.format("%s %s %s(%s)",
+                                            w.getType().getSimpleMethod(),
                                             St.subLL(w.getReturnValue().getTypeName(), "."),
                                             w.getFullMethodPath(),
                                             Cc.join(", ", w.getParamAndTypes(),
@@ -449,7 +462,8 @@ public class WebServerCore<API>
                         X2::i2, (String a, String b) -> a, TreeMap::new));
 
         public WebServerShortInfo toShortInfo() {
-            return new WebServerShortInfo(apiClassName, converter.apply(getMethods), converter.apply(postMethods));
+            return new WebServerShortInfo(apiClassName, converter.apply(getMethods), converter.apply(postMethods),
+                    converter.apply(otherMethods));
         }
     }
 
@@ -458,6 +472,7 @@ public class WebServerCore<API>
         final String apiClassName;
         final SortedMap<String, String> getMethods;
         final SortedMap<String, String> postMethods;
+        final SortedMap<String, String> otherMethods;
     }
 
 
@@ -466,16 +481,21 @@ public class WebServerCore<API>
         return (annotation.isPresent() && annotation.get().forceMultipart());
     }
 
-    private F2<String, WebRequestReadableOuterContext, ?> createParamGetters(List<WebMethodInfo.ParameterNameAndType> params,
-            boolean onlyBody) {
+    private F2<String, WebRequestReadableOuterContext, ?> createParamGetters(WebMethodInfo methodInfo, boolean onlyBody) {
+        List<WebMethodInfo.ParameterNameAndType> params = methodInfo.getParamAndTypes();
         Map<String, F1<WebRequestReadableOuterContext, ?>> cachedInvokers = Cc.m();
         if (params.size() != 1 && onlyBody) {
             return except.throwByDescription("Not one parameter, but should be only one for body");
         }
+        long bodyParams = params.stream().filter(WebMethodInfo.ParameterNameAndType::isBody).count();
+        if (bodyParams > 1 || (bodyParams == 1 && !methodInfo.getType().canHaveBody())) {
+            return except.throwByDescription("At most one @WebBody parameter is allowed, and not on GET: " +
+                                             methodInfo.getFullMethodPath());
+        }
         for (int i = 0; i < params.size(); i++) {
             WebMethodInfo.ParameterNameAndType nt = params.get(i);
             F1<WebRequestReadableOuterContext, Object> oneParameter =
-                    getOneParameter(nt.getName(), nt.getType().getType(), false, onlyBody, nt.isMerging());
+                    getOneParameter(nt.getName(), nt.getType().getType(), false, onlyBody || nt.isBody(), nt.isMerging());
             cachedInvokers.put(nt.getName(), oneParameter);
         }
         return (param, webRequestContext) -> cachedInvokers.get(param).apply(webRequestContext);
@@ -483,17 +503,22 @@ public class WebServerCore<API>
 
     private F1<WebRequestReadableOuterContext, Object> getOneParameter(String paramName, Type type, boolean nullAllowed,
             boolean onlyBody, boolean isMerged) {
-        if (type instanceof ParameterizedType) {
-            Type[] typePar = ((ParameterizedType) type).getActualTypeArguments();
-            if (((ParameterizedType) type).getRawType() == O.class) {
-                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody, false)
-                        .andThen(O::ofNullable);
-            } else if (((ParameterizedType) type).getRawType() == Optional.class) {
-                return getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody, false)
-                        .andThen(Optional::ofNullable);
-            } else {
-                return fromString(paramName, nullAllowed, s -> json.from(s, TypeWrap.raw(type)), onlyBody);
-            }
+        if (type instanceof ParameterizedType parameterized
+            && (parameterized.getRawType() == O.class || parameterized.getRawType() == Optional.class)) {
+            Type[] typePar = parameterized.getActualTypeArguments();
+            F1<WebRequestReadableOuterContext, Object> inner =
+                    getOneParameter(paramName, typePar.length > 0 ? typePar[0] : Object.class, true, onlyBody, false);
+            return parameterized.getRawType() == O.class
+                   ? inner.andThen(O::ofNullable)
+                   : inner.andThen(Optional::ofNullable);
+        }
+        final O<F1<String, Object>> customConverter = type == byte[].class || isMerged
+                                                      ? empty()
+                                                      : getParameterConverter(paramName, type, onlyBody);
+        if (customConverter.isPresent()) {
+            return fromString(paramName, nullAllowed, customConverter.get(), onlyBody);
+        } else if (type instanceof ParameterizedType) {
+            return fromString(paramName, nullAllowed, s -> json.from(s, TypeWrap.raw(type)), onlyBody);
         } else if (type == String.class) {
             return fromString(paramName, nullAllowed, s -> s, onlyBody);
         } else if (type == boolean.class) {
@@ -523,7 +548,7 @@ public class WebServerCore<API>
                     onlyBody);
         } else if (type == byte[].class) {
             return w -> (onlyBody ? w.getBody() : w.getParamAsBytes(paramName))
-                    .orElseGet(() -> (byte[]) NON_NULL_CHECK.apply(paramName, nullAllowed).get());
+                    .orElseGet(() -> (byte[]) missingParameter(paramName, nullAllowed, onlyBody));
         } else if (isMerged) {
             Class cls = (Class) type;
             return ctx -> {
@@ -546,18 +571,29 @@ public class WebServerCore<API>
         }
     }
 
+    private Object missingParameter(String paramName, boolean nullAllowed, boolean isBody) {
+        if (nullAllowed) {
+            return null;
+        }
+        throw new WebParameterException(paramName, WebParameterException.Kind.MISSING, isBody, empty(), empty(),
+                webExcept.getMissingParameterProblem(paramName, true));
+    }
+
     private F1<WebRequestReadableOuterContext, Object>
     fromString(String paramName, boolean nullAllowed, F1<String, Object> transform, boolean isBody) {
         return w -> (isBody ? w.getBody().map($ -> bytesToS($)) : w.getParamAsString(paramName))
                 .map((t) -> {
                     try {
                         return transform.apply(t);
+                    } catch (WebParameterException e) {
+                        throw e;
                     } catch (Exception e) {
-                        return webExcept.throwBySubstatus(400, "coerce_error",
-                                "Wrong value:'" + t + "' for parameter:'" + paramName + "'");
+                        throw new WebParameterException(paramName, WebParameterException.Kind.MALFORMED, isBody, of(t), of(e),
+                                JskProblem.substatus("coerce_error",
+                                        "Wrong value:'" + t + "' for parameter:'" + paramName + "'"));
                     }
                 })
-                .orElseGet(NON_NULL_CHECK.apply(paramName, nullAllowed));
+                .orElseGet(() -> missingParameter(paramName, nullAllowed, isBody));
     }
 
     private WebServerFilterNext invokeBaseMethodSupplier(Method method, F2<String, WebRequestReadableOuterContext, ?> paramGetter,

@@ -105,6 +105,19 @@ class ErrorEventFactoryTest extends JskMockitoTest {
     }
 
     @Test
+    void browserErrorsKeepTheirSourceAndPageAndUseTheSharedRedactionAndBounds() {
+        String stack = "Error: secret\n" + "frame\n".repeat(MAX_TRACE_CHARS);
+        ErrorEvent event = factory.create(new ErrorOccurrence.Browser("portal web", "TypeError", "failed secret", stack, "/compare", 0));
+        assertEquals("portal web", event.service());
+        assertEquals("browser", event.kind());
+        assertEquals("TypeError", event.type());
+        assertEquals("failed [r]", event.message());
+        assertTrue(event.trace().startsWith("path: /compare\nError: [r]\n"));
+        assertEquals(MAX_TRACE_CHARS, event.trace().length());
+        assertEquals(List.of(), event.frames());
+    }
+
+    @Test
     void problemsAreIdentifiedByCodeAndApiMethod() {
         ErrorEvent event = factory.create(new ErrorOccurrence.Problem(503, "UPSTREAM_DOWN", null, "zen.Api.call", 0));
 

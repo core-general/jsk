@@ -50,6 +50,10 @@ public interface WebRequestReadableOuterContext {
 
     O<String> getParamAsString(String param);
 
+    default List<String> getParamValues(String param) {
+        return getParamAsString(param).map(List::of).orElse(List.of());
+    }
+
     O<byte[]> getParamAsBytes(String param);
 
     O<byte[]> getBody();

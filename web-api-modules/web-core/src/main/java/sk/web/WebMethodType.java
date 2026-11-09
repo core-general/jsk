@@ -25,9 +25,20 @@ public enum WebMethodType {
     POST_MULTI,
     POST_FORM,
     POST_BODY,
-    GET;
+    GET,
+    PUT,
+    PATCH,
+    DELETE;
 
     public String getSimpleMethod() {
-        return name().startsWith("POST") ? "POST" : "GET";
+        return name().startsWith("POST") ? "POST" : name();
+    }
+
+    public boolean isPost() {
+        return name().startsWith("POST");
+    }
+
+    public boolean canHaveBody() {
+        return this != GET;
     }
 }

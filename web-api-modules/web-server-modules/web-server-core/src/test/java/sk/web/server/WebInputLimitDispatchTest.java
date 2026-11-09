@@ -101,6 +101,11 @@ class WebInputLimitDispatchTest {
             public void addGet(String path, C1<WebRequestOuterFullContext> value) {
                 throw new AssertionError(path);
             }
+
+            @Override
+            public void addRoute(String httpMethod, String path, C1<WebRequestOuterFullContext> value) {
+                throw new AssertionError(path);
+            }
         });
         CapturingContext context = new CapturingContext();
 

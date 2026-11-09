@@ -111,6 +111,17 @@ public class QueueingErrorReporter implements ILoggedErrorReporter {
     }
 
     @Override
+    public void reportBrowser(String service, String type, String message, String stack, String path) {
+        if (!isSendingThread()) {
+            try {
+                offer(new ErrorOccurrence.Browser(service, type, message, stack, path, time.now()));
+            } catch (RuntimeException failure) {
+                countDropped(1);
+            }
+        }
+    }
+
+    @Override
     public void reportLogged(String logger, StackTraceElement site, String template, String message) {
         if (!isSendingThread()) {
             try {

@@ -673,7 +673,7 @@ class BCrypt {
         if (salt.charAt(0) != '$' || salt.charAt(1) != '2') {throw new IllegalArgumentException("Invalid salt version");}
         if (salt.charAt(2) == '$') {off = 3;} else {
             minor = salt.charAt(2);
-            if (minor != 'a' || salt.charAt(3) != '$') {throw new IllegalArgumentException("Invalid salt revision");}
+            if ((minor != 'a' && minor != 'b' && minor != 'y') || salt.charAt(3) != '$') {throw new IllegalArgumentException("Invalid salt revision");}
             off = 4;
         }
 
